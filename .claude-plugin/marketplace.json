@@ -1,0 +1,15 @@
+{
+  "name": "strategic-change-marketplace",
+  "owner": {
+    "name": "Colonel T",
+    "email": "coloneltan@gmail.com"
+  },
+  "plugins": [
+    {
+      "name": "strategic-change",
+      "source": "./",
+      "description": "Consulting-framework skills for diagnosing and managing organizational change (DICE, Kotter's 8-Step, Technical vs. Adaptive, Theory E/O, Persuasion, Tipping Point, Immunity to Change, Six Steps, Productive Distress, Critical Few Behaviours, Dual Operating System, Network Position) plus a multi-framework assessment orchestrator.",
+      "version": "1.0.0"
+    }
+  ]
+}
