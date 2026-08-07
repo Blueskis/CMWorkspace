@@ -1,0 +1,26 @@
+{
+  "_comment": "Example only. Copy to template_map.json next to your real template and replace the layout references with values from that template's profile (profile_template.py prints them). Layout refs may be a part stem (slideLayout3) or the layout's name.",
+  "template": "firm-proposal-template.potx",
+  "default_layout": "slideLayout2",
+  "sections": {
+    "cover": { "layout": "Title Slide", "notes": "Client name, RFP reference, date" },
+    "executive-summary": { "layout": "Title and Content" },
+    "understanding": { "layout": "Two Content", "notes": "Their drivers left, our read right" },
+    "methodology": { "layout": "Process Flow", "notes": "Phase diagram — not bullets" },
+    "stakeholder-engagement": { "layout": "Two Content" },
+    "training": { "layout": "Title and Content" },
+    "governance": { "layout": "Table" },
+    "case-studies": { "layout": "Case Study", "notes": "One per slide; metric callout" },
+    "team": { "layout": "Team Grid", "notes": "Delete unused member groups entirely — image and text boxes both" },
+    "delivery-plan": { "layout": "Timeline" },
+    "commercials": { "layout": "Table" },
+    "why-us": { "layout": "Section Header" },
+    "compliance-matrix": { "layout": "Table" }
+  },
+  "rules": {
+    "vary_layouts": true,
+    "_vary_layouts_note": "Never run more than two consecutive slides on the same layout — mapped sections spanning 3+ slides should alternate.",
+    "respect_theme_fonts": true,
+    "_respect_theme_fonts_note": "Inherit fonts and colours from the template theme. Do not set explicit fonts or hex colours; that is how a deck silently drifts off-template."
+  }
+}

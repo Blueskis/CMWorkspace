@@ -19,8 +19,63 @@ A Claude Code plugin bundling 12 change-management consulting framework skills p
 | `dual-operating-system` | Kotter's Dual Operating System (Accelerate) |
 | `network-position` | Organizational network analysis / stakeholder mapping |
 | `strategic-change-assessment` | Orchestrator — runs a project narrative through whichever of the above are suitable and synthesizes findings across them |
+| `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck built on the firm's approved template, populated from a knowledge bank |
 
-Each skill's frontmatter `name:` field carries a `-v1.0` suffix (e.g. `dice-framework-v1.0`), marking this as the post-review baseline — all 12 framework skills were live-tested via the Skill tool before this bundle was packaged.
+Each framework skill's frontmatter `name:` field carries a `-v1.0` suffix (e.g. `dice-framework-v1.0`), marking this as the post-review baseline — all 12 framework skills were live-tested via the Skill tool before this bundle was packaged. `cm-proposal-generator` is at `-v0.1`; see below.
+
+## Proposal generator (v0.1, MVP)
+
+Takes an RFP (plus briefing notes, stakeholder lists, whatever else the client sent) and
+produces a first-draft change-management proposal deck on the firm's approved PowerPoint
+template, written from the firm's own knowledge bank.
+
+Five stages, each writing an inspectable artifact so a run can be resumed or audited from
+any point:
+
+```
+RFP + client inputs ─▶ rfp_brief.json ─▶ proposal_plan.json ─▶ proposal.pptx ─▶ qa_report.md
+      INTAKE              PLAN + RETRIEVE          BUILD              QA
+```
+
+Two invariants the QA stage enforces mechanically, and the reason the intermediate
+artifacts exist at all:
+
+- **Provenance** — every content block traces to a knowledge-bank entry ID or carries an
+  explicit `[GAP]` marker. There's no third state, so an invented claim can't hide among
+  real credentials.
+- **Coverage** — every requirement extracted from the RFP maps to a section, and an
+  uncovered mandatory requirement fails the run rather than being quietly dropped.
+
+### Setup before first use
+
+1. **Drop the firm's approved template** into `proposal-assets/templates/` — see the
+   README there. The skill will stop and ask rather than build a lookalike.
+2. **Fill the knowledge bank** at `proposal-assets/knowledge-bank/` — see the README
+   there, and delete the `*-EXAMPLE.md` format exemplars so they can't be retrieved into a
+   real bid. A thin bank produces a deck full of `[GAP]`s, which is correct behaviour: it
+   reports what the firm hasn't written down yet.
+
+### What v0.1 does not do
+
+Pricing calculation, multi-lot bids, semantic search over the bank (retrieval is literal
+tag matching), and automated OOXML assembly — `build_deck.py` validates and sequences the
+build, then the `pptx` skill's template workflow executes it. Output is always a **draft
+for practitioner review**, never a submission-ready document.
+
+### Layout
+
+```
+skills/cm-proposal-generator/
+├── SKILL.md              # the five-stage process
+├── reference/            # section library, RFP extraction guide, KB guide
+├── schemas/              # rfp_brief, proposal_plan, kb_entry contracts
+└── scripts/              # index_kb, retrieve, profile_template, build_deck, qa_deck
+proposal-assets/
+├── templates/            # the firm's approved .potx + section→layout map
+└── knowledge-bank/       # methodology, case-studies, credentials, team, commercials, boilerplate
+```
+
+Scripts are stdlib-only and each runs standalone with `--help`.
 
 ## Installing on another machine
 
