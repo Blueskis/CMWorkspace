@@ -126,16 +126,42 @@ def render(result, plan):
             "",
         ] + [f"- {s}" for s in budget["cut_for_length"]] + [""]
 
+    html_path = str(plan.get("template", {}).get("path", "")).endswith(("html-generic",)) or \
+        plan.get("template", {}).get("kind") == "html"
+
+    if html_path:
+        lines += [
+            "## Remaining checks (run against the rendered .html)",
+            "",
+            "- [ ] open the deck and step through every slide — arrow keys or space",
+            "- [ ] **text overflow** — the most common defect; `.slide-body` clips rather than",
+            "      spilling, so an overflowing slide loses content silently. Check the bottom",
+            "      of every text-heavy slide, case studies first.",
+            "- [ ] leftover placeholder text (`lorem`, `[insert`, `xxx`, `TODO`)",
+            "- [ ] every `[GAP]` panel is visible and reads as an action, not as content",
+            "- [ ] slide count within the RFP's limit",
+            "- [ ] before sending to a client: re-render with `--sources hidden`, and confirm",
+            "      the RFP's required file format (usually PDF — print the deck with",
+            "      `?print-pdf` appended to the URL) and naming convention",
+            "",
+            "> The HTML path is the PoC renderer. The RFP's format requirement and the firm's",
+            "> approved template still govern what can actually be submitted.",
+            "",
+        ]
+    else:
+        lines += [
+            "## Remaining checks (run against the built .pptx via the pptx skill)",
+            "",
+            "- [ ] `markitdown proposal.pptx` — content order, typos, missing content",
+            "- [ ] placeholder grep for leftover template text (`lorem`, `[insert`, `xxx`, `TODO`)",
+            "- [ ] `validate.py proposal.pptx --original <approved-template>` — always pass `--original`",
+            "- [ ] visual QA on rendered slides — overflow, overlap, margins",
+            "- [ ] template fidelity — fonts, colours and layouts still the approved template's",
+            "- [ ] slide count within the RFP's limit; file named per its convention",
+            "",
+        ]
+
     lines += [
-        "## Remaining checks (run against the built .pptx via the pptx skill)",
-        "",
-        "- [ ] `markitdown proposal.pptx` — content order, typos, missing content",
-        "- [ ] placeholder grep for leftover template text (`lorem`, `[insert`, `xxx`, `TODO`)",
-        "- [ ] `validate.py proposal.pptx --original <approved-template>` — always pass `--original`",
-        "- [ ] visual QA on rendered slides — overflow, overlap, margins",
-        "- [ ] template fidelity — fonts, colours and layouts still the approved template's",
-        "- [ ] slide count within the RFP's limit; file named per its convention",
-        "",
         "## Handover",
         "",
         "This is a **first draft for practitioner review**, not a submission-ready document.",

@@ -25,7 +25,7 @@ This is v0.1. What it does and does not do:
 | One deck, one client, one RFP per run | Multi-lot / multi-workstream bids split across decks |
 | Sections from the section library below | Free-form custom sections invented per bid |
 | Knowledge-bank retrieval by section + tag match | Semantic/embedding search over the bank |
-| The firm's approved `.potx`/`.pptx` template | Generating a template, or restyling an off-template deck |
+| A self-contained HTML deck on a generic business template (PoC default), or the firm's approved `.potx` | Generating a template, or restyling an off-template deck |
 | Requirement-coverage and provenance QA | Pricing calculation, resourcing models, legal review |
 | A draft for the practitioner to edit | A submission-ready final document |
 
@@ -145,15 +145,50 @@ real client's name to a result recorded against a different engagement.
 
 ## Stage 4 — Build the deck
 
-Profile the approved template first — it tells you which layouts exist and what
-placeholders each one has:
+Two render targets. Both consume the same `proposal_plan.json` and are validated against
+the same template profile, so switching between them changes nothing upstream.
+
+**Profile the template first**, whichever kind it is — this is what a plan gets validated
+against, so a plan can only ever reference layouts the template actually has:
 
 ```bash
-python scripts/profile_template.py proposal-assets/templates/<firm>.potx -o proposals/<run>/template_profile.json
+# HTML template (a directory)
+python scripts/profile_template.py proposal-assets/templates/html-generic/ \
+    -o proposal-assets/templates/html-generic/template_profile.json
+
+# PowerPoint template (a file)
+python scripts/profile_template.py proposal-assets/templates/<firm>.potx \
+    -o proposals/<run>/template_profile.json
 ```
 
-Then invoke the **`pptx` skill** and follow its template workflow to build the deck. Two
-non-negotiables specific to this skill:
+### 4a. HTML deck — the current default
+
+```bash
+python scripts/render_html.py proposals/<run>/proposal_plan.json \
+    proposal-assets/templates/html-generic -o proposals/<run>/proposal.html
+```
+
+Produces one self-contained `.html` (CSS and JS inlined, no network, no server) that opens
+from disk. Arrow keys or space to advance; append `?print-pdf` to the URL and print to get
+a paginated PDF.
+
+The renderer refuses to paper over the plan's invariants: a `gap: true` block renders as a
+visible amber `[GAP]` panel, never as substitute text, and each slide's knowledge-bank
+source IDs render in the footer by default. Use `--sources hidden` only for a client-facing
+copy, once the practitioner has reviewed the provenance.
+
+**This is a proof-of-concept renderer on a generic business template, not the firm's
+approved one.** Say so when handing over. If the RFP mandates a file format — most do, and
+it is usually PDF — the HTML has to be printed to that format before it is submittable.
+
+Layouts live in `proposal-assets/templates/html-generic/layouts.html` and styling in
+`theme.css`. Both are editable without touching Python; re-run `profile_template.py` after
+changing layouts so the profile stays in step.
+
+### 4b. PowerPoint deck — the eventual target
+
+Run `scripts/build_deck.py` to validate and sequence the plan into a build manifest, then
+invoke the **`pptx` skill** and follow its template workflow. Two non-negotiables:
 
 - **Build from the approved template, never from scratch.** The deck must inherit the
   firm's master, theme, fonts, and colours. That means the unzip → edit
@@ -165,10 +200,8 @@ non-negotiables specific to this skill:
   has already made those decisions. Follow the template's own conventions and the layout
   mapping in `template_map.json`.
 
-`scripts/build_deck.py` is the intended automation for the mechanical part of this
-(duplicating layouts, filling placeholders from `proposal_plan.json`). See its docstring
-for the current state — where it can't yet do a slide, do that slide by hand through the
-`pptx` skill rather than degrading the plan to fit the script.
+Where the manifest can't express a slide, build that slide by hand through the `pptx`
+skill rather than degrading the plan to fit the script.
 
 ## Stage 5 — QA
 
@@ -183,12 +216,19 @@ any uncovered ID explicitly; do not quietly drop it.
 `[GAP]` in the report as an action item for the practitioner, with what's missing and
 which requirement it leaves exposed.
 
-**3. Template fidelity and deck health.** Run the `pptx` skill's QA in full — content QA
-(`markitdown`, including the placeholder-text grep), file QA
-(`validate.py output.pptx --original <template>` — always pass `--original` for a
-template-derived deck), and visual QA on the rendered slides. Additionally confirm no
-slide has drifted off-template: fonts, colours, and layouts should all still be the
-template's.
+**3. Deck health.** `qa_deck.py` prints the right checklist for whichever render target
+the plan used.
+
+For the **HTML** deck, open it and step through every slide. Text overflow is the defect
+to hunt first: `.slide-body` clips rather than spilling, so an overflowing slide drops
+content silently rather than visibly. Case-study slides carry the most text and overflow
+first.
+
+For the **.pptx** deck, run the `pptx` skill's QA in full — content QA (`markitdown`,
+including the placeholder-text grep), file QA (`validate.py output.pptx --original
+<template>` — always pass `--original` for a template-derived deck), and visual QA on the
+rendered slides. Additionally confirm no slide has drifted off-template: fonts, colours,
+and layouts should all still be the template's.
 
 Then deliver: the deck, the QA report, and a plain statement of what's still open — the
 `[GAP]`s, any uncovered requirement, anything cut for length, and the reminder that this
@@ -200,8 +240,13 @@ is a draft for their review.
   that's the correct behaviour — it's telling the practitioner what the firm hasn't
   written down yet. Don't paper over a thin bank with generated filler; point them at
   `reference/knowledge-bank-guide.md` to add entries instead.
-- If there's no approved template available, stop and ask for one rather than building an
-  approximation. "Company-approved template" is the whole requirement for this deliverable;
-  a lookalike fails it.
+- **The HTML template is a stand-in, and saying so is part of the handover.** It exists so
+  the pipeline can be exercised before the firm's approved template is available. Once
+  that template exists, profile it and switch to the `.pptx` path — nothing upstream of
+  Stage 4 changes. Never present an HTML deck built on the generic template as though it
+  were on the firm's template.
+- If the practitioner asks for a `.pptx` and there's no approved template available, stop
+  and ask for one rather than building an approximation. "Company-approved template" is
+  the whole requirement for that deliverable; a lookalike fails it.
 - Deadlines in RFPs are real. Surface the submission deadline early and mention it when
   you hand over the draft, especially if it's close.

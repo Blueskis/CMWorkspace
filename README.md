@@ -33,9 +33,14 @@ Five stages, each writing an inspectable artifact so a run can be resumed or aud
 any point:
 
 ```
-RFP + client inputs ─▶ rfp_brief.json ─▶ proposal_plan.json ─▶ proposal.pptx ─▶ qa_report.md
+RFP + client inputs ─▶ rfp_brief.json ─▶ proposal_plan.json ─▶ proposal.html ─▶ qa_report.md
       INTAKE              PLAN + RETRIEVE          BUILD              QA
 ```
+
+Stage 4 has two render targets off the same plan: a self-contained **HTML deck** on a
+generic business template (the current default, for proof of concept) and a **.pptx** on
+the firm's approved template (the eventual target). Both validate against the same
+template profile, so switching changes nothing upstream.
 
 Two invariants the QA stage enforces mechanically, and the reason the intermediate
 artifacts exist at all:
@@ -46,14 +51,32 @@ artifacts exist at all:
 - **Coverage** — every requirement extracted from the RFP maps to a section, and an
   uncovered mandatory requirement fails the run rather than being quietly dropped.
 
-### Setup before first use
+### Try it
 
-1. **Drop the firm's approved template** into `proposal-assets/templates/` — see the
-   README there. The skill will stop and ask rather than build a lookalike.
-2. **Fill the knowledge bank** at `proposal-assets/knowledge-bank/` — see the README
+A complete worked example ships in `examples/acme-erp/` — fictional client, invented RFP:
+
+```bash
+python skills/cm-proposal-generator/scripts/render_html.py \
+    examples/acme-erp/proposal_plan.json \
+    proposal-assets/templates/html-generic -o /tmp/acme/proposal.html
+
+python skills/cm-proposal-generator/scripts/qa_deck.py \
+    examples/acme-erp/rfp_brief.json examples/acme-erp/proposal_plan.json \
+    -o /tmp/acme/qa_report.md
+```
+
+12 slides, 8/8 requirements covered, 1 open `[GAP]`. See that folder's README for what
+each part demonstrates.
+
+### Setup before real use
+
+1. **Fill the knowledge bank** at `proposal-assets/knowledge-bank/` — see the README
    there, and delete the `*-EXAMPLE.md` format exemplars so they can't be retrieved into a
    real bid. A thin bank produces a deck full of `[GAP]`s, which is correct behaviour: it
    reports what the firm hasn't written down yet.
+2. **Drop the firm's approved template** into `proposal-assets/templates/` when switching
+   off the PoC HTML renderer — see the README there. The skill will stop and ask rather
+   than build a lookalike.
 
 ### What v0.1 does not do
 
@@ -69,10 +92,13 @@ skills/cm-proposal-generator/
 ├── SKILL.md              # the five-stage process
 ├── reference/            # section library, RFP extraction guide, KB guide
 ├── schemas/              # rfp_brief, proposal_plan, kb_entry contracts
-└── scripts/              # index_kb, retrieve, profile_template, build_deck, qa_deck
+└── scripts/              # index_kb, retrieve, profile_template, build_deck,
+                          #   render_html, qa_deck
 proposal-assets/
-├── templates/            # the firm's approved .potx + section→layout map
+├── templates/
+│   └── html-generic/     # PoC template: 9 layouts, theme, vendored reveal.js (MIT)
 └── knowledge-bank/       # methodology, case-studies, credentials, team, commercials, boilerplate
+examples/acme-erp/        # worked example — fictional client
 ```
 
 Scripts are stdlib-only and each runs standalone with `--help`.

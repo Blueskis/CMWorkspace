@@ -72,13 +72,18 @@ def build(plan, profile):
                         f"'{layout_ref}'. Available: {', '.join(sorted(keys))}"
                     )
                     continue
+                is_gap = bool(block.get("gap"))
                 fills.append(
                     {
                         "placeholder": target,
                         "kind": block["kind"],
-                        "content": "[GAP] " + block.get("gap_note", "") if block.get("gap")
+                        # For a gap, content carries the marker so the pptx path can be
+                        # followed by hand from the manifest alone; gap_note is passed
+                        # through separately for renderers that present it themselves.
+                        "content": "[GAP] " + block.get("gap_note", "") if is_gap
                         else block["content"],
-                        "gap": bool(block.get("gap")),
+                        "gap": is_gap,
+                        "gap_note": block.get("gap_note") if is_gap else None,
                         "sources": block.get("sources", []),
                     }
                 )

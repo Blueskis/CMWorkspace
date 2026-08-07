@@ -60,7 +60,10 @@
                     "required": ["placeholder", "kind", "content", "sources"],
                     "properties": {
                       "placeholder": { "type": "string", "description": "Placeholder name/idx from the template profile" },
-                      "kind": { "enum": ["heading", "paragraph", "bullets", "table", "metric", "image", "notes"] },
+                      "kind": {
+                        "enum": ["text", "heading", "paragraph", "bullets", "table", "metric", "phases", "members", "image", "notes"],
+                        "description": "Use 'text' for placeholders the layout already wraps in an element of its own (a title slot, a column heading); 'heading' emits its own <h3> and nests wrongly there. 'phases' and 'members' take arrays of objects — see the renderer."
+                      },
                       "content": {
                         "description": "String for prose, array for bullets, object for table/metric",
                         "type": ["string", "array", "object"]
