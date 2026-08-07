@@ -1,6 +1,6 @@
 ---
 name: cm-proposal-generator-v0.1
-description: Generates a change-management proposal deck (.pptx) from an RFP and other client inputs, built on the firm's approved PowerPoint template and populated from a curated knowledge bank of methodology, case studies, credentials, team bios, and commercial boilerplate. Runs a five-stage pipeline — parse the RFP into a structured brief, plan the proposal sections against the client's stated requirements and evaluation criteria, retrieve matching knowledge-bank content, build the deck on the approved template, then QA it for requirement coverage and template fidelity. Use whenever a CM practitioner wants to draft, assemble, or respond to an RFP, ITT, RFI, or client brief with a proposal, pitch, or bid deck — phrases like "generate a proposal from this RFP", "draft a CM proposal", "respond to this tender", "build a pitch deck for this client", "we've been invited to bid". Do NOT use for diagnosing an existing change initiative — that's the strategic-change-assessment skill.
+description: Generates a change-management proposal deck from an RFP and other client inputs, built on an approved slide template and populated from a curated knowledge bank of methodology, case studies, credentials, team bios, and commercial boilerplate. Runs a five-stage pipeline — parse the RFP into a structured brief, plan the proposal sections against the client's stated requirements and evaluation criteria, retrieve matching knowledge-bank content, build the deck on the template, then QA it for requirement coverage and template fidelity. Use whenever a CM practitioner wants to draft, assemble, or respond to an RFP, ITT, RFI, or client brief with a proposal, pitch, or bid deck — phrases like "generate a proposal from this RFP", "draft a CM proposal", "respond to this tender", "build a pitch deck for this client", "we've been invited to bid". Do NOT use for diagnosing or assessing an existing change initiative — this skill writes bids, it does not analyse programmes.
 ---
 
 # CM Proposal Generator
@@ -108,15 +108,20 @@ Rules that matter more than the library itself:
    over-length submissions get disqualified. If the plan won't fit, cut sections by
    evaluation weight — lowest weight goes first — and say what you cut.
 
-### Framework integration
+### Diagnostic methods in the approach sections
 
-The proposal's methodology and approach sections should draw on this plugin's diagnostic
-framework skills where the RFP gives grounds for it — e.g. citing a DICE-based delivery
-risk review as part of the governance offer, or a technical-vs-adaptive read to justify
-the shape of the engagement. Reference them as *methods we would apply*, not as findings:
-we haven't run them on this client yet, and claiming otherwise in a bid is a real problem.
-If the practitioner wants an actual diagnostic run on the client's situation first, invoke
-`strategic-change-assessment-v1.0` and feed its output in as a client input.
+Methodology and approach sections often need to name the diagnostic methods we'd apply —
+a structured delivery-risk review at phase gates, a read on whether the change is
+technical or adaptive, a stakeholder-network analysis. Take these from the knowledge
+bank's `methodology` entries like any other content, so they carry sources like any other
+content.
+
+Two rules regardless of where a method comes from:
+
+- **Reference them as *methods we would apply*, not as findings.** We haven't run anything
+  on this client yet, and implying otherwise in a bid is a real problem.
+- **If the practitioner wants an actual diagnostic run on the client's situation first**,
+  that's separate work — run it, then feed its output in as a client input at Stage 1.
 
 ## Stage 3 — Knowledge-bank retrieval
 

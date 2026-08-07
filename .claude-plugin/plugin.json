@@ -1,5 +1,5 @@
 {
-  "name": "strategic-change",
-  "version": "1.1.0",
-  "description": "Consulting-framework skills for diagnosing and managing organizational change — DICE, Kotter's 8-Step, Technical vs. Adaptive, Theory E/O, Persuasion, Tipping Point, Immunity to Change, Six Steps, Productive Distress, Critical Few Behaviours, Dual Operating System, Network Position — plus a multi-framework assessment orchestrator and an RFP-to-proposal deck generator."
+  "name": "cm-workspace",
+  "version": "0.1.0",
+  "description": "Change-management working tools. Currently: an RFP-to-proposal deck generator that plans a bid against the client's stated requirements and evaluation criteria, writes it from a curated knowledge bank, and audits the result for requirement coverage and content provenance."
 }

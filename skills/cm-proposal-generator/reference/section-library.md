@@ -38,7 +38,7 @@ orders from this list — it is a library, not a mandatory sequence.
 - **Purpose**: how we identify, segment, and engage the affected population.
 - **Slides**: 1–3
 - **kb_section**: `methodology`
-- **Evidence needed**: engagement approach, comms planning artifacts, stakeholder mapping method (`network-position-v1.0` is the relevant in-plugin method).
+- **Evidence needed**: engagement approach, comms planning artifacts, and the stakeholder mapping method the firm uses — network analysis to surface informal influencers is the usual one, and it needs a knowledge-bank entry to be citable.
 - **Watch for**: frequently scored separately from the main approach — check the criteria before folding it into section 4.
 
 ### 6. Training & Capability Building
@@ -52,7 +52,7 @@ orders from this list — it is a library, not a mandatory sequence.
 - **Purpose**: how the client sees progress and how we know it's working.
 - **Slides**: 1–2
 - **kb_section**: `methodology`
-- **Evidence needed**: adoption metrics, reporting cadence, escalation routes. `dice-framework-v1.0` fits naturally here as a recurring delivery-risk review.
+- **Evidence needed**: adoption metrics, reporting cadence, escalation routes. A recurring structured delivery-risk review at phase gates fits naturally here.
 - **Watch for**: name real metrics, not "KPIs to be agreed." Clients read that as "we haven't thought about it."
 
 ### 8. Relevant Experience / Case Studies
