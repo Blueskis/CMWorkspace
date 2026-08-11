@@ -1,0 +1,1541 @@
+<title>Cutover Communications Plan</title>
+<style>
+:root{
+  color-scheme:light;
+  --ground:#F3F5F3; --surface:#FFFFFF; --surface-2:#ECEFED; --raised:#FFFFFF;
+  --ink:#141918; --ink-2:#3B4644; --muted:#5C6866; --faint:#8B9794;
+  --hairline:#D9DEDB; --hairline-strong:#BFC7C4;
+  --accent:#0B5C4E; --accent-ink:#FFFFFF; --accent-soft:#E2EDE9; --accent-line:#9CC3B8;
+  --warn:#8A5600; --warn-soft:#FBF0DC;
+  --crit:#A32E22; --crit-soft:#FAE6E3;
+  --link-cell:#FBF3E2;
+  --shadow:0 1px 2px rgba(20,25,24,.06), 0 8px 24px -16px rgba(20,25,24,.28);
+  --serif:ui-serif,Georgia,"Iowan Old Style","Times New Roman",serif;
+  --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --mono:ui-monospace,"SF Mono","Cascadia Mono","Roboto Mono",Menlo,Consolas,monospace;
+  --r:6px;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ground:#0F1413; --surface:#161C1B; --surface-2:#1D2523; --raised:#1A2120;
+    --ink:#E7ECEA; --ink-2:#C3CDCA; --muted:#8F9C99; --faint:#6C7976;
+    --hairline:#28302E; --hairline-strong:#3A4441;
+    --accent:#57C4AA; --accent-ink:#06211C; --accent-soft:#16302A; --accent-line:#2F5F54;
+    --warn:#E0A64B; --warn-soft:#33280F;
+    --crit:#E8867A; --crit-soft:#3A1F1B;
+    --link-cell:#2A2415;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --ground:#0F1413; --surface:#161C1B; --surface-2:#1D2523; --raised:#1A2120;
+  --ink:#E7ECEA; --ink-2:#C3CDCA; --muted:#8F9C99; --faint:#6C7976;
+  --hairline:#28302E; --hairline-strong:#3A4441;
+  --accent:#57C4AA; --accent-ink:#06211C; --accent-soft:#16302A; --accent-line:#2F5F54;
+  --warn:#E0A64B; --warn-soft:#33280F;
+  --crit:#E8867A; --crit-soft:#3A1F1B;
+  --link-cell:#2A2415;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:var(--sans); font-size:15px; line-height:1.5;
+  margin:0; padding:0 20px 140px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1120px;margin:0 auto}
+
+/* ---------- masthead ---------- */
+.masthead{
+  display:flex;flex-wrap:wrap;gap:20px;align-items:flex-end;justify-content:space-between;
+  padding:34px 0 18px;border-bottom:1px solid var(--hairline);
+}
+.eyebrow{
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 8px;
+}
+h1{
+  font-family:var(--serif);font-weight:600;font-size:clamp(26px,3.4vw,38px);
+  line-height:1.12;margin:0;letter-spacing:-.01em;text-wrap:balance;
+}
+h1 .field{display:inline-block;min-width:6ch}
+.masthead-meta{display:flex;gap:26px;align-items:flex-end;flex-wrap:wrap}
+.metric{display:flex;flex-direction:column;gap:3px}
+.metric .k{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.metric .v{font-family:var(--mono);font-size:22px;font-variant-numeric:tabular-nums;line-height:1;color:var(--ink)}
+.metric .v.ok{color:var(--accent)}
+.metric .v.warn{color:var(--warn)}
+.metric .v.crit{color:var(--crit)}
+
+/* ---------- editable fields ---------- */
+.field{
+  font:inherit;color:inherit;background:transparent;border:0;border-bottom:1px dashed var(--hairline-strong);
+  padding:1px 2px;border-radius:2px;
+}
+.field:hover{background:var(--surface-2)}
+.field:focus{outline:2px solid var(--accent);outline-offset:1px;background:var(--surface);border-bottom-color:transparent}
+input.field,select.field,textarea.field{width:100%;display:block}
+input[type="date"].field{font-family:var(--mono);font-variant-numeric:tabular-nums}
+textarea.field{resize:vertical;min-height:62px;line-height:1.45}
+select.field{border:1px solid var(--hairline-strong);border-radius:var(--r);padding:6px 8px;background:var(--surface)}
+
+/* ---------- panels ---------- */
+section{margin-top:26px}
+.panel{
+  background:var(--surface);border:1px solid var(--hairline);border-radius:var(--r);
+  box-shadow:var(--shadow);
+}
+.panel-head{
+  display:flex;align-items:center;justify-content:space-between;gap:14px;
+  padding:13px 16px;border-bottom:1px solid var(--hairline);
+}
+.panel-head h2{
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:600;color:var(--muted);margin:0;
+}
+.panel-body{padding:16px}
+
+/* ---------- setup ---------- */
+.setup-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:20px}
+.fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:9px;min-width:0}
+.legend{
+  font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--muted);
+}
+.choice{
+  display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border:1px solid var(--hairline);
+  border-radius:var(--r);cursor:pointer;background:var(--surface);
+}
+.choice:hover{border-color:var(--accent-line)}
+.choice input{margin:3px 0 0;accent-color:var(--accent);flex:none}
+.choice:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.choice:has(input:focus-visible){outline:2px solid var(--accent);outline-offset:1px}
+.choice .t{font-size:14px;line-height:1.35}
+.choice .d{font-size:12px;color:var(--muted);line-height:1.4;display:block;margin-top:2px}
+.choice .tag{font-family:var(--mono);font-size:11px;color:var(--accent);white-space:nowrap}
+.count-in{
+  width:52px;font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:center;
+  border:1px solid var(--hairline-strong);border-radius:4px;background:var(--surface);
+  color:var(--ink);padding:2px 4px;margin-left:auto;flex:none;
+}
+.stack{display:flex;flex-direction:column;gap:5px}
+.stack label{font-size:12px;color:var(--muted)}
+
+/* ---------- rule math readout ---------- */
+.readout{
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:8px 10px;
+  font-family:var(--mono);font-size:13px;font-variant-numeric:tabular-nums;
+  padding:14px 16px;background:var(--surface-2);border:1px solid var(--hairline);
+  border-radius:var(--r);line-height:1.7;
+}
+.readout .term{color:var(--ink-2);white-space:nowrap}
+.readout .term b{font-weight:600;color:var(--ink)}
+.readout .op{color:var(--faint)}
+.readout .total{
+  margin-left:auto;background:var(--accent);color:var(--accent-ink);
+  padding:4px 11px;border-radius:100px;font-weight:600;white-space:nowrap;
+}
+.tierline{
+  font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);margin-top:9px;
+}
+
+/* ---------- ledger ---------- */
+.ledger{display:flex;flex-direction:column;gap:0}
+.threshold{
+  display:flex;align-items:center;gap:14px;padding:20px 16px 20px 0;
+}
+.threshold .bar{height:3px;background:var(--accent);flex:1;border-radius:2px}
+.threshold .lbl{
+  font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent-ink);background:var(--accent);padding:4px 12px;border-radius:100px;
+  white-space:nowrap;font-weight:600;
+}
+.row{border-bottom:1px solid var(--hairline)}
+.row:first-child{border-top:1px solid var(--hairline)}
+.row.flagged{background:var(--crit-soft)}
+.row.flagged-warn{background:var(--warn-soft)}
+.row-summary{
+  display:grid;grid-template-columns:96px 1fr auto;gap:14px;align-items:center;
+  width:100%;text-align:left;background:transparent;border:0;color:inherit;font:inherit;
+  padding:12px 14px 12px 0;cursor:pointer;
+}
+.row-summary:hover{background:var(--surface-2)}
+.row-summary:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.marker{
+  font-family:var(--mono);font-size:12px;font-variant-numeric:tabular-nums;letter-spacing:.04em;
+  color:var(--ink);border-left:3px solid var(--hairline-strong);padding:3px 0 3px 11px;
+  display:flex;flex-direction:column;gap:2px;
+}
+.marker .after{color:var(--accent)}
+.row.post .marker{border-left-color:var(--accent)}
+.marker .sub{font-size:10px;color:var(--faint);letter-spacing:.08em}
+.row-title{min-width:0}
+.row-title .t{font-size:14.5px;line-height:1.35;overflow-wrap:anywhere}
+.row-title .m{font-size:12px;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap}
+.row-title .m span{white-space:nowrap}
+.row-tail{display:flex;align-items:center;gap:10px}
+.pill{
+  font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+  padding:3px 9px;border-radius:100px;border:1px solid var(--hairline-strong);color:var(--muted);
+  white-space:nowrap;
+}
+.pill.mod{border-color:var(--accent-line);color:var(--accent)}
+.pill.st-sent,.pill.st-approved,.pill.st-scheduled{border-color:var(--accent-line);color:var(--accent)}
+.chev{color:var(--faint);transition:transform .15s ease;flex:none}
+.row.open .chev{transform:rotate(90deg)}
+.row-detail{display:none;padding:4px 14px 22px 0}
+.row.open .row-detail{display:block}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px}
+.detail-grid .wide{grid-column:1/-1}
+.f{display:flex;flex-direction:column;gap:4px;min-width:0}
+.f > label{
+  font-family:var(--mono);font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);
+}
+.f .help{font-size:11.5px;color:var(--faint);line-height:1.4}
+.f.link-field input{background:var(--link-cell);border-radius:4px;padding:6px 8px;border-bottom-style:solid}
+.row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:14px;border-top:1px solid var(--hairline)}
+
+/* ---------- checks ---------- */
+.checks{display:flex;flex-direction:column}
+.check{
+  display:grid;grid-template-columns:auto 1fr;gap:11px;align-items:start;
+  padding:11px 16px;border-bottom:1px solid var(--hairline);width:100%;text-align:left;
+  background:transparent;border-left:0;border-right:0;border-top:0;color:inherit;font:inherit;
+}
+.check:last-child{border-bottom:0}
+button.check{cursor:pointer}
+button.check:hover{background:var(--surface-2)}
+button.check:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.dot{width:9px;height:9px;border-radius:50%;margin-top:6px;flex:none;background:var(--accent)}
+.check.attention .dot{background:var(--warn)}
+.check.blocker .dot{background:var(--crit)}
+.check .lab{font-size:13.5px;line-height:1.35}
+.check .det{font-size:12px;color:var(--muted);margin-top:2px;line-height:1.4}
+.check.attention .det{color:var(--warn)}
+.check.blocker .det{color:var(--crit)}
+
+/* ---------- buttons / bar ---------- */
+.btn{
+  font-family:var(--sans);font-size:13px;font-weight:500;line-height:1;
+  padding:9px 14px;border-radius:var(--r);border:1px solid var(--hairline-strong);
+  background:var(--surface);color:var(--ink);cursor:pointer;white-space:nowrap;
+}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.btn.primary:hover{color:var(--accent-ink);filter:brightness(1.08)}
+.btn.quiet{border-color:transparent;color:var(--muted);padding:9px 10px}
+.btn.quiet:hover{color:var(--crit);border-color:var(--hairline-strong)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.actionbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:20;
+  background:var(--surface);border-top:1px solid var(--hairline);
+  padding:11px 20px;box-shadow:0 -8px 24px -20px rgba(0,0,0,.5);
+}
+.actionbar .inner{
+  max-width:1120px;margin:0 auto;display:flex;gap:9px;align-items:center;flex-wrap:wrap;
+}
+.actionbar .note{
+  font-family:var(--mono);font-size:11px;color:var(--muted);margin-right:auto;
+  display:flex;align-items:center;gap:7px;min-width:0;
+}
+.actionbar .note span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+footer{margin-top:34px;padding-top:18px;border-top:1px solid var(--hairline);font-size:12.5px;color:var(--muted);line-height:1.6}
+footer code{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+
+@media (max-width:640px){
+  body{padding:0 14px 168px}
+  .row-summary{grid-template-columns:74px 1fr auto;gap:10px;padding-right:8px}
+  .masthead{padding-top:24px}
+  .row-tail .pill.mod{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media print{
+  .actionbar,.row-actions,#setup-panel,.btn{display:none!important}
+  .row-detail{display:block!important}
+  body{padding-bottom:0}
+}
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div>
+      <p class="eyebrow" id="type-label">Cutover communications plan</p>
+      <h1><input class="field" id="project" value="Finance ERP Upgrade" aria-label="Project name" size="24"></h1>
+    </div>
+    <div class="masthead-meta">
+      <div class="metric">
+        <span class="k">Go-live</span>
+        <input class="field v" id="golive" type="date" style="font-size:15px" aria-label="Go-live date">
+      </div>
+      <div class="metric"><span class="k">Comms</span><span class="v" id="m-count">0</span></div>
+      <div class="metric"><span class="k">Checks</span><span class="v" id="m-checks">—</span></div>
+    </div>
+  </header>
+
+  <section>
+    <div class="panel" id="setup-panel">
+      <div class="panel-head">
+        <h2>Cutover shape</h2>
+        <button class="btn" id="toggle-setup" aria-expanded="true" aria-controls="setup-body">Hide</button>
+      </div>
+      <div class="panel-body" id="setup-body">
+        <div class="setup-grid">
+          <fieldset class="fieldset">
+            <legend class="legend">Cutover type</legend>
+            <div id="types" class="stack" style="gap:8px"></div>
+          </fieldset>
+          <fieldset class="fieldset">
+            <legend class="legend">Complexity modifiers</legend>
+            <div id="mods" class="stack" style="gap:8px"></div>
+          </fieldset>
+          <fieldset class="fieldset">
+            <legend class="legend">Defaults applied to every row</legend>
+            <div class="stack"><label for="d-sponsor">Executive sponsor (sender)</label>
+              <input class="field" id="d-sponsor" value="CFO (Executive Sponsor)"></div>
+            <div class="stack"><label for="d-owner">Owner — drafts and sends</label>
+              <input class="field" id="d-owner" value="Change Management Lead"></div>
+            <div class="stack"><label for="d-approver">Approver — signs off</label>
+              <input class="field" id="d-approver" value="Cutover Manager"></div>
+            <div class="stack"><label for="d-audience">Primary audience</label>
+              <input class="field" id="d-audience" value="All Finance users"></div>
+            <div class="stack"><label for="d-system">System name used in copy</label>
+              <input class="field" id="d-system" value="Finance ERP"></div>
+          </fieldset>
+        </div>
+        <div class="row-actions" style="border-top:1px solid var(--hairline);margin-top:20px">
+          <button class="btn primary" id="generate">Generate plan</button>
+          <span style="font-size:12.5px;color:var(--muted);align-self:center">
+            Regenerating replaces every row and discards your edits.
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="readout" id="readout"></div>
+    <p class="tierline" id="tierline"></p>
+  </section>
+
+  <section>
+    <div class="panel">
+      <div class="panel-head">
+        <h2>Checks</h2>
+        <span style="font-size:12px;color:var(--muted)">Click a finding to jump to the rows</span>
+      </div>
+      <div class="checks" id="checks"></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="panel-head" style="padding-left:0;padding-right:0;border:0">
+      <h2>The plan &mdash; ordered by countdown to go-live</h2>
+      <button class="btn" id="expand-all">Expand all</button>
+    </div>
+    <div class="ledger" id="ledger"></div>
+    <div style="margin-top:16px"><button class="btn" id="add-row">Add a comms</button></div>
+  </section>
+
+  <footer>
+    <p>Comms volume is derived from the cutover type and its complexity modifiers, not guessed &mdash; the
+    readout above shows the arithmetic. <strong>Comms content link</strong> is deliberately blank: it is the
+    hook for the drafted content once it exists.</p>
+    <p style="margin-bottom:0">Export spec JSON round-trips into
+    <code>skills/cutover-comms-plan/scripts/build_comms_plan.py</code>, which can populate an existing
+    client template instead of a generated workbook.</p>
+  </footer>
+</div>
+
+<div class="actionbar">
+  <div class="inner">
+    <span class="note" id="savenote"><span>Ready</span></span>
+    <input type="file" id="import-file" accept=".json,application/json" class="sr">
+    <button class="btn" id="import">Import spec</button>
+    <button class="btn" id="export-json">Export spec JSON</button>
+    <button class="btn primary" id="export-xlsx">Export to Excel</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ==========================================================================
+   Line-item library — defaults per standard cutover comms.
+   order = position on the countdown axis (negative = before go-live).
+   offset = calendar days from go-live used to seed the send date.
+   ========================================================================== */
+const LIB = {
+  ext_notice:{milestone:"T-21",order:-21,offset:-21,
+    title:"Advance notice: {system} service interruption",
+    purpose:"Give external parties the lead time they need to plan around the cutover window, and meet any contractual notice period.",
+    audience:"External — customers / vendors / partners",
+    channel:"Customer notice",senderRole:"relationship",
+    approver:"{approver}; Comms/Legal",
+    dependencies:"Cutover window confirmed; external contact list; contractual notice periods checked",
+    notes:"External audiences need longer lead than internal ones."},
+
+  readiness:{milestone:"T-21",order:-20,offset:-21,
+    title:"Complete your {system} training before cutover",
+    purpose:"Chase the users who have not yet completed the readiness prerequisite, named individually rather than broadcast.",
+    audience:"Users with incomplete training",
+    channel:"Manager cascade",senderRole:"manager",
+    dependencies:"Completion report from the LMS; manager distribution lists",
+    notes:"Target non-completers only. A broadcast chaser teaches everyone to ignore it."},
+
+  t14:{milestone:"T-14",order:-14,offset:-14,
+    title:"{system} cutover: what's changing and when",
+    purpose:"Establish awareness of what is changing, when, and what will be unavailable — early enough that teams can plan work around the cutover window.",
+    channel:"Email (all-user)",senderRole:"sponsor",
+    dependencies:"Cutover window confirmed and locked; distribution list validated",
+    notes:"Sponsor voice on the first comms establishes legitimacy."},
+
+  t7:{milestone:"T-7",order:-7,offset:-7,
+    title:"One week to go: {system} cutover",
+    purpose:"Reinforce the dates, confirm the downtime window, and point users to training, job aids and the support model.",
+    channel:"Email (all-user)",senderRole:"programme",
+    dependencies:"Training and job aids published; support model and hypercare channel confirmed"},
+
+  action:{milestone:"T-3",order:-3,offset:-3,
+    title:"Action required before cutover: clear your open items",
+    purpose:"Drive the specific pre-cutover action — clear open items before the freeze — with the deadline and the steps.",
+    channel:"Email (all-user)",senderRole:"operational",
+    dependencies:"Freeze cut-off time confirmed in the runbook; step-by-step job aid drafted",
+    notes:"Send only to users who must act. Do not broadcast an action-required comms to people with no action."},
+
+  chaser:{milestone:"T-1",order:-1.4,offset:-1,
+    title:"Still outstanding: clear your open items today",
+    purpose:"Chase the users who have not completed the pre-cutover action, via their line manager.",
+    channel:"Manager cascade",senderRole:"manager",
+    dependencies:"Completion tracking report; manager distribution lists"},
+
+  t1:{milestone:"T-1",order:-1,offset:-1,
+    title:"Tomorrow: {system} goes offline",
+    purpose:"Final notice of the exact downtime start, what to close or save beforehand, and where to get support while the system is unavailable.",
+    channel:"Email (all-user) + Teams/Slack post",senderRole:"cutover",
+    dependencies:"Go/No-Go outcome; Service Desk briefed",
+    notes:"Do not pre-schedule to auto-send — this must wait on the Go/No-Go outcome."},
+
+  gonogo:{milestone:"Go/No-Go",order:-0.9,offset:-1,
+    title:"Go/No-Go outcome: {system} cutover",
+    purpose:"Confirm the decision taken at the gate — proceeding, delayed, or standing down — so nobody acts on the previous assumption.",
+    audience:"Cutover team; Service Desk; executive stakeholders",
+    channel:"Teams/Slack post",senderRole:"cutover",ownerRole:"cutover",
+    approver:"Pre-approved template — no live approval step",
+    dependencies:"Go/No-Go meeting held and decision minuted",
+    notes:"Draft all three outcomes in advance. There is no time to write this at the gate."},
+
+  outage_start:{milestone:"Outage begins",order:-0.6,offset:-1,
+    title:"{system} is now unavailable",
+    purpose:"Confirm the outage has started as planned and set the expectation for when the next update arrives.",
+    channel:"Service desk banner",senderRole:"cutover",ownerRole:"duty",
+    dependencies:"Runbook step confirming the system has been taken offline"},
+
+  cutover_begins:{milestone:"Cutover begins",order:-0.5,offset:-1,
+    title:"{system} cutover has started — system now unavailable",
+    purpose:"Confirm cutover is underway, the system is offline as planned, and set the expectation for when the next update arrives.",
+    audience:"{audience}; Service Desk; executive stakeholders",
+    channel:"Teams/Slack post + Service desk banner",senderRole:"cutover",ownerRole:"duty",
+    dependencies:"Runbook step confirming the system has been taken offline",
+    notes:"Out of hours — the owner must be someone actually on the cutover bridge."},
+
+  checkpoint:{milestone:"Mid-cutover",order:-0.25,offset:0,
+    title:"Cutover checkpoint: {system} on track",
+    purpose:"Confirm progress against plan at an agreed checkpoint, so silence doesn't get read as failure.",
+    audience:"Executive stakeholders; Service Desk; {audience}",
+    channel:"Teams/Slack post",senderRole:"cutover",ownerRole:"duty",
+    approver:"Pre-approved template — on-track and delayed variants",
+    dependencies:"Checkpoint time agreed in the runbook",
+    notes:"Out of hours — the owner must be someone actually on the cutover bridge."},
+
+  exec_brief:{milestone:"T-2",order:-2,offset:-2,
+    title:"{system} cutover: executive brief",
+    purpose:"Brief executives on the cutover plan, the risk position, the rollback trigger and what they will be asked to decide.",
+    audience:"Executive stakeholders; risk and compliance",
+    channel:"Email",senderRole:"programme",
+    dependencies:"Risk register current; rollback criteria agreed"},
+
+  go_live:{milestone:"Go-live",order:0,offset:0,
+    title:"{system} is live — you can log in now",
+    purpose:"Confirm the system is live and available, what users should do first, and how to get help.",
+    audience:"{audience}; line managers; Service Desk",
+    channel:"Email (all-user) + Intranet article",senderRole:"sponsor",
+    approver:"{approver}; Programme Director",
+    dependencies:"Post-cutover validation complete and signed off; hypercare channel live",
+    notes:"Closes the loop in the same voice that opened it."},
+
+  awareness_new:{milestone:"T-5",order:-5,offset:-5,
+    title:"Coming soon: {system}",
+    purpose:"Introduce what the new system is, who it is for, what it enables, when it becomes available, and what users need to do to get access.",
+    channel:"Email (all-user)",senderRole:"sponsor",
+    dependencies:"Access provisioning confirmed; support model agreed",
+    notes:"A new system has no existing routine to interrupt — the job is awareness and adoption, not disruption warning."},
+
+  go_live_new:{milestone:"Go-live",order:0,offset:0,
+    title:"{system} is available now",
+    purpose:"Confirm availability, how to get access, the first thing to do in it, and where to get help.",
+    audience:"{audience}; line managers; Service Desk",
+    channel:"Email (all-user) + Intranet article",senderRole:"sponsor",
+    dependencies:"Access provisioning live; support channel staffed"},
+
+  hypercare:{milestone:"T+1",order:1,offset:1,
+    title:"{system} hypercare: how to raise an issue",
+    purpose:"Tell users how to raise issues during hypercare, what is already a known issue, and what response time to expect.",
+    audience:"{audience}; Service Desk",
+    channel:"Teams/Slack post + Intranet article",senderRole:"service",
+    dependencies:"Known-issues list from post-go-live validation; hypercare rota confirmed"},
+
+  hypercare_close:{milestone:"T+10",order:10,offset:10,
+    title:"{system} hypercare has ended",
+    purpose:"Confirm hypercare has closed, where support now comes from, and close the change out.",
+    audience:"{audience}; Service Desk; executive stakeholders",
+    channel:"Email + Intranet article",senderRole:"service",
+    dependencies:"Hypercare exit criteria met and signed off; BAU support handover complete"},
+
+  exec_close:{milestone:"T+10",order:10.5,offset:10,
+    title:"{system} cutover: executive close-out",
+    purpose:"Report the outcome against the plan, issues encountered, and the residual risk position.",
+    audience:"Executive stakeholders; risk and compliance",
+    channel:"Email",senderRole:"programme",
+    dependencies:"Post-implementation review complete"},
+
+  service_restored:{milestone:"Service restored",order:-0.1,offset:0,
+    title:"{system} is back online",
+    purpose:"Confirm the outage has ended and the service is available again.",
+    channel:"Service desk banner",senderRole:"cutover",ownerRole:"duty",
+    dependencies:"Post-cutover validation complete"},
+
+  wave_kickoff:{milestone:"Programme",order:-28,offset:-28,
+    title:"{system} rollout: what's coming and which wave you're in",
+    purpose:"Set out the wave plan so every audience knows which wave they are in and roughly when it reaches them.",
+    channel:"Email (all-user) + Intranet article",senderRole:"sponsor",
+    dependencies:"Wave plan and audience allocation confirmed"},
+
+  wave_complete:{milestone:"Programme",order:11,offset:14,
+    title:"{system} rollout complete — all waves live",
+    purpose:"Confirm every wave is live, close the programme out, and confirm where support now comes from.",
+    channel:"Email (all-user)",senderRole:"sponsor",
+    dependencies:"Final wave signed off"},
+
+  /* decommission + silent migration */
+  dec14:{milestone:"T-14",order:-14,offset:-14,
+    title:"{system} is being switched off",
+    purpose:"Give notice of the retirement date, what replaces the system, and what users must do before it goes.",
+    channel:"Email (all-user)",senderRole:"sponsor",
+    dependencies:"Retirement date confirmed; replacement route agreed"},
+  dec7:{milestone:"T-7",order:-7,offset:-7,
+    title:"One week left to use {system}",
+    purpose:"Remind users of the shutdown date and point them at the extraction and replacement instructions.",
+    channel:"Email (all-user)",senderRole:"programme",
+    dependencies:"Data extraction instructions published"},
+  dec1:{milestone:"T-1",order:-1,offset:-1,
+    title:"Final notice: {system} shuts down tomorrow",
+    purpose:"Last chance to extract data or complete outstanding work before the system is switched off.",
+    channel:"Email (all-user) + Teams/Slack post",senderRole:"cutover",
+    dependencies:"Archive and retention approach signed off"},
+  retired:{milestone:"Retired",order:0,offset:0,
+    title:"{system} has been retired",
+    purpose:"Confirm the system is off, where the data went, and where to go instead.",
+    channel:"Email (all-user) + Intranet article",senderRole:"sponsor",
+    dependencies:"Decommission complete; archive accessible"},
+  silent7:{milestone:"T-7",order:-7,offset:-7,
+    title:"Planned {system} maintenance — no action needed",
+    purpose:"Give notice of the migration window and confirm that no user action is required.",
+    channel:"Teams/Slack post",senderRole:"service",
+    dependencies:"Migration window confirmed"},
+  silent_done:{milestone:"Complete",order:0,offset:0,
+    title:"{system} migration complete",
+    purpose:"Confirm the migration finished and the service is running normally.",
+    channel:"Teams/Slack post",senderRole:"service",
+    dependencies:"Post-migration validation complete"}
+};
+
+const CUTOVER_TYPES = {
+  upgrade:{label:"Upgrade or change to an existing system",short:"UPGRADE",
+    hint:"An established way of working is being interrupted",
+    base:5,items:["t14","t7","t1","cutover_begins","go_live"]},
+  new_system:{label:"Brand-new system",short:"NEW SYSTEM",
+    hint:"Net-new capability, nothing being displaced",
+    base:2,items:["awareness_new","go_live_new"]},
+  decommission:{label:"Decommission / retirement",short:"DECOMMISSION",
+    hint:"A system is being switched off",
+    base:4,items:["dec14","dec7","dec1","retired"]},
+  silent:{label:"Behind-the-scenes migration",short:"MIGRATION",
+    hint:"No user-visible change",
+    base:2,items:["silent7","silent_done"]}
+};
+
+const MODIFIERS = [
+  {id:"M1",label:"Business downtime / outage window",hint:"System unavailable to users"},
+  {id:"M2",label:"Users must act before cutover",hint:"Clear queues, save work, submit early, re-enrol"},
+  {id:"M2b",label:"…and completion is tracked and chased",hint:"Adds a T-1 chaser via line managers",dependsOn:"M2"},
+  {id:"M3",label:"External audiences",hint:"Customers, vendors, partners, regulators",count:1,countLabel:"groups"},
+  {id:"M4",label:"Hypercare / elevated support period",hint:"Adds hypercare open and close"},
+  {id:"M5",label:"Multi-wave or phased rollout",hint:"Base set repeats per wave",count:2,countLabel:"waves"},
+  {id:"M6",label:"Cutover runs over 24h or across a weekend",hint:"Adds a mid-cutover checkpoint"},
+  {id:"M7",label:"Formal Go/No-Go gate with rollback",hint:"Adds the gate outcome comms"},
+  {id:"M8",label:"Regulated, high-risk or board-visible",hint:"Adds an exec brief and close-out"},
+  {id:"M9",label:"Training or readiness prerequisite",hint:"Adds a T-21 chaser to non-completers"}
+];
+
+const SENDER_ROLES = {
+  sponsor:"{sponsor}", cutover:"{approver}", programme:"Programme Director",
+  operational:"Business Operations Lead", service:"Service Owner",
+  manager:"Line manager", relationship:"Account / relationship owner",
+  /* Live-moment comms go out while the CM lead is asleep, and the Cutover
+     Manager is approving them — so neither can also be the one sending. */
+  duty:"Duty comms contact (cutover bridge)"
+};
+
+const CHANNELS = ["Email","Email (all-user)","Email (all-user) + Intranet article",
+  "Email (all-user) + Teams/Slack post","Email + Intranet article","Teams/Slack post",
+  "Teams/Slack post + Intranet article","Teams/Slack post + Service desk banner",
+  "Intranet article","Manager cascade","Town hall / all-hands","Service desk banner",
+  "In-app / system banner","SMS / push","Customer notice","Vendor notice"];
+const STATUSES = ["Not started","Drafting","In review","Approved","Scheduled","Sent","Cancelled"];
+/* Channels that push into someone's attention — used for the comms-fatigue ceiling. */
+const PUSH = /email|teams|slack|sms|push|cascade|town hall|notice/i;
+const OUT_OF_HOURS = new Set(["Cutover begins","Mid-cutover","Outage begins","Go/No-Go","Service restored"]);
+
+const COLUMNS = [
+  ["id","Comms ID",10],["milestone","Cutover Milestone",18],["send_date","Planned Send Date",16],
+  ["title","Comms Title",34],["purpose","Purpose",46],["audience","Audience",30],
+  ["channel","Channel",22],["sender","Sender (From)",24],["owner","Owner (Drafts/Sends)",24],
+  ["approver","Approver",24],["dependencies","Dependencies",38],["content_link","Comms Content Link",26],
+  ["status","Status",14],["notes","Notes",32]
+];
+
+/* ==========================================================================
+   State
+   ========================================================================== */
+const KEY = "cutover-comms-plan/v1";
+let state = null;
+
+function defaultState(){
+  const gl = new Date(Date.now()+42*864e5);
+  return {
+    project:"Finance ERP Upgrade", golive:iso(gl), type:"upgrade",
+    mods:{M1:true,M2:true}, counts:{M3:1,M5:2},
+    defaults:{sponsor:"CFO (Executive Sponsor)",owner:"Change Management Lead",
+      approver:"Cutover Manager",audience:"All Finance users",system:"Finance ERP"},
+    rows:[], math:null, open:{}
+  };
+}
+
+function iso(d){
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+function addDays(isoStr,n){
+  const p = isoStr.split("-").map(Number);
+  const d = new Date(Date.UTC(p[0],p[1]-1,p[2]));
+  d.setUTCDate(d.getUTCDate()+n);
+  return d.toISOString().slice(0,10);
+}
+function fmtDate(isoStr){
+  if(!isoStr || !/^\d{4}-\d{2}-\d{2}$/.test(isoStr)) return isoStr||"—";
+  const p = isoStr.split("-").map(Number);
+  const M = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return String(p[2]).padStart(2,"0")+" "+M[p[1]-1]+" "+p[0];
+}
+function businessDaysBetween(fromIso,toIso){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(fromIso)||!/^\d{4}-\d{2}-\d{2}$/.test(toIso)) return null;
+  let a = new Date(fromIso+"T00:00:00Z"), b = new Date(toIso+"T00:00:00Z");
+  const sign = b<a ? -1 : 1;
+  if(sign<0){const t=a;a=b;b=t;}
+  let n=0;
+  while(a<b){ a.setUTCDate(a.getUTCDate()+1); const d=a.getUTCDay(); if(d!==0&&d!==6) n++; }
+  return n*sign;
+}
+
+/* ==========================================================================
+   Cadence engine — turns the cutover shape into rows plus the arithmetic
+   ========================================================================== */
+function derive(cfg){
+  const type = CUTOVER_TYPES[cfg.type];
+  const mods = cfg.mods, counts = cfg.counts;
+  const math = [{label:type.short+" BASE",value:type.base}];
+  let keys = type.items.slice();
+  const origin = {};
+  keys.forEach(k=>origin[k]="base");
+
+  const add = (key,modId,n)=>{ keys.push(key); origin[key]=modId; if(n!==0) math.push({label:modId,value:n===undefined?1:n}); };
+  const hasCutoverBegins = keys.includes("cutover_begins");
+  const goLiveKey = keys.includes("go_live") ? "go_live" : keys.includes("go_live_new") ? "go_live_new"
+    : keys.includes("retired") ? "retired" : keys.includes("silent_done") ? "silent_done" : null;
+  const merges = [];
+
+  if(mods.M1){
+    if(hasCutoverBegins){ add("service_restored","M1",1); }
+    else { keys.push("outage_start"); keys.push("service_restored");
+      origin.outage_start="M1"; origin.service_restored="M1"; math.push({label:"M1",value:2}); }
+    /* A go-live comms routinely absorbs "service restored" — count it once. */
+    if(goLiveKey){
+      keys = keys.filter(k=>k!=="service_restored");
+      merges.push({into:goLiveKey,from:"service_restored"});
+      math.push({label:"merged into go-live",value:-1});
+    }
+  }
+  if(mods.M2){ add("action","M2",1); if(mods.M2b) add("chaser","M2b",1); }
+  if(mods.M3){ const n=Math.max(1,counts.M3|0); keys.push("ext_notice"); origin.ext_notice="M3"; math.push({label:"M3",value:n});
+    for(let i=2;i<=n;i++){ const k="ext_notice#"+i; keys.push(k); origin[k]="M3"; } }
+  if(mods.M4){ add("hypercare","M4",2); keys.push("hypercare_close"); origin.hypercare_close="M4"; }
+  if(mods.M6) add("checkpoint","M6",1);
+  if(mods.M7) add("gonogo","M7",1);
+  if(mods.M8){ add("exec_brief","M8",2); keys.push("exec_close"); origin.exec_close="M8"; }
+  if(mods.M9) add("readiness","M9",1);
+
+  /* M5 repeats the base set per wave and wraps it in programme-level bookends. */
+  let waves = 1;
+  if(mods.M5){
+    waves = Math.max(2,counts.M5|0);
+    math.push({label:"M5 x"+waves+" waves",value:type.base*(waves-1)+2});
+    keys.push("wave_kickoff"); origin.wave_kickoff="M5";
+    keys.push("wave_complete"); origin.wave_complete="M5";
+  }
+
+  const rows = [];
+  const seen = new Set();
+  keys.forEach(k=>{
+    const libKey = k.split("#")[0];
+    const item = LIB[libKey];
+    if(!item || seen.has(k)) return;
+    seen.add(k);
+    const isBase = origin[k]==="base";
+    const reps = (mods.M5 && isBase) ? waves : 1;
+    for(let w=1;w<=reps;w++){
+      const r = materialise(item,cfg,merges.filter(m=>m.into===libKey));
+      r.origin = origin[k];
+      if(reps>1){
+        r.wave = w;
+        r.title = "Wave "+w+" — "+r.title;
+        r.audience = "Wave "+w+" audience — "+r.audience;
+        r.order = item.order + (w-1)*0.001;
+        r.send_date = addDays(r.send_date,(w-1)*14);
+      }
+      if(k.indexOf("#")>-1){
+        const n = k.split("#")[1];
+        r.title = r.title+" (group "+n+")";
+        r.order = item.order + Number(n)*0.01;
+      }
+      rows.push(r);
+    }
+  });
+
+  rows.sort((a,b)=>a.order-b.order);
+  rows.forEach((r,i)=>{ r.id = "C"+String(i+1).padStart(2,"0"); r.uid = "r"+i+"_"+Math.random().toString(36).slice(2,7); });
+
+  const total = rows.length;
+  let tier;
+  if(total<=2) tier = "Tier 1 — Low";
+  else if(total<=5) tier = "Tier 2 — Standard";
+  else if(total<=9) tier = "Tier 3 — Elevated";
+  else tier = "Tier 4 — Complex";
+
+  return {rows,math,total,tier};
+}
+
+function materialise(item,cfg,mergesIn){
+  const d = cfg.defaults;
+  const fill = s => (s||"").replace(/\{system\}/g,d.system||"the system")
+    .replace(/\{sponsor\}/g,d.sponsor||"Executive Sponsor")
+    .replace(/\{approver\}/g,d.approver||"Cutover Manager")
+    .replace(/\{audience\}/g,d.audience||"All affected users");
+  let purpose = fill(item.purpose);
+  let notes = fill(item.notes||"");
+  mergesIn.forEach(m=>{
+    const src = LIB[m.from];
+    purpose = purpose + " Also confirms the service is restored and the outage has ended.";
+    notes = (notes?notes+" ":"") + "Absorbs the '"+src.milestone+"' comms required by the downtime modifier — counted once.";
+  });
+  return {
+    milestone:item.milestone, order:item.order, send_date:addDays(cfg.golive,item.offset),
+    title:fill(item.title), purpose:purpose,
+    audience:fill(item.audience || "{audience}; line managers"),
+    channel:item.channel,
+    sender:fill(item.sender || SENDER_ROLES[item.senderRole] || "{approver}"),
+    owner:fill(item.ownerRole ? SENDER_ROLES[item.ownerRole] : "{owner}").replace(/\{owner\}/g,d.owner||"Change Management Lead"),
+    approver:fill(item.approver || "{approver}"),
+    dependencies:fill(item.dependencies||""),
+    content_link:"", status:"Not started", notes:notes
+  };
+}
+
+/* ==========================================================================
+   Validation
+   ========================================================================== */
+function validate(){
+  const rows = state.rows, out = [];
+  const glOrder = 0;
+  const push = (st,lab,det,ids)=>out.push({state:st,label:lab,detail:det,rows:ids||[]});
+
+  const missing = rows.filter(r=>["purpose","audience","channel","sender","owner","approver"]
+    .some(f=>!String(r[f]||"").trim()));
+  push(missing.length?"blocker":"ok","Every row has purpose, audience, channel, sender, owner, approver",
+    missing.length? missing.length+" row(s) incomplete" : "All "+rows.length+" rows complete",
+    missing.map(r=>r.uid));
+
+  const same = rows.filter(r=>{
+    const o=String(r.owner||"").trim().toLowerCase(), a=String(r.approver||"").trim().toLowerCase();
+    return o && a && o===a;
+  });
+  push(same.length?"attention":"ok","Owner and approver are different people",
+    same.length? same.map(r=>r.id).join(", ")+" have the same person drafting and signing off"
+      : "Separation of duties holds on every row", same.map(r=>r.uid));
+
+  const dated = rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r.send_date));
+  const outOfOrder = [];
+  for(let i=1;i<dated.length;i++) if(dated[i].send_date < dated[i-1].send_date) outOfOrder.push(dated[i]);
+  const wrongSide = rows.filter(r=>/^\d{4}-\d{2}-\d{2}$/.test(r.send_date) &&
+    ((r.order<glOrder && r.send_date>state.golive) || (r.order>glOrder && r.send_date<state.golive)));
+  const chron = outOfOrder.concat(wrongSide.filter(r=>outOfOrder.indexOf(r)<0));
+  push(chron.length?"blocker":"ok","Send dates run in countdown order and sit the right side of go-live",
+    chron.length? chron.map(r=>r.id).join(", ")+" out of sequence" : "Sequence is consistent",
+    chron.map(r=>r.uid));
+
+  const today = iso(new Date());
+  const tight = rows.filter(r=>{
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(r.send_date)) return false;
+    const bd = businessDaysBetween(today,r.send_date);
+    return bd!==null && bd>=0 && bd<3;
+  });
+  push(tight.length?"attention":"ok","At least 3 business days to draft and approve each comms",
+    tight.length? tight.map(r=>r.id).join(", ")+" send within 3 business days — approval window is tight"
+      : "Every comms has a workable approval window", tight.map(r=>r.uid));
+
+  const load = {};
+  rows.forEach(r=>{
+    if(!PUSH.test(r.channel||"")) return;
+    String(r.audience||"").split(/[;,]/).map(s=>s.trim()).filter(Boolean).forEach(a=>{
+      (load[a] = load[a] || []).push(r);
+    });
+  });
+  const over = Object.keys(load).filter(a=>load[a].length>6);
+  push(over.length?"attention":"ok","No audience receives more than 6 push comms",
+    over.length? over.map(a=>a+" ("+load[a].length+")").join("; ")+" — consolidate or move to a pull channel"
+      : "Comms load is within the ceiling for every audience",
+    over.reduce((acc,a)=>acc.concat(load[a].map(r=>r.uid)),[]));
+
+  const liveish = rows.filter(r=>/cutover begins|go-live|retired|complete|outage|restored/i.test(r.milestone));
+  const noDep = liveish.filter(r=>!String(r.dependencies||"").trim());
+  push(noDep.length?"blocker":"ok","Cutover and go-live comms name the trigger that releases them",
+    noDep.length? noDep.map(r=>r.id).join(", ")+" have no dependency — they get sent by guesswork at 3am"
+      : "Every live-moment comms names its runbook step or sign-off", noDep.map(r=>r.uid));
+
+  const oohDefault = rows.filter(r=>OUT_OF_HOURS.has(r.milestone) &&
+    String(r.owner||"").trim().toLowerCase()===String(state.defaults.owner||"").trim().toLowerCase());
+  push(oohDefault.length?"attention":"ok","Out-of-hours comms are owned by someone on the cutover bridge",
+    oohDefault.length? oohDefault.map(r=>r.id).join(", ")+" fall outside business hours but are owned by the CM lead"
+      : "Out-of-hours ownership is assigned appropriately", oohDefault.map(r=>r.uid));
+
+  const before = rows.filter(r=>r.order<0).length, after = rows.filter(r=>r.order>=0).length;
+  push((before>0&&after>0)?"ok":"blocker","At least one comms before go-live and one after",
+    (before>0&&after>0)? before+" before, "+after+" at or after go-live"
+      : "A plan with nothing on one side of go-live is not a plan", []);
+
+  const filled = rows.filter(r=>String(r.content_link||"").trim()).length;
+  push("ok","Comms content link is blank by design",
+    filled? filled+" of "+rows.length+" now linked to content"
+      : "All "+rows.length+" awaiting content — the column exists for that linkage", []);
+
+  return out;
+}
+
+/* ==========================================================================
+   Render
+   ========================================================================== */
+const $ = s=>document.querySelector(s);
+const el = (t,c,txt)=>{const n=document.createElement(t); if(c) n.className=c; if(txt!=null) n.textContent=txt; return n;};
+
+function renderSetup(){
+  const types = $("#types"); types.innerHTML="";
+  Object.keys(CUTOVER_TYPES).forEach(k=>{
+    const t = CUTOVER_TYPES[k];
+    const lab = el("label","choice");
+    lab.innerHTML = '<input type="radio" name="ctype" value="'+k+'"'+(state.type===k?" checked":"")+'>'+
+      '<span class="t">'+esc(t.label)+'<span class="d">'+esc(t.hint)+'</span></span>'+
+      '<span class="tag">'+t.base+'</span>';
+    types.appendChild(lab);
+  });
+  const mods = $("#mods"); mods.innerHTML="";
+  MODIFIERS.forEach(m=>{
+    if(m.dependsOn && !state.mods[m.dependsOn]) return;
+    const lab = el("label","choice");
+    if(m.dependsOn) lab.style.marginLeft="18px";
+    let html = '<input type="checkbox" data-mod="'+m.id+'"'+(state.mods[m.id]?" checked":"")+'>'+
+      '<span class="t">'+esc(m.label)+'<span class="d">'+esc(m.hint)+'</span></span>';
+    if(m.count) html += '<input class="count-in" type="number" min="1" max="12" data-count="'+m.id+
+      '" value="'+(state.counts[m.id]||m.count)+'" aria-label="'+esc(m.countLabel)+'">';
+    lab.innerHTML = html;
+    mods.appendChild(lab);
+  });
+}
+
+function renderReadout(){
+  const r = $("#readout"); r.innerHTML="";
+  const math = state.math;
+  if(!math){ r.appendChild(el("span","term","No plan generated yet.")); return; }
+  math.forEach((m,i)=>{
+    if(i>0){ const op = el("span","op", m.value<0 ? "−" : "+"); r.appendChild(op); }
+    const t = el("span","term");
+    t.innerHTML = esc(m.label)+" <b>"+(i===0? m.value : Math.abs(m.value))+"</b>";
+    r.appendChild(t);
+  });
+  r.appendChild(el("span","op","="));
+  const tot = el("span","total", state.rows.length + (state.rows.length===1?" comms":" comms"));
+  r.appendChild(tot);
+  const derived = math.reduce((a,m)=>a+m.value,0);
+  $("#tierline").textContent = state.tierLabel + (derived!==state.rows.length
+    ? "  ·  rows edited by hand since generation (rule math derived "+derived+")" : "");
+}
+
+function renderChecks(){
+  const box = $("#checks"); box.innerHTML="";
+  const checks = validate();
+  let bad=0, warn=0;
+  checks.forEach(c=>{
+    if(c.state==="blocker") bad++; else if(c.state==="attention") warn++;
+    const node = c.rows.length ? el("button","check "+c.state) : el("div","check "+c.state);
+    if(c.rows.length){ node.type="button"; node.dataset.rows = c.rows.join(","); }
+    node.appendChild(el("span","dot"));
+    const body = el("div");
+    body.appendChild(el("div","lab",c.label));
+    body.appendChild(el("div","det",c.detail));
+    node.appendChild(body);
+    box.appendChild(node);
+  });
+  const m = $("#m-checks");
+  m.textContent = bad? bad+" blocker"+(bad>1?"s":"") : warn? warn+" to check" : "clear";
+  m.className = "v " + (bad?"crit":warn?"warn":"ok");
+
+  document.querySelectorAll(".row").forEach(n=>n.classList.remove("flagged","flagged-warn"));
+  checks.forEach(c=>{
+    if(c.state==="ok") return;
+    c.rows.forEach(uid=>{
+      const n = document.querySelector('.row[data-uid="'+uid+'"]');
+      if(n) n.classList.add(c.state==="blocker"?"flagged":"flagged-warn");
+    });
+  });
+}
+
+function renderLedger(){
+  const box = $("#ledger"); box.innerHTML="";
+  let thresholdDrawn = false;
+  state.rows.forEach((r,idx)=>{
+    if(!thresholdDrawn && r.order>=0){ box.appendChild(threshold()); thresholdDrawn=true; }
+    box.appendChild(rowNode(r,idx));
+  });
+  if(!thresholdDrawn && state.rows.length) box.appendChild(threshold());
+  $("#m-count").textContent = state.rows.length;
+}
+
+function threshold(){
+  const t = el("div","threshold");
+  t.appendChild(el("span","lbl","Go-live "+fmtDate(state.golive)));
+  t.appendChild(el("span","bar"));
+  return t;
+}
+
+function rowNode(r,idx){
+  const wrap = el("div","row"+(r.order>=0?" post":"")+(state.open[r.uid]?" open":""));
+  wrap.dataset.uid = r.uid;
+
+  const sum = el("button","row-summary");
+  sum.type="button";
+  sum.setAttribute("aria-expanded", state.open[r.uid]?"true":"false");
+
+  const marker = el("div","marker");
+  marker.innerHTML = '<span'+(r.order>=0?' class="after"':'')+'>'+esc(r.milestone)+'</span>'+
+    '<span class="sub">'+esc(fmtDate(r.send_date))+'</span>';
+  sum.appendChild(marker);
+
+  const title = el("div","row-title");
+  title.innerHTML = '<div class="t">'+esc(r.title||"(untitled)")+'</div>'+
+    '<div class="m"><span>'+esc(r.id)+'</span><span>'+esc(trunc(r.audience,42))+'</span>'+
+    '<span>'+esc(trunc(r.channel,28))+'</span></div>';
+  sum.appendChild(title);
+
+  const tail = el("div","row-tail");
+  if(r.origin && r.origin!=="base") tail.appendChild(el("span","pill mod",r.origin));
+  tail.appendChild(el("span","pill st-"+String(r.status||"").toLowerCase().replace(/\s+/g,"-"),r.status||"—"));
+  const chev = el("span","chev","›");
+  chev.setAttribute("aria-hidden","true");
+  tail.appendChild(chev);
+  sum.appendChild(tail);
+  wrap.appendChild(sum);
+
+  const det = el("div","row-detail");
+  const grid = el("div","detail-grid");
+  const F = (field,label,type,help,wide)=>{
+    const f = el("div","f"+(wide?" wide":"")+(field==="content_link"?" link-field":""));
+    const id = r.uid+"-"+field;
+    const l = el("label",null,label); l.setAttribute("for",id); f.appendChild(l);
+    let input;
+    if(type==="textarea"){ input = el("textarea","field"); input.value = r[field]||""; }
+    else if(type==="select"){
+      input = el("select","field");
+      const opts = field==="channel"?CHANNELS:STATUSES;
+      const cur = r[field]||"";
+      if(cur && opts.indexOf(cur)<0) input.appendChild(new Option(cur,cur,true,true));
+      opts.forEach(o=>input.appendChild(new Option(o,o,false,o===cur)));
+    } else {
+      input = el("input","field"); input.type = type||"text"; input.value = r[field]||"";
+    }
+    input.id = id; input.dataset.uid = r.uid; input.dataset.field = field;
+    f.appendChild(input);
+    if(help) f.appendChild(el("div","help",help));
+    grid.appendChild(f);
+    return f;
+  };
+
+  F("milestone","Cutover milestone","text");
+  F("send_date","Planned send date","date");
+  F("status","Status","select");
+  F("title","Comms title","text",null,true);
+  F("purpose","Purpose","textarea","What this comms does — the decision, action or awareness it drives. Not what it is.",true);
+  F("audience","Audience","textarea","Semicolon-separate distinct groups; the fatigue ceiling counts per group.");
+  F("channel","Channel","select");
+  F("sender","Sender — whose name it goes out under","text","Authority. Scale it to the size of the ask.");
+  F("owner","Owner — drafts, schedules, sends","text","Delivery. Out-of-hours comms need someone on the bridge.");
+  F("approver","Approver — signs off","text","Control. Should not be the owner.");
+  F("dependencies","Dependencies","textarea","What must be true or done first — runbook step, sign-off, list, translation.",true);
+  F("content_link","Comms content link","text","Blank by design. Paste the link once the content is drafted.",true);
+  F("notes","Notes","textarea",null,true);
+  det.appendChild(grid);
+
+  const acts = el("div","row-actions");
+  const mk = (label,cls,fn)=>{ const b = el("button","btn"+(cls?" "+cls:""),label); b.type="button"; b.addEventListener("click",fn); acts.appendChild(b); };
+  mk("Move earlier",null,()=>moveRow(idx,-1));
+  mk("Move later",null,()=>moveRow(idx,1));
+  mk("Duplicate",null,()=>{
+    const copy = Object.assign({},r);
+    copy.uid = "r"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    copy.origin = "manual"; copy.order = r.order + 0.001;
+    state.rows.splice(idx+1,0,copy); renumber(); save(); renderAll();
+  });
+  mk("Delete","quiet",()=>{
+    state.rows.splice(idx,1); renumber(); save(); renderAll();
+  });
+  det.appendChild(acts);
+  wrap.appendChild(det);
+
+  sum.addEventListener("click",()=>{
+    state.open[r.uid] = !state.open[r.uid];
+    wrap.classList.toggle("open");
+    sum.setAttribute("aria-expanded", state.open[r.uid]?"true":"false");
+    save();
+  });
+  return wrap;
+}
+
+function moveRow(idx,dir){
+  const j = idx+dir;
+  if(j<0||j>=state.rows.length) return;
+  const a = state.rows[idx], b = state.rows[j];
+  const o = a.order; a.order = b.order; b.order = o;
+  state.rows[idx] = b; state.rows[j] = a;
+  renumber(); save(); renderAll();
+}
+function renumber(){
+  state.rows.forEach((r,i)=>{ r.id = "C"+String(i+1).padStart(2,"0"); });
+}
+function trunc(s,n){ s = String(s||""); return s.length>n ? s.slice(0,n-1)+"…" : s; }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+
+function renderAll(){
+  $("#type-label").textContent = CUTOVER_TYPES[state.type].label;
+  $("#project").value = state.project;
+  $("#project").size = Math.max(10,Math.min(40,state.project.length+1));
+  $("#golive").value = state.golive;
+  renderReadout(); renderLedger(); renderChecks();
+  const anyOpen = Object.keys(state.open).some(k=>state.open[k]);
+  $("#expand-all").textContent = anyOpen ? "Collapse all" : "Expand all";
+}
+
+/* ==========================================================================
+   Persistence
+   ========================================================================== */
+let saveTimer = null;
+function save(){
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(()=>{
+    try{
+      localStorage.setItem(KEY, JSON.stringify(state));
+      note("Saved locally · "+new Date().toLocaleTimeString());
+    }catch(e){ note("Not saved — this browser blocks local storage"); }
+  },250);
+}
+function note(t){ $("#savenote").firstElementChild.textContent = t; }
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    if(!raw) return null;
+    const s = JSON.parse(raw);
+    if(!s || !Array.isArray(s.rows)) return null;
+    return s;
+  }catch(e){ return null; }
+}
+
+/* ==========================================================================
+   Spec JSON — the shape build_comms_plan.py consumes
+   ========================================================================== */
+function toSpec(){
+  const modLabels = MODIFIERS.filter(m=>state.mods[m.id]).map(m=>{
+    const n = m.count ? " x"+(state.counts[m.id]||m.count) : "";
+    return m.id+" "+m.label+n;
+  });
+  return {
+    project: state.project+" — Cutover Communications Plan",
+    cutover_type: CUTOVER_TYPES[state.type].label,
+    complexity_tier: state.tierLabel||"",
+    go_live_date: state.golive,
+    cadence_rule: CUTOVER_TYPES[state.type].label+" base = "+CUTOVER_TYPES[state.type].base+" comms",
+    modifiers: modLabels,
+    version: "0.1 Draft",
+    last_updated: iso(new Date()),
+    notes: "Generated from the cutover comms plan artifact. Comms content links are blank by design.",
+    comms: state.rows.map(r=>{
+      const o = {};
+      COLUMNS.forEach(c=>{ o[c[0]] = r[c[0]]==null?"":r[c[0]]; });
+      return o;
+    })
+  };
+}
+function download(name,blob){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),2000);
+}
+
+/* ==========================================================================
+   XLSX writer — stored-ZIP + minimal OOXML, no external library
+   ========================================================================== */
+const CRC_TABLE = (()=>{
+  const t = new Uint32Array(256);
+  for(let n=0;n<256;n++){
+    let c = n;
+    for(let k=0;k<8;k++) c = (c&1) ? (0xEDB88320 ^ (c>>>1)) : (c>>>1);
+    t[n] = c>>>0;
+  }
+  return t;
+})();
+function crc32(bytes){
+  let c = 0xFFFFFFFF;
+  for(let i=0;i<bytes.length;i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c>>>8);
+  return (c ^ 0xFFFFFFFF)>>>0;
+}
+function utf8(str){ return new TextEncoder().encode(str); }
+
+function zipStore(files){
+  const enc = [], central = [];
+  let offset = 0;
+  const now = new Date();
+  const dosTime = ((now.getHours()<<11) | (now.getMinutes()<<5) | (now.getSeconds()>>1)) & 0xFFFF;
+  const dosDate = (((now.getFullYear()-1980)<<9) | ((now.getMonth()+1)<<5) | now.getDate()) & 0xFFFF;
+
+  files.forEach(f=>{
+    const name = utf8(f.name), data = f.data;
+    const crc = crc32(data);
+    const local = new Uint8Array(30+name.length);
+    const lv = new DataView(local.buffer);
+    lv.setUint32(0,0x04034b50,true); lv.setUint16(4,20,true); lv.setUint16(6,0x0800,true);
+    lv.setUint16(8,0,true); lv.setUint16(10,dosTime,true); lv.setUint16(12,dosDate,true);
+    lv.setUint32(14,crc,true); lv.setUint32(18,data.length,true); lv.setUint32(22,data.length,true);
+    lv.setUint16(26,name.length,true); lv.setUint16(28,0,true);
+    local.set(name,30);
+    enc.push(local,data);
+
+    const cd = new Uint8Array(46+name.length);
+    const cv = new DataView(cd.buffer);
+    cv.setUint32(0,0x02014b50,true); cv.setUint16(4,20,true); cv.setUint16(6,20,true);
+    cv.setUint16(8,0x0800,true); cv.setUint16(10,0,true);
+    cv.setUint16(12,dosTime,true); cv.setUint16(14,dosDate,true);
+    cv.setUint32(16,crc,true); cv.setUint32(20,data.length,true); cv.setUint32(24,data.length,true);
+    cv.setUint16(28,name.length,true); cv.setUint16(30,0,true); cv.setUint16(32,0,true);
+    cv.setUint16(34,0,true); cv.setUint16(36,0,true); cv.setUint32(38,0,true);
+    cv.setUint32(42,offset,true);
+    cd.set(name,46);
+    central.push(cd);
+    offset += local.length + data.length;
+  });
+
+  const centralSize = central.reduce((a,b)=>a+b.length,0);
+  const eocd = new Uint8Array(22);
+  const ev = new DataView(eocd.buffer);
+  ev.setUint32(0,0x06054b50,true); ev.setUint16(4,0,true); ev.setUint16(6,0,true);
+  ev.setUint16(8,files.length,true); ev.setUint16(10,files.length,true);
+  ev.setUint32(12,centralSize,true); ev.setUint32(16,offset,true); ev.setUint16(20,0,true);
+
+  const parts = enc.concat(central,[eocd]);
+  const total = parts.reduce((a,p)=>a+p.length,0);
+  const out = new Uint8Array(total);
+  let p = 0;
+  parts.forEach(part=>{ out.set(part,p); p += part.length; });
+  return out;
+}
+
+function xesc(s){
+  return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&apos;"}[c]))
+    /* strip control characters Excel rejects outright */
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,"");
+}
+function colLetter(n){
+  let s = "";
+  while(n>0){ const m = (n-1)%26; s = String.fromCharCode(65+m)+s; n = (n-m-1)/26; }
+  return s;
+}
+function excelSerial(isoStr){
+  const p = isoStr.split("-").map(Number);
+  const days = Date.UTC(p[0],p[1]-1,p[2]) / 864e5;
+  return days + 25569; /* 1970-01-01 == serial 25569 with the 1900 system */
+}
+
+/* cell: {v, t:"s"|"n", s:styleIndex} */
+function sheetXml(rows,opts){
+  opts = opts||{};
+  let cols = "";
+  if(opts.widths){
+    cols = "<cols>"+opts.widths.map((w,i)=>
+      '<col min="'+(i+1)+'" max="'+(i+1)+'" width="'+w+'" customWidth="1"/>').join("")+"</cols>";
+  }
+  const body = rows.map((cells,ri)=>{
+    const r = ri+1;
+    const inner = cells.map((c,ci)=>{
+      if(c==null) return "";
+      const ref = colLetter(ci+1)+r;
+      const st = c.s? ' s="'+c.s+'"' : "";
+      /* An empty cell still gets emitted when it carries a style, so the
+         deliberately blank content-link column keeps its tint without a
+         placeholder character sitting in it. */
+      if(c.v==="" || c.v==null) return c.s ? '<c r="'+ref+'"'+st+'/>' : "";
+      if(c.t==="n") return '<c r="'+ref+'"'+st+'><v>'+c.v+'</v></c>';
+      return '<c r="'+ref+'"'+st+' t="inlineStr"><is><t xml:space="preserve">'+xesc(c.v)+'</t></is></c>';
+    }).join("");
+    const ht = opts.rowHeights && opts.rowHeights[ri] ? ' ht="'+opts.rowHeights[ri]+'" customHeight="1"' : "";
+    return '<row r="'+r+'"'+ht+'>'+inner+'</row>';
+  }).join("");
+
+  const pane = opts.freeze
+    ? '<sheetView workbookViewId="0"><pane xSplit="3" ySplit="1" topLeftCell="D2" activePane="bottomRight" state="frozen"/></sheetView>'
+    : '<sheetView workbookViewId="0"/>';
+  const filter = opts.autoFilter ? '<autoFilter ref="'+opts.autoFilter+'"/>' : "";
+  const dv = opts.validations && opts.validations.length
+    ? '<dataValidations count="'+opts.validations.length+'">'+opts.validations.map(v=>
+        '<dataValidation type="list" allowBlank="1" showInputMessage="1" showErrorMessage="1" sqref="'+
+        v.sqref+'"><formula1>'+v.formula+'</formula1></dataValidation>').join("")+'</dataValidations>'
+    : "";
+
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+    '<sheetViews>'+pane+'</sheetViews>'+
+    '<sheetFormatPr defaultRowHeight="15"/>'+cols+
+    '<sheetData>'+body+'</sheetData>'+filter+dv+'</worksheet>';
+}
+
+const STYLES_XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+'<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'+
+'<numFmts count="1"><numFmt numFmtId="165" formatCode="dd\\-mmm\\-yyyy"/></numFmts>'+
+'<fonts count="4">'+
+'<font><sz val="10"/><name val="Calibri"/></font>'+
+'<font><b/><sz val="10"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'+
+'<font><b/><sz val="13"/><color rgb="FF0B4A40"/><name val="Calibri"/></font>'+
+'<font><b/><sz val="10"/><name val="Calibri"/></font>'+
+'</fonts>'+
+'<fills count="4">'+
+'<fill><patternFill patternType="none"/></fill>'+
+'<fill><patternFill patternType="gray125"/></fill>'+
+'<fill><patternFill patternType="solid"><fgColor rgb="FF0B4A40"/><bgColor indexed="64"/></patternFill></fill>'+
+'<fill><patternFill patternType="solid"><fgColor rgb="FFFBF3E2"/><bgColor indexed="64"/></patternFill></fill>'+
+'</fills>'+
+'<borders count="2"><border><left/><right/><top/><bottom/><diagonal/></border>'+
+'<border><left style="thin"><color rgb="FFBFC7C4"/></left><right style="thin"><color rgb="FFBFC7C4"/></right>'+
+'<top style="thin"><color rgb="FFBFC7C4"/></top><bottom style="thin"><color rgb="FFBFC7C4"/></bottom><diagonal/></border></borders>'+
+'<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'+
+'<cellXfs count="8">'+
+'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'+
+'<xf numFmtId="0" fontId="1" fillId="2" borderId="1" xfId="0" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'+
+'<xf numFmtId="0" fontId="0" fillId="0" borderId="1" xfId="0" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'+
+'<xf numFmtId="165" fontId="0" fillId="0" borderId="1" xfId="0" applyNumberFormat="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'+
+'<xf numFmtId="0" fontId="0" fillId="3" borderId="1" xfId="0" applyFill="1" applyBorder="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'+
+'<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1"/>'+
+'<xf numFmtId="0" fontId="3" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment vertical="top"/></xf>'+
+'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'+
+'</cellXfs>'+
+'<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'+
+'</styleSheet>';
+
+const S_HEAD=1,S_BODY=2,S_DATE=3,S_LINK=4,S_TITLE=5,S_LABEL=6,S_PLAIN=7;
+
+function buildXlsx(){
+  const spec = toSpec();
+
+  /* Sheet 1 — the plan */
+  const planRows = [COLUMNS.map(c=>({v:c[1],s:S_HEAD}))];
+  spec.comms.forEach(r=>{
+    planRows.push(COLUMNS.map(c=>{
+      const key = c[0], v = r[key];
+      if(key==="send_date" && /^\d{4}-\d{2}-\d{2}$/.test(String(v)))
+        return {v:excelSerial(v),t:"n",s:S_DATE};
+      if(key==="content_link") return {v:v||"",s:S_LINK};
+      return {v:v==null?"":String(v),s:S_BODY};
+    }));
+  });
+  const lastRow = planRows.length;
+  const lastCol = colLetter(COLUMNS.length);
+  const chCol = colLetter(COLUMNS.findIndex(c=>c[0]==="channel")+1);
+  const stCol = colLetter(COLUMNS.findIndex(c=>c[0]==="status")+1);
+  const sheet1 = sheetXml(planRows,{
+    widths: COLUMNS.map(c=>c[2]),
+    rowHeights:[30],
+    freeze:true,
+    autoFilter:"A1:"+lastCol+lastRow,
+    validations:[
+      {sqref:chCol+"2:"+chCol+"200",formula:"'Reference'!$D$3:$D$"+(CHANNELS.length+2)},
+      {sqref:stCol+"2:"+stCol+"200",formula:"'Reference'!$F$3:$F$"+(STATUSES.length+2)}
+    ]
+  });
+
+  /* Sheet 2 — plan info, so the comms count is auditable */
+  const info = [[{v:spec.project,s:S_TITLE}],[]];
+  const infoRows = [
+    ["Cutover type",spec.cutover_type],["Complexity tier",spec.complexity_tier],
+    ["Go-live date",spec.go_live_date],["Number of comms",String(spec.comms.length)],
+    ["Cadence rule applied",spec.cadence_rule],
+    ["Complexity modifiers applied",(spec.modifiers||[]).join("; ")],
+    ["Rule arithmetic",(state.math||[]).map((m,i)=>
+      (i?(m.value<0?" − ":" + "):"")+m.label+" "+Math.abs(m.value)).join("")+" = "+spec.comms.length],
+    ["Version",spec.version],["Last updated",spec.last_updated],["Notes",spec.notes]
+  ];
+  infoRows.forEach(p=>info.push([{v:p[0],s:S_LABEL},{v:p[1],s:S_PLAIN}]));
+  const sheet2 = sheetXml(info,{widths:[30,78]});
+
+  /* Sheet 3 — column dictionary and the dropdown lists */
+  const defs = {
+    "Comms ID":"Unique reference for the comms line item.",
+    "Cutover Milestone":"Milestone the comms is anchored to (T-14, T-1, Cutover begins, Go-live, T+10).",
+    "Planned Send Date":"Calendar date the comms goes out.",
+    "Comms Title":"Working title or subject line.",
+    "Purpose":"What this comms is for — the decision, action or awareness it drives.",
+    "Audience":"Who receives it. One group per line where the message differs.",
+    "Channel":"How it is delivered.",
+    "Sender (From)":"Whose name it goes out under — the voice with the authority the message needs.",
+    "Owner (Drafts/Sends)":"Who drafts, schedules and sends it.",
+    "Approver":"Who signs off before it goes out. Should not be the owner.",
+    "Dependencies":"What must be true or done first (go/no-go outcome, runbook step, distribution list).",
+    "Comms Content Link":"BLANK BY DESIGN — link to the drafted content once it exists.",
+    "Status":"Drafting and approval progress.",
+    "Notes":"Anything else."
+  };
+  const ref = [[{v:"Column dictionary",s:S_TITLE},null,null,{v:"Channel list",s:S_TITLE},null,{v:"Status list",s:S_TITLE}],[]];
+  const maxLen = Math.max(COLUMNS.length,CHANNELS.length,STATUSES.length);
+  for(let i=0;i<maxLen;i++){
+    const row = [];
+    row[0] = COLUMNS[i] ? {v:COLUMNS[i][1],s:S_LABEL} : null;
+    row[1] = COLUMNS[i] ? {v:defs[COLUMNS[i][1]]||"",s:S_PLAIN} : null;
+    row[3] = CHANNELS[i] ? {v:CHANNELS[i],s:S_PLAIN} : null;
+    row[5] = STATUSES[i] ? {v:STATUSES[i],s:S_PLAIN} : null;
+    ref.push(row);
+  }
+  const sheet3 = sheetXml(ref,{widths:[26,62,3,30,3,20]});
+
+  const names = ["Comms Plan","Plan Info","Reference"];
+  const workbook = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" '+
+    'xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>'+
+    names.map((n,i)=>'<sheet name="'+xesc(n)+'" sheetId="'+(i+1)+'" r:id="rId'+(i+1)+'"/>').join("")+
+    '</sheets></workbook>';
+
+  const wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    names.map((n,i)=>'<Relationship Id="rId'+(i+1)+
+      '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet'+(i+1)+'.xml"/>').join("")+
+    '<Relationship Id="rId4" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>'+
+    '</Relationships>';
+
+  const contentTypes = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'+
+    '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'+
+    '<Default Extension="xml" ContentType="application/xml"/>'+
+    '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'+
+    names.map((n,i)=>'<Override PartName="/xl/worksheets/sheet'+(i+1)+
+      '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join("")+
+    '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'+
+    '</Types>';
+
+  const rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
+    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'+
+    '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'+
+    '</Relationships>';
+
+  return zipStore([
+    {name:"[Content_Types].xml",data:utf8(contentTypes)},
+    {name:"_rels/.rels",data:utf8(rootRels)},
+    {name:"xl/workbook.xml",data:utf8(workbook)},
+    {name:"xl/_rels/workbook.xml.rels",data:utf8(wbRels)},
+    {name:"xl/styles.xml",data:utf8(STYLES_XML)},
+    {name:"xl/worksheets/sheet1.xml",data:utf8(sheet1)},
+    {name:"xl/worksheets/sheet2.xml",data:utf8(sheet2)},
+    {name:"xl/worksheets/sheet3.xml",data:utf8(sheet3)}
+  ]);
+}
+
+function slug(s){ return String(s||"cutover").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"").slice(0,48) || "cutover"; }
+
+/* ==========================================================================
+   Wiring
+   ========================================================================== */
+function regenerate(){
+  const res = derive(state);
+  state.rows = res.rows;
+  state.math = res.math;
+  state.tierLabel = res.tier;
+  state.open = {};
+  save(); renderAll();
+}
+
+function boot(){
+  const saved = load();
+  state = saved || defaultState();
+  if(!saved){ const r = derive(state); state.rows=r.rows; state.math=r.math; state.tierLabel=r.tier; }
+  if(!state.tierLabel) state.tierLabel = "";
+  renderSetup(); renderAll();
+  note(saved ? "Restored your last draft" : "New plan");
+}
+
+document.addEventListener("input",e=>{
+  const t = e.target;
+  if(t.id==="project"){ state.project = t.value; t.size = Math.max(10,Math.min(40,t.value.length+1)); save(); return; }
+  if(t.id==="golive"){ state.golive = t.value; save(); renderLedger(); renderChecks(); return; }
+  if(t.id&&t.id.indexOf("d-")===0){ state.defaults[t.id.slice(2)] = t.value; save(); return; }
+  if(t.dataset && t.dataset.count){ state.counts[t.dataset.count] = Math.max(1,Number(t.value)||1); save(); return; }
+  if(t.dataset && t.dataset.uid && t.dataset.field){
+    const row = state.rows.find(r=>r.uid===t.dataset.uid);
+    if(!row) return;
+    row[t.dataset.field] = t.value;
+    if(t.dataset.field==="milestone"||t.dataset.field==="send_date"||t.dataset.field==="status"||t.dataset.field==="title"){
+      const node = document.querySelector('.row[data-uid="'+t.dataset.uid+'"] .row-summary');
+      if(node){
+        node.querySelector(".marker").innerHTML =
+          '<span'+(row.order>=0?' class="after"':'')+'>'+esc(row.milestone)+'</span><span class="sub">'+esc(fmtDate(row.send_date))+'</span>';
+        node.querySelector(".row-title .t").textContent = row.title||"(untitled)";
+        const pill = node.querySelectorAll(".pill");
+        if(pill.length) pill[pill.length-1].textContent = row.status||"—";
+      }
+    }
+    save(); renderChecks();
+  }
+});
+
+document.addEventListener("change",e=>{
+  const t = e.target;
+  if(t.name==="ctype"){ state.type = t.value; $("#type-label").textContent = CUTOVER_TYPES[t.value].label; save(); return; }
+  if(t.dataset && t.dataset.mod){
+    state.mods[t.dataset.mod] = t.checked;
+    if(t.dataset.mod==="M2" && !t.checked) state.mods.M2b = false;
+    renderSetup(); save(); return;
+  }
+});
+
+document.addEventListener("click",e=>{
+  const check = e.target.closest("button.check");
+  if(check && check.dataset.rows){
+    const uids = check.dataset.rows.split(",");
+    uids.forEach(u=>{ state.open[u] = true; });
+    renderLedger(); renderChecks();
+    const first = document.querySelector('.row[data-uid="'+uids[0]+'"]');
+    if(first) first.scrollIntoView({behavior:"smooth",block:"center"});
+    save();
+  }
+});
+
+$("#generate").addEventListener("click",()=>{
+  if(state.rows.length && !confirm("Regenerate the plan? Every row is replaced and your edits are discarded.")) return;
+  regenerate(); note("Plan regenerated");
+});
+$("#toggle-setup").addEventListener("click",()=>{
+  const b = $("#setup-body"), btn = $("#toggle-setup");
+  const hidden = b.style.display==="none";
+  b.style.display = hidden ? "" : "none";
+  btn.textContent = hidden ? "Hide" : "Show";
+  btn.setAttribute("aria-expanded",hidden?"true":"false");
+});
+$("#expand-all").addEventListener("click",()=>{
+  const anyOpen = Object.keys(state.open).some(k=>state.open[k]);
+  state.open = {};
+  if(!anyOpen) state.rows.forEach(r=>{ state.open[r.uid]=true; });
+  save(); renderAll();
+});
+$("#add-row").addEventListener("click",()=>{
+  const row = {
+    /* Seeded at T-7 so the new row sorts to the position its milestone claims,
+       rather than landing after go-live with a pre-go-live label. */
+    uid:"r"+Date.now().toString(36), id:"", milestone:"T-7",
+    order:-7, send_date: addDays(state.golive,-7),
+    title:"New comms", purpose:"", audience:state.defaults.audience, channel:"Email (all-user)",
+    sender:state.defaults.sponsor, owner:state.defaults.owner, approver:state.defaults.approver,
+    dependencies:"", content_link:"", status:"Not started", notes:"", origin:"manual"
+  };
+  state.rows.push(row);
+  state.rows.sort((a,b)=>a.order-b.order);
+  renumber(); state.open[row.uid]=true; save(); renderAll();
+  const node = document.querySelector('.row[data-uid="'+row.uid+'"]');
+  if(node) node.scrollIntoView({behavior:"smooth",block:"center"});
+});
+
+$("#export-json").addEventListener("click",()=>{
+  download(slug(state.project)+"-comms-spec.json",
+    new Blob([JSON.stringify(toSpec(),null,2)],{type:"application/json"}));
+  note("Spec JSON exported");
+});
+$("#export-xlsx").addEventListener("click",()=>{
+  try{
+    const bytes = buildXlsx();
+    download(slug(state.project)+"-comms-plan.xlsx",
+      new Blob([bytes],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}));
+    note("Excel exported · "+state.rows.length+" rows");
+  }catch(err){
+    note("Export failed — "+(err&&err.message?err.message:"unknown error"));
+  }
+});
+$("#import").addEventListener("click",()=>$("#import-file").click());
+$("#import-file").addEventListener("change",e=>{
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ()=>{
+    try{
+      const spec = JSON.parse(reader.result);
+      if(!Array.isArray(spec.comms)) throw new Error("no comms array in this file");
+      state.project = String(spec.project||state.project).replace(/\s*[—-]\s*Cutover Communications Plan$/,"");
+      if(/^\d{4}-\d{2}-\d{2}$/.test(spec.go_live_date||"")) state.golive = spec.go_live_date;
+      state.tierLabel = spec.complexity_tier||state.tierLabel;
+      state.rows = spec.comms.map((c,i)=>{
+        const r = {uid:"i"+i+"_"+Math.random().toString(36).slice(2,7), origin:"imported", order:i-5};
+        COLUMNS.forEach(col=>{ r[col[0]] = c[col[0]]==null?"":String(c[col[0]]); });
+        if(/^\d{4}-\d{2}-\d{2}$/.test(r.send_date))
+          r.order = Math.round((new Date(r.send_date+"T00:00:00Z") - new Date(state.golive+"T00:00:00Z"))/864e5);
+        return r;
+      }).sort((a,b)=>a.order-b.order);
+      renumber();
+      state.math = [{label:"IMPORTED",value:state.rows.length}];
+      state.open = {};
+      save(); renderAll();
+      note("Imported "+state.rows.length+" rows");
+    }catch(err){
+      note("Could not read that file — "+(err&&err.message?err.message:"invalid JSON"));
+    }
+    e.target.value = "";
+  };
+  reader.readAsText(file);
+});
+
+boot();
+</script>

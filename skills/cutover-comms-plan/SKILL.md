@@ -1,6 +1,6 @@
 ---
 name: cutover-comms-plan-v1.0
-description: Builds a cutover communications plan as an Excel workbook — one row per comms with Purpose, Audience, Channel, Sender, Owner, Approver, Dependencies and a deliberately blank Comms Content Link column for later linkage to the drafted content. Applies cadence rules that set how many comms a cutover needs based on its complexity (a brand-new system defaults to 2 — before go-live and after; an upgrade or change to an existing system defaults to 5 — T-14, T-7, T-1, cutover begins, go-live) plus modifiers for downtime, required user action, external audiences, hypercare, multi-wave rollouts and go/no-go gates. Populates the CM member's own existing Excel template when they supply one, otherwise generates a formatted workbook. Use whenever the user wants to plan, build, scope, or sense-check communications around a cutover, go-live, deployment, migration, system upgrade or system retirement — phrases like "cutover comms plan", "go-live communications", "how many comms do we need for this go-live", "build the comms schedule for the deployment", "populate our comms plan template".
+description: Builds a cutover communications plan — first as an editable browser artifact the CM member can adjust, then exported to Excel when they are happy with the draft. One row per comms with Purpose, Audience, Channel, Sender, Owner, Approver, Dependencies and a deliberately blank Comms Content Link column for later linkage to the drafted content. Applies cadence rules that set how many comms a cutover needs based on its complexity (a brand-new system defaults to 2 — before go-live and after; an upgrade or change to an existing system defaults to 5 — T-14, T-7, T-1, cutover begins, go-live) plus modifiers for downtime, required user action, external audiences, hypercare, multi-wave rollouts and go/no-go gates. Populates the CM member's own existing Excel template when they supply one, otherwise generates a formatted workbook. Use whenever the user wants to plan, build, scope, or sense-check communications around a cutover, go-live, deployment, migration, system upgrade or system retirement — phrases like "cutover comms plan", "go-live communications", "how many comms do we need for this go-live", "build the comms schedule for the deployment", "populate our comms plan template".
 ---
 
 # Cutover Communications Plan Builder
@@ -159,7 +159,21 @@ Run these checks and report anything that fails — this is where the plan earns
 
 ### Step 5: Build the workbook
 
-Write the spec to JSON (see `references/example_spec.json` for the shape), then:
+There are two routes. **Default to the interactive one** — a CM member almost always
+wants to adjust the draft before it becomes a file.
+
+**Route A — the editable artifact (preferred).** Publish
+`assets/cutover-comms-plan.html` with the Artifact tool and hand over the link. It runs
+the same cadence rules and the same nine checks live in the browser, lets the member
+edit every field in place, and exports the finished plan to `.xlsx` themselves when
+they're happy with it. Edits persist locally, so they can come back to a part-finished
+draft. Their "Export spec JSON" button produces exactly the spec Route B consumes, so
+the two routes compose: draft in the browser, then run the export through the script to
+land it in a client template.
+
+**Route B — the script**, for populating an existing client template, or when the
+member wants the file straight away with no editing round. Write the spec to JSON (see
+`references/example_spec.json` for the shape), then:
 
 ```bash
 pip install openpyxl   # if not already present
@@ -181,6 +195,12 @@ member which of their columns went unpopulated. Don't hand over a silently half-
 template.
 
 `python3 scripts/build_comms_plan.py --list-fields` prints the spec keys.
+
+The artifact carries its own copy of the cadence rules, the line-item defaults and the
+checks. **If you change a rule in this skill, change it in
+`assets/cutover-comms-plan.html` too** — `CUTOVER_TYPES`, `MODIFIERS`, `LIB` and
+`validate()` are the corresponding pieces — or the two routes will start disagreeing
+about how many comms a cutover needs.
 
 ### Step 6: Hand back
 

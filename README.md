@@ -40,9 +40,17 @@ How many comms a cutover gets is rule-driven rather than guessed:
   multi-wave rollouts, long cutover windows, go/no-go gates, regulated contexts and
   training prerequisites — with a floor of 2 and a ceiling of 6 push comms per audience.
 
-`skills/cutover-comms-plan/scripts/build_comms_plan.py` (requires `openpyxl`) either
-generates a formatted workbook or populates the member's own existing template,
-matching their column names by synonym and preserving their formatting.
+Two ways to build it:
+
+- **`assets/cutover-comms-plan.html`** — an editable artifact. Applies the rules live,
+  runs nine validation checks as you type, and exports to `.xlsx` in the browser with
+  no library or server involved. Edits persist locally between sessions.
+- **`scripts/build_comms_plan.py`** (requires `openpyxl`) — generates the same workbook
+  from a JSON spec, or populates the member's own existing template, matching their
+  column names by synonym and preserving their formatting.
+
+The artifact's "Export spec JSON" produces exactly the spec the script consumes, so the
+two compose: draft and edit in the browser, then push the result into a client template.
 
 ## Installing on another machine
 
