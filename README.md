@@ -6,11 +6,6 @@ Change-management working tools, packaged as a Claude Code plugin.
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
 
-> The 12 change-management framework skills and the multi-framework assessment
-> orchestrator that previously lived here have been removed. New context for that work is
-> being built separately. They remain in this repo's git history and in the
-> `Blueskis/strategic-change-plugin` repository.
-
 ## Proposal generator (v0.1, MVP)
 
 Takes an RFP (plus briefing notes, stakeholder lists, whatever else the client sent) and
