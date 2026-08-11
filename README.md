@@ -1,6 +1,6 @@
 # Strategic Change
 
-A Claude Code plugin bundling 12 change-management consulting framework skills plus a multi-framework assessment orchestrator, built for a Strategic Change presentation and consulting workflow.
+A Claude Code plugin bundling 12 change-management consulting framework skills, a multi-framework assessment orchestrator, and a cutover communications planning tool, built for a Strategic Change presentation and consulting workflow.
 
 ## What's included
 
@@ -19,8 +19,30 @@ A Claude Code plugin bundling 12 change-management consulting framework skills p
 | `dual-operating-system` | Kotter's Dual Operating System (Accelerate) |
 | `network-position` | Organizational network analysis / stakeholder mapping |
 | `strategic-change-assessment` | Orchestrator — runs a project narrative through whichever of the above are suitable and synthesizes findings across them |
+| `cutover-comms-plan` | Delivery tool — builds a cutover communications plan workbook from complexity-based cadence rules |
 
 Each skill's frontmatter `name:` field carries a `-v1.0` suffix (e.g. `dice-framework-v1.0`), marking this as the post-review baseline — all 12 framework skills were live-tested via the Skill tool before this bundle was packaged.
+
+## Cutover comms plan
+
+`cutover-comms-plan` is the one non-diagnostic skill in the bundle. It takes a
+description of a cutover and produces an Excel communications plan — one row per
+comms, with Purpose, Audience, Channel, Sender, Owner, Approver and Dependencies,
+plus a deliberately blank `Comms Content Link` column for later linkage to the
+drafted content.
+
+How many comms a cutover gets is rule-driven rather than guessed:
+
+- **Brand-new system → 2** (pre go-live awareness, go-live)
+- **Upgrade or change to an existing system → 5** (T-14, T-7, T-1, cutover begins, go-live)
+- Decommission → 4; silent migration → 2
+- Plus modifiers for downtime, required user action, external audiences, hypercare,
+  multi-wave rollouts, long cutover windows, go/no-go gates, regulated contexts and
+  training prerequisites — with a floor of 2 and a ceiling of 6 push comms per audience.
+
+`skills/cutover-comms-plan/scripts/build_comms_plan.py` (requires `openpyxl`) either
+generates a formatted workbook or populates the member's own existing template,
+matching their column names by synonym and preserving their formatting.
 
 ## Installing on another machine
 
