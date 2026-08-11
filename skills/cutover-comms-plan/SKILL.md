@@ -215,12 +215,12 @@ is where drafted content gets linked once it exists.
   client template that mandates a different rhythm, follow theirs and say which rule
   you overrode — but still apply the floor, the per-audience ceiling and the Step 4
   validation, since those catch real failures regardless of cadence.
-- A comms plan is not a stakeholder plan. If the question is *who to engage and how
-  hard*, that's `network-position-v1.0`. If the question is *whether the message will
-  land at all*, that's `persuasion-case-for-change-v1.0` — run it first and let its
-  output shape the Purpose column here.
-- This is a build tool, not a diagnostic framework, so it sits outside the
-  `strategic-change-assessment-v1.0` orchestrator's triage. Invoke it directly.
+- A comms plan is not a stakeholder plan, and it is not a case for change. If the real
+  question is *who to engage and how hard*, or *whether the message will land at all*,
+  that is separate analysis — do it first, and let its conclusions shape the Purpose
+  column here rather than trying to answer it through the schedule.
+- This is a build tool, not a diagnostic. It takes the cutover as given and schedules
+  the comms around it; it does not assess whether the change itself is well set up.
 - Anything scheduled to auto-send that depends on a Go/No-Go outcome is the single
   most common way these plans fail in practice — an "it's live!" email going out
   during a rollback. Check for it every time.
