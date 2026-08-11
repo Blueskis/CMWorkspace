@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "kb_entry.schema.json",
+  "title": "Knowledge Bank Entry (frontmatter)",
+  "description": "YAML frontmatter of a knowledge-bank Markdown file. The body below the frontmatter is the retrievable content.",
+  "type": "object",
+  "required": ["id", "title", "tags", "last_reviewed"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "description": "Unique, stable, kebab-case. Referenced by proposal_plan sources — immutable once used in a run."
+    },
+    "title": { "type": "string" },
+    "tags": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+      "description": "Retrieval surface. v0.1 matches tags literally, so vocabulary must be consistent across entries."
+    },
+    "clearance": {
+      "enum": ["named", "anonymised", "internal-only"],
+      "default": "anonymised",
+      "description": "named: client may be named. anonymised: describe generically, never name. internal-only: excluded from client-facing retrieval."
+    },
+    "last_reviewed": {
+      "type": "string",
+      "format": "date",
+      "description": "Entries older than 24 months are flagged stale at retrieval"
+    },
+    "owner": { "type": "string", "description": "Who maintains this entry" },
+    "metrics_verified": {
+      "type": "boolean",
+      "default": false,
+      "description": "Must be true for any entry whose body states a number. Unverified metrics must not reach a bid."
+    },
+    "section": {
+      "type": "string",
+      "description": "Normally derived from the containing folder; set explicitly only to override"
+    },
+    "supersedes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "IDs of entries this replaces — retrieval deprioritises superseded entries"
+    }
+  }
+}

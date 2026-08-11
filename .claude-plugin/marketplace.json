@@ -1,15 +1,15 @@
 {
-  "name": "strategic-change-marketplace",
+  "name": "cm-workspace-marketplace",
   "owner": {
     "name": "Colonel T",
     "email": "coloneltan@gmail.com"
   },
   "plugins": [
     {
-      "name": "strategic-change",
+      "name": "cm-workspace",
       "source": "./",
-      "description": "Consulting-framework skills for diagnosing and managing organizational change (DICE, Kotter's 8-Step, Technical vs. Adaptive, Theory E/O, Persuasion, Tipping Point, Immunity to Change, Six Steps, Productive Distress, Critical Few Behaviours, Dual Operating System, Network Position) plus a multi-framework assessment orchestrator and a change impact assessment generator that builds a baseline CIA workbook from a system implementation's own project documents.",
-      "version": "1.1.0"
+      "description": "Change-management working tools. An RFP-to-proposal deck generator that plans a bid against the client's stated requirements and writes it from a curated knowledge bank, and a change impact assessment generator that builds a baseline impact workbook from a programme's own documents.",
+      "version": "0.2.0"
     }
   ]
 }

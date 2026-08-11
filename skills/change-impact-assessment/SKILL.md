@@ -154,10 +154,10 @@ it over, and offer to re-import if they want to keep generating from source.
   the row at Low confidence with the gap as the open question. A CIA that surfaces "nobody has
   designed emergency purchasing and Facilities has asked twice" has earned its cost before
   anyone reads the ratings.
-- **This pairs with the other skills in this plugin.** The register tells you *what* changes and
-  *who* it lands on; `network-position` identifies which specific people to engage,
-  `critical-few-behaviours` fires when many rows point at the same handful of behaviours,
-  `persuasion-case-for-change` shapes the narrative behind the key messages, `dice-framework`
-  scores whether the programme can deliver it, and `immunity-to-change` applies where a
-  supportive individual still isn't moving. Suggest them when the register makes the case, but
-  don't run them uninvited.
+- **The register is a starting point for further analysis, not the end of it.** It tells you
+  *what* changes and *who* it lands on. It does not tell you which specific individuals to
+  engage, whether the programme has the sponsorship and capacity to deliver what the register
+  implies, or why a supportive person still isn't moving. Where the register makes the case for
+  one of those questions — many rows pointing at the same handful of behaviours, a stakeholder
+  group whose resistance is concentrated in a few people — name the question for the
+  practitioner, but don't launch into answering it uninvited.
