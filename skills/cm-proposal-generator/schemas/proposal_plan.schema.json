@@ -1,0 +1,100 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "proposal_plan.schema.json",
+  "title": "Proposal Plan",
+  "description": "The slide-by-slide build plan. Stage 2 writes the outline and requirement map; Stage 3 fills in content and sources; Stage 4 builds from it; Stage 5 audits against it.",
+  "type": "object",
+  "required": ["run_id", "brief_ref", "template", "sections"],
+  "properties": {
+    "run_id": { "type": "string", "description": "e.g. 'acme-20260807'" },
+    "brief_ref": { "type": "string", "description": "Path to the rfp_brief.json this plan answers" },
+    "template": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string", "description": "The firm's approved .potx/.pptx — required; never build without one" },
+        "profile_ref": { "type": "string", "description": "Path to template_profile.json from profile_template.py" }
+      }
+    },
+    "slide_budget": {
+      "type": "object",
+      "properties": {
+        "limit": { "type": ["integer", "null"], "description": "From constraints.slide_limit — a hard cap" },
+        "planned": { "type": "integer" },
+        "cut_for_length": {
+          "type": "array",
+          "description": "Sections dropped to fit the limit, lowest evaluation weight first. Reported at handover.",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["section_id", "title", "order", "requirement_ids", "slides"],
+        "properties": {
+          "section_id": { "type": "string", "description": "Key from reference/section-library.md, e.g. 'methodology'" },
+          "title": { "type": "string", "description": "Client-facing section title — mirrors the RFP's wording when it prescribes a structure" },
+          "order": { "type": "integer" },
+          "requirement_ids": {
+            "type": "array",
+            "description": "Requirements this section answers. Union across all sections must cover every ID in the brief.",
+            "items": { "type": "string", "pattern": "^R[0-9]+$" }
+          },
+          "evaluation_weight": { "type": ["number", "null"], "description": "Drives slide count in Stage 2" },
+          "slides": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["slide_id", "layout", "title", "blocks"],
+              "properties": {
+                "slide_id": { "type": "string", "description": "e.g. 'methodology-2'" },
+                "layout": { "type": "string", "description": "Layout name or index from template_profile.json — must exist in the approved template" },
+                "title": { "type": "string" },
+                "blocks": {
+                  "type": "array",
+                  "description": "Content units placed into the layout's placeholders",
+                  "items": {
+                    "type": "object",
+                    "required": ["placeholder", "kind", "content", "sources"],
+                    "properties": {
+                      "placeholder": { "type": "string", "description": "Placeholder name/idx from the template profile" },
+                      "kind": {
+                        "enum": ["text", "heading", "paragraph", "bullets", "table", "metric", "phases", "members", "image", "notes"],
+                        "description": "Use 'text' for placeholders the layout already wraps in an element of its own (a title slot, a column heading); 'heading' emits its own <h3> and nests wrongly there. 'phases' and 'members' take arrays of objects — see the renderer."
+                      },
+                      "content": {
+                        "description": "String for prose, array for bullets, object for table/metric",
+                        "type": ["string", "array", "object"]
+                      },
+                      "sources": {
+                        "type": "array",
+                        "description": "Knowledge-bank entry IDs this content came from. MUST be non-empty unless gap is true — no third state.",
+                        "items": { "type": "string" }
+                      },
+                      "gap": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "True when the knowledge bank has no coverage. Renders as a visible [GAP] marker; never substitute generated filler."
+                      },
+                      "gap_note": { "type": "string", "description": "Required when gap is true — what is missing and which requirement it leaves exposed" }
+                    },
+                    "allOf": [
+                      {
+                        "if": { "properties": { "gap": { "const": true } }, "required": ["gap"] },
+                        "then": { "required": ["gap_note"] },
+                        "else": { "properties": { "sources": { "minItems": 1 } } }
+                      }
+                    ]
+                  }
+                },
+                "speaker_notes": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

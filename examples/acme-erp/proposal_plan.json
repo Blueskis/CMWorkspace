@@ -1,0 +1,641 @@
+{
+  "_comment": "WORKED EXAMPLE — Stages 2-3 output for the fictional Acme RFP. Every content block carries either non-empty sources (knowledge-bank entry IDs) or gap:true. Section slide counts are sized by evaluation weight.",
+  "run_id": "acme-20260807",
+  "client": "Acme Manufacturing PLC",
+  "engagement_title": "Change Management Partner — Group ERP Replacement",
+  "brief_ref": "rfp_brief.json",
+  "submission_deadline": "2026-09-04T12:00:00+01:00",
+  "template": {
+    "path": "proposal-assets/templates/html-generic",
+    "profile_ref": "proposal-assets/templates/html-generic/template_profile.json"
+  },
+  "slide_budget": {
+    "limit": 12,
+    "planned": 12,
+    "cut_for_length": []
+  },
+  "sections": [
+    {
+      "section_id": "cover",
+      "title": "Cover",
+      "order": 1,
+      "requirement_ids": [],
+      "evaluation_weight": null,
+      "slides": [
+        {
+          "slide_id": "cover-1",
+          "layout": "title-slide",
+          "title": "Change Management Partner",
+          "blocks": [
+            {
+              "placeholder": "client",
+              "kind": "text",
+              "content": "Acme Manufacturing PLC",
+              "sources": [
+                "bp-data-protection-example"
+              ]
+            },
+            {
+              "placeholder": "title",
+              "kind": "text",
+              "content": "Change Management Partner — Group ERP Replacement",
+              "sources": [
+                "bp-data-protection-example"
+              ]
+            },
+            {
+              "placeholder": "subtitle",
+              "kind": "text",
+              "content": "A phased change partnership for the S/4HANA consolidation across six countries and 4,200 users.",
+              "sources": [
+                "meth-adoption-approach-example"
+              ]
+            },
+            {
+              "placeholder": "meta",
+              "kind": "text",
+              "content": "RFP reference ACM-2026-114  ·  Submission due 4 September 2026  ·  DRAFT FOR PRACTITIONER REVIEW",
+              "sources": [
+                "bp-data-protection-example"
+              ]
+            }
+          ],
+          "speaker_notes": "Check the legal entity name and RFP reference against the RFP cover page before submission."
+        }
+      ]
+    },
+    {
+      "section_id": "understanding",
+      "title": "Our Understanding of Your Situation",
+      "order": 2,
+      "requirement_ids": [
+        "R1"
+      ],
+      "evaluation_weight": 35,
+      "slides": [
+        {
+          "slide_id": "understanding-1",
+          "layout": "two-content",
+          "title": "What this programme is really asking of Acme",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "Our understanding",
+              "sources": [
+                "meth-adoption-approach-example"
+              ]
+            },
+            {
+              "placeholder": "left_heading",
+              "kind": "text",
+              "content": "What you have told us",
+              "sources": [
+                "meth-adoption-approach-example"
+              ]
+            },
+            {
+              "placeholder": "left",
+              "kind": "bullets",
+              "content": [
+                "Three regional ERP instances reach end of vendor support in 2028",
+                "Group finance cannot close month-end without manual reconciliation",
+                "A 2023 consolidation attempt was halted after nine months",
+                "Plant managers report fatigue from three concurrent programmes"
+              ],
+              "sources": [
+                "meth-adoption-approach-example"
+              ]
+            },
+            {
+              "placeholder": "right_heading",
+              "kind": "text",
+              "content": "What that means for the change work",
+              "sources": [
+                "meth-adoption-approach-example",
+                "cred-differentiators-example"
+              ]
+            },
+            {
+              "placeholder": "right",
+              "kind": "bullets",
+              "content": [
+                "The technical case is settled; the adaptive work is at plant level, where the last attempt lost credibility",
+                "Scepticism is concentrated, not uniform — engagement spend should follow it rather than spread evenly",
+                "With no standing change capability in the Transformation Office, capability transfer is part of the deliverable, not an afterthought",
+                "Change fatigue caps how much can be asked in any one quarter; the plan has to be sequenced around it"
+              ],
+              "sources": [
+                "cred-differentiators-example",
+                "meth-adoption-approach-example"
+              ]
+            }
+          ],
+          "speaker_notes": "Highest-signal slide for 'did they read the RFP'. Every point on the left is traceable to the RFP or the briefing call."
+        }
+      ]
+    },
+    {
+      "section_id": "methodology",
+      "title": "Our Approach",
+      "order": 3,
+      "requirement_ids": [
+        "R1",
+        "R2",
+        "R3"
+      ],
+      "evaluation_weight": 35,
+      "slides": [
+        {
+          "slide_id": "methodology-1",
+          "layout": "section-header",
+          "title": "Our approach",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "Section 1 of 4",
+              "sources": [
+                "meth-adoption-approach-example"
+              ]
+            },
+            {
+              "placeholder": "body",
+              "kind": "paragraph",
+              "content": "Four phases running alongside the technical delivery plan, so change activity lands before the system does.",
+              "sources": [
+                "meth-adoption-approach-example"
+              ]
+            }
+          ]
+        },
+        {
+          "slide_id": "methodology-2",
+          "layout": "timeline",
+          "title": "Four phases, each gated on the last",
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "paragraph",
+              "content": "Each phase's output is the next phase's input — the impact assessment scopes the training needs analysis, which scopes delivery.",
+              "sources": [
+                "meth-adoption-approach-example"
+              ]
+            },
+            {
+              "placeholder": "phases",
+              "kind": "phases",
+              "content": [
+                {
+                  "label": "Phase 1",
+                  "name": "Assess",
+                  "detail": [
+                    "Change impact assessment by business unit",
+                    "Stakeholder map and readiness baseline",
+                    "Recovery read on the 2023 attempt"
+                  ]
+                },
+                {
+                  "label": "Phase 2",
+                  "name": "Build",
+                  "detail": [
+                    "Change narrative and comms plan",
+                    "Change-agent network recruited",
+                    "Training needs analysis"
+                  ]
+                },
+                {
+                  "label": "Phase 3",
+                  "name": "Conduct",
+                  "detail": [
+                    "Role-based training delivery",
+                    "Floorwalking and hypercare",
+                    "Weekly adoption dashboard"
+                  ]
+                },
+                {
+                  "label": "Phase 4",
+                  "name": "Sustain",
+                  "detail": [
+                    "Adoption review at 90 days",
+                    "Reinforcement plan",
+                    "Handover to named BAU owners"
+                  ]
+                }
+              ],
+              "sources": [
+                "meth-adoption-approach-example"
+              ]
+            }
+          ],
+          "speaker_notes": "Answers R1 (impact assessment in Assess) and R2 (training in Build/Conduct)."
+        },
+        {
+          "slide_id": "methodology-3",
+          "layout": "two-content",
+          "title": "Stakeholder engagement: networks, not cascades",
+          "blocks": [
+            {
+              "placeholder": "left_heading",
+              "kind": "text",
+              "content": "How we identify who matters",
+              "sources": [
+                "cred-differentiators-example"
+              ]
+            },
+            {
+              "placeholder": "left",
+              "kind": "bullets",
+              "content": [
+                "Network mapping to surface informal influencers — the people the plant actually listens to, who rarely match the org chart",
+                "Sentiment captured per group, so engagement effort follows resistance rather than headcount",
+                "Explicit read on the two markets where the 2023 attempt lost most credibility"
+              ],
+              "sources": [
+                "cred-differentiators-example",
+                "meth-adoption-approach-example"
+              ]
+            },
+            {
+              "placeholder": "right_heading",
+              "kind": "text",
+              "content": "How we engage them",
+              "sources": [
+                "cred-differentiators-example"
+              ]
+            },
+            {
+              "placeholder": "right",
+              "kind": "bullets",
+              "content": [
+                "A volunteer change-agent network recruited from the affected population, not appointed regional leads",
+                "Participative design sessions where the process genuinely changes; briefings where it does not",
+                "A comms calendar synchronised to the technical release plan, so messages land against real milestones"
+              ],
+              "sources": [
+                "cred-differentiators-example",
+                "meth-adoption-approach-example"
+              ]
+            }
+          ],
+          "speaker_notes": "Answers R3, including its specific ask about informal influencers."
+        }
+      ]
+    },
+    {
+      "section_id": "governance",
+      "title": "Measurement, Governance and Sustainability",
+      "order": 4,
+      "requirement_ids": [
+        "R4",
+        "R8"
+      ],
+      "evaluation_weight": 20,
+      "slides": [
+        {
+          "slide_id": "governance-1",
+          "layout": "table",
+          "title": "Named adoption measures, baselined before go-live",
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "paragraph",
+              "content": "Measures are defined during Assess and baselined before go-live, so the programme can tell adoption from compliance.",
+              "sources": [
+                "meth-governance-metrics-example"
+              ]
+            },
+            {
+              "placeholder": "table",
+              "kind": "table",
+              "content": {
+                "headers": [
+                  "Measure",
+                  "What it tells the board",
+                  "Cadence"
+                ],
+                "rows": [
+                  [
+                    "Readiness",
+                    "Proportion trained by business unit, against plan",
+                    "Weekly from Build"
+                  ],
+                  [
+                    "Adoption",
+                    "Transactions in the new system vs. workarounds",
+                    "Weekly from go-live"
+                  ],
+                  [
+                    "Proficiency",
+                    "Support tickets per 100 users, trended",
+                    "Weekly from go-live"
+                  ],
+                  [
+                    "Sentiment",
+                    "Three-question pulse across the affected population",
+                    "Baseline, go-live, +90 days"
+                  ]
+                ]
+              },
+              "sources": [
+                "meth-governance-metrics-example"
+              ]
+            }
+          ],
+          "speaker_notes": "Answers R4. A flat or rising proficiency curve four weeks post go-live indicates a training gap, not a system defect."
+        },
+        {
+          "slide_id": "governance-2",
+          "layout": "title-and-content",
+          "title": "Sustaining the change after we leave",
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "bullets",
+              "content": [
+                "Every change artifact has a named Acme business owner from the outset — handover is a phase-gated deliverable, not a closing activity",
+                "The change-agent network is recruited and trained as an Acme asset, and persists past the engagement",
+                "Capability transfer into the Group Transformation Office is scoped as a deliverable, given there is no standing change capability today",
+                "A structured delivery-risk score at each phase gate, so the trend is visible to the board across the engagement"
+              ],
+              "sources": [
+                "cred-differentiators-example",
+                "meth-governance-metrics-example"
+              ]
+            }
+          ],
+          "speaker_notes": "Answers R8, which is scored under 'sustainability of the change beyond the engagement' but not scoped — see the open question in the brief."
+        }
+      ]
+    },
+    {
+      "section_id": "case-studies",
+      "title": "Relevant Experience",
+      "order": 5,
+      "requirement_ids": [
+        "R5"
+      ],
+      "evaluation_weight": 20,
+      "slides": [
+        {
+          "slide_id": "case-studies-1",
+          "layout": "case-study",
+          "title": "Multi-country HRIS rollout after two failed attempts",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "Relevant experience",
+              "sources": [
+                "cs-hris-rollout-example"
+              ]
+            },
+            {
+              "placeholder": "situation",
+              "kind": "paragraph",
+              "content": "A multinational manufacturer replacing three regional systems across 5,000 employees in eleven countries. Two prior attempts had stalled, and local teams regarded the programme as a headcount exercise.",
+              "sources": [
+                "cs-hris-rollout-example"
+              ]
+            },
+            {
+              "placeholder": "action",
+              "kind": "bullets",
+              "content": [
+                "Ran the impact assessment at country level, which showed resistance was concentrated in two markets rather than spread evenly",
+                "Redirected engagement budget accordingly — deep participative design in those two, lighter-touch comms elsewhere",
+                "Built a change-agent network of 40 local volunteers instead of appointing regional leads"
+              ],
+              "sources": [
+                "cs-hris-rollout-example"
+              ]
+            },
+            {
+              "placeholder": "outcome",
+              "kind": "paragraph",
+              "content": "Both previously-resistant markets finished above the global average. Support ticket volume peaked at half the level forecast from the earlier attempt.",
+              "sources": [
+                "cs-hris-rollout-example"
+              ]
+            },
+            {
+              "placeholder": "metrics",
+              "kind": "metric",
+              "content": [
+                {
+                  "value": "87%",
+                  "label": "adoption within 90 days, against a 75% target"
+                },
+                {
+                  "value": "40",
+                  "label": "volunteer change agents recruited locally"
+                }
+              ],
+              "sources": [
+                "cs-hris-rollout-example"
+              ]
+            }
+          ],
+          "speaker_notes": "Source entry is clearance:anonymised — the client must NOT be named. Also metrics_verified:false, so these figures cannot ship until verified. Both flagged in the KB index."
+        }
+      ]
+    },
+    {
+      "section_id": "team",
+      "title": "Proposed Team",
+      "order": 6,
+      "requirement_ids": [
+        "R6"
+      ],
+      "evaluation_weight": 10,
+      "slides": [
+        {
+          "slide_id": "team-1",
+          "layout": "team-grid",
+          "title": "Core team, staffed to phase",
+          "blocks": [
+            {
+              "placeholder": "members",
+              "kind": "members",
+              "content": [
+                {
+                  "name": "[GAP] To be named",
+                  "role": "Change Lead",
+                  "bio": "Owns the change approach and the SRO relationship; accountable for the impact assessment and readiness sign-off at each phase gate. 0.8–1.0 FTE."
+                },
+                {
+                  "name": "[GAP] To be named",
+                  "role": "Engagement & Communications Manager",
+                  "bio": "Runs the stakeholder engagement plan, change-agent network, and programme communications."
+                },
+                {
+                  "name": "[GAP] To be named",
+                  "role": "Training Lead",
+                  "bio": "Owns the training needs analysis, curriculum, materials and delivery scheduling. Peaks either side of go-live."
+                },
+                {
+                  "name": "[GAP] To be named",
+                  "role": "Business Readiness Analyst",
+                  "bio": "Maintains the impact assessment at process level and tracks readiness by business unit."
+                }
+              ],
+              "sources": [
+                "team-core-roles-example"
+              ]
+            }
+          ],
+          "speaker_notes": "Role profiles come from the bank; named individuals do not. R6 also requires CVs in Annex B — not covered by this deck."
+        }
+      ]
+    },
+    {
+      "section_id": "commercials",
+      "title": "Commercials",
+      "order": 7,
+      "requirement_ids": [
+        "R7"
+      ],
+      "evaluation_weight": 15,
+      "slides": [
+        {
+          "slide_id": "commercials-1",
+          "layout": "table",
+          "title": "Phased fee structure",
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "paragraph",
+              "content": "Phased with a commercial break at each gate, so Acme can stop, resize or extend at a known point. Assess is fixed-price on a defined deliverable set; Build and Conduct are capped time-and-materials against an agreed resourcing profile.",
+              "sources": [
+                "comm-engagement-model-example"
+              ]
+            },
+            {
+              "placeholder": "table",
+              "kind": "table",
+              "content": {
+                "headers": [
+                  "Phase",
+                  "Commercial basis",
+                  "Fee"
+                ],
+                "rows": [
+                  [
+                    "Assess",
+                    "Fixed price on a defined deliverable set",
+                    "To be priced"
+                  ],
+                  [
+                    "Build",
+                    "Capped time & materials",
+                    "To be priced"
+                  ],
+                  [
+                    "Conduct",
+                    "Capped time & materials",
+                    "To be priced"
+                  ],
+                  [
+                    "Sustain",
+                    "Capped time & materials",
+                    "To be priced"
+                  ]
+                ]
+              },
+              "sources": [
+                "comm-engagement-model-example"
+              ]
+            },
+            {
+              "placeholder": "table",
+              "kind": "paragraph",
+              "content": "",
+              "sources": [],
+              "gap": true,
+              "gap_note": "Fee figures absent: v0.1 does not calculate pricing, and the rate card is held separately and confirmed per bid. R7 is mandatory and requires a fixed price for the assessment phase — this cannot be submitted until the practitioner completes the table above."
+            }
+          ],
+          "speaker_notes": "The structure is from the bank; the numbers are deliberately absent. Never generate a fee figure."
+        },
+        {
+          "slide_id": "commercials-2",
+          "layout": "two-content",
+          "title": "Assumptions and exclusions",
+          "blocks": [
+            {
+              "placeholder": "left_heading",
+              "kind": "text",
+              "content": "We have assumed",
+              "sources": [
+                "comm-engagement-model-example"
+              ]
+            },
+            {
+              "placeholder": "left",
+              "kind": "bullets",
+              "content": [
+                "A named Acme business sponsor and business-unit champions, with time formally allocated rather than absorbed alongside a full role",
+                "Access to affected staff for the impact assessment and training within agreed windows",
+                "Client-provided facilities and system environments for training delivery",
+                "Travel and expenses at cost against an agreed cap"
+              ],
+              "sources": [
+                "comm-engagement-model-example"
+              ]
+            },
+            {
+              "placeholder": "right_heading",
+              "kind": "text",
+              "content": "Excluded unless separately scoped",
+              "sources": [
+                "comm-engagement-model-example"
+              ]
+            },
+            {
+              "placeholder": "right",
+              "kind": "bullets",
+              "content": [
+                "Technical configuration and data migration",
+                "Systems integration testing",
+                "Translation of training content into local languages"
+              ],
+              "sources": [
+                "comm-engagement-model-example"
+              ]
+            }
+          ],
+          "speaker_notes": "Translation is worth flagging to the practitioner — six countries, and the RFP does not say whether local-language delivery is expected."
+        }
+      ]
+    },
+    {
+      "section_id": "why-us",
+      "title": "Why Us",
+      "order": 8,
+      "requirement_ids": [],
+      "evaluation_weight": null,
+      "slides": [
+        {
+          "slide_id": "why-us-1",
+          "layout": "title-and-content",
+          "title": "Why Acme should choose us",
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "bullets",
+              "content": [
+                "Diagnostic before prescription — the approach is sized to the change in front of us, and a rollout following a halted attempt is not a standard rollout",
+                "Networks over hierarchies — engagement runs through volunteers recruited from the affected population, because cascades lose fidelity at every layer",
+                "Measurement built in from the start, baselined before go-live, so adoption can be told apart from compliance",
+                "Handover as a deliverable — change that depends on the consultants staying is not change, and Acme has no standing change capability to fall back on"
+              ],
+              "sources": [
+                "cred-differentiators-example"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rfp_brief.schema.json",
+  "title": "RFP Brief",
+  "description": "Structured extraction of an RFP and accompanying client inputs. Stage 1 output.",
+  "type": "object",
+  "required": ["client", "engagement", "requirements", "constraints", "sources"],
+  "properties": {
+    "client": {
+      "type": "object",
+      "required": ["legal_name"],
+      "properties": {
+        "legal_name": { "type": "string", "description": "Exact legal entity name as written in the RFP" },
+        "trading_name": { "type": "string" },
+        "sector": { "type": "string" },
+        "issuing_department": { "type": "string" }
+      }
+    },
+    "engagement": {
+      "type": "object",
+      "required": ["title"],
+      "properties": {
+        "title": { "type": "string" },
+        "rfp_reference": { "type": "string", "description": "Reference/tender number, verbatim" },
+        "start_date": { "type": "string", "format": "date" },
+        "term": { "type": "string", "description": "Contract duration as stated, e.g. '18 months + 12 month option'" },
+        "incumbent": { "type": "string" }
+      }
+    },
+    "requirements": {
+      "type": "array",
+      "description": "Every distinct ask. IDs are the spine of the run — Stage 2 maps to them, Stage 5 checks coverage against them.",
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "priority", "confidence", "origin"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^R[0-9]+$" },
+          "text": { "type": "string", "description": "The client's own wording, not a paraphrase" },
+          "priority": { "enum": ["mandatory", "desirable"] },
+          "raw_priority": { "type": "string", "description": "The RFP's own term, e.g. 'M', 'Essential', 'Pass/Fail'" },
+          "confidence": { "enum": ["stated", "inferred"] },
+          "note": { "type": "string", "description": "Required when confidence is 'inferred' — what is ambiguous and why" },
+          "origin": {
+            "type": "object",
+            "required": ["document"],
+            "properties": {
+              "document": { "type": "string" },
+              "section": { "type": "string" },
+              "page": { "type": "integer" }
+            }
+          }
+        }
+      }
+    },
+    "evaluation_criteria": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["criterion"],
+        "properties": {
+          "criterion": { "type": "string" },
+          "weight": { "type": ["number", "null"], "description": "Percentage. null when the RFP does not state one — do not guess" },
+          "requirement_ids": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "submission_deadline": { "type": "string", "description": "ISO 8601 with timezone — RFP deadlines are precise" },
+        "clarification_deadline": { "type": "string" },
+        "slide_limit": { "type": ["integer", "null"] },
+        "page_limit": { "type": ["integer", "null"] },
+        "file_format": { "type": "string" },
+        "file_naming_convention": { "type": "string" },
+        "min_font_size": { "type": ["number", "null"] },
+        "prescribed_structure": {
+          "type": "array",
+          "description": "Response structure the RFP mandates. When present, Stage 2 mirrors this order.",
+          "items": { "type": "string" }
+        },
+        "submission_channel": { "type": "string" }
+      }
+    },
+    "context": {
+      "type": "object",
+      "description": "Feeds the 'Our Understanding of Your Situation' section",
+      "properties": {
+        "drivers": { "type": "array", "items": { "type": "string" } },
+        "systems": { "type": "array", "items": { "type": "string" } },
+        "affected_population": { "type": ["integer", "string"] },
+        "geography": { "type": "array", "items": { "type": "string" } },
+        "pain_points": { "type": "array", "items": { "type": "string" } },
+        "success_measures": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "description": "Material ambiguities worth a clarification question before the clarification deadline",
+      "items": { "type": "string" }
+    },
+    "sources": {
+      "type": "array",
+      "description": "Every input document parsed in Stage 1",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind"],
+        "properties": {
+          "path": { "type": "string" },
+          "kind": { "enum": ["rfp", "annex", "briefing-notes", "stakeholder-list", "commercial-guidance", "other"] },
+          "parsed_with": { "type": "string" }
+        }
+      }
+    }
+  }
+}
