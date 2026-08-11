@@ -8,8 +8,8 @@
     {
       "name": "strategic-change",
       "source": "./",
-      "description": "Consulting-framework skills for diagnosing and managing organizational change (DICE, Kotter's 8-Step, Technical vs. Adaptive, Theory E/O, Persuasion, Tipping Point, Immunity to Change, Six Steps, Productive Distress, Critical Few Behaviours, Dual Operating System, Network Position) plus a multi-framework assessment orchestrator.",
-      "version": "1.0.0"
+      "description": "Consulting-framework skills for diagnosing and managing organizational change (DICE, Kotter's 8-Step, Technical vs. Adaptive, Theory E/O, Persuasion, Tipping Point, Immunity to Change, Six Steps, Productive Distress, Critical Few Behaviours, Dual Operating System, Network Position) plus a multi-framework assessment orchestrator and a change impact assessment generator that builds a baseline CIA workbook from a system implementation's own project documents.",
+      "version": "1.1.0"
     }
   ]
 }
