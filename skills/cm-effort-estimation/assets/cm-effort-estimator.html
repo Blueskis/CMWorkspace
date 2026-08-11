@@ -1,0 +1,1535 @@
+<title>CM Effort &amp; Pricing Estimator</title>
+<style>
+  :root {
+    color-scheme: light dark;
+    --paper: #F3F5F9;
+    --surface: #FFFFFF;
+    --surface-2: #EAEEF5;
+    --ink: #12161F;
+    --ink-2: #4C5666;
+    --ink-3: #7A8494;
+    --line: #DCE1EA;
+    --line-strong: #BFC7D4;
+    --accent: #2E3D77;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E4E8F6;
+    --jade: #0B6B54;
+    --jade-soft: #E0F0EA;
+    --amber: #8C5E0C;
+    --amber-soft: #F7EBD5;
+    --clay: #A33D2E;
+    --clay-soft: #F7E4E0;
+    --shadow: 0 1px 2px rgba(18, 22, 31, .06), 0 8px 24px -16px rgba(18, 22, 31, .35);
+
+    --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E1117;
+      --surface: #171B23;
+      --surface-2: #1F242E;
+      --ink: #E8EBF2;
+      --ink-2: #A5AEBD;
+      --ink-3: #7B8494;
+      --line: #2A303B;
+      --line-strong: #3B4351;
+      --accent: #97A5EA;
+      --accent-ink: #10131B;
+      --accent-soft: #1C2340;
+      --jade: #4FC7A0;
+      --jade-soft: #12302A;
+      --amber: #D9A54E;
+      --amber-soft: #2E2617;
+      --clay: #E38375;
+      --clay-soft: #33201D;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0E1117;
+    --surface: #171B23;
+    --surface-2: #1F242E;
+    --ink: #E8EBF2;
+    --ink-2: #A5AEBD;
+    --ink-3: #7B8494;
+    --line: #2A303B;
+    --line-strong: #3B4351;
+    --accent: #97A5EA;
+    --accent-ink: #10131B;
+    --accent-soft: #1C2340;
+    --jade: #4FC7A0;
+    --jade-soft: #12302A;
+    --amber: #D9A54E;
+    --amber-soft: #2E2617;
+    --clay: #E38375;
+    --clay-soft: #33201D;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+  h1 { font-size: 1.3rem; }
+  h2 { font-size: 1.15rem; }
+  h3 { font-size: .98rem; }
+  p { margin: 0; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- App frame ---------- */
+
+  .appbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; flex-direction: column; margin-right: auto; }
+  .brand small { color: var(--ink-3); font-size: .78rem; }
+
+  .steps { display: flex; gap: 4px; flex-wrap: wrap; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 61px; z-index: 19; }
+  .step {
+    appearance: none; background: none; border: 0; border-bottom: 2px solid transparent;
+    font: inherit; color: var(--ink-2); cursor: pointer;
+    padding: 10px 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .step:hover { color: var(--ink); }
+  .step[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .step .idx { font-family: var(--font-mono); font-size: .72rem; color: var(--ink-3); }
+  .step[aria-selected="true"] .idx { color: var(--accent); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 24px;
+    align-items: start;
+    padding: 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  @media (max-width: 1080px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+  .panel { display: none; flex-direction: column; gap: 20px; min-width: 0; }
+  .panel.active { display: flex; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card > header {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+  }
+  .card > header .hint { color: var(--ink-3); font-size: .82rem; margin-left: auto; }
+  .card .body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ---------- Controls ---------- */
+
+  button, select, input, textarea { font: inherit; color: inherit; }
+
+  .btn {
+    appearance: none; cursor: pointer;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line-strong); border-radius: 7px;
+    padding: 7px 13px; font-size: .87rem; font-weight: 500;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--ink-2); }
+  .btn.ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn.danger { color: var(--clay); border-color: var(--line); }
+  .btn.small { padding: 4px 9px; font-size: .78rem; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .spacer { margin-left: auto; }
+
+  input[type="text"], input[type="number"], select, textarea {
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 6px 8px;
+    width: 100%;
+    min-width: 0;
+  }
+  textarea { resize: vertical; font-size: .9rem; line-height: 1.6; }
+  input[type="number"] { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field label { font-size: .78rem; color: var(--ink-2); font-weight: 500; }
+  .field .src { font-size: .7rem; color: var(--jade); font-family: var(--font-mono); }
+  .field .src.default { color: var(--ink-3); }
+  .grid-drivers { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+
+  /* ---------- Drop zone ---------- */
+
+  .drop {
+    border: 1.5px dashed var(--line-strong);
+    border-radius: 9px;
+    padding: 22px;
+    text-align: center;
+    background: var(--surface-2);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+  .drop .files { font-size: .82rem; color: var(--ink-2); }
+
+  /* ---------- Tables ---------- */
+
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .87rem; }
+  th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  thead th {
+    position: sticky; top: 0;
+    background: var(--surface-2);
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-2); font-weight: 600; white-space: nowrap;
+  }
+  tbody tr:hover { background: var(--surface-2); }
+  td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td input { border-color: transparent; background: transparent; }
+  td input:hover { border-color: var(--line); }
+  td input:focus { border-color: var(--accent); background: var(--surface); }
+  td select { border-color: transparent; background: transparent; font-size: .85rem; }
+  td select:focus { border-color: var(--accent); background: var(--surface); }
+  tfoot td { font-weight: 600; border-top: 2px solid var(--line-strong); border-bottom: 0; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 8px; border-radius: 20px;
+    font-size: .7rem; font-weight: 600; letter-spacing: .02em;
+    background: var(--surface-2); color: var(--ink-2);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .chip.detected { background: var(--jade-soft); color: var(--jade); border-color: transparent; }
+  .chip.bench { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .chip.assumed { background: var(--amber-soft); color: var(--amber); border-color: transparent; }
+
+  .cat-stripe { border-left: 3px solid var(--accent-soft); }
+
+  .evidence {
+    font-size: .78rem; color: var(--ink-2);
+    background: var(--surface-2); border-left: 2px solid var(--jade);
+    padding: 6px 10px; border-radius: 0 5px 5px 0;
+    font-style: italic;
+  }
+  .signals { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .empty { color: var(--ink-3); font-size: .87rem; padding: 18px; text-align: center; }
+
+  /* ---------- Summary aside ---------- */
+
+  aside.summary { position: sticky; top: 110px; display: flex; flex-direction: column; gap: 12px; }
+  @media (max-width: 1080px) { aside.summary { position: static; } }
+
+  .total-block { padding: 16px 18px; display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid var(--line); }
+  .total-block .value { font-family: var(--font-mono); font-size: 1.85rem; font-weight: 600; color: var(--jade); letter-spacing: -.02em; }
+  .total-block .value.zero { color: var(--ink-3); }
+
+  .sumline { display: flex; justify-content: space-between; gap: 12px; font-size: .84rem; padding: 3px 0; }
+  .sumline span:last-child { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .sumline.muted { color: var(--ink-2); }
+  .sumline.strong { font-weight: 600; border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; }
+
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
+  .metric { background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+  .metric .v { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600; }
+
+  .note { font-size: .78rem; color: var(--ink-3); line-height: 1.5; }
+  details.calc summary { cursor: pointer; font-size: .74rem; color: var(--ink-3); font-family: var(--font-mono); }
+  details.calc[open] summary { color: var(--accent); }
+  details.calc .formula { font-family: var(--font-mono); font-size: .74rem; color: var(--ink-2); padding-top: 4px; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px);
+    background: var(--ink); color: var(--paper);
+    padding: 9px 16px; border-radius: 7px; font-size: .85rem;
+    opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  /* ---------- Print ---------- */
+  @media print {
+    .appbar, .steps, aside.summary, .no-print { display: none !important; }
+    body { background: #fff; }
+    .layout { display: block; padding: 0; }
+    .panel { display: none !important; }
+    .panel#panel-quote { display: flex !important; }
+    .card { box-shadow: none; border-color: #ccc; break-inside: avoid; }
+  }
+</style>
+
+<header class="appbar">
+  <div class="brand">
+    <h1>CM Effort &amp; Pricing Estimator</h1>
+    <small>Price a change management pursuit from RFP scope and your past quotes</small>
+  </div>
+  <div class="row no-print">
+    <label class="eyebrow" for="currency">Currency</label>
+    <select id="currency" style="width:auto">
+      <option>SGD</option><option>USD</option><option>EUR</option><option>GBP</option><option>AUD</option><option>MYR</option><option>INR</option>
+    </select>
+    <button class="btn ghost small" id="btn-theme" title="Toggle light/dark">Theme</button>
+    <button class="btn ghost small danger" id="btn-reset">Reset all</button>
+  </div>
+</header>
+
+<nav class="steps" role="tablist" aria-label="Estimation steps">
+  <button class="step" role="tab" aria-selected="true" data-panel="scope"><span class="idx">01</span> RFP scope</button>
+  <button class="step" role="tab" aria-selected="false" data-panel="quotes"><span class="idx">02</span> Past quotes</button>
+  <button class="step" role="tab" aria-selected="false" data-panel="rates"><span class="idx">03</span> Rate card</button>
+  <button class="step" role="tab" aria-selected="false" data-panel="quote"><span class="idx">04</span> Priced deliverables</button>
+</nav>
+
+<div class="layout">
+  <main>
+    <!-- ============ 01 SCOPE ============ -->
+    <section class="panel active" id="panel-scope" role="tabpanel">
+      <div class="card">
+        <header>
+          <h2>1 &middot; Read the RFP scope</h2>
+          <span class="hint">Word, PDF or plain text — nothing leaves your browser</span>
+        </header>
+        <div class="body">
+          <div class="drop" id="drop">
+            <strong>Drop the RFP here</strong>
+            <span class="files">.docx, .pdf, .txt or .md &mdash; or paste the scope section below</span>
+            <div class="row">
+              <button class="btn" id="btn-browse">Choose file</button>
+              <button class="btn ghost" id="btn-sample-rfp">Load sample RFP</button>
+            </div>
+            <input type="file" id="file" accept=".docx,.pdf,.txt,.md,.csv" hidden>
+            <div class="files" id="file-status"></div>
+          </div>
+          <div class="field">
+            <label for="rfp-text">Scope text</label>
+            <textarea id="rfp-text" rows="9" placeholder="Paste the scope of work, deliverables list, or CM requirements from the RFP…"></textarea>
+          </div>
+          <div class="row">
+            <button class="btn primary" id="btn-analyse">Analyse scope</button>
+            <span class="note" id="analyse-status"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header>
+          <h2>2 &middot; Scope drivers</h2>
+          <span class="hint">Auto-read from the RFP where possible — override anything</span>
+        </header>
+        <div class="body">
+          <div class="grid-drivers" id="drivers"></div>
+          <details class="calc" id="evidence-wrap">
+            <summary>What was detected in the document</summary>
+            <div class="body" style="padding:10px 0 0; gap:8px" id="evidence-list"></div>
+          </details>
+        </div>
+      </div>
+
+      <div class="card">
+        <header>
+          <h2>3 &middot; Deliverables signalled by the RFP</h2>
+          <span class="hint" id="signal-count"></span>
+        </header>
+        <div class="body">
+          <div class="signals" id="signals"><span class="note">Analyse a scope document to see which deliverables the RFP asks for.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 02 PAST QUOTES ============ -->
+    <section class="panel" id="panel-quotes" role="tabpanel">
+      <div class="card">
+        <header>
+          <h2>Past project quotes</h2>
+          <span class="hint">Edit any cell — day rates and effort benchmarks recalculate immediately</span>
+        </header>
+        <div class="body">
+          <p class="note">One row per priced line from a past proposal. <strong>Days</strong> is the total effort quoted for that line, <strong>Price</strong> the fee charged. The implied day rate is derived, then indexed to today at the escalation rate on the Rate card tab. Seeded with illustrative sample data — replace it with your own.</p>
+          <div class="tablewrap">
+            <table id="quotes-table">
+              <thead>
+                <tr>
+                  <th>Project</th><th class="n">Year</th><th>Industry</th><th>Deliverable</th>
+                  <th class="n">Qty</th><th class="n">Days</th><th class="n">Price</th>
+                  <th class="n">Day rate</th><th class="n">Days/unit</th><th></th>
+                </tr>
+              </thead>
+              <tbody id="quotes-body"></tbody>
+            </table>
+          </div>
+          <div class="row">
+            <button class="btn" id="btn-add-quote">Add line</button>
+            <button class="btn ghost" id="btn-import-quotes">Import CSV</button>
+            <button class="btn ghost" id="btn-export-quotes">Export CSV</button>
+            <input type="file" id="quotes-file" accept=".csv" hidden>
+            <button class="btn ghost spacer" id="btn-restore-samples">Restore sample data</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 03 RATE CARD ============ -->
+    <section class="panel" id="panel-rates" role="tabpanel">
+      <div class="card">
+        <header>
+          <h2>Derived rate card</h2>
+          <span class="hint">Median of your past quotes, indexed to today</span>
+        </header>
+        <div class="body">
+          <div class="row">
+            <div class="field" style="max-width:190px">
+              <label for="escalation">Annual rate escalation %</label>
+              <input type="number" id="escalation" min="0" max="20" step="0.5">
+            </div>
+            <div class="field" style="max-width:190px">
+              <label for="fallback-rate">Fallback day rate</label>
+              <input type="number" id="fallback-rate" min="0" step="50">
+            </div>
+            <p class="note" style="flex:1;min-width:200px">Deliverables with no history fall back to the blended median day rate and a standard effort assumption. Type into <em>Override</em> to pin a value for this pursuit.</p>
+          </div>
+          <div class="tablewrap">
+            <table id="rates-table">
+              <thead>
+                <tr>
+                  <th>Deliverable</th><th>Unit</th><th class="n">Samples</th>
+                  <th class="n">Benchmark days/unit</th><th class="n">Benchmark day rate</th>
+                  <th class="n">Override days</th><th class="n">Override rate</th><th>Basis</th>
+                </tr>
+              </thead>
+              <tbody id="rates-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 04 QUOTE ============ -->
+    <section class="panel" id="panel-quote" role="tabpanel">
+      <div class="card">
+        <header>
+          <h2 id="quote-title">Schedule of deliverables and fees</h2>
+          <span class="hint" id="quote-meta"></span>
+        </header>
+        <div class="body">
+          <div class="row no-print">
+            <div class="field" style="max-width:260px">
+              <label for="client-name">Client / pursuit name</label>
+              <input type="text" id="client-name" placeholder="e.g. Northwind Utilities — S/4HANA">
+            </div>
+            <button class="btn spacer" id="btn-rebuild">Rebuild from scope</button>
+            <button class="btn ghost" id="btn-copy-md">Copy as Markdown</button>
+            <button class="btn ghost" id="btn-export-invoice">Export CSV</button>
+            <button class="btn primary" id="btn-print">Print / PDF</button>
+          </div>
+          <div class="tablewrap">
+            <table id="lines-table">
+              <thead>
+                <tr>
+                  <th class="n">Incl.</th><th style="min-width:230px">Deliverable</th><th>Unit</th>
+                  <th class="n">Qty</th><th class="n">Days/unit</th><th class="n">Effort (days)</th>
+                  <th class="n">Day rate</th><th class="n">Amount</th><th class="no-print"></th>
+                </tr>
+              </thead>
+              <tbody id="lines-body"></tbody>
+              <tfoot id="lines-foot"></tfoot>
+            </table>
+          </div>
+          <div class="row no-print">
+            <button class="btn small" id="btn-add-line">Add custom line</button>
+            <span class="note">Untick a line to exclude it from the quote without losing your numbers.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header><h2>Commercials</h2></header>
+        <div class="body">
+          <div class="grid-drivers">
+            <div class="field"><label for="c-contingency">Contingency %</label><input type="number" id="c-contingency" step="1" min="0"></div>
+            <div class="field"><label for="c-discount">Pursuit discount %</label><input type="number" id="c-discount" step="1" min="0"></div>
+            <div class="field"><label for="c-expenses">Travel &amp; expenses</label><input type="number" id="c-expenses" step="500" min="0"></div>
+            <div class="field"><label for="c-tax">Tax / GST %</label><input type="number" id="c-tax" step="0.5" min="0"></div>
+          </div>
+          <p class="note">Contingency is applied to fees before discount. Tax is applied to the discounted fee plus expenses.</p>
+        </div>
+      </div>
+
+      <div class="card">
+        <header><h2>Assumptions to carry into the proposal</h2></header>
+        <div class="body">
+          <ul class="note" style="margin:0; padding-left:18px; display:flex; flex-direction:column; gap:5px" id="assumptions"></ul>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ SUMMARY ============ -->
+  <aside class="summary no-print">
+    <div class="card">
+      <div class="total-block">
+        <span class="eyebrow">Total price</span>
+        <span class="value zero" id="s-total">—</span>
+        <span class="note" id="s-total-note">Nothing priced yet</span>
+      </div>
+      <div class="body" style="gap:0; padding:14px 18px">
+        <div class="sumline"><span>Fees</span><span id="s-fees">—</span></div>
+        <div class="sumline muted"><span>Contingency</span><span id="s-cont">—</span></div>
+        <div class="sumline muted"><span>Discount</span><span id="s-disc">—</span></div>
+        <div class="sumline muted"><span>Expenses</span><span id="s-exp">—</span></div>
+        <div class="sumline muted"><span>Tax</span><span id="s-tax">—</span></div>
+        <div class="sumline strong"><span>Total</span><span id="s-total2">—</span></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><span class="eyebrow">Effort</span><span class="v" id="s-days">—</span><span class="note">person-days</span></div>
+        <div class="metric"><span class="eyebrow">Blended</span><span class="v" id="s-blended">—</span><span class="note">per day</span></div>
+        <div class="metric"><span class="eyebrow">Team size</span><span class="v" id="s-fte">—</span><span class="note">avg FTE</span></div>
+        <div class="metric"><span class="eyebrow">Lines</span><span class="v" id="s-lines">—</span><span class="note">in quote</span></div>
+      </div>
+    </div>
+    <p class="note">Work is saved in this browser as you type. Benchmarks come from your own past quotes on tab 02 — the more history you load, the less the estimate leans on defaults.</p>
+  </aside>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  const STORE_KEY = "cm-estimator-v1";
+  const THIS_YEAR = new Date().getFullYear();
+  const $ = (id) => document.getElementById(id);
+
+  /* =====================================================================
+     Deliverable taxonomy — the vocabulary shared by past quotes, the rate
+     card and the priced schedule.
+     ===================================================================== */
+
+  const TAXONOMY = [
+    { id: "cm_strategy", cat: "Strategy", name: "CM strategy & approach", unit: "document", base: 8, core: true,
+      desc: "Change strategy, guiding principles, governance model and integrated CM plan aligned to the programme roadmap.",
+      qty: () => 1, scales: {},
+      kw: ["change management strategy", "change strategy", "cm approach", "change approach", "change management plan", "change management framework"] },
+
+    { id: "impact_assessment", cat: "Impact & readiness", name: "Change impact assessment", unit: "business unit", base: 6, core: true,
+      desc: "As-is to to-be impact analysis by process, role and system, with a consolidated impact register and mitigation actions.",
+      qty: (d) => Math.max(1, d.units), scales: { geo: true },
+      kw: ["change impact", "impact assessment", "impact analysis", "as-is to to-be", "process impact", "impact register"] },
+
+    { id: "stakeholder_plan", cat: "Impact & readiness", name: "Stakeholder analysis & engagement plan", unit: "plan", base: 5, core: true,
+      desc: "Stakeholder mapping by influence and disposition, engagement approach and a sequenced engagement calendar.",
+      qty: () => 1, scales: {},
+      kw: ["stakeholder analysis", "stakeholder mapping", "stakeholder engagement", "stakeholder management", "influence map"] },
+
+    { id: "readiness_assess", cat: "Impact & readiness", name: "Change readiness assessment", unit: "wave", base: 4,
+      desc: "Readiness survey design, fielding and analysis per deployment wave, with go/no-go readiness scorecard.",
+      qty: (d) => Math.max(1, d.waves), scales: { geo: true },
+      kw: ["readiness assessment", "change readiness", "readiness survey", "pulse survey", "readiness check", "go/no-go"] },
+
+    { id: "comms_strategy", cat: "Engagement & comms", name: "Communications strategy & plan", unit: "plan", base: 6, core: true,
+      desc: "Key messages by audience, channel strategy, spokesperson map and a dated communications calendar.",
+      qty: () => 1, scales: {},
+      kw: ["communication strategy", "communications strategy", "communication plan", "communications plan", "key messages", "comms plan"] },
+
+    { id: "comms_collateral", cat: "Engagement & comms", name: "Communications collateral", unit: "item", base: 1.5,
+      desc: "Drafting and production of individual comms assets — emails, intranet articles, leader talking points, posters, FAQs.",
+      qty: (d) => Math.max(4, Math.round(d.months * 1.5)), scales: { geo: false, lang: true },
+      kw: ["collateral", "newsletter", "intranet", "talking points", "faq", "town hall", "roadshow", "campaign", "poster", "video"] },
+
+    { id: "leadership_workshops", cat: "Engagement & comms", name: "Leadership alignment workshops", unit: "workshop", base: 2.5,
+      desc: "Design and facilitation of sponsor and leadership alignment sessions, including pre-reads and follow-up actions.",
+      qty: (d) => Math.max(2, d.units), scales: {},
+      kw: ["leadership alignment", "sponsor", "executive workshop", "leadership workshop", "steering", "alignment session"] },
+
+    { id: "change_network", cat: "Engagement & comms", name: "Change agent network set-up & enablement", unit: "network", base: 6,
+      desc: "Change champion selection criteria, role charter, onboarding pack and recurring enablement sessions.",
+      qty: () => 1, scales: { geo: true },
+      kw: ["change agent", "change champion", "change network", "super user", "super-user", "ambassador", "champion network"] },
+
+    { id: "tna", cat: "Training", name: "Training needs analysis", unit: "analysis", base: 6,
+      desc: "Role-to-course mapping, audience sizing and skills-gap analysis producing the training curriculum matrix.",
+      qty: () => 1, scales: {},
+      kw: ["training needs analysis", "tna", "learning needs", "role mapping", "curriculum", "skills gap"] },
+
+    { id: "training_strategy", cat: "Training", name: "Training strategy & plan", unit: "plan", base: 5,
+      desc: "Learning approach, delivery modalities, logistics plan, trainer sourcing and the training schedule.",
+      qty: () => 1, scales: {},
+      kw: ["training strategy", "training plan", "learning strategy", "training approach", "learning plan"] },
+
+    { id: "courseware", cat: "Training", name: "Training content development", unit: "module", base: 4,
+      desc: "Storyboard, build and revision of one training module — deck, exercises, simulations, quick reference guide.",
+      qty: (d) => Math.max(2, d.modules), scales: { lang: true },
+      kw: ["training material", "courseware", "e-learning", "elearning", "job aid", "quick reference", "storyboard", "training content", "user guide", "wbt"] },
+
+    { id: "t3", cat: "Training", name: "Train-the-trainer delivery", unit: "session", base: 2,
+      desc: "Preparation and facilitation of train-the-trainer sessions, including trainer certification and feedback.",
+      qty: (d) => Math.max(1, Math.ceil(Math.ceil(d.headcount / 50) / 12)), scales: {},
+      kw: ["train the trainer", "train-the-trainer", "t3", "trainer certification", "ttt"] },
+
+    { id: "eu_training", cat: "Training", name: "End-user training delivery", unit: "session", base: 1,
+      desc: "Facilitation of end-user training sessions including logistics support and attendance tracking.",
+      qty: (d) => Math.max(1, Math.ceil(d.headcount / 20)), scales: { geo: true, lang: true },
+      kw: ["end user training", "end-user training", "classroom", "instructor led", "instructor-led", "training delivery", "floorwalk"] },
+
+    { id: "business_readiness", cat: "Deployment", name: "Business readiness & cutover support", unit: "wave", base: 5,
+      desc: "Readiness checklist ownership, cutover business tasks, command-centre participation and go-live comms.",
+      qty: (d) => Math.max(1, d.waves), scales: { geo: true },
+      kw: ["cutover", "business readiness", "go-live", "go live", "deployment support", "command centre", "command center", "mock go-live"] },
+
+    { id: "hypercare", cat: "Sustainment", name: "Hypercare & adoption support", unit: "month", base: 10,
+      desc: "Post go-live floorwalking, issue triage from a people angle, refresher content and adoption nudges.",
+      qty: (d) => Math.max(1, d.hypercareMonths), scales: { geo: true },
+      kw: ["hypercare", "hyper-care", "post go-live", "post-go-live", "sustainment", "aftercare", "stabilisation", "stabilization"] },
+
+    { id: "adoption_measurement", cat: "Sustainment", name: "Adoption measurement & benefits tracking", unit: "cycle", base: 5,
+      desc: "Adoption KPI definition, dashboard build, measurement cycles and corrective action recommendations.",
+      qty: (d) => Math.max(1, d.waves), scales: {},
+      kw: ["adoption", "benefits realisation", "benefits realization", "kpi", "metrics", "measurement", "dashboard", "sustain"] },
+
+    { id: "org_design", cat: "Strategy", name: "Organisation & role design", unit: "design", base: 10,
+      desc: "To-be role definition, org structure options, role-to-position mapping and transition considerations.",
+      qty: () => 1, scales: {},
+      kw: ["organisation design", "organization design", "org design", "role design", "operating model", "job design", "role mapping"] },
+
+    { id: "cm_lead", cat: "Management", name: "CM lead & workstream management", unit: "month", base: 12, core: true,
+      desc: "Change workstream leadership, programme governance participation, reporting and client management.",
+      qty: (d) => Math.max(1, d.months), scales: {},
+      kw: ["change lead", "change manager", "workstream lead", "programme management", "program management", "governance", "reporting", "pmo"] }
+  ];
+
+  const BY_ID = Object.fromEntries(TAXONOMY.map((t) => [t.id, t]));
+
+  /* =====================================================================
+     Scope drivers
+     ===================================================================== */
+
+  const DRIVERS = [
+    { key: "headcount", label: "Impacted people", type: "number", def: 500, step: 50,
+      rx: /([\d][\d,\.]{1,9})\s*(?:\+\s*)?(?:end[\s-]?users|users|employees|staff|headcount|impacted people|people impacted|colleagues|personnel)/i },
+    { key: "units", label: "Business units / functions", type: "number", def: 3, step: 1,
+      rx: /(\d{1,3})\s*(?:business units|bus\b|entities|departments|functions|divisions|process areas|workstreams)/i },
+    { key: "geos", label: "Countries / sites", type: "number", def: 1, step: 1,
+      rx: /(\d{1,3})\s*(?:countries|geographies|regions|markets|sites|locations|plants|offices)/i },
+    { key: "languages", label: "Languages", type: "number", def: 1, step: 1,
+      rx: /(\d{1,2})\s*(?:languages|local languages)/i },
+    { key: "waves", label: "Deployment waves", type: "number", def: 1, step: 1,
+      rx: /(\d{1,2})\s*(?:waves|releases|go[\s-]?lives|deployment phases|rollout phases|tranches)/i },
+    { key: "months", label: "Programme duration (months)", type: "number", def: 9, step: 1,
+      rx: /(\d{1,3})[\s-]*(?:month|months)\b/i },
+    { key: "modules", label: "Training modules", type: "number", def: 6, step: 1,
+      rx: /(\d{1,3})\s*(?:training modules|modules|courses|curricula)/i },
+    { key: "hypercareMonths", label: "Hypercare (months)", type: "number", def: 2, step: 1,
+      rx: /(?:hypercare|hyper-care|post[\s-]?go[\s-]?live support)[^.\n]{0,60}?(\d{1,2})\s*months?|(\d{1,2})\s*months?\s*(?:of\s+)?(?:hypercare|hyper-care)/i },
+    { key: "complexity", label: "Complexity", type: "select", def: 3,
+      options: [[1, "1 — Simple, single system"], [2, "2 — Low"], [3, "3 — Typical"], [4, "4 — High"], [5, "5 — Very high, multi-system"]] },
+    { key: "maturity", label: "Client CM maturity", type: "select", def: "medium",
+      options: [["low", "Low — starting from scratch"], ["medium", "Medium — some practice"], ["high", "High — mature CM function"]] }
+  ];
+
+  const COMPLEXITY_MULT = { 1: 0.85, 2: 0.92, 3: 1, 4: 1.15, 5: 1.35 };
+  const MATURITY_MULT = { low: 1.1, medium: 1, high: 0.92 };
+
+  /* =====================================================================
+     Sample data
+     ===================================================================== */
+
+  const SAMPLE_QUOTES = [
+    ["Project Meridian (sample)", 2023, "Manufacturing", "cm_strategy", 1, 10, 15000],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "impact_assessment", 4, 24, 36000],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "comms_strategy", 1, 7, 10500],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "comms_collateral", 18, 27, 37800],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "tna", 1, 8, 12000],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "courseware", 8, 34, 47600],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "eu_training", 26, 26, 33800],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "hypercare", 2, 20, 30000],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "cm_lead", 9, 108, 172800],
+    ["Project Halyard (sample)", 2024, "Banking", "cm_strategy", 1, 8, 14400],
+    ["Project Halyard (sample)", 2024, "Banking", "stakeholder_plan", 1, 6, 10800],
+    ["Project Halyard (sample)", 2024, "Banking", "readiness_assess", 3, 12, 21600],
+    ["Project Halyard (sample)", 2024, "Banking", "leadership_workshops", 4, 10, 19000],
+    ["Project Halyard (sample)", 2024, "Banking", "change_network", 1, 7, 12600],
+    ["Project Halyard (sample)", 2024, "Banking", "comms_collateral", 24, 34, 57800],
+    ["Project Halyard (sample)", 2024, "Banking", "adoption_measurement", 1, 6, 10800],
+    ["Project Kestrel (sample)", 2025, "Public sector", "cm_strategy", 1, 7, 11900],
+    ["Project Kestrel (sample)", 2025, "Public sector", "impact_assessment", 3, 17, 27200],
+    ["Project Kestrel (sample)", 2025, "Public sector", "training_strategy", 1, 5, 8000],
+    ["Project Kestrel (sample)", 2025, "Public sector", "courseware", 6, 26, 41600],
+    ["Project Kestrel (sample)", 2025, "Public sector", "t3", 3, 6, 9600],
+    ["Project Kestrel (sample)", 2025, "Public sector", "business_readiness", 2, 11, 17600],
+    ["Project Kestrel (sample)", 2025, "Public sector", "hypercare", 1, 9, 14400],
+    ["Project Kestrel (sample)", 2025, "Public sector", "cm_lead", 6, 66, 105600]
+  ].map(([project, year, industry, deliverable, qty, days, price]) =>
+    ({ project, year, industry, deliverable, qty, days, price }));
+
+  const SAMPLE_RFP = `SECTION 4 — SCOPE OF SERVICES: ORGANISATIONAL CHANGE MANAGEMENT
+
+Northwind Utilities is replacing its core finance and supply chain platform with SAP S/4HANA. The programme runs for 14 months from contract award, with go-live delivered in 3 waves across 11 countries. Approximately 4,200 end users are impacted across 6 business units, and training materials must be localised into 3 languages.
+
+The successful bidder shall provide:
+
+4.1 A change management strategy and detailed change management plan covering governance, roles and the integrated change approach.
+4.2 A change impact assessment for each in-scope business unit, documenting as-is to to-be process, role and system impacts, with a consolidated impact register.
+4.3 Stakeholder analysis and a stakeholder engagement plan, refreshed quarterly.
+4.4 A communications strategy and communications plan, including key messages by audience, and production of communications collateral (intranet articles, leader talking points, FAQs, town hall packs).
+4.5 Establishment and ongoing enablement of a change champion network covering all sites.
+4.6 A training needs analysis and training strategy, followed by development of approximately 9 training modules including e-learning, job aids and quick reference guides.
+4.7 Train-the-trainer delivery and support to end-user training delivery, including floorwalking.
+4.8 Change readiness assessments ahead of each wave, feeding the go/no-go decision.
+4.9 Business readiness and cutover support for each deployment wave.
+4.10 Post go-live hypercare support of 3 months per wave, with adoption measurement and benefits tracking reported monthly to the steering committee.`;
+
+  /* =====================================================================
+     State
+     ===================================================================== */
+
+  const defaultState = () => ({
+    rfpText: "",
+    fileName: "",
+    drivers: Object.fromEntries(DRIVERS.map((d) => [d.key, d.def])),
+    detected: {},          // driverKey -> {value, evidence}
+    signals: {},           // deliverableId -> evidence snippet
+    quotes: SAMPLE_QUOTES.map((q) => ({ ...q })),
+    overrides: {},         // deliverableId -> {days, rate}
+    lines: [],
+    settings: {
+      currency: "SGD", escalation: 3, fallbackRate: 1650,
+      contingency: 0, discount: 0, expenses: 0, tax: 0, client: ""
+    }
+  });
+
+  let state = load() || defaultState();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const base = defaultState();
+      return { ...base, ...parsed, drivers: { ...base.drivers, ...(parsed.drivers || {}) }, settings: { ...base.settings, ...(parsed.settings || {}) } };
+    } catch (e) { return null; }
+  }
+
+  let saveTimer;
+  function save() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* quota — non-fatal */ }
+    }, 250);
+  }
+
+  /* =====================================================================
+     Formatting helpers
+     ===================================================================== */
+
+  const money = (n) => new Intl.NumberFormat(undefined, {
+    style: "currency", currency: state.settings.currency, maximumFractionDigits: 0
+  }).format(isFinite(n) ? n : 0);
+
+  const moneyShort = (n) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(n || 0));
+  const days = (n) => (Math.round(n * 10) / 10).toFixed(1);
+  const median = (arr) => {
+    if (!arr.length) return null;
+    const s = [...arr].sort((a, b) => a - b);
+    const m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  };
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  /* =====================================================================
+     Document reading — .docx and .pdf parsed in-browser, no libraries
+     ===================================================================== */
+
+  async function inflate(bytes, format) {
+    const ds = new DecompressionStream(format);
+    const stream = new Blob([bytes]).stream().pipeThrough(ds);
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  async function docxToText(buffer) {
+    const bytes = new Uint8Array(buffer);
+    const dv = new DataView(buffer);
+    const dec = new TextDecoder();
+    let i = 0, entry = null;
+
+    while (i < bytes.length - 30) {
+      if (bytes[i] === 0x50 && bytes[i + 1] === 0x4b && bytes[i + 2] === 0x03 && bytes[i + 3] === 0x04) {
+        const method = dv.getUint16(i + 8, true);
+        const compSize = dv.getUint32(i + 18, true);
+        const nameLen = dv.getUint16(i + 26, true);
+        const extraLen = dv.getUint16(i + 28, true);
+        const name = dec.decode(bytes.subarray(i + 30, i + 30 + nameLen));
+        const start = i + 30 + nameLen + extraLen;
+        if (name === "word/document.xml" && compSize > 0) { entry = { method, data: bytes.subarray(start, start + compSize) }; break; }
+        i = compSize > 0 ? start + compSize : i + 4;
+      } else i++;
+    }
+    if (!entry) throw new Error("no document.xml");
+
+    const xmlBytes = entry.method === 8 ? await inflate(entry.data, "deflate-raw") : entry.data;
+    const xml = new TextDecoder().decode(xmlBytes);
+    return xml
+      .replace(/<w:tab[^>]*\/>/g, "\t")
+      .replace(/<w:br[^>]*\/>/g, "\n")
+      .replace(/<\/w:p>/g, "\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  async function pdfToText(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let latin = "";
+    const CHUNK = 0x8000;
+    for (let i = 0; i < bytes.length; i += CHUNK) latin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+
+    const pieces = [];
+    const rx = /(?:^|[^d])stream\r?\n/g;   // "stream", not the tail of "endstream"
+    let m;
+    while ((m = rx.exec(latin)) !== null) {
+      const start = m.index + m[0].length;
+      const end = latin.indexOf("endstream", start);
+      if (end < 0) continue;
+      rx.lastIndex = end;
+
+      // Prefer the declared /Length; decompressors reject trailing bytes.
+      const dict = latin.slice(Math.max(0, m.index - 300), m.index);
+      const lenMatch = /\/Length\s+(\d+)(?![\s\d]*\d\s+R)/.exec(dict);
+      let stop = end;
+      if (lenMatch) {
+        const declared = start + parseInt(lenMatch[1], 10);
+        if (declared > start && declared <= end) stop = declared;
+      }
+      while (stop > start && [0x0a, 0x0d, 0x20, 0x09].includes(bytes[stop - 1])) stop--;
+
+      const raw = bytes.subarray(start, stop);
+      let content = null;
+      for (const format of ["deflate", "deflate-raw"]) {
+        try { content = new TextDecoder("latin1").decode(await inflate(raw, format)); break; }
+        catch (e) { /* try the next container format */ }
+      }
+      if (content === null) {
+        const asText = latin.slice(start, stop);
+        if (/\bT[Jj]\b/.test(asText)) content = asText;   // uncompressed content stream
+      }
+      if (content && /\bT[Jj]\b/.test(content)) pieces.push(extractPdfOps(content));
+    }
+    return pieces.join("\n").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  }
+
+  function extractPdfOps(content) {
+    let out = "";
+    const rx = /\((?:\\.|[^\\()])*\)|\bT[dD]\b|T\*|\bTJ\b|\bTj\b|\bET\b/g;
+    let m;
+    while ((m = rx.exec(content)) !== null) {
+      const tok = m[0];
+      if (tok[0] === "(") {
+        out += tok.slice(1, -1)
+          .replace(/\\([nrt])/g, (s, c) => ({ n: "\n", r: "", t: "\t" }[c]))
+          .replace(/\\([()\\])/g, "$1")
+          .replace(/\\(\d{1,3})/g, (s, o) => String.fromCharCode(parseInt(o, 8)));
+      } else if (tok === "Td" || tok === "TD" || tok === "T*" || tok === "ET") {
+        if (!out.endsWith("\n")) out += "\n";
+      }
+    }
+    return out;
+  }
+
+  async function readFile(file) {
+    const name = file.name.toLowerCase();
+    if (name.endsWith(".docx")) return docxToText(await file.arrayBuffer());
+    if (name.endsWith(".pdf")) return pdfToText(await file.arrayBuffer());
+    return file.text();
+  }
+
+  /* =====================================================================
+     Scope analysis
+     ===================================================================== */
+
+  function snippet(text, index, len) {
+    const from = Math.max(0, index - 60);
+    const to = Math.min(text.length, index + len + 60);
+    return (from > 0 ? "…" : "") + text.slice(from, to).replace(/\s+/g, " ").trim() + (to < text.length ? "…" : "");
+  }
+
+  function analyse() {
+    const text = state.rfpText || "";
+    if (!text.trim()) { toast("Add some scope text first"); return; }
+    const lower = text.toLowerCase();
+
+    state.detected = {};
+    DRIVERS.forEach((d) => {
+      if (!d.rx) return;
+      const m = d.rx.exec(text);
+      if (!m) return;
+      const capture = m.slice(1).find((v) => v !== undefined);
+      if (capture === undefined) return;
+      const value = Math.round(parseFloat(String(capture).replace(/,/g, "")));
+      if (!isFinite(value) || value <= 0) return;
+      state.detected[d.key] = { value, evidence: snippet(text, m.index, m[0].length) };
+      state.drivers[d.key] = value;
+    });
+
+    // Duration keyword can collide with hypercare months — prefer the largest month figure for duration.
+    const allMonths = [...text.matchAll(/(\d{1,3})[\s-]*months?\b/gi)].map((m) => parseInt(m[1], 10)).filter((n) => n > 0 && n < 120);
+    if (allMonths.length) {
+      const longest = Math.max(...allMonths);
+      state.drivers.months = longest;
+      if (state.detected.months) state.detected.months.value = longest;
+    }
+
+    state.signals = {};
+    TAXONOMY.forEach((t) => {
+      for (const k of t.kw) {
+        const at = lower.indexOf(k);
+        if (at >= 0) { state.signals[t.id] = snippet(text, at, k.length); break; }
+      }
+    });
+
+    buildLines(true);
+    renderAll();
+    const n = Object.keys(state.signals).length;
+    $("analyse-status").textContent = `${n} deliverable${n === 1 ? "" : "s"} signalled · ${Object.keys(state.detected).length} scope driver${Object.keys(state.detected).length === 1 ? "" : "s"} read from the document`;
+    toast("Scope analysed — priced schedule rebuilt");
+    save();
+  }
+
+  /* =====================================================================
+     Benchmarks from past quotes
+     ===================================================================== */
+
+  function benchmarks() {
+    const out = {};
+    const allRates = [];
+    state.quotes.forEach((q) => {
+      const qty = +q.qty, d = +q.days, p = +q.price, year = +q.year || THIS_YEAR;
+      if (!(qty > 0) || !(d > 0) || !(p > 0)) return;
+      const idx = Math.pow(1 + (+state.settings.escalation || 0) / 100, Math.max(0, THIS_YEAR - year));
+      const rate = (p / d) * idx;
+      allRates.push(rate);
+      (out[q.deliverable] = out[q.deliverable] || { rates: [], dpu: [] });
+      out[q.deliverable].rates.push(rate);
+      out[q.deliverable].dpu.push(d / qty);
+    });
+    const blended = median(allRates) || +state.settings.fallbackRate;
+    const res = { _blended: blended, _n: allRates.length };
+    Object.entries(out).forEach(([id, v]) => {
+      res[id] = { n: v.rates.length, rate: median(v.rates), dpu: median(v.dpu) };
+    });
+    return res;
+  }
+
+  function resolveRate(id, bm) {
+    const ov = state.overrides[id] || {};
+    if (ov.rate > 0) return { value: +ov.rate, basis: "override" };
+    if (bm[id] && bm[id].rate > 0) return { value: bm[id].rate, basis: "benchmark", n: bm[id].n };
+    return { value: bm._blended, basis: bm._n ? "blended" : "default" };
+  }
+
+  function resolveDays(id, bm) {
+    const ov = state.overrides[id] || {};
+    if (ov.days > 0) return { value: +ov.days, basis: "override" };
+    if (bm[id] && bm[id].dpu > 0) return { value: bm[id].dpu, basis: "benchmark", n: bm[id].n };
+    return { value: BY_ID[id] ? BY_ID[id].base : 5, basis: "default" };
+  }
+
+  /* =====================================================================
+     Estimate build
+     ===================================================================== */
+
+  function multipliers(t) {
+    const d = state.drivers;
+    const parts = [];
+    let m = 1;
+    const cx = COMPLEXITY_MULT[d.complexity] || 1;
+    if (cx !== 1) { m *= cx; parts.push(`complexity ${d.complexity} ×${cx}`); }
+    const mat = MATURITY_MULT[d.maturity] || 1;
+    if (mat !== 1) { m *= mat; parts.push(`${d.maturity} maturity ×${mat}`); }
+    if (t.scales.geo && d.geos > 1) {
+      const g = Math.min(1.5, 1 + 0.07 * (d.geos - 1));
+      m *= g; parts.push(`${d.geos} locations ×${g.toFixed(2)}`);
+    }
+    if (t.scales.lang && d.languages > 1) {
+      const l = Math.min(1.6, 1 + 0.12 * (d.languages - 1));
+      m *= l; parts.push(`${d.languages} languages ×${l.toFixed(2)}`);
+    }
+    return { m, parts };
+  }
+
+  function buildLines(reset) {
+    const bm = benchmarks();
+    const previous = Object.fromEntries((state.lines || []).map((l) => [l.id, l]));
+    const analysed = Object.keys(state.signals).length > 0;
+
+    state.lines = TAXONOMY.map((t) => {
+      // A rebuild drops manual edits; every other recalculation preserves them.
+      const prev = reset ? null : previous[t.id];
+      const rate = resolveRate(t.id, bm);
+      const dpu = resolveDays(t.id, bm);
+      const { m, parts } = multipliers(t);
+      const autoQty = Math.max(0, Math.round(t.qty(state.drivers)));
+      const autoDays = Math.round(dpu.value * m * 10) / 10;
+      const included = analysed ? (!!state.signals[t.id] || !!t.core) : !!t.core;
+
+      return {
+        id: t.id,
+        name: t.name,
+        desc: t.desc,
+        unit: t.unit,
+        cat: t.cat,
+        include: prev && prev.editedInclude ? prev.include : included,
+        qty: prev && prev.editedQty ? prev.qty : autoQty,
+        dpu: prev && prev.editedDpu ? prev.dpu : autoDays,
+        rate: prev && prev.editedRate ? prev.rate : Math.round(rate.value),
+        editedQty: prev ? !!prev.editedQty : false,
+        editedDpu: prev ? !!prev.editedDpu : false,
+        editedRate: prev ? !!prev.editedRate : false,
+        editedInclude: prev ? !!prev.editedInclude : false,
+        rateBasis: rate.basis, rateN: rate.n, daysBasis: dpu.basis, daysN: dpu.n,
+        multParts: parts, baseDpu: Math.round(dpu.value * 10) / 10,
+        detected: !!state.signals[t.id],
+        custom: false
+      };
+    }).concat((state.lines || []).filter((l) => l.custom));
+
+    save();
+  }
+
+  function totals() {
+    const inc = state.lines.filter((l) => l.include);
+    const fees = inc.reduce((s, l) => s + l.qty * l.dpu * l.rate, 0);
+    const effort = inc.reduce((s, l) => s + l.qty * l.dpu, 0);
+    const s = state.settings;
+    const contingency = fees * (+s.contingency || 0) / 100;
+    const beforeDiscount = fees + contingency;
+    const discount = beforeDiscount * (+s.discount || 0) / 100;
+    const expenses = +s.expenses || 0;
+    const net = beforeDiscount - discount + expenses;
+    const tax = net * (+s.tax || 0) / 100;
+    return { inc, fees, effort, contingency, discount, expenses, tax, total: net + tax,
+      blended: effort > 0 ? fees / effort : 0,
+      fte: state.drivers.months > 0 ? effort / (state.drivers.months * 21) : 0 };
+  }
+
+  /* =====================================================================
+     Rendering
+     ===================================================================== */
+
+  function renderDrivers() {
+    $("drivers").innerHTML = DRIVERS.map((d) => {
+      const det = state.detected[d.key];
+      const src = det ? `<span class="src">read from RFP</span>` : `<span class="src default">assumed</span>`;
+      const val = state.drivers[d.key];
+      const input = d.type === "select"
+        ? `<select data-driver="${d.key}">${d.options.map(([v, l]) => `<option value="${v}" ${String(v) === String(val) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`
+        : `<input type="number" data-driver="${d.key}" value="${esc(val)}" step="${d.step || 1}" min="0">`;
+      return `<div class="field"><label for="">${esc(d.label)}</label>${input}${d.rx || d.type === "select" ? src : ""}</div>`;
+    }).join("");
+
+    const ev = Object.entries(state.detected);
+    $("evidence-list").innerHTML = ev.length
+      ? ev.map(([k, v]) => {
+          const d = DRIVERS.find((x) => x.key === k);
+          return `<div><strong style="font-size:.82rem">${esc(d.label)}: ${esc(v.value)}</strong><div class="evidence">${esc(v.evidence)}</div></div>`;
+        }).join("")
+      : `<span class="note">No numeric drivers found yet — the defaults above are assumptions you should sanity-check.</span>`;
+    $("evidence-wrap").style.display = ev.length ? "" : "none";
+  }
+
+  function renderSignals() {
+    const ids = Object.keys(state.signals);
+    $("signal-count").textContent = ids.length ? `${ids.length} of ${TAXONOMY.length} deliverable types` : "";
+    if (!ids.length) {
+      $("signals").innerHTML = `<span class="note">Analyse a scope document to see which deliverables the RFP asks for.</span>`;
+      return;
+    }
+    $("signals").innerHTML = TAXONOMY.map((t) => {
+      const hit = state.signals[t.id];
+      const core = t.core && !hit;
+      if (!hit && !core) return "";
+      return `<span class="chip ${hit ? "detected" : "assumed"}" title="${esc(hit || "Not named in the RFP — included as standard scope")}">${esc(t.name)}${core ? " · assumed" : ""}</span>`;
+    }).join("");
+  }
+
+  function renderQuotes() {
+    const bm = benchmarks();
+    const options = TAXONOMY.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join("");
+    $("quotes-body").innerHTML = state.quotes.length ? state.quotes.map((q, i) => {
+      const idx = Math.pow(1 + (+state.settings.escalation || 0) / 100, Math.max(0, THIS_YEAR - (+q.year || THIS_YEAR)));
+      const rate = (+q.days > 0) ? (+q.price / +q.days) * idx : 0;
+      const dpu = (+q.qty > 0) ? +q.days / +q.qty : 0;
+      return `<tr data-i="${i}">
+        <td><input type="text" data-q="project" value="${esc(q.project)}"></td>
+        <td class="n" style="width:78px"><input type="number" data-q="year" value="${esc(q.year)}" step="1"></td>
+        <td><input type="text" data-q="industry" value="${esc(q.industry)}"></td>
+        <td><select data-q="deliverable">${options}</select></td>
+        <td class="n" style="width:78px"><input type="number" data-q="qty" value="${esc(q.qty)}" step="1" min="0"></td>
+        <td class="n" style="width:82px"><input type="number" data-q="days" value="${esc(q.days)}" step="0.5" min="0"></td>
+        <td class="n" style="width:108px"><input type="number" data-q="price" value="${esc(q.price)}" step="100" min="0"></td>
+        <td class="n" title="Indexed to ${THIS_YEAR}">${rate ? moneyShort(rate) : "—"}</td>
+        <td class="n">${dpu ? days(dpu) : "—"}</td>
+        <td class="no-print"><button class="btn ghost small danger" data-del="${i}" aria-label="Delete row">✕</button></td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="10" class="empty">No past quotes yet — add lines or import a CSV.</td></tr>`;
+
+    state.quotes.forEach((q, i) => {
+      const sel = document.querySelector(`#quotes-body tr[data-i="${i}"] select[data-q="deliverable"]`);
+      if (sel) sel.value = q.deliverable;
+    });
+  }
+
+  function renderRates() {
+    const bm = benchmarks();
+    $("rates-body").innerHTML = TAXONOMY.map((t) => {
+      const b = bm[t.id];
+      const ov = state.overrides[t.id] || {};
+      const rate = resolveRate(t.id, bm), dpu = resolveDays(t.id, bm);
+      const basisChip = (r) => r.basis === "override" ? `<span class="chip">pinned</span>`
+        : r.basis === "benchmark" ? `<span class="chip bench">your quotes · n=${r.n}</span>`
+        : r.basis === "blended" ? `<span class="chip assumed">blended median</span>`
+        : `<span class="chip assumed">standard assumption</span>`;
+      return `<tr data-id="${t.id}">
+        <td><strong>${esc(t.name)}</strong><div class="note">${esc(t.cat)}</div></td>
+        <td>per ${esc(t.unit)}</td>
+        <td class="n">${b ? b.n : 0}</td>
+        <td class="n">${b ? days(b.dpu) : `<span style="color:var(--ink-3)">${days(t.base)} std</span>`}</td>
+        <td class="n">${b ? moneyShort(b.rate) : "—"}</td>
+        <td class="n" style="width:110px"><input type="number" data-ov="days" value="${ov.days || ""}" step="0.5" min="0" placeholder="—"></td>
+        <td class="n" style="width:120px"><input type="number" data-ov="rate" value="${ov.rate || ""}" step="50" min="0" placeholder="—"></td>
+        <td>${basisChip(dpu)} ${basisChip(rate)}</td>
+      </tr>`;
+    }).join("");
+  }
+
+  function renderLines() {
+    const t = totals();
+    let n = 0;
+    let lastCat = null;
+    $("lines-body").innerHTML = state.lines.map((l, i) => {
+      const amount = l.qty * l.dpu * l.rate;
+      const head = l.cat !== lastCat ? `<tr><td colspan="9" style="background:var(--surface-2);padding-top:9px"><span class="eyebrow">${esc(l.cat || "Other")}</span></td></tr>` : "";
+      lastCat = l.cat;
+      if (l.include) n++;
+      const formula = [
+        `${l.qty} ${l.unit}${l.qty === 1 ? "" : "s"} × ${days(l.dpu)} days`,
+        l.multParts && l.multParts.length ? `(base ${days(l.baseDpu)} d/unit, ${l.multParts.join(", ")})` : "",
+        `→ ${days(l.qty * l.dpu)} days × ${moneyShort(l.rate)}/day`,
+        l.daysBasis === "benchmark" ? `· effort benchmarked on ${l.daysN} past quote line${l.daysN === 1 ? "" : "s"}` : "· standard effort assumption",
+        l.rateBasis === "benchmark" ? `· rate from your past quotes` : l.rateBasis === "blended" ? `· blended median rate` : l.rateBasis === "override" ? `· rate pinned on rate card` : `· fallback rate`
+      ].filter(Boolean).join(" ");
+      return head + `<tr data-i="${i}" style="${l.include ? "" : "opacity:.45"}">
+        <td class="n">
+          <input type="checkbox" data-l="include" ${l.include ? "checked" : ""} aria-label="Include ${esc(l.name)}">
+        </td>
+        <td class="cat-stripe">
+          <strong>${esc(l.name)}</strong>
+          ${l.detected ? `<span class="chip detected" style="margin-left:6px">in RFP</span>` : ""}
+          <div class="note">${esc(l.desc)}</div>
+          <details class="calc no-print"><summary>how this was estimated</summary><div class="formula">${esc(formula)}</div></details>
+        </td>
+        <td>${esc(l.unit)}</td>
+        <td class="n" style="width:78px"><input type="number" data-l="qty" value="${esc(l.qty)}" step="1" min="0"></td>
+        <td class="n" style="width:88px"><input type="number" data-l="dpu" value="${esc(l.dpu)}" step="0.5" min="0"></td>
+        <td class="n">${days(l.qty * l.dpu)}</td>
+        <td class="n" style="width:108px"><input type="number" data-l="rate" value="${esc(l.rate)}" step="50" min="0"></td>
+        <td class="n"><strong>${money(amount)}</strong></td>
+        <td class="no-print">${l.custom ? `<button class="btn ghost small danger" data-delline="${i}">✕</button>` : ""}</td>
+      </tr>`;
+    }).join("");
+
+    $("lines-foot").innerHTML = `<tr>
+      <td></td><td>Total professional fees</td><td></td><td></td><td></td>
+      <td class="n">${days(t.effort)}</td><td class="n">${moneyShort(t.blended)}</td>
+      <td class="n">${money(t.fees)}</td><td class="no-print"></td>
+    </tr>`;
+
+    $("quote-meta").textContent = `${n} priced line${n === 1 ? "" : "s"} · ${days(t.effort)} person-days · prepared ${new Date().toLocaleDateString()}`;
+    $("quote-title").textContent = state.settings.client
+      ? `Schedule of deliverables and fees — ${state.settings.client}`
+      : "Schedule of deliverables and fees";
+  }
+
+  function renderAssumptions() {
+    const d = state.drivers;
+    const t = totals();
+    const items = [
+      `Pricing covers ${d.headcount.toLocaleString()} impacted people across ${d.units} business unit${d.units === 1 ? "" : "s"} and ${d.geos} location${d.geos === 1 ? "" : "s"}, in ${d.languages} language${d.languages === 1 ? "" : "s"}.`,
+      `Programme duration of ${d.months} months with ${d.waves} deployment wave${d.waves === 1 ? "" : "s"}; effort is spread evenly at an average of ${t.fte.toFixed(1)} FTE.`,
+      `Complexity rated ${d.complexity}/5 and client change maturity ${d.maturity} — effort multipliers are applied on this basis and should be revisited after scoping calls.`,
+      `Day rates are the median of your past quotes indexed at ${state.settings.escalation}% per year to ${THIS_YEAR}; deliverables with no comparable history use the blended median.`,
+      `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately priced.`,
+      state.settings.expenses > 0 ? `Travel and expenses budgeted at ${money(state.settings.expenses)}, billed at cost against approved receipts.` : `Travel and expenses are excluded and will be billed at cost.`,
+      state.settings.contingency > 0 ? `A ${state.settings.contingency}% contingency is held against scope volatility and is drawn down only on agreed change requests.` : null
+    ].filter(Boolean);
+    $("assumptions").innerHTML = items.map((i) => `<li>${esc(i)}</li>`).join("");
+  }
+
+  function renderSummary() {
+    const t = totals();
+    const has = t.total > 0;
+    $("s-total").textContent = has ? money(t.total) : "—";
+    $("s-total").classList.toggle("zero", !has);
+    $("s-total-note").textContent = has
+      ? `${state.settings.currency} · ${t.inc.length} deliverable${t.inc.length === 1 ? "" : "s"}`
+      : "Nothing priced yet";
+    $("s-fees").textContent = money(t.fees);
+    $("s-cont").textContent = t.contingency ? "+" + money(t.contingency) : "—";
+    $("s-disc").textContent = t.discount ? "−" + money(t.discount) : "—";
+    $("s-exp").textContent = t.expenses ? "+" + money(t.expenses) : "—";
+    $("s-tax").textContent = t.tax ? "+" + money(t.tax) : "—";
+    $("s-total2").textContent = money(t.total);
+    $("s-days").textContent = days(t.effort);
+    $("s-blended").textContent = t.blended ? moneyShort(t.blended) : "—";
+    $("s-fte").textContent = t.fte ? t.fte.toFixed(1) : "—";
+    $("s-lines").textContent = t.inc.length;
+  }
+
+  function renderAll() {
+    renderDrivers(); renderSignals(); renderQuotes(); renderRates(); renderLines(); renderAssumptions(); renderSummary();
+  }
+
+  /* =====================================================================
+     Events
+     ===================================================================== */
+
+  document.querySelectorAll(".step").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".step").forEach((b) => b.setAttribute("aria-selected", String(b === btn)));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + btn.dataset.panel));
+    });
+  });
+
+  $("btn-theme").addEventListener("click", () => {
+    const cur = document.documentElement.getAttribute("data-theme");
+    const isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+  });
+
+  // --- Step 1: document intake
+  const drop = $("drop");
+  ["dragenter", "dragover"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", (ev) => { if (ev.dataTransfer.files[0]) handleFile(ev.dataTransfer.files[0]); });
+  $("btn-browse").addEventListener("click", () => $("file").click());
+  $("file").addEventListener("change", (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+  async function handleFile(file) {
+    $("file-status").textContent = `Reading ${file.name}…`;
+    try {
+      const text = await readFile(file);
+      if (!text || text.replace(/\s/g, "").length < 40) {
+        $("file-status").textContent = `${file.name}: little or no text found — if it is a scanned PDF, paste the scope text below instead.`;
+        return;
+      }
+      state.rfpText = text;
+      state.fileName = file.name;
+      $("rfp-text").value = text;
+      $("file-status").textContent = `${file.name} — ${text.split(/\s+/).length.toLocaleString()} words read`;
+      analyse();
+    } catch (err) {
+      $("file-status").textContent = `Could not read ${file.name} (${err.message}). Paste the scope text below instead.`;
+    }
+  }
+
+  $("btn-sample-rfp").addEventListener("click", () => {
+    state.rfpText = SAMPLE_RFP;
+    $("rfp-text").value = SAMPLE_RFP;
+    $("file-status").textContent = "Sample RFP loaded";
+    analyse();
+  });
+
+  $("rfp-text").addEventListener("input", (e) => { state.rfpText = e.target.value; save(); });
+  $("btn-analyse").addEventListener("click", analyse);
+
+  $("drivers").addEventListener("input", (e) => {
+    const key = e.target.dataset.driver;
+    if (!key) return;
+    const d = DRIVERS.find((x) => x.key === key);
+    let v = e.target.value;
+    if (d.type === "number") v = Math.max(0, parseFloat(v) || 0);
+    else if (key === "complexity") v = parseInt(v, 10);
+    state.drivers[key] = v;
+    buildLines(false);
+    renderLines(); renderAssumptions(); renderSummary();
+    save();
+  });
+
+  // --- Step 2: past quotes
+  $("quotes-body").addEventListener("input", (e) => {
+    const tr = e.target.closest("tr"); if (!tr) return;
+    const i = +tr.dataset.i, f = e.target.dataset.q;
+    if (!f) return;
+    state.quotes[i][f] = ["year", "qty", "days", "price"].includes(f) ? (parseFloat(e.target.value) || 0) : e.target.value;
+    renderQuotes(); renderRates(); buildLines(false); renderLines(); renderSummary();
+    save();
+  });
+  $("quotes-body").addEventListener("change", (e) => {
+    if (e.target.dataset.q === "deliverable") {
+      const i = +e.target.closest("tr").dataset.i;
+      state.quotes[i].deliverable = e.target.value;
+      renderQuotes(); renderRates(); buildLines(false); renderLines(); renderSummary(); save();
+    }
+  });
+  $("quotes-body").addEventListener("click", (e) => {
+    const del = e.target.dataset.del;
+    if (del === undefined) return;
+    state.quotes.splice(+del, 1);
+    renderQuotes(); renderRates(); buildLines(false); renderLines(); renderSummary(); save();
+  });
+  $("btn-add-quote").addEventListener("click", () => {
+    const last = state.quotes[state.quotes.length - 1];
+    state.quotes.push({ project: last ? last.project : "New project", year: THIS_YEAR, industry: last ? last.industry : "", deliverable: "cm_strategy", qty: 1, days: 0, price: 0 });
+    renderQuotes(); renderRates();
+    const rows = document.querySelectorAll("#quotes-body tr");
+    const input = rows[rows.length - 1] && rows[rows.length - 1].querySelector("input");
+    if (input) input.focus();
+    save();
+  });
+  $("btn-restore-samples").addEventListener("click", () => {
+    if (!confirm("Replace the current past-quotes table with the sample data?")) return;
+    state.quotes = SAMPLE_QUOTES.map((q) => ({ ...q }));
+    renderQuotes(); renderRates(); buildLines(false); renderLines(); renderSummary(); save();
+    toast("Sample quotes restored");
+  });
+
+  $("btn-export-quotes").addEventListener("click", () => {
+    const rows = [["project", "year", "industry", "deliverable", "qty", "days", "price"]]
+      .concat(state.quotes.map((q) => [q.project, q.year, q.industry, q.deliverable, q.qty, q.days, q.price]));
+    download("past-quotes.csv", toCsv(rows));
+  });
+  $("btn-import-quotes").addEventListener("click", () => $("quotes-file").click());
+  $("quotes-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const rows = parseCsv(await file.text());
+    if (rows.length < 2) { toast("No rows found in that CSV"); return; }
+    const head = rows[0].map((h) => h.trim().toLowerCase());
+    const col = (n) => head.indexOf(n);
+    const imported = rows.slice(1).filter((r) => r.length > 3).map((r) => ({
+      project: r[col("project")] || "Imported",
+      year: parseInt(r[col("year")], 10) || THIS_YEAR,
+      industry: r[col("industry")] || "",
+      deliverable: BY_ID[r[col("deliverable")]] ? r[col("deliverable")] : matchDeliverable(r[col("deliverable")]),
+      qty: parseFloat(r[col("qty")]) || 0,
+      days: parseFloat(r[col("days")]) || 0,
+      price: parseFloat(String(r[col("price")]).replace(/[^\d.\-]/g, "")) || 0
+    }));
+    state.quotes = state.quotes.concat(imported);
+    renderQuotes(); renderRates(); buildLines(false); renderLines(); renderSummary(); save();
+    toast(`${imported.length} quote line${imported.length === 1 ? "" : "s"} imported`);
+    e.target.value = "";
+  });
+
+  function matchDeliverable(label) {
+    if (!label) return "cm_strategy";
+    const l = String(label).toLowerCase();
+    const hit = TAXONOMY.find((t) => t.name.toLowerCase() === l) || TAXONOMY.find((t) => l.includes(t.name.toLowerCase().split(" ")[0]));
+    return hit ? hit.id : "cm_strategy";
+  }
+
+  // --- Step 3: rate card
+  $("rates-body").addEventListener("input", (e) => {
+    const id = e.target.closest("tr").dataset.id, f = e.target.dataset.ov;
+    if (!f) return;
+    state.overrides[id] = state.overrides[id] || {};
+    const v = parseFloat(e.target.value);
+    if (v > 0) state.overrides[id][f] = v; else delete state.overrides[id][f];
+    buildLines(false); renderLines(); renderSummary(); save();
+  });
+  ["escalation", "fallback-rate"].forEach((id) => {
+    $(id).addEventListener("input", (e) => {
+      state.settings[id === "escalation" ? "escalation" : "fallbackRate"] = parseFloat(e.target.value) || 0;
+      renderQuotes(); renderRates(); buildLines(false); renderLines(); renderSummary(); save();
+    });
+  });
+
+  // --- Step 4: priced schedule
+  $("lines-body").addEventListener("input", (e) => {
+    const tr = e.target.closest("tr"); if (!tr || tr.dataset.i === undefined) return;
+    const l = state.lines[+tr.dataset.i], f = e.target.dataset.l;
+    if (!f) return;
+    if (f === "include") { l.include = e.target.checked; l.editedInclude = true; }
+    else {
+      l[f] = Math.max(0, parseFloat(e.target.value) || 0);
+      l[f === "qty" ? "editedQty" : f === "dpu" ? "editedDpu" : "editedRate"] = true;
+    }
+    // Update the row's derived cells without a full re-render, so focus is kept.
+    const amount = l.qty * l.dpu * l.rate;
+    tr.children[5].textContent = days(l.qty * l.dpu);
+    tr.children[7].innerHTML = `<strong>${money(amount)}</strong>`;
+    tr.style.opacity = l.include ? "" : ".45";
+    const t = totals();
+    $("lines-foot").querySelector("tr").children[5].textContent = days(t.effort);
+    $("lines-foot").querySelector("tr").children[6].textContent = moneyShort(t.blended);
+    $("lines-foot").querySelector("tr").children[7].textContent = money(t.fees);
+    renderSummary(); save();
+  });
+  $("lines-body").addEventListener("click", (e) => {
+    const i = e.target.dataset.delline;
+    if (i === undefined) return;
+    state.lines.splice(+i, 1);
+    renderLines(); renderSummary(); save();
+  });
+  $("btn-add-line").addEventListener("click", () => {
+    const name = prompt("Name of the custom deliverable:");
+    if (!name) return;
+    const bm = benchmarks();
+    state.lines.push({ id: "custom_" + Date.now(), name, desc: "Custom line added for this pursuit.", unit: "item",
+      cat: "Custom", include: true, qty: 1, dpu: 5, rate: Math.round(bm._blended),
+      editedQty: true, editedDpu: true, editedRate: true, editedInclude: true,
+      rateBasis: "blended", daysBasis: "default", multParts: [], baseDpu: 5, detected: false, custom: true });
+    renderLines(); renderSummary(); save();
+  });
+  $("btn-rebuild").addEventListener("click", () => {
+    if (!confirm("Rebuild quantities, effort and rates from the current scope? Manual edits to standard lines will be lost.")) return;
+    state.lines = state.lines.filter((l) => l.custom);
+    buildLines(true);
+    renderLines(); renderAssumptions(); renderSummary();
+    toast("Rebuilt from scope");
+  });
+
+  ["c-contingency", "c-discount", "c-expenses", "c-tax"].forEach((id) => {
+    $(id).addEventListener("input", (e) => {
+      state.settings[id.slice(2)] = parseFloat(e.target.value) || 0;
+      renderAssumptions(); renderSummary(); save();
+    });
+  });
+  $("client-name").addEventListener("input", (e) => { state.settings.client = e.target.value; renderLines(); save(); });
+  $("currency").addEventListener("change", (e) => { state.settings.currency = e.target.value; renderAll(); save(); });
+  $("btn-print").addEventListener("click", () => window.print());
+
+  $("btn-export-invoice").addEventListener("click", () => {
+    const t = totals();
+    const rows = [["#", "Deliverable", "Description", "Unit", "Qty", "Days per unit", "Effort (days)", "Day rate", "Amount (" + state.settings.currency + ")"]];
+    t.inc.forEach((l, i) => rows.push([i + 1, l.name, l.desc, l.unit, l.qty, days(l.dpu), days(l.qty * l.dpu), l.rate, Math.round(l.qty * l.dpu * l.rate)]));
+    rows.push([], ["", "Professional fees", "", "", "", "", days(t.effort), "", Math.round(t.fees)]);
+    if (t.contingency) rows.push(["", `Contingency ${state.settings.contingency}%`, "", "", "", "", "", "", Math.round(t.contingency)]);
+    if (t.discount) rows.push(["", `Discount ${state.settings.discount}%`, "", "", "", "", "", "", -Math.round(t.discount)]);
+    if (t.expenses) rows.push(["", "Travel & expenses", "", "", "", "", "", "", Math.round(t.expenses)]);
+    if (t.tax) rows.push(["", `Tax ${state.settings.tax}%`, "", "", "", "", "", "", Math.round(t.tax)]);
+    rows.push(["", "TOTAL", "", "", "", "", "", "", Math.round(t.total)]);
+    download((state.settings.client || "cm-estimate").replace(/[^\w\-]+/g, "-").toLowerCase() + ".csv", toCsv(rows));
+  });
+
+  $("btn-copy-md").addEventListener("click", async () => {
+    const t = totals();
+    const cur = state.settings.currency;
+    let md = `## Schedule of deliverables and fees${state.settings.client ? " — " + state.settings.client : ""}\n\n`;
+    md += `| # | Deliverable | Unit | Qty | Days/unit | Effort (days) | Day rate (${cur}) | Amount (${cur}) |\n|---:|---|---|---:|---:|---:|---:|---:|\n`;
+    t.inc.forEach((l, i) => {
+      md += `| ${i + 1} | ${l.name} | ${l.unit} | ${l.qty} | ${days(l.dpu)} | ${days(l.qty * l.dpu)} | ${moneyShort(l.rate)} | ${moneyShort(l.qty * l.dpu * l.rate)} |\n`;
+    });
+    md += `| | **Professional fees** | | | | **${days(t.effort)}** | | **${moneyShort(t.fees)}** |\n`;
+    if (t.contingency) md += `| | Contingency ${state.settings.contingency}% | | | | | | ${moneyShort(t.contingency)} |\n`;
+    if (t.discount) md += `| | Discount ${state.settings.discount}% | | | | | | −${moneyShort(t.discount)} |\n`;
+    if (t.expenses) md += `| | Travel & expenses | | | | | | ${moneyShort(t.expenses)} |\n`;
+    if (t.tax) md += `| | Tax ${state.settings.tax}% | | | | | | ${moneyShort(t.tax)} |\n`;
+    md += `| | **Total** | | | | | | **${moneyShort(t.total)}** |\n`;
+    try { await navigator.clipboard.writeText(md); toast("Markdown table copied"); }
+    catch (e) { $("rfp-text").value = md; toast("Clipboard blocked — table placed in the scope box"); }
+  });
+
+  $("btn-reset").addEventListener("click", () => {
+    if (!confirm("Clear the RFP, drivers, quotes and pricing and start again?")) return;
+    localStorage.removeItem(STORE_KEY);
+    state = defaultState();
+    hydrate();
+    toast("Reset");
+  });
+
+  /* =====================================================================
+     CSV helpers
+     ===================================================================== */
+
+  function toCsv(rows) {
+    return rows.map((r) => (r || []).map((c) => {
+      const s = String(c == null ? "" : c);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(",")).join("\n");
+  }
+
+  function parseCsv(text) {
+    const rows = [];
+    let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+        else if (c === '"') q = false;
+        else cell += c;
+      } else if (c === '"') q = true;
+      else if (c === ",") { row.push(cell); cell = ""; }
+      else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+      else if (c !== "\r") cell += c;
+    }
+    if (cell || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter((r) => r.some((c) => c !== ""));
+  }
+
+  function download(filename, text) {
+    const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url; a.download = filename;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+
+  /* =====================================================================
+     Boot
+     ===================================================================== */
+
+  function hydrate() {
+    $("rfp-text").value = state.rfpText || "";
+    $("currency").value = state.settings.currency;
+    $("escalation").value = state.settings.escalation;
+    $("fallback-rate").value = state.settings.fallbackRate;
+    $("c-contingency").value = state.settings.contingency;
+    $("c-discount").value = state.settings.discount;
+    $("c-expenses").value = state.settings.expenses;
+    $("c-tax").value = state.settings.tax;
+    $("client-name").value = state.settings.client || "";
+    if (!state.lines || !state.lines.length) buildLines(true);
+    renderAll();
+  }
+
+  hydrate();
+})();
+</script>

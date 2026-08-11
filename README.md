@@ -19,6 +19,11 @@ A Claude Code plugin bundling 12 change-management consulting framework skills p
 | `dual-operating-system` | Kotter's Dual Operating System (Accelerate) |
 | `network-position` | Organizational network analysis / stakeholder mapping |
 | `strategic-change-assessment` | Orchestrator — runs a project narrative through whichever of the above are suitable and synthesizes findings across them |
+| `cm-effort-estimation` | Pursuit-side effort and pricing estimator — reads an RFP scope (Word/PDF/text), benchmarks it against past project quotes, and outputs a priced schedule of deliverables |
+
+## Pursuit estimating tool
+
+`skills/cm-effort-estimation/assets/cm-effort-estimator.html` is a single self-contained page — open it in any browser, no install, no server, no network calls. It parses .docx and .pdf scope documents in the browser, reads scope drivers out of them (impacted headcount, business units, countries, languages, waves, duration, training modules), and prices a schedule of CM deliverables against an editable table of your past project quotes. Day rates and effort-per-unit are medians of your own history indexed to the current year; anything without history falls back to a standard assumption and is labelled as such. Exports the priced schedule to CSV or Markdown, and prints to PDF.
 
 Each skill's frontmatter `name:` field carries a `-v1.0` suffix (e.g. `dice-framework-v1.0`), marking this as the post-review baseline — all 12 framework skills were live-tested via the Skill tool before this bundle was packaged.
 
