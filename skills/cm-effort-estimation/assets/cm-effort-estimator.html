@@ -323,7 +323,7 @@
         <div class="body">
           <div class="drop" id="drop">
             <strong>Drop the RFP here</strong>
-            <span class="files">.docx, .pdf, .txt or .md &mdash; or paste the scope section below</span>
+            <span class="files">.docx, .pdf, .txt or .md &mdash; or paste the scope section below. Scanned PDFs have no text layer; paste those.</span>
             <div class="row">
               <button class="btn" id="btn-browse">Choose file</button>
               <button class="btn ghost" id="btn-sample-rfp">Load sample RFP</button>
@@ -458,7 +458,7 @@
                 <tr>
                   <th class="n">Incl.</th><th style="min-width:230px">Deliverable</th><th>Unit</th>
                   <th class="n">Qty</th><th class="n">Days/unit</th><th class="n">Effort (days)</th>
-                  <th class="n">Day rate</th><th class="n">Amount</th><th class="no-print"></th>
+                  <th class="n">Day rate</th><th class="n">Amount</th><th class="n" title="Price as an option, outside the headline total">Option</th><th class="no-print"></th>
                 </tr>
               </thead>
               <tbody id="lines-body"></tbody>
@@ -509,6 +509,7 @@
         <div class="sumline muted"><span>Expenses</span><span id="s-exp">—</span></div>
         <div class="sumline muted"><span>Tax</span><span id="s-tax">—</span></div>
         <div class="sumline strong"><span>Total</span><span id="s-total2">—</span></div>
+        <div class="sumline muted" id="s-opt-row" style="display:none"><span>Options, priced separately</span><span id="s-opt">—</span></div>
       </div>
       <div class="metrics">
         <div class="metric"><span class="eyebrow">Effort</span><span class="v" id="s-days">—</span><span class="note">person-days</span></div>
@@ -565,7 +566,7 @@
     { id: "comms_collateral", cat: "Engagement & comms", name: "Communications collateral", unit: "item", base: 1.5,
       desc: "Drafting and production of individual comms assets — emails, intranet articles, leader talking points, posters, FAQs.",
       qty: (d) => Math.max(4, Math.round(d.months * 1.5)), scales: { geo: false, lang: true },
-      kw: ["collateral", "newsletter", "intranet", "talking points", "faq", "town hall", "roadshow", "campaign", "poster", "video"] },
+      kw: ["collateral", "communication material", "communications material", "materials development", "newsletter", "intranet", "talking points", "faq", "town hall", "roadshow", "campaign", "poster", "video"] },
 
     { id: "leadership_workshops", cat: "Engagement & comms", name: "Leadership alignment workshops", unit: "workshop", base: 2.5,
       desc: "Design and facilitation of sponsor and leadership alignment sessions, including pre-reads and follow-up actions.",
@@ -599,8 +600,8 @@
 
     { id: "eu_training", cat: "Training", name: "End-user training delivery", unit: "session", base: 1,
       desc: "Facilitation of end-user training sessions including logistics support and attendance tracking.",
-      qty: (d) => Math.max(1, Math.ceil(d.headcount / 20)), scales: { geo: true, lang: true },
-      kw: ["end user training", "end-user training", "classroom", "instructor led", "instructor-led", "training delivery", "floorwalk"] },
+      qty: (d) => Math.max(1, Math.ceil(d.headcount / Math.max(1, d.sessionSize || 20))), scales: { geo: true, lang: true },
+      kw: ["end user training", "end-user training", "classroom", "instructor led", "instructor-led", "training instructor", "training delivery", "training session", "number of sessions", "trainees per session", "floorwalk"] },
 
     { id: "business_readiness", cat: "Deployment", name: "Business readiness & cutover support", unit: "wave", base: 5,
       desc: "Readiness checklist ownership, cutover business tasks, command-centre participation and go-live comms.",
@@ -646,9 +647,11 @@
     { key: "waves", label: "Deployment waves", type: "number", def: 1, step: 1,
       rx: /(\d{1,2})\s*(?:waves|releases|go[\s-]?lives|deployment phases|rollout phases|tranches)/i },
     { key: "months", label: "Programme duration (months)", type: "number", def: 9, step: 1,
-      rx: /(\d{1,3})[\s-]*(?:month|months)\b/i },
+      rx: /(?:duration of|period of|runs? for|lasting|spanning|contract period of)\s*(?:approximately\s*)?\(?\s*(\d{1,3})\s*\)?\s*(?:calendar\s*)?months?|(\d{1,3})[\s-]*month\s*(?:programme|program|project|engagement|contract|implementation)/i },
     { key: "modules", label: "Training modules", type: "number", def: 6, step: 1,
       rx: /(\d{1,3})\s*(?:training modules|modules|courses|curricula)/i },
+    { key: "sessionSize", label: "Trainees per session", type: "number", def: 20, step: 5,
+      rx: /(?:participants?|trainees|pax)\s*per\s*(?:training\s*)?session[^.]{0,80}?\(?\s*(\d{1,3})\s*\)?|(?:not more than|maximum of|up to)\s*\(?\s*(\d{1,3})\s*\)?\s*(?:participants?|trainees|pax)\s*(?:per|in each)/i },
     { key: "hypercareMonths", label: "Hypercare (months)", type: "number", def: 2, step: 1,
       rx: /(?:hypercare|hyper-care|post[\s-]?go[\s-]?live support)[^.\n]{0,60}?(\d{1,2})\s*months?|(\d{1,2})\s*months?\s*(?:of\s+)?(?:hypercare|hyper-care)/i },
     { key: "complexity", label: "Complexity", type: "select", def: 3,
@@ -692,22 +695,111 @@
   ].map(([project, year, industry, deliverable, qty, days, price]) =>
     ({ project, year, industry, deliverable, qty, days, price }));
 
-  const SAMPLE_RFP = `SECTION 4 — SCOPE OF SERVICES: ORGANISATIONAL CHANGE MANAGEMENT
+  const SAMPLE_RFP = `REQUIREMENT SPECIFICATIONS — CHANGE MANAGEMENT AND TRAINING
 
-Northwind Utilities is replacing its core finance and supply chain platform with SAP S/4HANA. The programme runs for 14 months from contract award, with go-live delivered in 3 waves across 11 countries. Approximately 4,200 end users are impacted across 6 business units, and training materials must be localised into 3 languages.
+Anonymised extract of a public-sector requirement specification, used as the sample scope for the estimator. All identifying references have been removed: the buying organisation is "the Client", the bidding party is "the provider", and the entities onboarded in phases are "participating organisations".
 
-The successful bidder shall provide:
+1. INTRODUCTION
 
-4.1 A change management strategy and detailed change management plan covering governance, roles and the integrated change approach.
-4.2 A change impact assessment for each in-scope business unit, documenting as-is to to-be process, role and system impacts, with a consolidated impact register.
-4.3 Stakeholder analysis and a stakeholder engagement plan, refreshed quarterly.
-4.4 A communications strategy and communications plan, including key messages by audience, and production of communications collateral (intranet articles, leader talking points, FAQs, town hall packs).
-4.5 Establishment and ongoing enablement of a change champion network covering all sites.
-4.6 A training needs analysis and training strategy, followed by development of approximately 9 training modules including e-learning, job aids and quick reference guides.
-4.7 Train-the-trainer delivery and support to end-user training delivery, including floorwalking.
-4.8 Change readiness assessments ahead of each wave, feeding the go/no-go decision.
-4.9 Business readiness and cutover support for each deployment wave.
-4.10 Post go-live hypercare support of 3 months per wave, with adoption measurement and benefits tracking reported monthly to the steering committee.`;
+1.1.1 The provider shall lead and execute change management activities to ensure stakeholder readiness prior to each phase of participating organisation onboarding. The provider shall adapt change management approaches as needed throughout the phased implementation up till the end of the solution warranty period for the last participating organisation onboarded.
+
+1.1.2 The stakeholders include but are not limited to the following: (a) senior stakeholder groups including executive project sponsors, leadership, board members, service professionals, administrators and staff; (b) policy divisions, operational teams, and owners of existing systems affected by or replaced by the new solution; (c) client users, nominated personnel and nominated technical personnel; (d) functional business units such as Finance and Procurement with processes and systems directly impacted by the solution; (e) technical and project delivery teams, including ICT representatives, data owners, system integration leads, cybersecurity and infrastructure personnel; (f) end users of the solution across all organisational levels, including identified superusers and change champions who will support training and adoption activities; (g) external partners and third-party providers involved in service delivery, solution integration or ongoing system support after each participating organisation has onboarded.
+
+1.1.3 The provider shall develop a stakeholder engagement strategy and change management plan to address the varying levels of concerns across different stakeholder groups.
+
+1.1.4 The provider shall ensure that stakeholders understand the need for change and the impact of new working procedures to promote positive reactions and enthusiasm for adopting the solution.
+
+2. CHANGE MANAGEMENT TEAM
+
+2.1.1 The provider shall propose a change management team led by a change manager. The change management team shall possess appropriate expertise and experience to support and partner with the Client in delivering effective change management throughout the project lifecycle.
+
+2.1.2 The provider shall clearly define the reporting hierarchy and organisational structure of the change management team, including reporting relationships with the Client's project team and other delivery teams.
+
+2.3.1 The change manager shall collaborate with the development and design team to ensure change management considerations are integrated throughout the development process.
+
+2.3.3 The change management team shall review and ensure consistency and coherence in all messaging and communications materials (including emails, presentations, training materials and announcements) prior to seeking Client approval and releasing to stakeholders.
+
+3. CHANGE MANAGEMENT SCOPE
+
+3.1.1 The provider shall propose a change management plan that covers the entire project lifecycle, including: (a) implementation stage; (b) post go-live BAU operations stage, including the performance guarantee period and the solution warranty period; and (c) maintenance services stage, encompassing new releases and patches that affect stakeholders.
+
+3.1.2 The provider shall provide a comprehensive change management proposal, including the following:
+
+(a) Change management strategy and approach, including but not limited to: i) Planning — design, scheduling and timeline for intended outcomes, changes and announcements, organised into phased stages, including a capability building plan to equip key stakeholders and the change management team with the requisite mindset and skills, including just-in-time coaching and mentoring; ii) Evaluation — assessment of risks and benefits at each stage, with recommended implementation approaches for each phase, including change impact analysis across the Client and participating organisations; iii) Communication strategy — development of a compelling change narrative that establishes context, initiates calls to action and explains the transformation journey towards the desired vision; iv) Implementation schedule — detailed timeline for executing the change management plan according to project milestones; v) Post-implementation review — monitoring and evaluation of change implementation effectiveness, including pulse check surveys to track project success measures and change progress, conducted every six months or aligned with project milestones; vi) Change agent identification and training — identification of suitable change agents within the organisation and development of a comprehensive training plan for the identified change agents.
+
+(b) Change management team structure, including the roles and responsibilities of the provider team, subcontractors, the Client and participating organisations;
+
+(c) Detailed stakeholder engagement plan, including methods of engagement (dialogue sessions, seminars) and training approaches to ease the onboarding process;
+
+(d) Comprehensive communications plan, detailing communication channels, materials development, coordination mechanisms and approval processes. The provider shall quote for communication materials development as optional items;
+
+(e) Transition management plan;
+
+(f) Change readiness assessment;
+
+(g) Change impact assessment;
+
+(h) Change intervention plan;
+
+(i) Change risk management plan;
+
+(j) Change management activities and schedule;
+
+(k) User training plan and materials;
+
+(l) Success measurement framework, including indicators to measure change success during and beyond solution implementation, clearly specifying measurement objectives, timelines, measurement indices and appropriate follow-up actions;
+
+(m) Handover plan to enable the Client team to sustain and institutionalise the change within three (3) months before the end of the solution warranty period for the last participating organisation onboarded.
+
+3.1.3 The provider shall provide a cost breakdown for all change management activities.
+
+3.3.1 The provider shall work with the Client to leverage policy makers, stakeholders and change networks to develop and customise communications and materials.
+
+3.3.2 The provider may use communication channels such as newsletters, videos and road shows. The change management team shall track and coordinate all communications from all channels and sources.
+
+3.3.3 The provider shall prepare all engagement and communication materials (including EDMs, posters, briefing slides) and obtain Client approval at least five (5) working days before engagement commencement.
+
+3.3.5 During change management programme implementation, the provider shall analyse issues related to system usage or adoption and propose additional change management measures to address these issues.
+
+3.3.6 The provider shall provide timely reviews tracking key performance indicators to validate change management success, and provide a post-implementation report one (1) month after each participating organisation is onboarded, including key successes, challenges and measures of success; a summary of findings from reviews and retrospective meetings; and recommendations for sustaining and reinforcing business change efforts.
+
+4. CHANGE SUSTENANCE AFTER THE WARRANTY PERIOD
+
+4.1.1 The provider shall propose, as an option for the Client to exercise, a detailed change sustenance plan to sustain adoption of the solution after the solution warranty period of the last participating organisation onboarded.
+
+4.1.2 The plan shall minimally include: (a) stakeholder management plan; (b) strategy and approach to sustain adoption; (c) engagement and communications plan, including engagements during solution enhancements; (d) governance and team structure; (e) support framework to sustain any proposed interventions to shape desired behaviour; (f) capability building; (g) tools and resources; (h) success measurement indicators for change interventions beyond solution implementation; and (i) handover plan to enable the Client team to sustain and institutionalise the change within three (3) months after completing the change sustenance plan.
+
+4.2.3 The provider shall itemise the cost for this scope of work as an option for the Client to exercise.
+
+5. TRAINING
+
+5.1.1 The provider shall provide training to meet the following objectives: (a) to enable all client users and nominated personnel to manage, operate, configure and use the solution effectively and proficiently; (b) to enable all nominated technical personnel to manage, operate, configure and maintain the solution; (c) to enable all nominated technical personnel to have an overview of the system architecture and to diagnose and resolve problems in using the solution; (d) to enable a smooth transfer of knowledge from the provider to the nominated technical personnel.
+
+5.1.2 The provider shall provide at least the following types of training: (a) product overview and business process training; (b) configuration for system modules training; (c) business rule training; (d) application security administration overview training; (e) system maintenance overview training; (f) interface and integration training; (g) reports and dashboards overview training; (h) senior management pre go-live briefings; (i) technical training; (j) training on software and tools.
+
+5.1.9 The provider shall ensure that all training instructors are suitably qualified and competent and are well-versed in the system.
+
+5.1.12 The provider shall include the type of training, target audience, duration of each session, proposed number of sessions, number of trainees per session, schedule of the sessions, and training charges and rates. The exact number of participants will be determined by the Client during the contract period.
+
+5.1.13 The provider shall ensure the maximum number of participants per training session should not be more than thirty (30) to ensure training is delivered effectively.
+
+5.1.14 The provider shall provide all necessary equipment, training materials and logistics coordination (including informing users of the training schedule, registration of participants, maintaining records of attendance and collating training feedback forms) for all training sessions.
+
+5.2.1 The provider shall provide all the training materials, inclusive of instructor's guide, slides and trainee's booklet, in soft copy and obtain Client approval at least five (5) working days before the commencement of the training.
+
+5.2.4 The provider shall update the training materials when the need arises, including to account for any new changes made to the solution such as newly implemented modules and new releases or patches.
+
+5.3.1 The provider shall collect feedback from all participants of each training session by distributing evaluation forms, collate the results and submit the completed evaluation forms to the Client within seven (7) days after the end of each training session.
+
+5.4.1 The provider shall provide training on the application for various roles such as users, administrators and operators.
+
+6. ORIENTATION PROGRAMME
+
+6.1.1 Prior to the commencement of application software development activities, the provider shall deliver an orientation programme for the project team, in order to familiarise and prepare these personnel on project and product management activities.
+
+6.1.2 The provider shall provide the necessary manpower and logistics to support the end-to-end delivery of the proposed orientation programme, which may include the venue where the orientation programme would be conducted, printing of presentation and reference materials, and coaches to facilitate group discussion activities and gamification.
+
+6.1.5 The orientation programme shall build capabilities for effective and efficient involvement in the development phase of the project, including aligning the project, product management, Agile methodology and event milestones; sharing roles and responsibilities of key roles in the project; defining sprint duration, definition of done and the calendar of ceremonies; and sharing examples of user stories with clear acceptance criteria.`;
 
   /* =====================================================================
      State
@@ -719,6 +811,7 @@ The successful bidder shall provide:
     drivers: Object.fromEntries(DRIVERS.map((d) => [d.key, d.def])),
     detected: {},          // driverKey -> {value, evidence}
     signals: {},           // deliverableId -> evidence snippet
+    optionalSignals: {},   // deliverableId -> sentence asking for it to be priced as an option
     quotes: SAMPLE_QUOTES.map((q) => ({ ...q })),
     overrides: {},         // deliverableId -> {days, rate}
     lines: [],
@@ -847,29 +940,32 @@ The successful bidder shall provide:
         try { content = new TextDecoder("latin1").decode(await inflate(raw, format)); break; }
         catch (e) { /* try the next container format */ }
       }
-      if (content === null) {
-        const asText = latin.slice(start, stop);
-        if (/\bT[Jj]\b/.test(asText)) content = asText;   // uncompressed content stream
-      }
-      if (content && /\bT[Jj]\b/.test(content)) pieces.push(extractPdfOps(content));
+      if (content === null) content = latin.slice(start, stop);   // uncompressed content stream
+      // Only page content streams — embedded font programs decompress too and
+      // are full of byte sequences that look like text operators.
+      if (/\bBT\b/.test(content) && /\bTf\b/.test(content)) pieces.push(extractPdfOps(content));
     }
     return pieces.join("\n").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
   }
 
+  // Strings are only text if a text-showing operator consumes them — otherwise
+  // they are dictionary values (language tags, marked-content properties).
   function extractPdfOps(content) {
-    let out = "";
-    const rx = /\((?:\\.|[^\\()])*\)|\bT[dD]\b|T\*|\bTJ\b|\bTj\b|\bET\b/g;
+    let out = "", pending = "";
+    const rx = /\((?:\\.|[^\\()])*\)|[A-Za-z'"*]+/g;
     let m;
     while ((m = rx.exec(content)) !== null) {
       const tok = m[0];
       if (tok[0] === "(") {
-        out += tok.slice(1, -1)
+        pending += tok.slice(1, -1)
           .replace(/\\([nrt])/g, (s, c) => ({ n: "\n", r: "", t: "\t" }[c]))
           .replace(/\\([()\\])/g, "$1")
           .replace(/\\(\d{1,3})/g, (s, o) => String.fromCharCode(parseInt(o, 8)));
-      } else if (tok === "Td" || tok === "TD" || tok === "T*" || tok === "ET") {
-        if (!out.endsWith("\n")) out += "\n";
+        continue;
       }
+      if (tok === "Tj" || tok === "TJ" || tok === "'" || tok === '"') { out += pending; pending = ""; continue; }
+      pending = "";
+      if (/^(Td|TD|Tm|T\*|ET)$/.test(tok) && !out.endsWith("\n")) out += "\n";
     }
     return out;
   }
@@ -891,10 +987,61 @@ The successful bidder shall provide:
     return (from > 0 ? "…" : "") + text.slice(from, to).replace(/\s+/g, " ").trim() + (to < text.length ? "…" : "");
   }
 
+  // PDF text arrives fragmented — line breaks and kerning splits land inside
+  // phrases ("change impact\nanalysis", "promot e"). Matching on a letters-only
+  // copy, with an index back to the readable text, survives that.
+  function compactIndex(normalized) {
+    let compact = "";
+    const map = [];
+    for (let i = 0; i < normalized.length; i++) {
+      const ch = normalized[i].toLowerCase();
+      if (ch >= "a" && ch <= "z" || ch >= "0" && ch <= "9") { compact += ch; map.push(i); }
+    }
+    return { compact, map };
+  }
+
+  function findPhrase(norm, ci, phrase) {
+    const key = phrase.replace(/[^a-z0-9]/g, "");
+    if (!key) return null;
+
+    // Short keys ("t3") need word boundaries — stripped of spaces they hide
+    // inside ordinary text such as "Part 3".
+    if (key.length < 6) {
+      const rx = new RegExp("\\b" + phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i");
+      const m = rx.exec(norm);
+      return m ? { index: m.index, length: m[0].length } : null;
+    }
+
+    const direct = norm.toLowerCase().indexOf(phrase);
+    if (direct >= 0) return { index: direct, length: phrase.length };
+    const at = ci.compact.indexOf(key);
+    if (at < 0) return null;
+    const start = ci.map[at];
+    const end = ci.map[Math.min(ci.map.length - 1, at + key.length - 1)];
+    return { index: start, length: Math.max(1, end - start + 1) };
+  }
+
+  // "…the following types of training: (a) … (j) …" — the enumeration length is
+  // the only statement of how many courses are in scope.
+  function countEnumerated(norm, afterPhrase) {
+    const at = norm.toLowerCase().indexOf(afterPhrase);
+    if (at < 0) return null;
+    const window = norm.slice(at, at + 2000);
+    let highest = 0, expected = "a";
+    for (const m of window.matchAll(/\(\s*([a-z])\s*\)/g)) {
+      if (m[1] === expected) {
+        highest++;
+        expected = String.fromCharCode(expected.charCodeAt(0) + 1);
+      }
+    }
+    return highest >= 3 ? { count: highest, index: at, length: Math.min(120, window.length) } : null;
+  }
+
   function analyse() {
-    const text = state.rfpText || "";
-    if (!text.trim()) { toast("Add some scope text first"); return; }
-    const lower = text.toLowerCase();
+    const raw = state.rfpText || "";
+    if (!raw.trim()) { toast("Add some scope text first"); return; }
+    const text = raw.replace(/\s+/g, " ").trim();
+    const ci = compactIndex(text);
 
     state.detected = {};
     DRIVERS.forEach((d) => {
@@ -909,20 +1056,33 @@ The successful bidder shall provide:
       state.drivers[d.key] = value;
     });
 
-    // Duration keyword can collide with hypercare months — prefer the largest month figure for duration.
-    const allMonths = [...text.matchAll(/(\d{1,3})[\s-]*months?\b/gi)].map((m) => parseInt(m[1], 10)).filter((n) => n > 0 && n < 120);
-    if (allMonths.length) {
-      const longest = Math.max(...allMonths);
-      state.drivers.months = longest;
-      if (state.detected.months) state.detected.months.value = longest;
+    // A course list is a module count even when no number is written out.
+    const courses = countEnumerated(text, "types of training");
+    if (courses) {
+      state.drivers.modules = courses.count;
+      state.detected.modules = { value: courses.count, evidence: snippet(text, courses.index, courses.length) };
     }
 
     state.signals = {};
     TAXONOMY.forEach((t) => {
       for (const k of t.kw) {
-        const at = lower.indexOf(k);
-        if (at >= 0) { state.signals[t.id] = snippet(text, at, k.length); break; }
+        const hit = findPhrase(text, ci, k);
+        if (hit) { state.signals[t.id] = snippet(text, hit.index, hit.length); break; }
       }
+    });
+
+    // Scope the tender wants quoted as an option: a sentence that says "option"
+    // and names a deliverable in the same breath.
+    state.optionalSignals = {};
+    text.split(/(?:[.;]\s+)/).forEach((sentence) => {
+      if (!/\boption(al|s)?\b/i.test(sentence)) return;
+      const sci = compactIndex(sentence);
+      TAXONOMY.forEach((t) => {
+        if (state.optionalSignals[t.id]) return;
+        for (const k of t.kw) {
+          if (findPhrase(sentence, sci, k)) { state.optionalSignals[t.id] = sentence.trim(); break; }
+        }
+      });
     });
 
     buildLines(true);
@@ -1017,6 +1177,9 @@ The successful bidder shall provide:
         unit: t.unit,
         cat: t.cat,
         include: prev && prev.editedInclude ? prev.include : included,
+        // Tenders routinely ask for parts of the scope to be priced as options.
+        optional: prev && prev.editedOptional ? prev.optional : !!(state.optionalSignals || {})[t.id],
+        editedOptional: prev ? !!prev.editedOptional : false,
         qty: prev && prev.editedQty ? prev.qty : autoQty,
         dpu: prev && prev.editedDpu ? prev.dpu : autoDays,
         rate: prev && prev.editedRate ? prev.rate : Math.round(rate.value),
@@ -1035,9 +1198,12 @@ The successful bidder shall provide:
   }
 
   function totals() {
-    const inc = state.lines.filter((l) => l.include);
+    const inc = state.lines.filter((l) => l.include && !l.optional);
+    const opt = state.lines.filter((l) => l.include && l.optional);
     const fees = inc.reduce((s, l) => s + l.qty * l.dpu * l.rate, 0);
     const effort = inc.reduce((s, l) => s + l.qty * l.dpu, 0);
+    const optFees = opt.reduce((s, l) => s + l.qty * l.dpu * l.rate, 0);
+    const optEffort = opt.reduce((s, l) => s + l.qty * l.dpu, 0);
     const s = state.settings;
     const contingency = fees * (+s.contingency || 0) / 100;
     const beforeDiscount = fees + contingency;
@@ -1045,7 +1211,7 @@ The successful bidder shall provide:
     const expenses = +s.expenses || 0;
     const net = beforeDiscount - discount + expenses;
     const tax = net * (+s.tax || 0) / 100;
-    return { inc, fees, effort, contingency, discount, expenses, tax, total: net + tax,
+    return { inc, opt, optFees, optEffort, fees, effort, contingency, discount, expenses, tax, total: net + tax,
       blended: effort > 0 ? fees / effort : 0,
       fte: state.drivers.months > 0 ? effort / (state.drivers.months * 21) : 0 };
   }
@@ -1146,9 +1312,9 @@ The successful bidder shall provide:
     let lastCat = null;
     $("lines-body").innerHTML = state.lines.map((l, i) => {
       const amount = l.qty * l.dpu * l.rate;
-      const head = l.cat !== lastCat ? `<tr><td colspan="9" style="background:var(--surface-2);padding-top:9px"><span class="eyebrow">${esc(l.cat || "Other")}</span></td></tr>` : "";
+      const head = l.cat !== lastCat ? `<tr><td colspan="10" style="background:var(--surface-2);padding-top:9px"><span class="eyebrow">${esc(l.cat || "Other")}</span></td></tr>` : "";
       lastCat = l.cat;
-      if (l.include) n++;
+      if (l.include && !l.optional) n++;
       const formula = [
         `${l.qty} ${l.unit}${l.qty === 1 ? "" : "s"} × ${days(l.dpu)} days`,
         l.multParts && l.multParts.length ? `(base ${days(l.baseDpu)} d/unit, ${l.multParts.join(", ")})` : "",
@@ -1169,18 +1335,23 @@ The successful bidder shall provide:
         <td>${esc(l.unit)}</td>
         <td class="n" style="width:78px"><input type="number" data-l="qty" value="${esc(l.qty)}" step="1" min="0"></td>
         <td class="n" style="width:88px"><input type="number" data-l="dpu" value="${esc(l.dpu)}" step="0.5" min="0"></td>
-        <td class="n">${days(l.qty * l.dpu)}</td>
+        <td class="n cell-effort">${days(l.qty * l.dpu)}</td>
         <td class="n" style="width:108px"><input type="number" data-l="rate" value="${esc(l.rate)}" step="50" min="0"></td>
-        <td class="n"><strong>${money(amount)}</strong></td>
+        <td class="n cell-amount"><strong>${money(amount)}</strong></td>
+        <td class="n"><input type="checkbox" data-l="optional" ${l.optional ? "checked" : ""} aria-label="Price ${esc(l.name)} as an option" title="${esc((state.optionalSignals || {})[l.id] || "Price this line as an option, outside the headline total")}"></td>
         <td class="no-print">${l.custom ? `<button class="btn ghost small danger" data-delline="${i}">✕</button>` : ""}</td>
       </tr>`;
     }).join("");
 
     $("lines-foot").innerHTML = `<tr>
       <td></td><td>Total professional fees</td><td></td><td></td><td></td>
-      <td class="n">${days(t.effort)}</td><td class="n">${moneyShort(t.blended)}</td>
-      <td class="n">${money(t.fees)}</td><td class="no-print"></td>
-    </tr>`;
+      <td class="n" id="foot-days">${days(t.effort)}</td><td class="n" id="foot-rate">${moneyShort(t.blended)}</td>
+      <td class="n" id="foot-fees">${money(t.fees)}</td><td></td><td class="no-print"></td>
+    </tr>` + (t.opt.length ? `<tr>
+      <td></td><td style="font-weight:500;color:var(--ink-2)">Optional items, priced separately</td><td></td><td></td><td></td>
+      <td class="n" id="foot-opt-days" style="font-weight:500;color:var(--ink-2)">${days(t.optEffort)}</td><td></td>
+      <td class="n" id="foot-opt-fees" style="font-weight:500;color:var(--ink-2)">${money(t.optFees)}</td><td></td><td class="no-print"></td>
+    </tr>` : "");
 
     $("quote-meta").textContent = `${n} priced line${n === 1 ? "" : "s"} · ${days(t.effort)} person-days · prepared ${new Date().toLocaleDateString()}`;
     $("quote-title").textContent = state.settings.client
@@ -1198,7 +1369,8 @@ The successful bidder shall provide:
       `Day rates are the median of your past quotes indexed at ${state.settings.escalation}% per year to ${THIS_YEAR}; deliverables with no comparable history use the blended median.`,
       `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately priced.`,
       state.settings.expenses > 0 ? `Travel and expenses budgeted at ${money(state.settings.expenses)}, billed at cost against approved receipts.` : `Travel and expenses are excluded and will be billed at cost.`,
-      state.settings.contingency > 0 ? `A ${state.settings.contingency}% contingency is held against scope volatility and is drawn down only on agreed change requests.` : null
+      state.settings.contingency > 0 ? `A ${state.settings.contingency}% contingency is held against scope volatility and is drawn down only on agreed change requests.` : null,
+      t.opt.length ? `${t.opt.length} line${t.opt.length === 1 ? " is" : "s are"} priced as option${t.opt.length === 1 ? "" : "s"} totalling ${money(t.optFees)}, exercisable by the client and excluded from the headline total.` : null
     ].filter(Boolean);
     $("assumptions").innerHTML = items.map((i) => `<li>${esc(i)}</li>`).join("");
   }
@@ -1217,6 +1389,8 @@ The successful bidder shall provide:
     $("s-exp").textContent = t.expenses ? "+" + money(t.expenses) : "—";
     $("s-tax").textContent = t.tax ? "+" + money(t.tax) : "—";
     $("s-total2").textContent = money(t.total);
+    $("s-opt-row").style.display = t.opt.length ? "" : "none";
+    $("s-opt").textContent = money(t.optFees);
     $("s-days").textContent = days(t.effort);
     $("s-blended").textContent = t.blended ? moneyShort(t.blended) : "—";
     $("s-fte").textContent = t.fte ? t.fte.toFixed(1) : "—";
@@ -1273,7 +1447,7 @@ The successful bidder shall provide:
   $("btn-sample-rfp").addEventListener("click", () => {
     state.rfpText = SAMPLE_RFP;
     $("rfp-text").value = SAMPLE_RFP;
-    $("file-status").textContent = "Sample RFP loaded";
+    $("file-status").textContent = "Sample loaded — anonymised public-sector change management & training requirement specification";
     analyse();
   });
 
@@ -1386,20 +1560,25 @@ The successful bidder shall provide:
     const tr = e.target.closest("tr"); if (!tr || tr.dataset.i === undefined) return;
     const l = state.lines[+tr.dataset.i], f = e.target.dataset.l;
     if (!f) return;
+    if (f === "optional") {
+      l.optional = e.target.checked; l.editedOptional = true;
+      renderLines(); renderAssumptions(); renderSummary(); save();
+      return;
+    }
     if (f === "include") { l.include = e.target.checked; l.editedInclude = true; }
     else {
       l[f] = Math.max(0, parseFloat(e.target.value) || 0);
       l[f === "qty" ? "editedQty" : f === "dpu" ? "editedDpu" : "editedRate"] = true;
     }
     // Update the row's derived cells without a full re-render, so focus is kept.
-    const amount = l.qty * l.dpu * l.rate;
-    tr.children[5].textContent = days(l.qty * l.dpu);
-    tr.children[7].innerHTML = `<strong>${money(amount)}</strong>`;
+    tr.querySelector(".cell-effort").textContent = days(l.qty * l.dpu);
+    tr.querySelector(".cell-amount").innerHTML = `<strong>${money(l.qty * l.dpu * l.rate)}</strong>`;
     tr.style.opacity = l.include ? "" : ".45";
     const t = totals();
-    $("lines-foot").querySelector("tr").children[5].textContent = days(t.effort);
-    $("lines-foot").querySelector("tr").children[6].textContent = moneyShort(t.blended);
-    $("lines-foot").querySelector("tr").children[7].textContent = money(t.fees);
+    $("foot-days").textContent = days(t.effort);
+    $("foot-rate").textContent = moneyShort(t.blended);
+    $("foot-fees").textContent = money(t.fees);
+    if ($("foot-opt-days")) { $("foot-opt-days").textContent = days(t.optEffort); $("foot-opt-fees").textContent = money(t.optFees); }
     renderSummary(); save();
   });
   $("lines-body").addEventListener("click", (e) => {
@@ -1446,6 +1625,11 @@ The successful bidder shall provide:
     if (t.expenses) rows.push(["", "Travel & expenses", "", "", "", "", "", "", Math.round(t.expenses)]);
     if (t.tax) rows.push(["", `Tax ${state.settings.tax}%`, "", "", "", "", "", "", Math.round(t.tax)]);
     rows.push(["", "TOTAL", "", "", "", "", "", "", Math.round(t.total)]);
+    if (t.opt.length) {
+      rows.push([], ["", "OPTIONAL ITEMS — priced separately, not in the total above"]);
+      t.opt.forEach((l, i) => rows.push([i + 1, l.name, l.desc, l.unit, l.qty, days(l.dpu), days(l.qty * l.dpu), l.rate, Math.round(l.qty * l.dpu * l.rate)]));
+      rows.push(["", "Total options", "", "", "", "", days(t.optEffort), "", Math.round(t.optFees)]);
+    }
     download((state.settings.client || "cm-estimate").replace(/[^\w\-]+/g, "-").toLowerCase() + ".csv", toCsv(rows));
   });
 
@@ -1463,6 +1647,14 @@ The successful bidder shall provide:
     if (t.expenses) md += `| | Travel & expenses | | | | | | ${moneyShort(t.expenses)} |\n`;
     if (t.tax) md += `| | Tax ${state.settings.tax}% | | | | | | ${moneyShort(t.tax)} |\n`;
     md += `| | **Total** | | | | | | **${moneyShort(t.total)}** |\n`;
+    if (t.opt.length) {
+      md += `\n**Optional items** — priced separately, not included in the total above.\n\n`;
+      md += `| # | Deliverable | Unit | Qty | Days/unit | Effort (days) | Day rate (${cur}) | Amount (${cur}) |\n|---:|---|---|---:|---:|---:|---:|---:|\n`;
+      t.opt.forEach((l, i) => {
+        md += `| ${i + 1} | ${l.name} | ${l.unit} | ${l.qty} | ${days(l.dpu)} | ${days(l.qty * l.dpu)} | ${moneyShort(l.rate)} | ${moneyShort(l.qty * l.dpu * l.rate)} |\n`;
+      });
+      md += `| | **Total options** | | | | **${days(t.optEffort)}** | | **${moneyShort(t.optFees)}** |\n`;
+    }
     try { await navigator.clipboard.writeText(md); toast("Markdown table copied"); }
     catch (e) { $("rfp-text").value = md; toast("Clipboard blocked — table placed in the scope box"); }
   });

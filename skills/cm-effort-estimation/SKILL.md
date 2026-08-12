@@ -1,6 +1,6 @@
 ---
 name: cm-effort-estimation-v1.0
-description: Estimates change management effort and produces a priced schedule of deliverables from an RFP scope document (Word, PDF or pasted text) benchmarked against the firm's past project quotes. Reads scope drivers out of the RFP (impacted headcount, business units, countries, languages, waves, duration, training modules), maps the scope onto a standard CM deliverable taxonomy, derives day rates and effort-per-unit from an editable past-quotes table, applies complexity and scale multipliers, and outputs an invoice-style table of deliverables with individual pricing plus totals and assumptions. Use whenever a pursuit lead, bid manager or CM consultant wants to size, cost, price or quote change management work — phrases like "estimate the CM effort for this RFP", "how much should we quote", "price this scope", "build a fee schedule", "what did we charge last time", "cost this change management scope". Also opens an interactive browser estimator when the user wants to tune numbers themselves.
+description: Estimates change management effort and produces a priced schedule of deliverables from an RFP scope document (Word, PDF or pasted text) benchmarked against the firm's past project quotes. Reads scope drivers out of the RFP (impacted headcount, business units, countries, languages, waves, duration, training modules), maps the scope onto a standard CM deliverable taxonomy, derives day rates and effort-per-unit from an editable past-quotes table, applies complexity and scale multipliers, separates scope the tender wants quoted as options, and outputs an invoice-style table of deliverables with individual pricing plus totals and assumptions. Use whenever a pursuit lead, bid manager or CM consultant wants to size, cost, price or quote change management work — phrases like "estimate the CM effort for this RFP", "how much should we quote", "price this scope", "build a fee schedule", "what did we charge last time", "cost this change management scope". Also opens an interactive browser estimator when the user wants to tune numbers themselves.
 ---
 
 # CM Effort & Pricing Estimator
@@ -8,6 +8,10 @@ description: Estimates change management effort and produces a priced schedule o
 Turns an RFP scope into a defensible, priced schedule of CM deliverables, benchmarked on what the firm actually quoted before. Two ways to run it — do the analysis conversationally, or hand the user the interactive tool. Ask which they want only if it is genuinely unclear; if they pasted a scope, just estimate.
 
 **Interactive tool**: `assets/cm-effort-estimator.html` — a single self-contained file. Opening it in a browser gives the pursuit lead the editable past-quotes table, the derived rate card and the priced schedule, with CSV and Markdown export. It parses .docx and .pdf in the browser; nothing is uploaded anywhere. Offer it when the user wants to iterate on numbers, hand the model to a colleague, or keep their quote history somewhere.
+
+**Sample scope**: `assets/sample-rfp-change-management.txt` — an anonymised public-sector change management and training requirement specification, and the tool's built-in sample. Use it to demonstrate the workflow, and as the regression case when changing detection or pricing logic. It is a realistic test in one particular way: it names a full CM and training scope but states almost no numbers, so most drivers come out as assumptions.
+
+PDF and Word parsing reads the document's text layer. A scanned PDF has none — the tool says so and asks for pasted text rather than silently estimating on nothing.
 
 ## The estimating model
 
@@ -26,6 +30,7 @@ From the RFP, extract and state each of these. Where the document doesn't say, m
 | Deployment waves | Readiness assessments, cutover support |
 | Programme duration (months) | Workstream management, comms cadence |
 | Training modules | Content development |
+| Trainees per session | Number of end-user training sessions |
 | Hypercare months | Post go-live support |
 | Complexity (1–5) and client CM maturity | Global effort multipliers |
 
@@ -54,7 +59,9 @@ Also note what the RFP explicitly asks for. Anything named in the scope is a lin
 | Organisation & role design | design | 10 |
 | CM lead & workstream management | month | 12 |
 
-Default quantities: impact assessment = business units; readiness and cutover = waves; workshops = max(2, business units); courseware = training modules; train-the-trainer = one session per 12 trainers, sizing trainers at one per 50 users; end-user training = headcount ÷ 20 per session; collateral ≈ 1.5 items per month; management = duration in months.
+Default quantities: impact assessment = business units; readiness and cutover = waves; workshops = max(2, business units); courseware = training modules; train-the-trainer = one session per 12 trainers, sizing trainers at one per 50 users; end-user training = headcount ÷ trainees per session; collateral ≈ 1.5 items per month; management = duration in months.
+
+Two things are worth reading out of the document even when no figure is stated: **a cap on class size** ("no more than thirty (30) participants per session") sets the session divisor, and **an enumerated course list** ("the following types of training: (a)…(j)") is a module count. Both change the price materially and neither looks like a number until you go looking.
 
 **These standard effort figures are the fallback, not the answer.** Whenever the user has past quotes for a deliverable, the median of those quotes wins.
 
@@ -78,7 +85,11 @@ Effort per unit = standard or benchmarked effort × complexity × maturity × sc
 - **Multi-location** (impact assessment, readiness, change network, training delivery, cutover, hypercare): ×(1 + 0.07 per location beyond the first), capped at ×1.5
 - **Multi-language** (collateral, courseware, training delivery): ×(1 + 0.12 per language beyond the first), capped at ×1.6
 
-### Step 5 — Produce the priced schedule
+### Step 5 — Separate the options
+
+Tenders routinely ask for parts of the scope to be quoted as items the buyer may or may not exercise — "the provider shall quote for communication materials development as optional items", "propose, as an option, a change sustenance plan". Price those lines fully but keep them out of the headline total, listed underneath as options with their own subtotal. Quoting an option inside the base fee makes the bid look more expensive than a competitor's on the same scope; leaving it out entirely loses the revenue.
+
+### Step 6 — Produce the priced schedule
 
 Output an invoice-style table, one row per deliverable, in this shape:
 
@@ -94,6 +105,7 @@ Follow the table with the assumptions the price depends on: the drivers used, wh
 - **End-user training delivery dominates large estimates.** At one session per 20 users, a 4,000-user programme is 200 sessions. Ask whether the client expects the bidder to deliver end-user training or only to enable client trainers — the difference can be a third of the fee.
 - **A quote is not a cost model.** These figures are what was *charged*, so margin is already inside the day rate. Don't add margin on top unless the user says their history is cost-based.
 - **Watch the FTE reality check.** If the implied team size is under 0.5 or over 8 FTE, the duration or the scope is probably wrong — raise it before presenting the number.
+- **A scope with no numbers is the norm, not the exception.** Requirement specifications describe deliverables and stay silent on headcount, sites and duration, because the buyer expects the bidder to propose them. Say plainly which drivers you assumed, since those assumptions — not the rate card — are what a bid review will challenge.
 - **Currency and year mixing.** Past quotes in different currencies must be converted before they can be medianed; the tool assumes one currency throughout.
 
 ## Output modes

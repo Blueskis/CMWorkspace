@@ -23,7 +23,9 @@ A Claude Code plugin bundling 12 change-management consulting framework skills p
 
 ## Pursuit estimating tool
 
-`skills/cm-effort-estimation/assets/cm-effort-estimator.html` is a single self-contained page — open it in any browser, no install, no server, no network calls. It parses .docx and .pdf scope documents in the browser, reads scope drivers out of them (impacted headcount, business units, countries, languages, waves, duration, training modules), and prices a schedule of CM deliverables against an editable table of your past project quotes. Day rates and effort-per-unit are medians of your own history indexed to the current year; anything without history falls back to a standard assumption and is labelled as such. Exports the priced schedule to CSV or Markdown, and prints to PDF.
+`skills/cm-effort-estimation/assets/cm-effort-estimator.html` is a single self-contained page — open it in any browser, no install, no server, no network calls. It parses .docx and .pdf scope documents in the browser, reads scope drivers out of them (impacted headcount, business units, countries, languages, waves, duration, training modules), and prices a schedule of CM deliverables against an editable table of your past project quotes. Day rates and effort-per-unit are medians of your own history indexed to the current year; anything without history falls back to a standard assumption and is labelled as such. Scope the tender asks to be quoted as an option is detected and priced separately, outside the headline total. Exports the priced schedule to CSV or Markdown, and prints to PDF.
+
+The built-in sample scope (`skills/cm-effort-estimation/assets/sample-rfp-change-management.txt`) is an anonymised public-sector change management and training requirement specification — all party names removed — and doubles as the regression case for the detection and pricing logic.
 
 Each skill's frontmatter `name:` field carries a `-v1.0` suffix (e.g. `dice-framework-v1.0`), marking this as the post-review baseline — all 12 framework skills were live-tested via the Skill tool before this bundle was packaged.
 
