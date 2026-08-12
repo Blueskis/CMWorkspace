@@ -120,10 +120,11 @@ specific action with an owner — not "engage stakeholders". Options that work:
   genuinely still open — and if it is closed, say that plainly instead of running an
   engagement process that implies otherwise.
 
-Link this to the project's other change skills: `network-position` for *who* to
-engage, `immunity-to-change` where a supportive individual still isn't moving, and
-`critical-few-behaviours` where the register shows many impacts pointing at the same
-handful of behaviours.
+Two follow-on questions the register raises but does not answer: *which specific people*
+inside a resistant group to engage first, and what to do where a genuinely supportive
+individual still isn't changing their behaviour. Flag either when the register points at
+it — particularly when many impacts converge on the same handful of behaviours, which is
+usually a sign the response plan should target behaviours rather than processes.
 
 ## Sanity checks on the response plan
 

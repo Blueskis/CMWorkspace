@@ -1,0 +1,141 @@
+<!--
+  Layout definitions for the generic business HTML template.
+
+  Each <template data-layout="..."> is one layout, equivalent to a slideLayout
+  in a .potx. Placeholders are {{name}} tokens; the names here MUST match the
+  placeholder names declared in template_profile.json, since that profile is
+  what build_deck.py validates a proposal plan against.
+
+  Optional regions wrap in {{#name}}...{{/name}} — the renderer drops the whole
+  block when that placeholder has no content, so a layout degrades cleanly
+  rather than leaving an empty panel behind.
+
+  Editing a layout here changes every deck built from this template. No Python
+  changes needed.
+-->
+
+<template data-layout="title-slide">
+  <div class="slide-frame layout-title-slide">
+    <div class="slide-body">
+      <div class="client">{{client}}</div>
+      <h1>{{title}}</h1>
+      {{#subtitle}}<p class="subtitle">{{subtitle}}</p>{{/subtitle}}
+      <div class="meta">{{meta}}</div>
+    </div>
+  </div>
+</template>
+
+<template data-layout="section-header">
+  <div class="slide-frame layout-section-header">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h1>{{title}}</h1>
+      {{#body}}{{body}}{{/body}}
+    </div>
+  </div>
+</template>
+
+<template data-layout="title-and-content">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{body}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="two-content">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      <div class="cols">
+        <div>
+          {{#left_heading}}<div class="col-head">{{left_heading}}</div>{{/left_heading}}
+          {{left}}
+        </div>
+        <div>
+          {{#right_heading}}<div class="col-head">{{right_heading}}</div>{{/right_heading}}
+          {{right}}
+        </div>
+      </div>
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="case-study">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      <div class="case-grid">
+        <div>
+          <div class="panel">
+            <div class="col-head">Situation</div>
+            {{situation}}
+          </div>
+          <div class="panel">
+            <div class="col-head">What we did</div>
+            {{action}}
+          </div>
+        </div>
+        <div>
+          <div class="col-head">Outcome</div>
+          {{outcome}}
+          {{#metrics}}{{metrics}}{{/metrics}}
+        </div>
+      </div>
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="metric-row">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{#body}}{{body}}{{/body}}
+      {{metrics}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="table">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{#body}}{{body}}{{/body}}
+      {{table}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="timeline">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{#body}}{{body}}{{/body}}
+      {{phases}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="team-grid">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{members}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
