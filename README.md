@@ -132,7 +132,10 @@ merged cells, autofilter and dropdowns.
 delete leaves behind: hyperlinks that resurface as cell values, external workbook links
 leaking internal paths, dropdowns that stop at the old last row, and the category
 vocabulary that only existed in the rows being cleared (harvested onto a `Vocabulary`
-sheet and wired back as dropdowns).
+sheet and wired back as dropdowns). Because the row clear only reaches the data region,
+`--drop-sheet`, `--set-cell`, `--replace-text` and `--strip-comments` handle the project
+identifiers that survive in title blocks, group headers, reference sheets, dropdown
+lists and cell comments.
 
 `--list-profiles` shows the built-in client formats (auto-detected from the headers). A
 profile pins ambiguous columns, translates the plan into the client's own category and

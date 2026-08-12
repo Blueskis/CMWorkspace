@@ -29,6 +29,7 @@ try:
     from openpyxl import Workbook, load_workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     from openpyxl.utils import get_column_letter
+    from openpyxl.cell.cell import MergedCell
     from openpyxl.worksheet.cell_range import CellRange, MultiCellRange
     from openpyxl.worksheet.datavalidation import DataValidation
 except ImportError:  # pragma: no cover
@@ -608,8 +609,108 @@ def merged_rows(sheet):
     return covered
 
 
+def strip_comments(workbook):
+    """Remove cell comments anywhere in the workbook.
+
+    Comments outlive the rows they discuss, are invisible in a quick scroll, and
+    routinely name people and reference prior projects.
+    """
+    removed = []
+    for sheet in workbook.worksheets:
+        for row in sheet.iter_rows():
+            for cell in row:
+                if cell.comment is not None:
+                    text = re.sub(r"\s+", " ", str(cell.comment.text or "")).strip()
+                    removed.append(f"{sheet.title}!{cell.coordinate}: {text[:70]}")
+                    cell.comment = None
+    return removed
+
+
+def replace_text(workbook, replacements):
+    """Substitute text across cell values, dropdown lists and sheet names.
+
+    Project identifiers hide in all three, so a scrub that only walks cells
+    leaves the vocabulary and the tab names still naming the old project.
+    """
+    counts = {old: 0 for old, _ in replacements}
+    for sheet in workbook.worksheets:
+        for row in sheet.iter_rows():
+            for cell in row:
+                if not isinstance(cell.value, str):
+                    continue
+                for old, new in replacements:
+                    if old in cell.value:
+                        cell.value = cell.value.replace(old, new)
+                        counts[old] += 1
+        for validation in sheet.data_validations.dataValidation:
+            formula = validation.formula1 or ""
+            if not formula.strip().startswith('"'):
+                continue
+            for old, new in replacements:
+                if old in formula:
+                    validation.formula1 = formula = formula.replace(old, new)
+                    counts[old] += 1
+    for sheet in workbook.worksheets:
+        for old, new in replacements:
+            if old in sheet.title:
+                sheet.title = sheet.title.replace(old, new)
+                counts[old] += 1
+    return counts
+
+
+def parse_replacements(raw):
+    """Parse OLD=>NEW pairs. '=>' rather than '=' so values may contain '='."""
+    pairs = []
+    for entry in raw or []:
+        if "=>" not in entry:
+            sys.exit(f"  ! Could not parse --replace-text {entry!r}. Expected OLD=>NEW.")
+        old, new = entry.split("=>", 1)
+        if not old:
+            sys.exit("  ! --replace-text needs a non-empty search string.")
+        pairs.append((old, new))
+    return pairs
+
+
+def apply_edits(workbook, default_sheet, drop_sheets, set_cells):
+    """Drop sheets and overwrite individual cells during a template clean.
+
+    The row clear only touches the data region, so anything project-specific in
+    the title block, in group headers above the data, or on a reference sheet
+    survives it. These stay as options rather than built-in rules because the
+    wording is the client's, not ours.
+    """
+    for name in drop_sheets or []:
+        matches = [s for s in workbook.sheetnames if s.strip().lower() == name.strip().lower()]
+        if not matches:
+            sys.exit(f"  ! No sheet named '{name}'. Sheets: {workbook.sheetnames}")
+        if len(workbook.sheetnames) - len(matches) < 1:
+            sys.exit("  ! Refusing to drop every sheet in the workbook.")
+        for match in matches:
+            del workbook[match]
+            print(f"  Dropped sheet  : {match!r}")
+
+    for assignment in set_cells or []:
+        match = re.match(r"^(?:(.+)!)?([A-Za-z]{1,3}\d+)=(.*)$", assignment, re.S)
+        if not match:
+            sys.exit(f"  ! Could not parse --set-cell {assignment!r}. "
+                     f"Expected [Sheet!]CELL=value, e.g. \"Plan!B1=[Project] Cutover\".")
+        name, coordinate, value = match.groups()
+        if name and name not in workbook.sheetnames:
+            sys.exit(f"  ! No sheet named '{name}'. Sheets: {workbook.sheetnames}")
+        target = workbook[name] if name else default_sheet
+        cell = target[coordinate.upper()]
+        if isinstance(cell, MergedCell):
+            sys.exit(f"  ! {coordinate.upper()} on '{target.title}' is a merged cell. "
+                     f"Set the top-left cell of the merged range instead.")
+        previous = cell.value
+        cell.value = value
+        print(f"  Set            : {target.title}!{coordinate.upper()} = {value!r} "
+              f"(was {str(previous)[:44]!r})")
+
+
 def clean_template(template_path, out_path, sheet_name=None, header_row=None,
-                   keep_through=None):
+                   keep_through=None, drop_sheets=None, set_cells=None,
+                   comments=False, replacements=None):
     """Strip a completed plan back to a blank template.
 
     Clients hand over last cutover's finished plan far more often than a blank
@@ -666,7 +767,7 @@ def clean_template(template_path, out_path, sheet_name=None, header_row=None,
             unmerged.append(str(merged))
             sheet.unmerge_cells(str(merged))
 
-    cleared, links, comments = 0, 0, 0
+    cleared, links, comment_count = 0, 0, 0
     for row_index in range(first, last + 1):
         for column_index in range(1, (sheet.max_column or 1) + 1):
             cell = sheet.cell(row=row_index, column=column_index)
@@ -680,7 +781,7 @@ def clean_template(template_path, out_path, sheet_name=None, header_row=None,
                 links += 1
             if cell.comment is not None:
                 cell.comment = None
-                comments += 1
+                comment_count += 1
         # Heights were sized to the old content; empty rows shouldn't keep them.
         if row_index in sheet.row_dimensions:
             sheet.row_dimensions[row_index].height = None
@@ -753,8 +854,8 @@ def clean_template(template_path, out_path, sheet_name=None, header_row=None,
             workbook._external_links = []
 
     print(f"  Cleared        : rows {first}-{last} ({cleared} rows, all columns)")
-    if links or comments:
-        print(f"  Removed        : {links} hyperlink(s), {comments} comment(s) "
+    if links or comment_count:
+        print(f"  Removed        : {links} hyperlink(s), {comment_count} comment(s) "
               f"attached to the cleared rows")
     if dropped_links:
         print(f"  Removed        : {dropped_links} orphaned external workbook link(s) "
@@ -767,8 +868,31 @@ def clean_template(template_path, out_path, sheet_name=None, header_row=None,
         print(f"  Unmerged       : {', '.join(unmerged)}")
     if widened:
         print(f"  Dropdown widened to cover the data region: {', '.join(widened)}")
+    apply_edits(workbook, sheet, drop_sheets, set_cells)
+
+    if comments:
+        for entry in strip_comments(workbook):
+            print(f"  Comment removed: {entry}")
+    else:
+        lingering = [f"{s.title}!{c.coordinate}"
+                     for s in workbook.worksheets for r in s.iter_rows()
+                     for c in r if c.comment is not None]
+        if lingering:
+            print(f"  ! {len(lingering)} comment(s) remain ({', '.join(lingering[:4])}) — "
+                  f"they can name people and prior projects. Use --strip-comments.",
+                  file=sys.stderr)
+
+    if replacements:
+        for old, count in replace_text(workbook, replacements).items():
+            if count:
+                print(f"  Replaced       : {old!r} in {count} place(s)")
+            else:
+                print(f"  ! --replace-text {old!r} matched nothing.", file=sys.stderr)
+
+    remaining = ", ".join(repr(n) for n in workbook.sheetnames)
     print(f"  Kept           : rows 1-{header_row} (title block and headers), "
-          f"column widths, cell styles, conditional formatting, other sheets")
+          f"column widths, cell styles, conditional formatting")
+    print(f"  Sheets         : {remaining}")
 
     # Authorship is the client's call, so report rather than strip it.
     author = getattr(workbook.properties, "creator", None)
@@ -1008,6 +1132,19 @@ def main():
     parser.add_argument("--keep-through", type=int,
                         help="With --clean-template, keep rows up to and including "
                              "this one (e.g. to preserve a sample first row).")
+    parser.add_argument("--drop-sheet", action="append", metavar="NAME",
+                        help="With --clean-template, delete this sheet. Repeatable.")
+    parser.add_argument("--set-cell", action="append", metavar="[SHEET!]CELL=VALUE",
+                        help="With --clean-template, overwrite a cell the row clear "
+                             "does not reach — a title block or a group header. "
+                             "Repeatable.")
+    parser.add_argument("--strip-comments", action="store_true",
+                        help="With --clean-template, remove every cell comment. "
+                             "Comments are invisible when scrolling and routinely "
+                             "name people and prior projects.")
+    parser.add_argument("--replace-text", action="append", metavar="OLD=>NEW",
+                        help="With --clean-template, substitute text across cell "
+                             "values, dropdown lists and sheet names. Repeatable.")
     parser.add_argument("--list-fields", action="store_true",
                         help="Print the spec keys and exit.")
     parser.add_argument("--list-profiles", action="store_true",
@@ -1028,7 +1165,8 @@ def main():
         if not args.template or not args.out:
             parser.error("--clean-template needs --template and --out")
         clean_template(args.template, args.out, args.sheet, args.header_row,
-                       args.keep_through)
+                       args.keep_through, args.drop_sheet, args.set_cell,
+                       args.strip_comments, parse_replacements(args.replace_text))
         print(f"Wrote blank template to {args.out}")
         return
 

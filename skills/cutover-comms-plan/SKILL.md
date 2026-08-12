@@ -228,9 +228,25 @@ than doing it by hand:
   are reset.
 
 Document properties are reported, not stripped — authorship is the client's call.
-Always tell the member what was removed, and check the header block yourself: a title
-naming last year's wave, a stale cutover date or wave-specific group labels are sample
-content the row clear does not touch.
+
+**The row clear only reaches the data region**, so project identifiers survive in the
+title block, in group headers above the data, on reference sheets, inside dropdown
+lists and inside cell comments. Three options handle the rest, and you should scan for
+all of it rather than waiting to be asked:
+
+```bash
+--drop-sheet "Old reference list"          # delete a sheet that isn't part of the template
+--set-cell "Plan!B1=[Project] Cutover"     # overwrite a title or group header
+--replace-text "Acme Phase 2=>[Programme]" # substitute across cells, dropdowns and tab names
+--strip-comments                           # remove every cell comment
+```
+
+Comments deserve their own flag because they are invisible when scrolling, survive the
+rows they discuss, and routinely name people and reference prior projects. Without
+`--strip-comments` any that remain are reported to stderr.
+
+After cleaning, unzip the result and grep the whole package for the client's project
+and people names — values hide in parts the sheet view never shows.
 
 #### Template profiles
 
