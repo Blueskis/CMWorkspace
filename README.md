@@ -19,21 +19,29 @@ A Claude Code plugin bundling 12 change-management consulting framework skills, 
 | `dual-operating-system` | Kotter's Dual Operating System (Accelerate) |
 | `network-position` | Organizational network analysis / stakeholder mapping |
 | `strategic-change-assessment` | Orchestrator — runs a project narrative through whichever of the above are suitable and synthesizes findings across them |
-| `change-impact-assessment` | Deliverable generator — builds a baseline change impact assessment workbook from a programme's own documents |
+| `change-impact-assessment` | Deliverable generator — populates a client CIA template with a baseline change impact assessment built from a programme's own documents |
 
 Each skill's frontmatter `name:` field carries a `-v1.0` suffix (e.g. `dice-framework-v1.0`), marking this as the post-review baseline — all 12 framework skills were live-tested via the Skill tool before this bundle was packaged.
 
 ## Change impact assessment
 
-`change-impact-assessment` is the odd one out: the 13 skills above are diagnostic, and this one produces a client deliverable. It reads a system implementation's own source material — interview and workshop notes, Signavio/BPMN process design, functional specifications, org design — and generates a multi-sheet Excel workbook:
+`change-impact-assessment` is the odd one out: the 13 skills above are diagnostic, and this one produces a client deliverable. It reads a system implementation's own source material — interview and workshop notes, Signavio/BPMN process design, functional specifications, org design — and writes the result into the client's CIA template.
 
-- **Impact Register** — one row per process change × stakeholder group, carrying as-is → to-be, five weighted impact dimensions, a Low/Medium/High/Critical rating, anticipated resistance, and the training and communication response derived from that rating
-- **Impact Heatmap** — where the change lands, by stakeholder group and by workstream
+**The template owns the model.** Four-level process taxonomy (L1–L4 with codes), three dimensions — People, Process, Technology — each scored 0–3 against the anchors on the template's own rubric sheet, averaged unweighted into Overall Impact. The generator loads `templates/CIA_Template.xlsx` and writes rows into it, so the template's headers, theme colours, merges and `Change Impact Ratings` rubric come through untouched — verified against the original file on every run. Point `--template` at a different client template to use theirs instead.
+
+Output sheets:
+
+- **CIA Template** — the deliverable, in the client's format. One row per process change × stakeholder group: L1–L4 taxonomy, current roles and headcount, as-is → to-be, a description and 0–3 score for each of People/Process/Technology, the Overall Impact average, and training, communications and other (policy, engagement) responses
+- **Change Impact Ratings** — the client's scoring rubric, carried through unchanged
+- **Impact Heatmap** — where the change lands, by stakeholder group and by L1 area
 - **Training Plan** — delivery method, duration and effort roll-up in person-hours and days
 - **Comms Plan** — key messages by audience and wave, with named senders
 - **Traceability** — the source documents behind each row, and the open questions for business validation
+- **Assessment Info** — programme metadata, impact profile, and the stated assumptions
 
-Ratings, effort and roll-ups are live Excel formulas, so re-scoring an impact in a validation workshop updates the whole pack. `skills/change-impact-assessment/examples/` holds a complete worked example for an SAP S/4HANA and Ariba implementation — six source documents and the 20-impact assessment they produce.
+Overall Impact, heatmap counts and the roll-ups are live Excel formulas, so re-scoring a Degree of Impact in a validation workshop updates the whole pack. `--extended` appends eight governance columns (impact ID, stakeholder group, resistance, champion, source ref, confidence, status, notes) for the CM team's working copy, leaving the default output matching the client template exactly.
+
+`skills/change-impact-assessment/examples/` holds a complete worked example for an SAP S/4HANA and Ariba implementation — six source documents and the 20-impact assessment they produce.
 
 Requires `openpyxl` (`pip install openpyxl`).
 

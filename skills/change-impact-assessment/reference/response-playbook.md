@@ -7,12 +7,19 @@ the ratings justify. These are defaults — deviate freely, but record the reaso
 
 ## Training response by rating band
 
+Bands are on the template's 0-3 average — High ≥ 2.50 · Medium 1.50–2.49 · Low 0.50–1.49 ·
+No/Minimal < 0.50.
+
 | Rating | Delivery method | Typical duration | Timing (relative to go-live) |
 |---|---|---|---|
-| **Low** | None — comms only, or a one-page job aid if a new screen is involved | — | Awareness comms at T-4 weeks |
+| **No / Minimal** | None. Awareness comms only, so the group knows it hasn't been forgotten | — | One touchpoint in Readiness |
+| **Low** | None, or a one-page job aid if a new screen or document format is involved | — | Awareness comms at T-4 weeks |
 | **Medium** | e-Learning or Job Aid; self-paced | 0.5 – 1.5 hrs | T-4 to T-2 weeks |
-| **High** | Virtual ILT or Classroom ILT with hands-on exercises in a training client | 2 – 8 hrs (may be multi-module) | T-4 to T-1 weeks, close enough to go-live to be retained |
-| **Critical** | Full curriculum: ILT + practice environment + job aids + in-app guidance, plus floorwalking/hypercare at go-live | 8+ hrs across modules | Curriculum from T-6 weeks; hypercare T-0 to T+4 weeks |
+| **High** | Virtual ILT or Classroom ILT with hands-on exercises in a training client. Where the role itself is redefined — People scored 3 — add a practice environment, job aids and floorwalking/hypercare at go-live | 2 – 16 hrs across modules | T-6 to T-1 weeks; hypercare T-0 to T+4 weeks |
+
+**High covers a wide range on a three-dimension average**, from "new system, same job" to "the
+job is being redesigned". Use the People score to split it: People 3 means role change, and role
+change needs curriculum plus hypercare, not a course.
 
 **Timing principle:** training decays fast. Anything delivered more than ~6 weeks
 before go-live needs a reinforcement touchpoint, and anything after go-live is
@@ -40,8 +47,8 @@ Rating sets the *tier*; these factors set the *method* within it:
 
 ### Training effort
 
-`Est. Duration (hrs) × Training Audience (#) = Total Training Effort (person-hrs)`,
-computed live in the workbook and rolled up on the **Training Plan** sheet. This is
+`Duration (hrs) × Audience (#) = Total Effort (person-hrs)`, rolled up by delivery method and
+by audience on the **Training Plan** sheet. This is
 the number that lets a CM lead answer the two questions they will actually be asked:
 *how many hours of business time is this costing*, and *how many facilitator days do
 we need to fund*. Give the business-time figure in days as well as hours — 12,000
@@ -51,16 +58,19 @@ person-hours means nothing; 1,500 working days means a budget conversation.
 
 | Rating | Cadence | Channels | Sender |
 |---|---|---|---|
+| **No / Minimal** | 1 touchpoint | Team briefing | Line manager |
 | **Low** | 1–2 touchpoints | Newsletter, intranet, team meeting cascade | Programme / CM team |
 | **Medium** | 3–4 touchpoints across the timeline | Email, team briefing, manager cascade pack, FAQ | Functional lead |
 | **High** | Sustained cadence from awareness to reinforcement | Town hall, line-manager cascade, drop-in sessions, targeted email, FAQ | Named business sponsor |
-| **Critical** | Continuous, two-way, with a feedback loop | Sponsor-led town hall, 1:1 or small-group sessions, change champion network, dedicated Q&A forum, post-go-live pulse survey | Executive sponsor + direct line manager |
+| **High + High resistance** | Continuous, two-way, with a feedback loop | Sponsor-led town hall, 1:1 or small-group sessions, change champion network, dedicated Q&A forum, post-go-live pulse survey | Executive sponsor + direct line manager |
+
+Resistance, not just magnitude, drives the top tier. A High-impact / Low-resistance change needs
+a good broadcast; a High-impact / High-resistance change needs a conversation.
 
 **Sender matters more than channel.** Research and practice both point the same way:
 people accept organisational rationale from a senior sponsor, and personal impact
 from their own line manager. A programme mailbox is the least credible sender
-available. For any High or Critical impact, `comms_owner` should be a named person
-or role, never "the change team".
+available. For any High-rated impact, `comms_owner` should be a named person or role, never "the change team".
 
 ### Comms wave structure
 
@@ -74,7 +84,7 @@ Anchor `comms_timing` to go-live so the workbook stays valid when dates move:
 | **Go-Live** | T-0 to T+2 weeks | Where to get help | Hypercare, floorwalkers, escalation |
 | **Reinforcement** | T+2 to T+12 weeks | It's working, and it's permanent | Adoption metrics, early wins, correction of drift |
 
-High and Critical impacts should appear in at least three waves. A single email in
+High-rated impacts should appear in at least three waves. A single email in
 the Readiness wave is not a communication plan.
 
 ## Key messages
@@ -121,7 +131,9 @@ handful of behaviours.
   group and check the Readiness window. A group carrying 30 hours of training in the
   fortnight before go-live will not complete it, and that is a schedule finding worth
   raising before it becomes a go-live risk.
-- **Is every Critical impact owned by a named person?** Both champion and comms owner.
+- **Is every High-rated impact owned by a named person?** Both champion and comms owner.
 - **Does any group have High impacts but no High-tier training?** Either the rating or
   the response is wrong.
+- **Does any group appear only in the register and never in a comms wave?** A group with a
+  No/Minimal rating still needs one touchpoint — silence reads as having been forgotten.
 - **Are suppliers and other external audiences in the plan at all?**

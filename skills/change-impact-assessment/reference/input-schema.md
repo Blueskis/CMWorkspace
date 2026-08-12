@@ -1,15 +1,14 @@
 # `cia_input.json` — Input Schema
 
-The contract between extraction (your job) and rendering (`scripts/generate_cia.py`).
-Write this file, run the script, get the workbook. The script validates before
-rendering and refuses to write on hard errors.
+The contract between extraction (your job) and rendering (`scripts/generate_cia.py`). Write this
+file, run the script, get the client template populated. The script validates before rendering
+and refuses to write on hard errors.
 
 ```json
-{
-  "meta": { ... },
-  "impacts": [ { ... }, ... ]
-}
+{ "meta": { ... }, "impacts": [ { ... } ] }
 ```
+
+Field names map onto the client template's own columns; the mapping is shown below.
 
 ## `meta`
 
@@ -21,94 +20,102 @@ rendering and refuses to write on hard errors.
 | `assessment_owner` | ✔ | Person/role who owns this baseline |
 | `version` | ✔ | e.g. "v0.1 — Baseline Draft (pre-validation)" |
 | `assessment_date` | ✔ | `YYYY-MM-DD` |
-| `go_live_date` | | `YYYY-MM-DD`. Drives the T-minus wave labels on the Cover sheet. |
-| `source_documents` | ✔ | Array — see below. Every `ref` cited by an impact must exist here. |
+| `go_live_date` | | `YYYY-MM-DD`. Drives the dated comms windows on the Comms Plan sheet. |
+| `source_documents` | ✔ | Array. Every `ref` cited by an impact must exist here. |
 
-Each `source_documents` entry: `ref` (short stable ID, e.g. `INT-01`), `type`
-(`Interview Notes` / `Workshop Notes` / `Process Design` / `Functional Specification`
-/ `Org Design` / `Solution Scope` / `Other`), `title`, `date` (optional),
-`author_or_participants` (optional).
+Each `source_documents` entry: `ref` (short stable ID, e.g. `INT-01`), `type` (`Interview Notes`
+/ `Workshop Notes` / `Process Design` / `Functional Specification` / `Org Design` /
+`Solution Scope` / `Other`), `title`, `date` (optional), `author_or_participants` (optional).
 
-## `impacts[]`
+## `impacts[]` → template columns A–V
 
 One row per **process change × stakeholder group**.
 
-### Identification
-| Field | Req | Notes |
-|---|---|---|
-| `impact_id` | ✔ | Unique, e.g. `CI-001`. Duplicates are a hard error. |
-| `workstream` | ✔ | L1, e.g. "Source-to-Contract" |
-| `process_group` | ✔ | L2, e.g. "Sourcing Event Execution" |
-| `process_name` | ✔ | L3, e.g. "Create and Publish RFQ" |
-| `process_ref` | | Signavio/BPMN model ID for traceability |
+### Process taxonomy → columns A–H
+| Field | Col | Req | Notes |
+|---|---|---|---|
+| `l1` | A | ✔ | Top-level process area, e.g. "Procure-to-Pay" |
+| `l1_code` | B | | Numeric; rendered `00` |
+| `l2` | C | ✔ | Process group, e.g. "Requisitioning" |
+| `l2_code` | D | | Numeric |
+| `l3` | E | ✔ | Process, e.g. "Raise Requisition" |
+| `l3_code` | F | | Numeric |
+| `l4` | G | | Activity/variant, e.g. "Catalogue Purchase — Occasional User". Warned if absent — the template's taxonomy goes to four levels. |
+| `l4_code` | H | | Numeric |
 
-### As-Is → To-Be
-| Field | Req | Notes |
-|---|---|---|
-| `as_is_process` | ✔ | Business language. `"Not documented — see notes"` if genuinely unknown (then confidence must be Low). |
-| `as_is_system` | | Current tool(s) |
-| `to_be_process` | ✔ | Business language |
-| `to_be_system` | | Target module, e.g. "SAP Ariba Guided Buying" |
+Codes are numeric because the template formats those columns `00`. A non-numeric string is
+written as text if you need one.
 
-### Characterisation
-| Field | Req | Allowed values |
-|---|---|---|
-| `change_type` | ✔ | `Process` · `System / Technology` · `Policy & Control` · `Role & Organisation` · `Data & Reporting` · `Ways of Working` |
-| `change_nature` | ✔ | `New` · `Modified` · `Eliminated` · `Automated` · `Reassigned` |
+### People → columns I–J
+| Field | Col | Req | Notes |
+|---|---|---|---|
+| `current_roles` | I | ✔ | The roles as they exist today, in the client's own language |
+| `headcount_impacted` | J | | Integer |
 
-### Who is impacted
-| Field | Req | Notes |
-|---|---|---|
-| `stakeholder_group` | ✔ | One group per row |
-| `impacted_roles` | | Specific roles/personas |
-| `geography` | | Entity/region, or "Global" |
-| `headcount_impacted` | | Integer |
+### As-is / To-be → columns K–L
+| Field | Col | Req | Notes |
+|---|---|---|---|
+| `as_is` | K | ✔ | Current state in business language. Include the workarounds. |
+| `to_be` | L | ✔ | Target state in business language, not system language. |
 
-### Scoring — all required, integers 1–5 (see `rating-methodology.md`)
-`score_people`, `score_process`, `score_technology`, `score_policy`, `score_data`
+### Impact assessment → columns M–S
+| Field | Col | Req | Notes |
+|---|---|---|---|
+| `people_impact` | M | ✔ | What changes for the person, and why it scores what it scores |
+| `score_people` | N | ✔ | Integer **0–3** |
+| `process_impact` | O | ✔ | What changes in the flow |
+| `score_process` | P | ✔ | Integer **0–3** |
+| `tech_impact` | Q | ✔ | What changes in the system they touch |
+| `score_technology` | R | ✔ | Integer **0–3** |
+| — | S | | **Overall Impact (Average)** — a live Excel formula. Do not supply it. |
 
-Weighted score and rating band are **computed as live Excel formulas** — do not
-supply them.
+Anchors for 0–3 are on the template's `Change Impact Ratings` sheet and restated in
+`rating-methodology.md`.
 
-| Field | Req | Notes |
-|---|---|---|
-| `rating_override` | | `Low`/`Medium`/`High`/`Critical`. Use sparingly; requires a reason. |
-| `rating_override_reason` | | Mandatory whenever `rating_override` is set. |
+### Change initiative → columns T–V
 
-### Analysis
-| Field | Req | Notes |
-|---|---|---|
-| `impact_rationale` | ✔ | Why these scores. Quote the source where you can. |
-| `resistance_risk` | ✔ | `Low` · `Medium` · `High` |
-| `benefit_narrative` | | WIIFM for this group |
+Columns T and U are composed by the script from the structured fields below, so the template
+holds a readable summary reference while the full detail lives on the Training Plan and Comms
+Plan sheets.
 
-### Training response
+**Training (→ column T)**
+
 | Field | Req | Notes |
 |---|---|---|
 | `training_required` | ✔ | `Yes` · `No` |
 | `training_type` | | `Classroom ILT` · `Virtual ILT` · `e-Learning` · `Job Aid` · `In-App Guidance` · `Floorwalking / Hypercare` · `Webinar` · `Not Required` |
 | `training_module_ref` | | e.g. `TRN-P2P-04` |
 | `training_duration_hrs` | | Number, per learner |
-| `training_audience_size` | | Integer; defaults to `headcount_impacted` if omitted |
+| `training_audience_size` | | Integer; defaults to `headcount_impacted` |
 | `training_timing` | | e.g. `T-4 weeks` |
 
-Total effort (`duration × audience`) is a live formula — do not supply it.
+**Communications (→ column U)**
 
-### Comms response
 | Field | Req | Notes |
 |---|---|---|
 | `comms_required` | ✔ | `Yes` · `No` |
-| `key_message` | | One sentence, from the audience's point of view |
-| `comms_channel` | | Free text; multiple separated by `; ` |
-| `comms_timing` | | Wave label, e.g. `Understanding (T-8 to T-4 wks)` |
-| `comms_owner` | | Named person or role — not "the change team" for High/Critical |
+| `comms_timing` | | Wave names — `Awareness`, `Understanding`, `Readiness`, `Go-Live`, `Reinforcement`; multiple separated by `; ` |
+| `comms_channel` | | Free text |
+| `comms_owner` | | Named person or role — not "the change team" for High-rated impacts |
+| `key_message` | | One sentence from the audience's point of view. Shown on the Comms Plan sheet. |
+| `benefit_narrative` | | WIIFM for this group. Comms Plan sheet. |
 
-### Ownership, governance, traceability
+**Others (→ column V)** — composed from:
+
+| Field | Notes |
+|---|---|
+| `other_impacts` | Policy, control, compliance, data-ownership, engagement and commercial impacts. The template has no dimension for these, and this is where it intends them to go. |
+| `mitigation_actions` | Prefixed `Mitigation:`. Required when `resistance_risk` is High. |
+| `rating_override` / `rating_override_reason` | Appended as `RATING OVERRIDE → …` so the template's own arithmetic in column S stays untouched. |
+
+### Governance — JSON-only by default, columns W–AD under `--extended`
+
 | Field | Req | Notes |
 |---|---|---|
+| `impact_id` | ✔ | Unique, e.g. `CI-001`. Duplicates are a hard error. Also the key for the roll-up sheets. |
+| `stakeholder_group` | ✔ | One group per row. The grouping axis for the heatmap and roll-ups. |
+| `resistance_risk` | ✔ | `Low` · `Medium` · `High` — rated separately from impact magnitude |
 | `change_champion` | | Business owner for this impact |
-| `mitigation_actions` | | Required when `resistance_risk` is High |
-| `dependencies` | | Other impact IDs or programme dependencies |
 | `source_ref` | ✔ | e.g. `INT-03; FS-014`. Every ref must exist in `meta.source_documents`. |
 | `confidence` | ✔ | `High` · `Medium` · `Low` |
 | `validation_status` | | `Draft` · `In Review` · `Validated` · `Baselined`. Defaults to `Draft`. |
@@ -116,15 +123,16 @@ Total effort (`duration × audience`) is a live formula — do not supply it.
 
 ## Validation
 
-Run `python3 scripts/generate_cia.py input.json --validate-only` to check without
-rendering.
+```bash
+python3 scripts/generate_cia.py input.json --validate-only
+```
 
-**Hard errors** (block generation): missing required field, duplicate `impact_id`,
-score outside 1–5 or non-integer, value outside an allowed enum, `source_ref` citing
-an undeclared document, `rating_override` without a reason.
+**Hard errors** (block generation): missing required field, duplicate `impact_id`, a score
+outside 0–3 or non-integer, a value outside an allowed enum, `source_ref` citing an undeclared
+document, `rating_override` without a reason.
 
-**Warnings** (render anyway, but report them to the user): Low confidence with no
-note, High resistance with no mitigation, High/Critical impact with no change
-champion, training required but no delivery method, workstream with no High or
-Critical impacts, and any stakeholder group whose training hours in a single window
-look unachievable.
+**Warnings** (render anyway, but work through them): Low confidence with no note, High
+resistance with no mitigation, a High-rated impact with no champion or comms owner, training
+required with no method or duration, comms required with no key message, a High-rated impact
+with no training, a missing L4, an L1 with no High-rated impacts, and any source document
+nothing was derived from.

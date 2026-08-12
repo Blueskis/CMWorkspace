@@ -1,17 +1,25 @@
 ---
 name: change-impact-assessment-v1.0
-description: Generates a baseline change impact assessment workbook (Excel) for a system implementation — SAP S/4HANA, Ariba, Workday, Salesforce or similar — from the programme's own documents. Reads interview and workshop notes, process design models (Signavio/BPMN), functional specifications and org design material; extracts one impact row per process change × stakeholder group; scores each on five weighted dimensions to produce a Low/Medium/High/Critical rating; and derives the training and communication response from the rating. Output is a multi-sheet .xlsx — impact register (as-is → to-be, ratings, training, comms), heatmap, training plan with effort roll-up, comms plan by wave, and source traceability. Use whenever a CM lead wants to build, refresh or sense-check a change impact assessment from project documentation — phrases like "change impact assessment", "CIA", "impact register", "what's the impact of this rollout on each group", "build me the change impacts from these documents", "training needs analysis from the process design", or when someone hands over interview notes and design docs and asks what the change means for the business.
+description: Populates the client's own CIA template (Excel) with a baseline change impact assessment for a system implementation — SAP S/4HANA, Ariba, Workday, Salesforce or similar — built from the programme's own documents. Reads interview and workshop notes, process design models (Signavio/BPMN), functional specifications and org design material; extracts one impact row per process change × stakeholder group against a four-level process taxonomy (L1-L4); scores People, Process and Technology 0-3 against the template's own rubric and averages them into an overall impact; and derives the training and communication response from the resulting band. Output is the client template populated and untouched in structure, plus supplementary heatmap, training plan with effort roll-up, comms plan by wave, and source traceability sheets. Use whenever a CM lead wants to build, refresh or sense-check a change impact assessment from project documentation — phrases like "change impact assessment", "CIA", "impact register", "what's the impact of this rollout on each group", "build me the change impacts from these documents", "training needs analysis from the process design", "fill in the CIA template", or when someone hands over interview notes and design docs and asks what the change means for the business.
 ---
 
 # Change Impact Assessment — Baseline Generator
 
-Turns a folder of programme documents into a defensible baseline change impact assessment
-workbook. The point is not the spreadsheet — it is that every row traces to a source document,
-every rating is arithmetic a client can audit, and every training and comms line is derived
-from a rating rather than asserted.
+Turns a folder of programme documents into a defensible baseline change impact assessment, in
+the client's own template. The point is not the spreadsheet — it is that every row traces to a
+source document, every rating is arithmetic a client can audit, and every training and comms
+line is derived from a rating rather than asserted.
 
-**Deliverable:** a multi-sheet `.xlsx` — Cover, Impact Register, Impact Heatmap, Training Plan,
-Comms Plan, Traceability, Reference.
+**Deliverable:** the client's CIA template populated — `CIA Template` and `Change Impact Ratings`
+carried through with their headers, theme colours, merges and rubric untouched — plus
+supplementary `Impact Heatmap`, `Training Plan`, `Comms Plan`, `Traceability` and
+`Assessment Info` sheets derived from the register.
+
+**The template owns the model.** Four-level process taxonomy (L1–L4 with codes), three
+dimensions — People, Process, Technology — each scored **0–3** against the anchors on the
+template's own rubric sheet, averaged unweighted into Overall Impact. Do not substitute a
+different scoring model; if the client supplies a different template, point the script at it
+with `--template` and adjust the column map.
 
 ## What this produces, and what it does not
 
@@ -26,8 +34,9 @@ lose credibility.
 
 | File | Use it for |
 |---|---|
-| `reference/extraction-guide.md` | How to mine each source type, split/merge rows, and check coverage. **Read before extracting.** |
-| `reference/rating-methodology.md` | The five dimensions, 1-5 anchors, weights, bands, overrides, confidence. **Read before scoring.** |
+| `templates/CIA_Template.xlsx` | The client template. The default input to the generator. |
+| `reference/extraction-guide.md` | How to mine each source type, build the L1–L4 spine, split/merge rows, and check coverage. **Read before extracting.** |
+| `reference/rating-methodology.md` | The template's 0-3 anchors restated, plus the band cut-offs, overrides, resistance and confidence — the four things the template doesn't define. **Read before scoring.** |
 | `reference/response-playbook.md` | Deriving training method/duration/timing and comms channel/wave/sender from a rating. **Read before filling the response columns.** |
 | `reference/input-schema.md` | Field-by-field contract for `cia_input.json`. |
 | `scripts/generate_cia.py` | Validates the JSON and renders the workbook. |
@@ -54,9 +63,13 @@ is worth being explicit that the output is a structured hypothesis rather than a
 
 ### Step 2: Extract
 
-Read `reference/extraction-guide.md` and follow its five passes: build the process spine from
-the design models, attach the to-be, attach the as-is and human signal from interviews, split
-and merge to one row per **process change × stakeholder group**, then score.
+Read `reference/extraction-guide.md` and follow its five passes: build the L1–L4 process spine
+from the design models, attach the to-be, attach the as-is and human signal from interviews,
+split and merge to one row per **process change × stakeholder group**, then score.
+
+L4 is where the register earns its keep — it is the level at which one process splits into the
+different things it means for different people. If every L4 just restates its L3, the rows have
+not been split finely enough.
 
 Read every document supplied, in full. This is the step that determines whether the assessment
 is any good, and there is no shortcut — a register built from skimming produces rows that
@@ -68,11 +81,21 @@ a steering committee than any adjective you can write.
 
 ### Step 3: Score
 
-Read `reference/rating-methodology.md`. Score all five dimensions independently against the
-anchors — do not decide the overall rating first and back-fill the dimensions.
+Read `reference/rating-methodology.md` and the template's own `Change Impact Ratings` sheet.
+Score People, Process and Technology 0-3 independently against the anchors — do not decide the
+overall rating first and back-fill the three. Write the matching description alongside each
+score; the template pairs every score with a description column, and a score with no explanation
+is the first thing a client challenges.
 
-Expect a spread across Low, Medium, High and Critical. A register where everything is High gives
-the programme no way to prioritise and will not be believed.
+Expect a spread. A register where everything is High gives the programme no way to prioritise
+and will not be believed. On a greenfield implementation Technology sits at 3 almost everywhere
+— that is the anchor working correctly, but it means People and Process are doing all the
+discriminating, so score those two with particular care and say so at handover.
+
+Policy, control, compliance, data-ownership, engagement and commercial impacts have no dimension
+in this template. Record them in **Others**, where the template intends them. On a system
+implementation with enforced controls, that column often holds the most contentious material in
+the assessment.
 
 Rate **anticipated resistance separately from impact magnitude** — they are different things,
 and the confusion between them is the most common flaw in a change impact assessment. A large
@@ -81,11 +104,13 @@ welcome change is High impact / Low resistance; a small unwelcome one can be the
 ### Step 4: Derive the training and comms response
 
 Read `reference/response-playbook.md`. Rating sets the tier; audience size, frequency of use,
-and whether new judgement is required set the method within it.
+and whether new judgement is required set the method within it. Use the People score to split
+the High band — People 3 means the role itself is being redesigned, which needs a curriculum
+plus hypercare, not a course.
 
 Write `key_message` from the affected person's point of view, in one sentence, with no acronyms.
-Name a real person or role as `comms_owner` for every High and Critical impact — "the change
-team" is the least credible sender available.
+Name a real person or role as `comms_owner` for every High-rated impact — "the change team" is
+the least credible sender available.
 
 ### Step 5: Write `cia_input.json`
 
@@ -97,7 +122,19 @@ Per `reference/input-schema.md`. Cite source document refs on every row.
 python3 scripts/generate_cia.py cia_input.json -o "Change Impact Assessment — <Client> v0.1.xlsx"
 ```
 
-Requires `openpyxl` (`pip install openpyxl`). Use `--validate-only` to check without rendering.
+Requires `openpyxl` (`pip install openpyxl`).
+
+| Flag | Use |
+|---|---|
+| `--validate-only` | Check the JSON without rendering |
+| `--template <path>` | Point at a different client template (defaults to the vendored copy) |
+| `--extended` | Append eight governance columns after the template's V — Impact ID, stakeholder group, anticipated resistance, change champion, source ref, confidence, validation status, notes |
+
+**Default output matches the client template exactly** — verified on every run against the
+original file. Use `--extended` for the working copy the CM team edits, and the default for the
+version that goes to the client, unless they ask for the governance columns. `--extended` also
+makes the roll-up sheets sort-safe (they key off Impact ID via INDEX/MATCH) and makes the
+stakeholder-group heatmap live rather than a snapshot.
 
 Hard errors block generation — fix them. Warnings do not, but **work through each one before
 handing over the file**: they flag exactly the gaps a reviewer will find (a Critical impact with
@@ -112,7 +149,7 @@ Give the user the file and a short written summary — not a description of the 
 what the assessment found:
 
 1. **Shape of the change** — how many impacts, the rating distribution, which stakeholder groups
-   and workstreams carry the weight.
+   and L1 areas carry the weight.
 2. **The three or four things that actually matter** — the most severe impacts, and any
    convergent finding where several rows point at the same underlying problem.
 3. **Training and comms load** — total person-hours and days, and any group whose training load
@@ -132,14 +169,19 @@ whole, so the JSON is the master, not the spreadsheet.
 
 ## The workbook
 
-Ratings, weighted scores, training effort, heatmap counts and the roll-up sheets are **live
-Excel formulas**, so a CM lead can re-score an impact in a validation workshop and watch the
-ratings, heatmap, training budget and comms plan all move with it. Fifty pre-formatted blank
-rows sit under the register with dropdowns and formulas already in place, so impacts can be
-added in-workbook. Roll-ups look impacts up by ID, so re-sorting the register is safe.
+Overall Impact, the heatmap counts and the roll-up sheets are **live Excel formulas**, so a CM
+lead can re-score a Degree of Impact in a validation workshop and watch the average, heatmap,
+training roll-up and comms plan move with it. Fifty pre-formatted blank rows sit under the
+register with 0-3 dropdowns and formulas already in place, so impacts can be added in-workbook.
 
-If the user edits the workbook heavily, the JSON is no longer the master. Say so when you hand
-it over, and offer to re-import if they want to keep generating from source.
+Two things to say at handover:
+
+- **The band cut-offs are an assumption.** The template defines the 0-3 dimension scale but not
+  the cut-offs on the overall average. The generator uses High ≥ 2.50 / Medium 1.50–2.49 /
+  Low 0.50–1.49 / No-Minimal < 0.50, states this on the Assessment Info sheet, and it is
+  changeable in one constant. Confirm it with the client before baselining.
+- **If they edit the workbook heavily, the JSON is no longer the master.** Offer to re-import if
+  they want to keep generating from source.
 
 ## Notes
 
@@ -147,9 +189,9 @@ it over, and offer to re-import if they want to keep generating from source.
   Ariba and network-based implementations. They do not appear on the client's org chart, are
   rarely interviewed, and their non-adoption is a leading cause of benefit shortfall. Check for
   them explicitly.
-- **A small population can carry a Critical impact.** A single analyst whose entire deliverable
-  is automated away is easy to miss in a register sorted by headcount, and is exactly the person
-  most likely to become a visible casualty of the programme.
+- **A small population can carry the most severe impact in the register.** A single analyst
+  whose entire deliverable is automated away is easy to miss in a register sorted by headcount,
+  and is exactly the person most likely to become a visible casualty of the programme.
 - **An undesigned process is a finding, not a blocker.** Where the design is incomplete, record
   the row at Low confidence with the gap as the open question. A CIA that surfaces "nobody has
   designed emergency purchasing and Facilities has asked twice" has earned its cost before

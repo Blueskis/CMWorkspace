@@ -1,142 +1,136 @@
 # Change Impact Rating Methodology
 
-The rating model used by `generate_cia.py`. Everything here is mirrored in the
-script's constants and in the generated workbook's **Cover** sheet, so a client
-can audit how any rating was arrived at.
+**The client template owns the scoring model.** Its `Change Impact Ratings` sheet carries the
+authoritative anchors, and the generator reproduces its arithmetic exactly. This document
+restates that model for use during extraction and adds the four things the template does not
+define: the band cut-offs on the overall average, resistance, confidence, and overrides.
 
-## Principle
+## The model
 
-A change impact is rated on **five dimensions**, each scored 1–5, then combined
-into a single weighted score and banded into a rating. Dimensions are scored
-independently — do not score "how big does this feel overall" and reverse-engineer
-the dimensions.
+Three dimensions — **People**, **Process**, **Technology** — each scored **0–3**.
+**Overall Impact = the unweighted average of the three**, exactly as the template's own column
+header says, written into the workbook as a live Excel formula.
 
-## The five dimensions
+| Score | Label |
+|---|---|
+| 0 | No change |
+| 1 | Low |
+| 2 | Medium |
+| 3 | High |
 
-### 1. People & Role (weight 30%)
+## Anchors (from the template's rubric sheet)
 
-How much the *job itself* changes for the person doing it — tasks, decision rights,
-accountability, span of control, headcount, or reporting line.
+### People — role change / new role, new skills required, change in behaviour or mindset
 
 | Score | Anchor |
 |---|---|
-| 1 | No change to the role. Same tasks, same decisions, same accountability. |
-| 2 | Same role, minor task changes. A few steps look different; no new judgement required. |
-| 3 | Meaningful task change within the same role. New activities or decisions added, some old ones removed. |
-| 4 | Role substantially redefined. Significant new accountabilities, or work moves to/from this role from elsewhere. |
-| 5 | Role created, eliminated, merged, or relocated (e.g. moved into a shared service centre). Headcount or reporting line changes. |
+| 0 | No change. Same role. |
+| 1 | Minimal additional or removed activity. Minimal behaviour change. Same role, or same role at higher frequency. |
+| 2 | Requires a new activity or process step while using existing resources. Expanded scope without new headcount, new skills required, or a reduction in manual activity. |
+| 3 | Requires additional hiring, new skills acquisition or reorganisation of functions. Major increase or decrease in work effort. High behavioural or mindset shift to execute the new business vision. |
 
-### 2. Process (weight 25%)
-
-How much the process flow, sequence, hand-offs, or cycle time changes.
+### Process — automation, approval/regulatory, new process flow, information retrieval, business documentation
 
 | Score | Anchor |
 |---|---|
-| 1 | Process unchanged. |
-| 2 | Same flow, cosmetic differences (screen layout, field names, terminology). |
-| 3 | Steps added, removed, or resequenced, but the overall flow is recognisable. |
-| 4 | Process substantially redesigned — new hand-offs, new approval paths, or a major change in cycle time or entry point. |
-| 5 | Process is net-new, eliminated, or fully automated end-to-end. No recognisable predecessor. |
+| 0 | Same process, no change. |
+| 1 | Minor changes to the process steps. Some data within the process looks different, or the system of record changes. Optional additional steps; similar steps in a different system. |
+| 2 | Simplified by shifting toward automation. Added or deleted process steps or activities. |
+| 3 | Significant changes to the process steps. Changes to the hand-off of process ownership and accountability. Critical data elements to input, or sources, differ from the existing data structure. Multiple new process steps, or severe upstream/downstream impact. |
 
-### 3. Technology (weight 20%)
-
-How much the system the user touches changes.
+### Technology — interface/GUI, functionality, infrastructure
 
 | Score | Anchor |
 |---|---|
-| 1 | Same system, no visible change. |
-| 2 | Same system, updated screens or navigation. |
-| 3 | New module within a familiar platform, or a familiar task in a new UI. |
-| 4 | New system for this user group, replacing a system they used daily. |
-| 5 | New system *and* a new interaction paradigm (e.g. moving from email/spreadsheet to a transactional network, or desktop to mobile/guided buying). |
+| 0 | No change. |
+| 1 | Same system with added or enhanced features. Some fields or screen layout change; fields become more granular. |
+| 2 | Same system with a version upgrade (new features added to the existing system). Gain or loss of system functionality. New workbench. |
+| 3 | New system added or replaced. Substantial new users to an existing system. (A new workbench counts as 3 only in exceptional cases where the magnitude of change is high.) |
 
-### 4. Policy & Control (weight 15%)
+## Band cut-offs — this skill's assumption, not the template's
 
-How much the governing rules change — approval thresholds, segregation of duties,
-compliance obligations, mandated behaviour.
+The template defines the per-dimension 0–3 scale but **does not state cut-offs for the overall
+average**. The generator uses:
 
-| Score | Anchor |
+| Overall average | Rating |
 |---|---|
-| 1 | No policy change. |
-| 2 | Policy wording updated; substance unchanged. |
-| 3 | Thresholds, tolerances, or approval routing changed. |
-| 4 | New mandatory control introduced, or a discretionary practice becomes enforced by the system. |
-| 5 | New compliance/audit obligation with personal or legal accountability, or a previously permitted practice is now blocked outright. |
+| ≥ 2.50 | **High** |
+| 1.50 – 2.49 | **Medium** |
+| 0.50 – 1.49 | **Low** |
+| < 0.50 | **No / Minimal** |
 
-### 5. Data & Reporting (weight 10%)
+This is stated as an assumption on the workbook's Assessment Info sheet. **Confirm it with the
+client before baselining** — if they have their own convention, change `BANDS` in
+`scripts/generate_cia.py` and it flows through the register colouring, heatmap and roll-ups.
 
-How much the data the person creates, maintains, or consumes changes.
+## Scoring notes
 
-| Score | Anchor |
-|---|---|
-| 1 | No change to data or reports. |
-| 2 | Same data, new report format or location. |
-| 3 | New fields to populate, or new reports replacing familiar ones. |
-| 4 | New master data ownership or stewardship responsibility, or reports rebuilt on a new data model. |
-| 5 | New data domain the group has never maintained, or a self-service reporting model replacing a report-request model. |
+**Score each dimension independently against the anchors.** Do not decide the overall rating
+first and back-fill the three scores.
 
-## Weighted score
+**On a greenfield implementation, Technology saturates.** If the programme replaces the system
+outright, almost every row scores Technology 3 — that is the anchor working correctly, not a
+scoring error. It does mean the People and Process scores are doing nearly all the
+discriminating work, so score those two with particular care, and say so at handover: an
+average dragged upward by a constant is worth flagging to whoever reads the distribution.
 
-```
-Weighted Score = (People × 0.30) + (Process × 0.25) + (Technology × 0.20)
-               + (Policy × 0.15) + (Data × 0.10)
-```
+**A group that keeps its own system scores Technology 0 or 1** even inside a big programme.
+Downstream teams reading a changed document format are the common case.
 
-Range: 1.00 – 5.00. Written into the workbook as a **live Excel formula**, so a
-CM lead can adjust a dimension score in validation workshops and watch the rating
-move.
+**Expect a spread.** A register where everything is High gives the programme no way to
+prioritise and will not be believed. If you don't have a spread, re-score against the anchors
+rather than adjusting to taste.
 
-**Why People and Process carry the most weight:** change management effort is
-driven by how much a person's day-to-day job changes, not by how impressive the
-technology is. A system swap that leaves the job identical needs far less
-intervention than a role redesign delivered on familiar software.
+## What the template drops, and where it goes
 
-## Rating bands
+The template has no policy or data dimension. Policy, control, compliance, data-ownership and
+engagement impacts are real and still need recording — put them in the **Others (e.g., policies,
+engagements)** column, where the template intends them. In the JSON that is `other_impacts`.
 
-| Weighted Score | Rating | What it means for the response |
-|---|---|---|
-| < 1.75 | **Low** | Awareness only. Comms, no dedicated training. |
-| 1.75 – 2.74 | **Medium** | Job aid or e-learning. Standard comms cadence. |
-| 2.75 – 3.74 | **High** | Instructor-led or virtual ILT, hands-on practice, targeted comms with named sponsor. |
-| ≥ 3.75 | **Critical** | Full curriculum plus go-live hypercare/floorwalking, individually-tracked adoption, sponsor-led engagement, and an explicit resistance plan. |
+This matters more than it looks. On an Ariba implementation the largest single category of
+change is control being enforced where it was previously advisory, and that lands in Others
+rather than in any scored dimension. A row can therefore be Medium by score and still be the
+one that generates the most resistance — CI-005 in the worked example is exactly this.
 
-## Overrides — when to break the formula
+## Overrides — when to break the arithmetic
 
-The score is a baseline, not a verdict. Override the computed rating (record it in
-`rating_override` with a mandatory `rating_override_reason`) when:
+The average is a baseline, not a verdict. Record an override in `rating_override` with a
+mandatory `rating_override_reason` when:
 
-- **Volume amplifies it.** A Medium impact hitting 4,000 requisitioners on day one
-  may need a Critical-grade response purely on volume. Rate the impact honestly,
-  override the *response*, and say why.
-- **Political sensitivity.** Union-consulted change, a headcount implication, or a
-  loss of visible status can make a technically-small change behaviourally large.
-- **A hard compliance date.** If getting it wrong carries a regulatory penalty, the
-  response tier goes up regardless of score.
-- **Single point of failure.** Two people in the world do this, and both are
-  skeptical — the score understates the risk.
+- **Volume amplifies it.** A Medium impact hitting several thousand people on day one may need
+  a High-grade response purely on volume.
+- **Political sensitivity.** Union-consulted change, a headcount implication, or a visible loss
+  of status can make a technically-small change behaviourally large.
+- **A hard compliance date.** Regulatory exposure raises the response tier regardless of score.
+- **Single point of failure.** Two people do this, and both are sceptical.
 
-Never override downward just to shrink the training budget. If a rating is being
-argued down, that argument belongs in the `notes` column where the sponsor can see it.
+The override is recorded in the **Others** column so the template's own arithmetic in the
+Overall Impact column stays untouched and auditable. Never override downward to shrink a
+training budget; if a rating is being argued down, that argument belongs in the notes where the
+sponsor can see it.
 
-## Anticipated resistance (rated separately)
+## Anticipated resistance — rated separately
 
-Impact magnitude and resistance are **not the same thing**. A large, welcome change
-(automating a hated manual reconciliation) is High impact / Low resistance. A small,
-unwelcome change (a new approval step for a manager used to spending freely) can be
-Low impact / High resistance.
+Impact magnitude and resistance are **not the same thing**, and conflating them is the most
+common flaw in a change impact assessment. A large, welcome change (automating a hated manual
+reconciliation) is High impact / Low resistance. A small, unwelcome change (a new approval
+constraint on a manager used to spending freely) can be Low impact / High resistance.
 
 | Level | Signals in the source material |
 |---|---|
-| **Low** | Group asked for this, or is indifferent. Language in interviews is neutral-to-positive. |
-| **Medium** | Group accepts the rationale but is worried about workload, timing, or capability. Hedged language: "as long as…", "provided that…". |
-| **High** | Group disputes the rationale, loses discretion/status/headcount, has been burned by a prior rollout, or is being asked to absorb work from elsewhere. Look for sarcasm, prior-failure references, and "we already tried this". |
+| **Low** | The group asked for this, or is indifferent. Neutral-to-positive language. |
+| **Medium** | Accepts the rationale but worried about workload, timing or capability. Hedged language: "as long as…", "provided that…". |
+| **High** | Disputes the rationale, loses discretion/status/headcount, has been burned by a prior rollout, or is absorbing work from elsewhere. Look for sarcasm, prior-failure references, "we already tried this". |
 
 High resistance always requires a `mitigation_actions` entry, whatever the impact rating.
 
+The template has no resistance column. It is carried in the JSON, surfaced on the Comms Plan
+sheet, and becomes a register column under `--extended`.
+
 ## Confidence
 
-Every row records how it was derived — this is what makes the output a defensible
-*baseline* rather than an assertion.
+Every row records how it was derived — this is what makes the output a defensible *baseline*
+rather than an assertion.
 
 | Confidence | Meaning |
 |---|---|
@@ -144,5 +138,5 @@ Every row records how it was derived — this is what makes the output a defensi
 | **Medium** | Inferred by combining two or more sources (e.g. an FS describes the new approval matrix, an interview describes today's practice). |
 | **Low** | Extrapolated from a pattern in the solution design, with no direct source statement. Requires business validation before baselining. |
 
-**Every Low-confidence row must carry an open question in `notes`.** These become
-the agenda for the validation workshop.
+**Every Low-confidence row must carry an open question in `notes`.** These become the agenda for
+the validation workshop and are listed on the Traceability sheet.
