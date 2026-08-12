@@ -39,9 +39,13 @@ those well becomes the important job.
 
 ### Named deliverables
 Every deliverable the RFP names, **verbatim and with its clause reference**, into
-`named_deliverables`. These do two jobs: they give each section its name (Stage 2 mirrors
-the client's term rather than imposing ours), and they size the deck when weights are
-absent.
+`named_deliverables`. These do two jobs: they give each section its name (Stage 2 uses the
+client's term rather than imposing ours), and they size the deck when weights are absent.
+
+**Capture the name exactly as the client writes it** — capitalisation, qualifiers and all.
+"Detailed Stakeholder Engagement Plan" is not "Stakeholder Engagement Plan". This field is
+what the slide title is built from, so a paraphrase here becomes a paraphrase on the deck,
+and the evaluator looking for their deliverable does not find it.
 
 Record `emphasis_clauses` — how many clauses the RFP spends on each. That ratio is the
 sizing signal: a deliverable specified across fourteen sub-clauses matters more to this

@@ -98,10 +98,12 @@ Rules that matter more than the library itself:
 1. **Follow the RFP's own structure when it dictates one.** Many RFPs prescribe a response
    format or a scoring schedule. If so, mirror it — the evaluators score against their
    structure, not ours. Note the deviation in the plan if we add anything beyond it.
-2. **Name each section the way this tender names the deliverable.** The library's labels
-   are internal handles, not slide titles. If the RFP asks for a "Change Sustenance Plan,"
-   that is the section's name. Evaluators score by finding their requirements, and a
-   renamed deliverable reads as a missing one.
+2. **Use the client's naming convention, not the firm's.** The library's labels are
+   internal handles, not slide titles. If the client asks for a "Change Sustenance Plan,"
+   that is the section's name. Evaluators score by finding their own requirements, and a
+   deliverable we have renamed reads as one we have not answered. Note the terminology
+   trap: in a tender document "the Tenderer" is the *bidder* — this rule is about the
+   *client's* words (the Authority, the Tenderee, the Purchaser).
 3. **Size by evaluation weight where weights are published; by named deliverables where
    they are not.** Most CM tenders publish no weights — do not invent them. Instead, let
    the RFP's own emphasis do the sizing: a deliverable it names earns a slide, one it

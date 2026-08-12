@@ -7,21 +7,30 @@ material, not a template to fill in order.
 
 ---
 
-## Rule 1 — Name sections the way this tender names them
+## Rule 1 — Use the client's naming convention, not ours
 
-**Never impose the canonical labels below on a client who uses different ones.** They are
-internal handles for finding the right content, not slide titles.
+**The client's terminology wins.** The canonical labels below are internal handles for
+finding the right content — they are not slide titles.
+
+> **Terminology warning.** Tender documents call the *bidder* "the Tenderer" and the
+> *client* "the Authority", "the Tenderee", "the Purchaser" or similar. The naming rule
+> here is about the **client's** words, not ours. Read any instruction about "the
+> tenderer's naming" carefully — in a tender document that phrase means the bidder.
 
 Naming precedence, highest first:
 
-1. **The RFP's own name for the deliverable.** If it asks for a "Change Sustenance Plan,"
-   the section is called Change Sustenance Plan — not "Sustaining the Change." Evaluators
-   score by locating their requirements, and a renamed deliverable reads as a missing one.
-2. **The firm's house name**, where the RFP doesn't name it and the knowledge bank does.
+1. **The client's own name for the deliverable**, as written in the RFP. If it asks for a
+   "Change Sustenance Plan," the section is called Change Sustenance Plan — not "Sustaining
+   the Change." Evaluators score by locating their own requirements, and a deliverable we
+   have renamed reads as one we have not answered.
+2. **The firm's house name**, only where the client doesn't name the deliverable at all and
+   the knowledge bank does.
 3. **The canonical name** below, as a last resort.
 
 Mirror the client's capitalisation and phrasing too. If the tender writes "Detailed
-Stakeholder Engagement Plan," don't shorten it to "Stakeholder Engagement."
+Stakeholder Engagement Plan," don't shorten it to "Stakeholder Engagement." Where the
+client's term differs from our house term for the same thing, use theirs on the slide and
+keep ours in the plan's `section_id` so retrieval still works.
 
 ## Rule 2 — Size sections by deliverable, not by guesswork
 
