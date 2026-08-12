@@ -23,7 +23,7 @@ import json
 import re
 import sys
 from copy import copy
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
 try:
     from openpyxl import Workbook, load_workbook
@@ -40,22 +40,26 @@ except ImportError:  # pragma: no cover
 # (spec key, output header, column width, synonyms used to match template headers)
 FIELDS = [
     ("id", "Comms ID", 10,
-     ["id", "ref", "no", "num", "number", "item", "comm id", "comms id", "message id"]),
+     ["id", "ref", "no", "num", "number", "item", "comm id", "comms id", "message id",
+      "comms", "comms #", "comms no", "task #", "task no"]),
     ("milestone", "Cutover Milestone", 18,
      ["milestone", "timing", "phase", "when", "cutover milestone", "trigger",
-      "t-minus", "stage", "sequence"]),
+      "t-minus", "stage", "sequence", "activity category", "comms category",
+      "category", "comms type"]),
     ("send_date", "Planned Send Date", 16,
      ["date", "send date", "planned date", "planned send date", "issue date",
       "target date", "distribution date", "scheduled date"]),
     ("title", "Comms Title", 34,
      ["title", "subject", "name", "comms title", "message", "headline",
-      "communication", "description"]),
+      "communication", "description", "task activity description",
+      "activity description", "task description"]),
     ("purpose", "Purpose", 46,
      ["purpose", "objective", "why", "intent", "goal", "key message",
       "purpose / key message", "rationale"]),
     ("audience", "Audience", 30,
      ["audience", "target audience", "recipients", "who", "stakeholder",
-      "stakeholders", "to", "audience group"]),
+      "stakeholders", "to", "audience group", "activity type", "comms to",
+      "recipient group"]),
     ("channel", "Channel", 22,
      ["channel", "medium", "method", "vehicle", "delivery", "delivery method",
       "channel / medium"]),
@@ -64,10 +68,11 @@ FIELDS = [
       "on behalf of", "voice"]),
     ("owner", "Owner (Drafts/Sends)", 24,
      ["owner", "author", "drafter", "responsible", "prepared by", "accountable",
-      "owner (drafts/sends)", "raci - r"]),
+      "owner (drafts/sends)", "raci - r", "pic", "pic1", "person in charge",
+      "tech support performing the task activity", "performing the task"]),
     ("approver", "Approver", 24,
      ["approver", "approval", "sign off", "sign-off", "signoff", "reviewed by",
-      "approved by", "endorser"]),
+      "approved by", "endorser", "verifier", "sign off by verifier"]),
     ("dependencies", "Dependencies", 38,
      ["dependency", "dependencies", "depends on", "pre-requisite", "prerequisite",
       "prerequisites", "inputs", "blockers", "linked activity"]),
@@ -89,6 +94,183 @@ DATE_FIELDS = {"send_date"}
 # Fields that must exist as a column in the output even if a template lacks them.
 REQUIRED_COLUMNS = ["purpose", "audience", "channel", "sender", "owner",
                     "approver", "dependencies", "content_link"]
+
+# --------------------------------------------------------------------------
+# Template profiles
+# --------------------------------------------------------------------------
+# A profile adapts the canonical plan to a client's own house format: their
+# category vocabulary, their comms numbering, and any column of theirs that
+# can be derived rather than left blank.
+
+def _minus_business_days(value, days):
+    """Back up from a send date to a draft-by date, skipping weekends."""
+    if not isinstance(value, (datetime, date)):
+        value = coerce_date(value)
+    if not isinstance(value, (datetime, date)):
+        return ""
+    current = value.date() if isinstance(value, datetime) else value
+    remaining = days
+    while remaining > 0:
+        current = current - timedelta(days=1)
+        if current.weekday() < 5:
+            remaining -= 1
+    return current
+
+
+# Milestone -> the client's Activity Category vocabulary.
+ENG_CATEGORY = [
+    (re.compile(r"^T-|readiness|action|chaser|programme", re.I), "Reminder Comms"),
+    (re.compile(r"go/?no.?go|ponr|cutover begins|outage|service restored", re.I),
+     "Cutover Period Comms"),
+    (re.compile(r"mid-?cutover|checkpoint", re.I), "Checkpoint Comms"),
+    (re.compile(r"go-?live|retired|complete", re.I), "Go Live Comms"),
+    (re.compile(r"^T\+", re.I), "Post Go Live Comms"),
+]
+
+# One audience fragment -> the client's Activity Type vocabulary. Applied per
+# fragment, not to the whole string: their plan carries one audience per row.
+ENG_ACTIVITY_TYPE = [
+    (re.compile(r"external|customer|vendor|partner|regulator|3rd party|third party|3p", re.I),
+     "Comms to 3P"),
+    (re.compile(r"exec|steer|board|c-suite|leadership|risk and compliance", re.I),
+     "Comms to SC"),
+    (re.compile(r"cutover team|programme|program team|bridge|service desk|duty|it ops", re.I),
+     "Comms to {programme}"),
+]
+
+
+def eng_activity_type(fragment, programme):
+    for pattern, label in ENG_ACTIVITY_TYPE:
+        if pattern.search(fragment):
+            return label.replace("{programme}", programme)
+    return "Comms to BU"
+
+
+def eng_split_audiences(text, programme):
+    """Group a multi-audience string into the client's one-row-per-audience shape.
+
+    Returns [(activity_type, original audience fragments)] preserving order, so
+    'All Finance users; Service Desk; executive stakeholders' becomes three rows
+    the way their own plan splits a milestone across BU / programme / Steerco.
+    """
+    fragments = [f.strip() for f in str(text or "").split(";") if f.strip()]
+    if not fragments:
+        return [("Comms to BU", "")]
+    grouped = {}
+    order = []
+    for fragment in fragments:
+        bucket = eng_activity_type(fragment, programme)
+        if bucket not in grouped:
+            grouped[bucket] = []
+            order.append(bucket)
+        grouped[bucket].append(fragment)
+    return [(bucket, "; ".join(grouped[bucket])) for bucket in order]
+
+
+# Their Status dropdown vocabulary, which differs from the canonical one —
+# note "Disseminated" is their term for a comms that has gone out.
+ENG_STATUS = {
+    "not started": "Not Started", "drafting": "In Progress",
+    "in review": "In Progress", "approved": "In Progress",
+    "scheduled": "In Progress", "sent": "Disseminated",
+    "cancelled": "Cancelled",
+}
+
+
+def _suffix(index):
+    """a, b, ... z, aa, ab — so a comms with many audiences still numbers cleanly."""
+    letters = ""
+    index += 1
+    while index > 0:
+        index, remainder = divmod(index - 1, 26)
+        letters = chr(97 + remainder) + letters
+    return letters
+
+
+def eng_transform(rows, spec, options):
+    """Rewrite canonical rows into the ENG cutover task-list vocabulary.
+
+    One comms addressed to several audiences becomes several rows, which is how
+    this format is structured and what makes the #Na/#Nb suffixes meaningful.
+    """
+    programme = options.get("programme", "Programme Team")
+    expanded = []
+    for index, row in enumerate(rows, start=1):
+        milestone = str(row.get("milestone", ""))
+        category = next((label for pattern, label in ENG_CATEGORY
+                         if pattern.search(milestone)), "Reminder Comms")
+        for activity_type, detail in eng_split_audiences(row.get("audience"), programme):
+            new_row = dict(row)
+            new_row["_category"] = category
+            new_row["_milestone"] = milestone
+            new_row["audience"] = activity_type
+            new_row["_audience_detail"] = detail
+            # One number per comms, suffixed per audience — six checkpoint calls
+            # are six comms, not one comms with six recipients.
+            new_row["_seq"] = index
+            expanded.append(new_row)
+
+    # Where one milestone carries several rows, suffix them a/b/c.
+    counts = {}
+    for row in expanded:
+        counts[row["_seq"]] = counts.get(row["_seq"], 0) + 1
+    seen = {}
+    for row in expanded:
+        seq = row["_seq"]
+        if counts[seq] > 1:
+            seen[seq] = seen.get(seq, 0)
+            row["id"] = "Comms #%d%s" % (seq, _suffix(seen[seq]))
+            seen[seq] += 1
+        else:
+            row["id"] = "Comms #%d" % seq
+        # Their taxonomy column replaces the canonical milestone on the way out.
+        row["milestone"] = row["_category"]
+        row["status"] = ENG_STATUS.get(str(row.get("status", "")).strip().lower(),
+                                       row.get("status", ""))
+
+    if len(expanded) != len(rows):
+        print(f"  Audience split : {len(rows)} comms -> {len(expanded)} rows "
+              f"(one per audience group, matching the #Na/#Nb convention)")
+    rows[:] = expanded
+    return rows
+
+
+PROFILES = {
+    "eng-cutover": {
+        "description": "Cutover activity task list (Activity Category / Activity "
+                       "Type / Comms # vocabulary, PIC and Verifier columns).",
+        "signature": ["activity category", "task activity description"],
+        # Pinned explicitly rather than left to synonym matching: this format has
+        # two plausible id columns (Task # and Comms #) and a helper column whose
+        # text trips loose matches.
+        "columns": {
+            "id": "Comms",
+            "milestone": "Activity Category",
+            "audience": "Activity Type",
+            "title": "Task / Activity Description",
+            "dependencies": "Dependency",
+            "status": "Status",
+            "owner": "Tech Support Performing the Task/Activity",
+            "approver": "Sign-Off by Verifier (State the name of the Verifier)",
+            "send_date": "Start Date",
+            "notes": "Reference / Comments",
+        },
+        "transform": eng_transform,
+        # Columns of theirs we can fill without being asked.
+        "derived": {
+            "Draft Created On": lambda row: _minus_business_days(row.get("send_date"), 3),
+        },
+        # Their Activity Type is a four-way bucket, so the specific group the
+        # comms actually goes to would otherwise be lost.
+        "extra_columns": [
+            ("Audience (detail)", 30, lambda row: row.get("_audience_detail", "")),
+        ],
+        "vocabulary_check": ["milestone", "audience", "status"],
+        # Client programme names stay out of this file — pass --programme, or let
+        # the vocabulary snap pick up the template's own wording.
+        "options": {"programme": "Programme Team"},
+    },
+}
 
 CHANNEL_OPTIONS = [
     "Email", "Email (all-user)", "Teams/Slack post", "Teams/Slack channel",
@@ -317,6 +499,12 @@ def find_header_row(sheet, forced=None, scan_rows=20):
     return best[1], best[2]
 
 
+#: Substring matching on very short synonyms produces false positives — "to"
+#: matches "val_[To Be Removed Later]", "no" matches "Notification". They stay
+#: usable as exact matches only.
+MIN_SUBSTRING_SYNONYM = 4
+
+
 def match_header(normalized_header):
     """Map a normalized template header to a canonical field key."""
     for key, _, _, synonyms in FIELDS:
@@ -327,7 +515,7 @@ def match_header(normalized_header):
     for key, _, _, synonyms in FIELDS:
         for synonym in synonyms:
             token = normalize(synonym)
-            if token and token in normalized_header:
+            if len(token) >= MIN_SUBSTRING_SYNONYM and token in normalized_header:
                 scored.append((len(token), key))
     if scored:
         scored.sort(reverse=True)
@@ -335,7 +523,75 @@ def match_header(normalized_header):
     return None
 
 
-def build_from_template(spec, template_path, out_path, sheet_name=None, header_row=None):
+def detect_profile(sheet, header_row):
+    """Return the profile key whose signature headers all appear in the template."""
+    headers = {normalize(sheet.cell(row=header_row, column=c).value)
+               for c in range(1, (sheet.max_column or 1) + 1)}
+    for key, profile in PROFILES.items():
+        if all(any(normalize(sig) == h or normalize(sig) in h for h in headers)
+               for sig in profile["signature"]):
+            return key
+    return None
+
+
+def count_populated(sheet, header_row, mapping):
+    """Rows below the header that already carry data.
+
+    Scans every column, not just the mapped ones: separator and end-of-plan
+    marker rows often sit outside the mapped columns (and inside merged ranges),
+    and appending on top of one both loses their content and hits a read-only
+    merged cell.
+    """
+    populated = 0
+    for row_index in range(header_row + 1, (sheet.max_row or header_row) + 1):
+        if any(sheet.cell(row=row_index, column=c).value not in (None, "")
+               for c in range(1, (sheet.max_column or 1) + 1)):
+            populated = row_index - header_row
+    return populated
+
+
+def validation_list(sheet, column_index):
+    """Values allowed by a literal dropdown on this column, if there is one."""
+    letter = get_column_letter(column_index)
+    for validation in sheet.data_validations.dataValidation:
+        if validation.type != "list" or not validation.formula1:
+            continue
+        if not any(str(cell_range).startswith(letter) for cell_range in validation.sqref.ranges):
+            continue
+        formula = validation.formula1.strip()
+        if formula.startswith('"') and formula.endswith('"'):
+            return [part.strip() for part in formula[1:-1].split(",") if part.strip()]
+    return []
+
+
+def snap_value(written, existing):
+    """Match a generated value onto the template's own wording.
+
+    Catches trailing-space variants ('Comms to BU ') and values a client has
+    extended ('Comms to Programme' -> 'Comms to Programme (FIN, PROC, ...)'),
+    either of which would otherwise read as a separate value in their filters.
+    """
+    target = written.strip().lower()
+    for candidate in existing:
+        if candidate.strip().lower() == target:
+            return candidate
+    if len(target) >= 6:
+        prefixed = [c for c in existing if c.strip().lower().startswith(target)]
+        if len(prefixed) == 1:
+            return prefixed[0]
+    return None
+
+
+def merged_rows(sheet):
+    """Row indices covered by any merged range, which cannot be written to."""
+    covered = set()
+    for merged in sheet.merged_cells.ranges:
+        covered.update(range(merged.min_row, merged.max_row + 1))
+    return covered
+
+
+def build_from_template(spec, template_path, out_path, sheet_name=None, header_row=None,
+                        profile_key=None, mode="guard", options=None):
     workbook = load_workbook(template_path)
     if sheet_name:
         if sheet_name not in workbook.sheetnames:
@@ -351,9 +607,71 @@ def build_from_template(spec, template_path, out_path, sheet_name=None, header_r
             "--sheet and --header-row to point at it explicitly."
         )
 
+    if profile_key is None:
+        profile_key = detect_profile(sheet, header_row)
+    profile = PROFILES.get(profile_key) if profile_key else None
+
     print(f"  Template sheet : {sheet.title} (header row {header_row})")
+    if profile:
+        print(f"  Profile        : {profile_key} — {profile['description']}")
+        # Pinned columns win over anything synonym matching guessed.
+        headers = {normalize(sheet.cell(row=header_row, column=c).value): c
+                   for c in range(1, (sheet.max_column or 1) + 1)}
+        for key, header_text in profile.get("columns", {}).items():
+            column_index = headers.get(normalize(header_text))
+            if column_index is None:
+                print(f"  ! Profile expects a '{header_text}' column and this sheet "
+                      f"has none — falling back to auto-matching for {key}.",
+                      file=sys.stderr)
+                continue
+            previous = mapping.get(key)
+            mapping[key] = column_index
+            if previous and previous != column_index:
+                print(f"  Pinned         : {key} -> {get_column_letter(column_index)} "
+                      f"'{header_text}' (auto-match had {get_column_letter(previous)})")
+        # Drop any auto-match that collided onto a pinned column.
+        pinned = set(profile.get("columns", {}))
+        for key in [k for k, c in mapping.items()
+                    if k not in pinned and c in {mapping[p] for p in pinned if p in mapping}]:
+            del mapping[key]
     matched = ", ".join(sorted(mapping))
     print(f"  Matched columns: {matched}")
+
+    # Never write over a populated plan without being told to.
+    populated = count_populated(sheet, header_row, mapping)
+    start_row = header_row + 1
+    if populated:
+        if mode == "guard":
+            sys.exit(
+                f"  ! This template already holds {populated} populated row(s) below the "
+                f"header.\n    Writing here would overwrite them. Choose explicitly:\n"
+                f"      --append          keep them and add the new plan beneath\n"
+                f"      --replace-rows    clear them and write the new plan in their place"
+            )
+        if mode == "append":
+            start_row = header_row + 1 + populated
+            print(f"  Existing rows  : {populated} kept, appending from row {start_row}")
+        elif mode == "replace":
+            protected = merged_rows(sheet)
+            cleared, skipped = 0, []
+            for row_index in range(header_row + 1, header_row + 1 + populated):
+                if row_index in protected:
+                    # Separator and marker rows live in merged ranges and are
+                    # read-only; leaving them intact is also the right outcome.
+                    skipped.append(row_index)
+                    continue
+                for column_index in mapping.values():
+                    sheet.cell(row=row_index, column=column_index).value = None
+                cleared += 1
+            print(f"  Existing rows  : {cleared} cleared and replaced")
+            if skipped:
+                print(f"  Merged rows    : {', '.join(str(r) for r in skipped)} left "
+                      f"intact (merged ranges cannot be cleared)")
+
+    if profile and profile.get("transform"):
+        merged_options = dict(profile.get("options", {}))
+        merged_options.update(options or {})
+        profile["transform"](spec["comms"], spec, merged_options)
 
     # Any required column the template lacks gets appended so no data is lost.
     next_column = (sheet.max_column or len(mapping)) + 1
@@ -379,9 +697,81 @@ def build_from_template(spec, template_path, out_path, sheet_name=None, header_r
         print(f"  ! No template column for: {', '.join(dropped)} - this data is not written.",
               file=sys.stderr)
 
+    # Profile-specific columns the template has no equivalent for.
+    derived = {}
+    if profile:
+        for header_text, width, compute in profile.get("extra_columns", []):
+            cell = sheet.cell(row=header_row, column=next_column, value=header_text)
+            template_header = sheet.cell(row=header_row, column=1)
+            if template_header.has_style:
+                cell._style = copy(template_header._style)
+            sheet.column_dimensions[get_column_letter(next_column)].width = width
+            derived[next_column] = compute
+            print(f"  + Added column   '{header_text}' at "
+                  f"{get_column_letter(next_column)}{header_row}")
+            next_column += 1
+
+    # Columns of theirs the profile can fill without being asked (e.g. a
+    # draft-by date derived from the send date and the approval lead time).
+    if profile:
+        for header_text, compute in profile.get("derived", {}).items():
+            target = normalize(header_text)
+            for column_index in range(1, (sheet.max_column or 1) + 1):
+                if normalize(sheet.cell(row=header_row, column=column_index).value) == target:
+                    derived[column_index] = compute
+                    print(f"  Derived column : '{header_text}' at "
+                          f"{get_column_letter(column_index)}")
+                    break
+
+    # Snap generated vocabulary onto whatever the template already uses, then
+    # flag whatever genuinely has no precedent — so a new category value is a
+    # decision rather than a surprise, and a near-miss doesn't become one.
+    if profile:
+        for key in profile.get("vocabulary_check", []):
+            column_index = mapping.get(key)
+            if not column_index:
+                continue
+            existing = []
+            for row_index in range(header_row + 1, start_row):
+                value = sheet.cell(row=row_index, column=column_index).value
+                if value not in (None, "") and str(value) not in existing:
+                    existing.append(str(value))
+            allowed = validation_list(sheet, column_index)
+
+            snapped = {}
+            for row in spec["comms"]:
+                written = str(row.get(key, "")).strip()
+                if not written:
+                    continue
+                match = snap_value(written, existing)
+                if match is not None and match != row.get(key):
+                    snapped[written] = match
+                    row[key] = match
+            for source, target in sorted(snapped.items()):
+                print(f"  Vocabulary     : {key} '{source}' -> '{target}' (template's own wording)")
+
+            introduced = sorted({str(row.get(key, "")).strip() for row in spec["comms"]}
+                                - {e.strip() for e in existing}
+                                - {a.strip() for a in allowed} - {""})
+            if introduced and existing:
+                print(f"  ! New {key} value(s) with no precedent in this template: "
+                      f"{', '.join(introduced)}", file=sys.stderr)
+
+    blocked = merged_rows(sheet)
+    while start_row in blocked:
+        print(f"  Row {start_row} sits inside a merged range — skipping it.")
+        start_row += 1
+
     style_source = header_row + 1
     for offset, row in enumerate(spec["comms"]):
-        excel_row = header_row + 1 + offset
+        excel_row = start_row + offset
+        if excel_row in blocked:
+            sys.exit(f"  ! Row {excel_row} is inside a merged range and cannot be "
+                     f"written. Re-run with --append to write below the merged block.")
+        for column_index, compute in derived.items():
+            cell = sheet.cell(row=excel_row, column=column_index, value=compute(row))
+            if isinstance(cell.value, (datetime, date)):
+                cell.number_format = "dd-mmm-yyyy"
         for key, column_index in mapping.items():
             cell = sheet.cell(row=excel_row, column=column_index,
                               value=cell_value(key, row))
@@ -406,13 +796,31 @@ def main():
     parser.add_argument("--sheet", help="Sheet name within the template.")
     parser.add_argument("--header-row", type=int,
                         help="1-based header row in the template (skips auto-detection).")
+    parser.add_argument("--profile", choices=sorted(PROFILES),
+                        help="Client format profile. Auto-detected when omitted.")
+    parser.add_argument("--no-profile", action="store_true",
+                        help="Suppress profile auto-detection and map columns literally.")
+    parser.add_argument("--programme", help="Programme name used in the profile's "
+                                            "audience vocabulary (e.g. 'Comms to <Programme>').")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--append", action="store_true",
+                       help="Keep the template's existing rows and add the plan beneath.")
+    group.add_argument("--replace-rows", action="store_true",
+                       help="Clear the template's existing rows and write the plan in place.")
     parser.add_argument("--list-fields", action="store_true",
                         help="Print the spec keys and exit.")
+    parser.add_argument("--list-profiles", action="store_true",
+                        help="Print the available template profiles and exit.")
     args = parser.parse_args()
 
     if args.list_fields:
         for key, header, _, _ in FIELDS:
             print(f"{key:<14} -> {header}")
+        return
+    if args.list_profiles:
+        for key, profile in sorted(PROFILES.items()):
+            print(f"{key}\n    {profile['description']}\n"
+                  f"    detected by: {', '.join(profile['signature'])}")
         return
 
     if not args.spec or not args.out:
@@ -420,8 +828,13 @@ def main():
 
     spec = load_spec(args.spec)
     if args.template:
+        mode = "append" if args.append else "replace" if args.replace_rows else "guard"
+        options = {"programme": args.programme} if args.programme else {}
         count = build_from_template(spec, args.template, args.out,
-                                    args.sheet, args.header_row)
+                                    args.sheet, args.header_row,
+                                    # False suppresses detection; None triggers it.
+                                    profile_key=False if args.no_profile else args.profile,
+                                    mode=mode, options=options)
     else:
         count = build_from_scratch(spec, args.out)
     print(f"Wrote {count} comms line item(s) to {args.out}")

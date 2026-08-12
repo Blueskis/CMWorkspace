@@ -87,7 +87,7 @@ state the assumption, and let them correct it in Step 3.
 | M3 | External audiences | +1 per distinct external audience, issued at T-21 (external parties need longer lead and contractual notice periods may apply) |
 | M4 | Hypercare / elevated support period | +2 — hypercare and how to get help (T+1); hypercare close / back to BAU |
 | M5 | Multi-wave or phased rollout | base set **per wave**, plus 1 programme-level "what's coming and which wave you're in" and 1 "all waves complete" |
-| M6 | Cutover runs >24h or across a weekend/public holiday | +1 mid-cutover checkpoint update |
+| M6 | Checkpoint calls during the cutover | +1 per checkpoint — a long cutover runs several, and each one's outcome is a comms |
 | M7 | Formal Go/No-Go gate with rollback option | +1 Go/No-Go outcome comms straight after the gate |
 | M8 | Regulated, high-risk, or board/exec-visible | +2 — exec pre-cutover brief; exec close-out |
 | M9 | Training or readiness prerequisite | +1 readiness reminder at T-21, targeted at non-completers only |
@@ -193,6 +193,42 @@ and prints what it matched. **Read that output** — if it reports columns it co
 match, or data it couldn't write, resolve it with `--sheet`/`--header-row` or tell the
 member which of their columns went unpopulated. Don't hand over a silently half-filled
 template.
+
+**The script will not overwrite a populated template.** Client "templates" are very
+often a *previous* cutover's completed plan rather than a blank form, so writing at the
+first data row destroys real project history. When rows are already present the script
+stops and makes you choose `--append` (keep theirs, add beneath) or `--replace-rows`
+(clear and rewrite). Default to `--append` unless the member says otherwise — their
+history is usually the reason they kept the file.
+
+#### Template profiles
+
+`--list-profiles` shows the built-in client formats. A profile pins ambiguous columns
+explicitly, translates the plan into the client's own vocabulary, and fills any column
+of theirs that can be derived. It is auto-detected from the template's headers;
+`--no-profile` turns that off.
+
+`eng-cutover` covers a cutover **activity task list** — a runbook where comms are rows
+among other cutover activities, keyed by `Activity Category` / `Activity Type` /
+`Comms #`. Against that format the script:
+
+- maps the milestone onto their category vocabulary (Reminder Comms, Cutover Period
+  Comms, Checkpoint Comms, Go Live Comms) and the status onto theirs, where
+  **Disseminated** means sent;
+- **splits a multi-audience comms into one row per audience**, because that format
+  carries one audience per row — this is what makes their `#2a` / `#2b` suffixes mean
+  something, and it changes the row count, which the script reports;
+- snaps generated wording onto the template's own strings, including trailing-space
+  variants and values the client has extended, so their filters keep grouping;
+- flags any value with no precedent in the file, so a new category is a decision;
+- derives their `Draft Created On` from the send date and the 3-business-day approval
+  lead time;
+- appends `Purpose`, `Channel`, `Sender` and `Comms Content Link`, which runbook
+  formats routinely lack even though the CM member needs all four.
+
+Columns are appended at the end, never inserted: `insert_cols` shifts values without
+moving merged ranges, autofilters, column widths or data validations, so inserting
+silently points a client's dropdowns at the wrong columns.
 
 `python3 scripts/build_comms_plan.py --list-fields` prints the spec keys.
 

@@ -446,10 +446,13 @@ const LIB = {
     dependencies:"Runbook step confirming the system has been taken offline",
     notes:"Out of hours — the owner must be someone actually on the cutover bridge."},
 
-  checkpoint:{milestone:"Mid-cutover",order:-0.25,offset:0,
+  checkpoint:{milestone:"Mid-cutover",order:-0.25,offset:0,repeatLabel:"checkpoint",
     title:"Cutover checkpoint: {system} on track",
     purpose:"Confirm progress against plan at an agreed checkpoint, so silence doesn't get read as failure.",
-    audience:"Executive stakeholders; Service Desk; {audience}",
+    /* Cutover team and Service Desk only. Broadcasting every checkpoint to the
+       whole business is the fastest way to spend the attention you need for the
+       go-live comms. Executives are covered by the steerco comms instead. */
+    audience:"Cutover team; Service Desk",
     channel:"Teams/Slack post",senderRole:"cutover",ownerRole:"duty",
     approver:"Pre-approved template — on-track and delayed variants",
     dependencies:"Checkpoint time agreed in the runbook",
@@ -579,7 +582,7 @@ const MODIFIERS = [
   {id:"M3",label:"External audiences",hint:"Customers, vendors, partners, regulators",count:1,countLabel:"groups"},
   {id:"M4",label:"Hypercare / elevated support period",hint:"Adds hypercare open and close"},
   {id:"M5",label:"Multi-wave or phased rollout",hint:"Base set repeats per wave",count:2,countLabel:"waves"},
-  {id:"M6",label:"Cutover runs over 24h or across a weekend",hint:"Adds a mid-cutover checkpoint"},
+  {id:"M6",label:"Checkpoint calls during cutover",hint:"One comms per checkpoint — a long cutover runs several",count:1,countLabel:"checkpoints"},
   {id:"M7",label:"Formal Go/No-Go gate with rollback",hint:"Adds the gate outcome comms"},
   {id:"M8",label:"Regulated, high-risk or board-visible",hint:"Adds an exec brief and close-out"},
   {id:"M9",label:"Training or readiness prerequisite",hint:"Adds a T-21 chaser to non-completers"}
@@ -622,7 +625,7 @@ function defaultState(){
   const gl = new Date(Date.now()+42*864e5);
   return {
     project:"Finance ERP Upgrade", golive:iso(gl), type:"upgrade",
-    mods:{M1:true,M2:true}, counts:{M3:1,M5:2},
+    mods:{M1:true,M2:true}, counts:{M3:1,M5:2,M6:1},
     defaults:{sponsor:"CFO (Executive Sponsor)",owner:"Change Management Lead",
       approver:"Cutover Manager",audience:"All Finance users",system:"Finance ERP"},
     rows:[], math:null, open:{}
@@ -686,7 +689,8 @@ function derive(cfg){
   if(mods.M3){ const n=Math.max(1,counts.M3|0); keys.push("ext_notice"); origin.ext_notice="M3"; math.push({label:"M3",value:n});
     for(let i=2;i<=n;i++){ const k="ext_notice#"+i; keys.push(k); origin[k]="M3"; } }
   if(mods.M4){ add("hypercare","M4",2); keys.push("hypercare_close"); origin.hypercare_close="M4"; }
-  if(mods.M6) add("checkpoint","M6",1);
+  if(mods.M6){ const n=Math.max(1,counts.M6|0); keys.push("checkpoint"); origin.checkpoint="M6"; math.push({label:"M6",value:n});
+    for(let i=2;i<=n;i++){ const k="checkpoint#"+i; keys.push(k); origin[k]="M6"; } }
   if(mods.M7) add("gonogo","M7",1);
   if(mods.M8){ add("exec_brief","M8",2); keys.push("exec_close"); origin.exec_close="M8"; }
   if(mods.M9) add("readiness","M9",1);
@@ -721,7 +725,7 @@ function derive(cfg){
       }
       if(k.indexOf("#")>-1){
         const n = k.split("#")[1];
-        r.title = r.title+" (group "+n+")";
+        r.title = r.title+" ("+(item.repeatLabel||"group")+" "+n+")";
         r.order = item.order + Number(n)*0.01;
       }
       rows.push(r);
