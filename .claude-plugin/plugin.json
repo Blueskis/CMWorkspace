@@ -1,5 +1,5 @@
 {
-  "name": "strategic-change",
-  "version": "1.1.0",
-  "description": "Consulting-framework skills for diagnosing and managing organizational change \u2014 DICE, Kotter's 8-Step, Technical vs. Adaptive, Theory E/O, Persuasion, Tipping Point, Immunity to Change, Six Steps, Productive Distress, Critical Few Behaviours, Dual Operating System, Network Position, plus a multi-framework assessment orchestrator, plus a CM effort and pricing estimator that quotes an RFP scope against past project quotes."
+  "name": "cm-workspace",
+  "version": "0.2.0",
+  "description": "Change-management working tools. An RFP-to-proposal deck generator that plans a bid against the client's stated requirements and writes it from a curated knowledge bank, and a pursuit-side effort and pricing estimator that benchmarks an RFP scope against past project quotes."
 }
