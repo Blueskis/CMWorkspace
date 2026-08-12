@@ -1,0 +1,8 @@
+# Python bytecode from running the pipeline scripts
+__pycache__/
+*.py[cod]
+
+# Generated run workspaces — a proposal run is client work, not repo content.
+# Scoped to proposals/ so the template's own tracked template_profile.json,
+# which a plan is validated against, is never caught by these patterns.
+proposals/
