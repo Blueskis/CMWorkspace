@@ -120,6 +120,21 @@ Two ways to build it:
 The artifact's "Export spec JSON" produces exactly the spec the script consumes, so the
 two compose: draft and edit in the browser, then push the result into a client template.
 
+### Working against a client template
+
+A client "template" is usually a *previous* cutover's completed plan, not a blank form,
+so the script refuses to write into one that already has rows and makes you choose
+`--append` or `--replace-rows`. It never writes into merged ranges, and only ever
+appends columns — inserting them would shift values out from under the template's
+merged cells, autofilter and dropdowns.
+
+`--list-profiles` shows the built-in client formats (auto-detected from the headers). A
+profile pins ambiguous columns, translates the plan into the client's own category and
+status vocabulary, splits a multi-audience comms into one row per audience where that
+format expects it, snaps generated wording onto the template's own strings so their
+filters keep grouping, and flags any value with no precedent in the file. `eng-cutover`
+covers cutover activity task lists, where comms are rows among other cutover activities.
+
 ## Installing on another machine
 
 **Option A — direct install:** copy this folder to the other machine and point Claude Code
