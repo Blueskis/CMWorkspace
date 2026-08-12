@@ -29,6 +29,7 @@ try:
     from openpyxl import Workbook, load_workbook
     from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
     from openpyxl.utils import get_column_letter
+    from openpyxl.worksheet.cell_range import CellRange, MultiCellRange
     from openpyxl.worksheet.datavalidation import DataValidation
 except ImportError:  # pragma: no cover
     sys.exit("openpyxl is required. Install it with: pip install openpyxl")
@@ -551,16 +552,33 @@ def count_populated(sheet, header_row, mapping):
 
 
 def validation_list(sheet, column_index):
-    """Values allowed by a literal dropdown on this column, if there is one."""
+    """Values allowed by a dropdown on this column, if there is one.
+
+    Resolves both literal lists and references to a range elsewhere in the
+    workbook, so a template that documents its vocabulary on a separate sheet
+    is as readable as one with the values inline.
+    """
     letter = get_column_letter(column_index)
     for validation in sheet.data_validations.dataValidation:
         if validation.type != "list" or not validation.formula1:
             continue
-        if not any(str(cell_range).startswith(letter) for cell_range in validation.sqref.ranges):
+        if not any(r.min_col <= column_index <= r.max_col for r in validation.sqref.ranges):
             continue
-        formula = validation.formula1.strip()
+        formula = validation.formula1.strip().lstrip("=")
         if formula.startswith('"') and formula.endswith('"'):
             return [part.strip() for part in formula[1:-1].split(",") if part.strip()]
+        match = re.match(r"^'?([^'!]+)'?!\$?([A-Z]+)\$?(\d+):\$?([A-Z]+)\$?(\d+)$", formula)
+        if match:
+            name, col_from, row_from, _, row_to = match.groups()
+            if name not in sheet.parent.sheetnames:
+                continue
+            source = sheet.parent[name]
+            values = []
+            for row_index in range(int(row_from), int(row_to) + 1):
+                value = source[f"{col_from}{row_index}"].value
+                if value not in (None, ""):
+                    values.append(str(value))
+            return values
     return []
 
 
@@ -588,6 +606,179 @@ def merged_rows(sheet):
     for merged in sheet.merged_cells.ranges:
         covered.update(range(merged.min_row, merged.max_row + 1))
     return covered
+
+
+def clean_template(template_path, out_path, sheet_name=None, header_row=None,
+                   keep_through=None):
+    """Strip a completed plan back to a blank template.
+
+    Clients hand over last cutover's finished plan far more often than a blank
+    form. This clears the data rows while keeping everything that makes the file
+    a template — header block, column widths, styles, dropdowns, merged title
+    ranges — and widens any list validation that only covered the old data, so
+    the dropdown still works on rows the previous plan never reached.
+    """
+    workbook = load_workbook(template_path)
+    if sheet_name:
+        if sheet_name not in workbook.sheetnames:
+            sys.exit(f"Sheet '{sheet_name}' not found. Sheets: {workbook.sheetnames}")
+        sheet = workbook[sheet_name]
+    else:
+        sheet = workbook.worksheets[0]
+
+    header_row, mapping = find_header_row(sheet, forced=header_row)
+    if not header_row:
+        sys.exit("Could not identify a header row. Use --sheet and --header-row.")
+
+    first = (keep_through or header_row) + 1
+    last = count_populated(sheet, header_row, mapping) + header_row
+
+    # The rows about to be cleared are the only record of the client's own
+    # category vocabulary. Harvest it before it goes, and hand it back as
+    # dropdowns so the blank template still documents its own taxonomy.
+    profile = PROFILES.get(detect_profile(sheet, header_row) or "")
+    harvested = {}
+    if profile:
+        for key in profile.get("vocabulary_check", []):
+            column_index = mapping.get(key)
+            if not column_index or validation_list(sheet, column_index):
+                continue  # already has a dropdown — theirs wins
+            values = []
+            for row_index in range(header_row + 1, last + 1):
+                value = sheet.cell(row=row_index, column=column_index).value
+                if value not in (None, "") and str(value) not in values:
+                    values.append(str(value))
+            if values and len(values) <= 25:
+                harvested[column_index] = (
+                    str(sheet.cell(row=header_row, column=column_index).value or key).strip(),
+                    values)
+    print(f"  Sheet          : {sheet.title} (header row {header_row})")
+    if last < first:
+        print("  Nothing to clear — no populated rows below the header.")
+        workbook.save(out_path)
+        return 0
+
+    # Merged ranges inside the data region are read-only and would survive as
+    # stray blocks, so drop them; ranges in the header block stay.
+    unmerged = []
+    for merged in list(sheet.merged_cells.ranges):
+        if merged.min_row >= first:
+            unmerged.append(str(merged))
+            sheet.unmerge_cells(str(merged))
+
+    cleared, links, comments = 0, 0, 0
+    for row_index in range(first, last + 1):
+        for column_index in range(1, (sheet.max_column or 1) + 1):
+            cell = sheet.cell(row=row_index, column=column_index)
+            if cell.value is not None:
+                cell.value = None
+            # A hyperlink outlives its display text and resurfaces as the cell's
+            # value — and these routinely point at internal document stores with
+            # a sharing token in the query string.
+            if cell.hyperlink is not None:
+                cell.hyperlink = None
+                links += 1
+            if cell.comment is not None:
+                cell.comment = None
+                comments += 1
+        # Heights were sized to the old content; empty rows shouldn't keep them.
+        if row_index in sheet.row_dimensions:
+            sheet.row_dimensions[row_index].height = None
+        cleared += 1
+    sheet._hyperlinks = [h for h in sheet._hyperlinks
+                         if not (first <= CellRange(h.ref).min_row <= last)]
+
+    # A validation that only spanned the old rows leaves later rows unprotected.
+    # Ranges are merged rather than appended: overlapping sqref entries make
+    # Excel report the workbook as corrupt.
+    widened = []
+    for validation in sheet.data_validations.dataValidation:
+        if validation.type != "list":
+            continue
+        columns = {r.min_col for r in validation.sqref.ranges} | \
+                  {r.max_col for r in validation.sqref.ranges}
+        if len(columns) != 1:
+            continue
+        column = get_column_letter(columns.pop())
+        intervals = sorted([(r.min_row, r.max_row) for r in validation.sqref.ranges]
+                           + [(first, first + 199)])
+        merged_intervals = []
+        for start, end in intervals:
+            if merged_intervals and start <= merged_intervals[-1][1] + 1:
+                merged_intervals[-1][1] = max(merged_intervals[-1][1], end)
+            else:
+                merged_intervals.append([start, end])
+        validation.sqref = MultiCellRange(
+            [CellRange(f"{column}{s}:{column}{e}") for s, e in merged_intervals])
+        widened.append(str(validation.sqref))
+
+    # Values here routinely contain commas ("Comms to X (FIN, PROC, ...)"), which
+    # a literal list formula would split, so the vocabulary goes on its own sheet
+    # and the validations point at ranges.
+    if harvested:
+        name = "Vocabulary"
+        if name in workbook.sheetnames:
+            del workbook[name]
+        vocabulary = workbook.create_sheet(name)
+        vocabulary["A1"] = "Allowed values, harvested from the sample rows this template was built from."
+        vocabulary["A1"].font = Font(bold=True, size=10)
+        for offset, (column_index, (label, values)) in enumerate(sorted(harvested.items())):
+            letter = get_column_letter(offset + 1)
+            vocabulary.column_dimensions[letter].width = max(18, min(52, len(label) + 12))
+            vocabulary.cell(row=3, column=offset + 1, value=label).font = Font(bold=True, size=10)
+            for index, value in enumerate(values):
+                vocabulary.cell(row=4 + index, column=offset + 1, value=value)
+            validation = DataValidation(
+                type="list", allow_blank=True,
+                formula1=f"='{name}'!${letter}$4:${letter}${3 + len(values)}")
+            sheet.add_data_validation(validation)
+            source = get_column_letter(column_index)
+            validation.add(f"{source}{first}:{source}{first + 199}")
+
+    # Links to other workbooks survive the data that referenced them. They leak
+    # internal document-store paths (often a named person's drive), and make
+    # Excel prompt about external data every time the template is opened. Only
+    # dropped when nothing could still reference them.
+    has_formula = any(isinstance(c.value, str) and c.value.startswith("=")
+                      for worksheet in workbook.worksheets
+                      for row in worksheet.iter_rows() for c in row)
+    dropped_links = 0
+    if workbook._external_links:
+        if has_formula:
+            print(f"  ! {len(workbook._external_links)} external workbook link(s) kept — "
+                  f"this workbook still contains formulas that may reference them.",
+                  file=sys.stderr)
+        else:
+            dropped_links = len(workbook._external_links)
+            workbook._external_links = []
+
+    print(f"  Cleared        : rows {first}-{last} ({cleared} rows, all columns)")
+    if links or comments:
+        print(f"  Removed        : {links} hyperlink(s), {comments} comment(s) "
+              f"attached to the cleared rows")
+    if dropped_links:
+        print(f"  Removed        : {dropped_links} orphaned external workbook link(s) "
+              f"(no formulas reference them)")
+    if harvested:
+        summary = "; ".join(f"{label} ({len(values)})"
+                            for label, values in sorted(harvested.values()))
+        print(f"  Vocabulary kept: {summary} -> 'Vocabulary' sheet, wired up as dropdowns")
+    if unmerged:
+        print(f"  Unmerged       : {', '.join(unmerged)}")
+    if widened:
+        print(f"  Dropdown widened to cover the data region: {', '.join(widened)}")
+    print(f"  Kept           : rows 1-{header_row} (title block and headers), "
+          f"column widths, cell styles, conditional formatting, other sheets")
+
+    # Authorship is the client's call, so report rather than strip it.
+    author = getattr(workbook.properties, "creator", None)
+    modified_by = getattr(workbook.properties, "lastModifiedBy", None)
+    named = ", ".join(n for n in {author, modified_by} if n and n != "openpyxl")
+    if named:
+        print(f"  Review         : document properties still name {named} — "
+              f"clear them in File > Info if the template is going outside the team.")
+    workbook.save(out_path)
+    return cleared
 
 
 def build_from_template(spec, template_path, out_path, sheet_name=None, header_row=None,
@@ -743,7 +934,9 @@ def build_from_template(spec, template_path, out_path, sheet_name=None, header_r
                 written = str(row.get(key, "")).strip()
                 if not written:
                     continue
-                match = snap_value(written, existing)
+                # A cleaned template has no rows to learn from, but may still
+                # carry its vocabulary as a dropdown.
+                match = snap_value(written, existing + [a for a in allowed if a not in existing])
                 if match is not None and match != row.get(key):
                     snapped[written] = match
                     row[key] = match
@@ -753,7 +946,9 @@ def build_from_template(spec, template_path, out_path, sheet_name=None, header_r
             introduced = sorted({str(row.get(key, "")).strip() for row in spec["comms"]}
                                 - {e.strip() for e in existing}
                                 - {a.strip() for a in allowed} - {""})
-            if introduced and existing:
+            # A cleaned template has no rows but may carry a vocabulary, which
+            # is just as good a precedent to measure a new value against.
+            if introduced and (existing or allowed):
                 print(f"  ! New {key} value(s) with no precedent in this template: "
                       f"{', '.join(introduced)}", file=sys.stderr)
 
@@ -807,6 +1002,12 @@ def main():
                        help="Keep the template's existing rows and add the plan beneath.")
     group.add_argument("--replace-rows", action="store_true",
                        help="Clear the template's existing rows and write the plan in place.")
+    parser.add_argument("--clean-template", action="store_true",
+                        help="Strip a completed plan back to a blank template "
+                             "(no --spec needed) and write it to --out.")
+    parser.add_argument("--keep-through", type=int,
+                        help="With --clean-template, keep rows up to and including "
+                             "this one (e.g. to preserve a sample first row).")
     parser.add_argument("--list-fields", action="store_true",
                         help="Print the spec keys and exit.")
     parser.add_argument("--list-profiles", action="store_true",
@@ -821,6 +1022,14 @@ def main():
         for key, profile in sorted(PROFILES.items()):
             print(f"{key}\n    {profile['description']}\n"
                   f"    detected by: {', '.join(profile['signature'])}")
+        return
+
+    if args.clean_template:
+        if not args.template or not args.out:
+            parser.error("--clean-template needs --template and --out")
+        clean_template(args.template, args.out, args.sheet, args.header_row,
+                       args.keep_through)
+        print(f"Wrote blank template to {args.out}")
         return
 
     if not args.spec or not args.out:

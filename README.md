@@ -128,6 +128,12 @@ so the script refuses to write into one that already has rows and makes you choo
 appends columns — inserting them would shift values out from under the template's
 merged cells, autofilter and dropdowns.
 
+`--clean-template` turns a finished plan into a blank one, handling what a manual row
+delete leaves behind: hyperlinks that resurface as cell values, external workbook links
+leaking internal paths, dropdowns that stop at the old last row, and the category
+vocabulary that only existed in the rows being cleared (harvested onto a `Vocabulary`
+sheet and wired back as dropdowns).
+
 `--list-profiles` shows the built-in client formats (auto-detected from the headers). A
 profile pins ambiguous columns, translates the plan into the client's own category and
 status vocabulary, splits a multi-audience comms into one row per audience where that

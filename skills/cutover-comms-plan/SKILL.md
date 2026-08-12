@@ -201,6 +201,37 @@ stops and makes you choose `--append` (keep theirs, add beneath) or `--replace-r
 (clear and rewrite). Default to `--append` unless the member says otherwise — their
 history is usually the reason they kept the file.
 
+#### Turning a finished plan into a blank template
+
+```bash
+python3 scripts/build_comms_plan.py --clean-template \
+    --template "their_completed_plan.xlsx" --out "their_template_blank.xlsx"
+```
+
+Clears the data rows and keeps everything that makes the file a template — title
+block, headers, column widths, styles, conditional formatting, other sheets. It also
+handles what a manual row-delete leaves behind, which is the reason to use it rather
+than doing it by hand:
+
+- **Hyperlinks outlive their display text** and resurface as the cell's value. These
+  routinely point at internal document stores with a sharing token in the URL.
+- **External workbook links** survive the data that referenced them, leaking internal
+  paths (often a named person's drive) and making Excel prompt about external data on
+  every open. Dropped only when no formula could still reference them.
+- **Dropdowns that only spanned the old rows** leave later rows unvalidated. Ranges are
+  merged rather than appended — overlapping `sqref` entries make Excel report the
+  workbook as corrupt.
+- **The cleared rows were the only record of the client's category vocabulary.** It is
+  harvested first onto a `Vocabulary` sheet and wired back as dropdowns, so the blank
+  template still documents its own taxonomy and the vocabulary snap still works.
+- Merged ranges in the data region are unmerged; row heights sized to the old content
+  are reset.
+
+Document properties are reported, not stripped — authorship is the client's call.
+Always tell the member what was removed, and check the header block yourself: a title
+naming last year's wave, a stale cutover date or wave-specific group labels are sample
+content the row clear does not touch.
+
 #### Template profiles
 
 `--list-profiles` shows the built-in client formats. A profile pins ambiguous columns
