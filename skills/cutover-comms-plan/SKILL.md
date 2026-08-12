@@ -227,26 +227,45 @@ than doing it by hand:
 - Merged ranges in the data region are unmerged; row heights sized to the old content
   are reset.
 
-Document properties are reported, not stripped — authorship is the client's call.
+It also re-scopes the autofilter and the conditional formatting to the data region, for
+the same reason as the dropdowns: both fragment around the old rows, so new rows land
+in the gaps. Conditional formatting keeps its top-left anchor, since the rules'
+formulas are relative to it.
 
-**The row clear only reaches the data region**, so project identifiers survive in the
-title block, in group headers above the data, on reference sheets, inside dropdown
-lists and inside cell comments. Three options handle the rest, and you should scan for
-all of it rather than waiting to be asked:
+**The row clear only reaches the data region.** Project identifiers survive in the
+title block, in group headers above the data, on reference sheets, in dropdown lists,
+in cell comments, in document properties and in defined names. Scan for all of it
+rather than waiting to be asked:
 
 ```bash
---drop-sheet "Old reference list"          # delete a sheet that isn't part of the template
---set-cell "Plan!B1=[Project] Cutover"     # overwrite a title or group header
---replace-text "Acme Phase 2=>[Programme]" # substitute across cells, dropdowns and tab names
---strip-comments                           # remove every cell comment
+--drop-sheet "Old reference list"          # a sheet that isn't part of the template
+--set-cell "Plan!B1=[Project] Cutover"     # a title or a group header
+--set-cell "Plan!A6="                      # empty value clears the cell
+--replace-text "Acme Phase 2=>[Programme]" # cells, dropdown lists and tab names
+--strip-comments                           # every cell comment
+--clear-properties                         # authorship and custom document properties
+--clear-defined-names                      # named ranges that are broken or external
 ```
 
-Comments deserve their own flag because they are invisible when scrolling, survive the
-rows they discuss, and routinely name people and reference prior projects. Without
-`--strip-comments` any that remain are reported to stderr.
+Four of these exist because the content is invisible in normal use:
 
-After cleaning, unzip the result and grep the whole package for the client's project
-and people names — values hide in parts the sheet view never shows.
+- **Comments** survive the rows they discuss and routinely name people and prior work.
+- **Document properties** carry the author, and custom properties carry
+  document-management metadata from wherever the file was stored.
+- **Defined names** are inherited when a template is built from another workbook. Once
+  the source is gone they resolve to `#REF!` or re-trigger the external-link prompt,
+  and the names themselves leak the artefacts they came from.
+- **Dropdown list contents** live in the validation, not in any cell, so no amount of
+  row deleting touches them.
+
+After cleaning, unzip the result and grep the whole package for the client's project,
+programme and people names. Several of the above sit in parts the sheet view never
+shows, so a visual check will pass while the file still carries them.
+
+Renaming a sheet goes through `--replace-text`, which covers tab names as well as
+cells. Emptying a whole column is not offered: deleting a column shifts values without
+moving merged ranges, validations or conditional formatting. Clear its header instead
+and tell the member to delete the column in Excel, which shifts all of it correctly.
 
 #### Template profiles
 

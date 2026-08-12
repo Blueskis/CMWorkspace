@@ -133,9 +133,10 @@ delete leaves behind: hyperlinks that resurface as cell values, external workboo
 leaking internal paths, dropdowns that stop at the old last row, and the category
 vocabulary that only existed in the rows being cleared (harvested onto a `Vocabulary`
 sheet and wired back as dropdowns). Because the row clear only reaches the data region,
-`--drop-sheet`, `--set-cell`, `--replace-text` and `--strip-comments` handle the project
-identifiers that survive in title blocks, group headers, reference sheets, dropdown
-lists and cell comments.
+`--drop-sheet`, `--set-cell`, `--replace-text`, `--strip-comments`, `--clear-properties`
+and `--clear-defined-names` handle the project identifiers that survive in title blocks,
+group headers, reference sheets, dropdown lists, cell comments, document properties and
+inherited named ranges — most of which are invisible in normal use.
 
 `--list-profiles` shows the built-in client formats (auto-detected from the headers). A
 profile pins ambiguous columns, translates the plan into the client's own category and

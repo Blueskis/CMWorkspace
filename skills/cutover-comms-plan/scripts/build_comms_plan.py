@@ -31,6 +31,7 @@ try:
     from openpyxl.utils import get_column_letter
     from openpyxl.cell.cell import MergedCell
     from openpyxl.worksheet.cell_range import CellRange, MultiCellRange
+    from openpyxl.formatting.formatting import ConditionalFormattingList
     from openpyxl.worksheet.datavalidation import DataValidation
 except ImportError:  # pragma: no cover
     sys.exit("openpyxl is required. Install it with: pip install openpyxl")
@@ -671,6 +672,45 @@ def parse_replacements(raw):
     return pairs
 
 
+def clear_properties(workbook):
+    """Blank authorship and drop custom document properties.
+
+    Custom properties carry document-management metadata (content type GUIDs,
+    media tags) from wherever the file was stored, which has nothing to do with
+    the template.
+    """
+    cleared = []
+    for field in ("creator", "lastModifiedBy", "title", "subject", "description",
+                  "keywords", "category", "identifier", "revision", "version"):
+        if getattr(workbook.properties, field, None):
+            cleared.append(f"{field}={getattr(workbook.properties, field)!r}")
+            # None makes openpyxl substitute its own name, so blank it explicitly.
+            setattr(workbook.properties, field, "" if field == "creator" else None)
+    if getattr(workbook, "custom_doc_props", None) and len(workbook.custom_doc_props):
+        names = [p.name for p in workbook.custom_doc_props]
+        workbook.custom_doc_props.props = []
+        cleared.append(f"custom properties ({', '.join(names)})")
+    return cleared
+
+
+def clear_defined_names(workbook):
+    """Drop defined names that are broken or point at other workbooks.
+
+    Templates inherited from another workbook carry its named ranges. Once the
+    source is gone they resolve to #REF! or re-trigger Excel's external-link
+    prompt, and their names leak the artefacts they came from.
+    """
+    dropped, kept = [], []
+    for name in list(workbook.defined_names):
+        target = workbook.defined_names[name].attr_text or ""
+        if "#REF!" in target or re.search(r"\[\d+\]", target):
+            dropped.append(name)
+            del workbook.defined_names[name]
+        else:
+            kept.append(name)
+    return dropped, kept
+
+
 def apply_edits(workbook, default_sheet, drop_sheets, set_cells):
     """Drop sheets and overwrite individual cells during a template clean.
 
@@ -703,14 +743,15 @@ def apply_edits(workbook, default_sheet, drop_sheets, set_cells):
             sys.exit(f"  ! {coordinate.upper()} on '{target.title}' is a merged cell. "
                      f"Set the top-left cell of the merged range instead.")
         previous = cell.value
-        cell.value = value
+        cell.value = value if value != "" else None
         print(f"  Set            : {target.title}!{coordinate.upper()} = {value!r} "
               f"(was {str(previous)[:44]!r})")
 
 
 def clean_template(template_path, out_path, sheet_name=None, header_row=None,
                    keep_through=None, drop_sheets=None, set_cells=None,
-                   comments=False, replacements=None):
+                   comments=False, replacements=None, properties=False,
+                   defined_names=False):
     """Strip a completed plan back to a blank template.
 
     Clients hand over last cutover's finished plan far more often than a blank
@@ -821,7 +862,8 @@ def clean_template(template_path, out_path, sheet_name=None, header_row=None,
         if name in workbook.sheetnames:
             del workbook[name]
         vocabulary = workbook.create_sheet(name)
-        vocabulary["A1"] = "Allowed values, harvested from the sample rows this template was built from."
+        vocabulary["A1"] = ("Allowed values for this template. Edit a column here and "
+                            "the matching dropdown follows.")
         vocabulary["A1"].font = Font(bold=True, size=10)
         for offset, (column_index, (label, values)) in enumerate(sorted(harvested.items())):
             letter = get_column_letter(offset + 1)
@@ -868,7 +910,46 @@ def clean_template(template_path, out_path, sheet_name=None, header_row=None,
         print(f"  Unmerged       : {', '.join(unmerged)}")
     if widened:
         print(f"  Dropdown widened to cover the data region: {', '.join(widened)}")
+    # Conditional formatting ranges fragment the same way validations do, so new
+    # rows land in the gaps. Column spans are widened to the data region while the
+    # top-left anchor is preserved, because the rules' formulas are relative to it.
+    saved = [(cf.sqref, list(cf.rules)) for cf in sheet.conditional_formatting]
+    if saved:
+        sheet.conditional_formatting = ConditionalFormattingList()
+        for sqref, rules in saved:
+            anchor = min((r.min_row for r in sqref.ranges), default=1)
+            columns = sorted({c for r in sqref.ranges
+                              for c in range(r.min_col, r.max_col + 1)})
+            spans, run = [], []
+            for column in columns:
+                if run and column == run[-1] + 1:
+                    run.append(column)
+                else:
+                    if run:
+                        spans.append(run)
+                    run = [column]
+            if run:
+                spans.append(run)
+            widened = " ".join(
+                f"{get_column_letter(span[0])}{anchor}:"
+                f"{get_column_letter(span[-1])}{first + 199}" for span in spans)
+            for rule in rules:
+                sheet.conditional_formatting.add(widened, rule)
+        print(f"  Conditional formatting re-scoped to the data region "
+              f"({len(saved)} rule set(s))")
+
     apply_edits(workbook, sheet, drop_sheets, set_cells)
+
+    if properties:
+        for entry in clear_properties(workbook):
+            print(f"  Property clear : {entry}")
+    if defined_names:
+        dropped, kept = clear_defined_names(workbook)
+        if dropped:
+            print(f"  Defined names  : dropped {len(dropped)} broken or external "
+                  f"({', '.join(sorted(dropped)[:6])}{'...' if len(dropped) > 6 else ''})")
+        if kept:
+            print(f"  Defined names  : kept {len(kept)} usable ({', '.join(sorted(kept))})")
 
     if comments:
         for entry in strip_comments(workbook):
@@ -888,6 +969,21 @@ def clean_template(template_path, out_path, sheet_name=None, header_row=None,
                 print(f"  Replaced       : {old!r} in {count} place(s)")
             else:
                 print(f"  ! --replace-text {old!r} matched nothing.", file=sys.stderr)
+
+    if sheet.auto_filter.ref:
+        existing_filter = CellRange(sheet.auto_filter.ref)
+        start_col = existing_filter.min_col
+        # Skip a leading column that the clean emptied entirely — a blank header
+        # shows up as an unnamed filter.
+        while start_col < existing_filter.max_col and all(
+                sheet.cell(row=r, column=start_col).value in (None, "")
+                for r in range(header_row, first + 200)):
+            start_col += 1
+        widened_filter = (f"{get_column_letter(start_col)}{header_row}:"
+                          f"{get_column_letter(existing_filter.max_col)}{first + 199}")
+        if widened_filter != sheet.auto_filter.ref:
+            print(f"  Autofilter     : {sheet.auto_filter.ref} -> {widened_filter}")
+            sheet.auto_filter.ref = widened_filter
 
     remaining = ", ".join(repr(n) for n in workbook.sheetnames)
     print(f"  Kept           : rows 1-{header_row} (title block and headers), "
@@ -1142,6 +1238,12 @@ def main():
                         help="With --clean-template, remove every cell comment. "
                              "Comments are invisible when scrolling and routinely "
                              "name people and prior projects.")
+    parser.add_argument("--clear-properties", action="store_true",
+                        help="With --clean-template, blank document authorship and "
+                             "drop custom document properties.")
+    parser.add_argument("--clear-defined-names", action="store_true",
+                        help="With --clean-template, drop named ranges that are "
+                             "broken (#REF!) or point at another workbook.")
     parser.add_argument("--replace-text", action="append", metavar="OLD=>NEW",
                         help="With --clean-template, substitute text across cell "
                              "values, dropdown lists and sheet names. Repeatable.")
@@ -1166,7 +1268,8 @@ def main():
             parser.error("--clean-template needs --template and --out")
         clean_template(args.template, args.out, args.sheet, args.header_row,
                        args.keep_through, args.drop_sheet, args.set_cell,
-                       args.strip_comments, parse_replacements(args.replace_text))
+                       args.strip_comments, parse_replacements(args.replace_text),
+                       args.clear_properties, args.clear_defined_names)
         print(f"Wrote blank template to {args.out}")
         return
 
