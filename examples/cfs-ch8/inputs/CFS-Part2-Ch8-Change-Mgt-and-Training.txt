@@ -1,0 +1,475 @@
+
+===== PAGE 1 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 1 
+ 
+ 
+ 
+ 
+REQUIREMENT SPECIFICATIONS 
+ 
+PART 2, CHAPTER 8 
+ 
+CHANGE MANAGEMENT AND TRAINING 
+ 
+ 
+ 
+ 
+  
+
+===== PAGE 2 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 2 
+ 
+TABLE OF CONTENTS 
+1. INTRODUCTION..............................................................................................................3 
+1.1. Introduction ....................................................................................................................3 
+2. CHANGE MANAGEMENT TEAM ................................................................................4 
+2.1. Team Composition and Structure ..................................................................................4 
+2.2. Team Management and Controls ...................................................................................4 
+2.3. Roles and Responsibilities .............................................................................................4 
+3. CHANGE MANAGEMENT SCOPE ..............................................................................5 
+3.1. Change Management Plan .............................................................................................5 
+3.2. Plan Refinement and Approval ......................................................................................6 
+3.3. Implementation Requirements .......................................................................................7 
+3.4. Legal and Intellectual Property (IP) ...............................................................................7 
+4. CHANGE SUSTENANCE POST SWP OF THE LAST LICENSEE ONBOARDED
+ 8 
+4.1. Change Sustenance Plan Proposal .................................................................................8 
+4.2. Plan Execution ...............................................................................................................8 
+5. TRAINING .........................................................................................................................9 
+5.1. Introduction ....................................................................................................................9 
+5.2. Training Materials ........................................................................................................11 
+5.3. Feedback and Evaluation .............................................................................................11 
+5.4. Application ...................................................................................................................11 
+5.5. Tools ............................................................................................................................12 
+6. ORIENTATION PROGRAMME ..................................................................................13 
+6.1. General Requirements for Orientation Programme .....................................................13 
+ 
+
+===== PAGE 3 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 3 
+ 
+1. INTRODUCTION 
+1.1. Introduction 
+1.1.1. The Contractor shall lead and execute change management activities to ensure 
+stakeholder readiness prior to each phase of Licensee onboarding. The Contractor 
+shall adapt change management approaches as needed throughout the phased 
+implementation up till the end of the Solution Warranty Period (SWP) for the last 
+Licensee onboarded. 
+1.1.2.  The stakeholders include but are not limited to the following: 
+(a) Senior stakeholder groups including executive project sponsors, leadership, 
+board members, service professionals, administrators and staff; 
+(b) Policy divisions, operational teams, and owners of existing systems affected 
+by or replaced by the new Solution; 
+(c) Authority users, nominated personnel, and authority -nominated technical 
+personnel; 
+(d) Functional business units such as Finance and Procurement with processes 
+and systems directly impacted by the Solution; 
+(e) Technical and project delivery teams, including ICT representatives, data 
+owners, system integration leads, cybersecurity and infrastructure personnel; 
+(f) End users of the Solution across all organisational levels, including identified 
+superusers and change champions who will support training and adoption 
+activities; 
+(g) External partners and third -party providers involved in service delivery, 
+solution integration, or ongoing system support after each Licensee has 
+onboarded. 
+1.1.3. The Contractor shall develop a stakeholder engagement strategy and Change 
+Management plan to address the varying levels of concerns across different 
+stakeholder groups. 
+1.1.4. The Contractor shall ensure that stakeholders understand the need for change and 
+the impact of new working procedures  to promote positive reactions and 
+enthusiasm for adopting the Solution. 
+1.1.5. The Contractor shall ensure stakeholders are well-informed and aligned on project 
+activities to enable a smooth transition with minimal operational disruptions 
+throughout all project development stages. 
+
+===== PAGE 4 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 4 
+ 
+2. CHANGE MANAGEMENT TEAM 
+2.1. Team Composition and Structure 
+2.1.1. The Tenderer shall propose a Change Management Team led by a Contractor 
+Change Manager. Refer to Part 2  Chapter 4 , Clause 6 for detailed role 
+descriptions and required skillsets. The Change Management Team shall possess 
+appropriate expertise and experience to support and partner with the Authority in 
+delivering effective change management throughout the project lifecycle. 
+2.1.2. The Tenderer shall clearly define the reporting hierarchy and organisational 
+structure of the Change Management Team, including reporting relationships with 
+the Authority's project team and other contractor teams. 
+2.2. Team Management and Controls 
+2.2.1. The appointment of the Change Manager and key Change Management Team 
+members shall be subject to the Authority's approval. 
+2.2.2. The Contractor shall ensure minimal changes to Change Management Team 
+composition throughout the Contract Period. The Contractor shall not change the 
+Change Manager or key team members without prior written approval from the 
+Authority. 
+2.2.3. Where subcontractors are engaged for change management activities, the 
+Contractor shall detail how these subcontractors will be managed and trained to 
+ensure obligations are met. 
+2.3. Roles and Responsibilities 
+2.3.1. The Change Manager shall collaborate with the development and design team to 
+ensure change management considerations are integrated throughout the 
+development process. 
+2.3.2. The Change Manager shall provide ongoing guidance to the development team on 
+stakeholder requirements and user experience factors that will facilitate Solution 
+adoption. 
+2.3.3. The Change Management team shall review and ensure consistency and coherence 
+in all messaging and communications materials (including emails, presentations, 
+training materials, and announcements) prior to seeking Authority approval and 
+releasing to stakeholders. 
+
+===== PAGE 5 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 5 
+ 
+3. CHANGE MANAGEMENT SCOPE 
+3.1. Change Management Plan 
+3.1.1. The Tenderer shall propose a Change Management Plan that covers the entire 
+project lifecycle, including: (a) implementation stage; (b) post go -live BAU 
+operations stage (including Performance Guarantee Period (PGP) and SWP) ; and 
+(c) maintenance services stage, encompassing new releases and patches that affect 
+stakeholders. 
+3.1.2. The Tenderer shall provide a comprehensive Change Management proposal in its 
+Tender Offer, including the following: 
+(a) Change Management Strategy and Approach that includes but not limited to 
+the following components: 
+i) Planning – Design, scheduling, and timeline for intended outcomes, 
+changes, and announcements, organised into phased stages. This shall 
+include a capability building plan to equip key stakeholders and the 
+change management team with the requisite mindset and skills t o 
+support change management activities, including just-in-time coaching 
+and mentoring; 
+ii) Evaluation – Assessment of risks and benefits at each stage, with 
+recommended implementation approaches for each phase. This 
+includes but not limited to change impact analysis across the Authority 
+and Licensees; 
+iii) Communication Strategy – Development of a compelling change 
+narrative that establishes context, initiates calls to action, and explains 
+the transformation journey towards the desired vision; 
+iv) Implementation Schedule – Detailed timeline for executing the change 
+management plan according to project milestones; 
+v) Post-Implementation Review – Monitoring and evaluation of change 
+implementation effectiveness, with recommendations for adjustments 
+where necessary. This includes developing pulse check surveys to track 
+project success measures and change progress, conducted every six 
+months or aligned with project milestones. 
+vi) Change Agent Identification and Training – Identification of suitable 
+change agents within the organisation and development of a 
+comprehensive training plan for the identified change agents. 
+(b) Change Management Team Structure, including the roles and responsibilities 
+of the Contractor team, Subcontractors (if proposed) , the Authority  and 
+Licensees; 
+
+===== PAGE 6 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 6 
+ 
+(c) Detailed Stakeholder Engagement Plan, including methods of engagement 
+(dialogue sessions, seminars, etc.) and training approaches to ease the 
+onboarding process; 
+(d) Comprehensive Communications Plan, detailing communication channels, 
+materials development, coordination mechanisms, and approval processes. 
+The Tenderer shall quote for communication materials development as 
+optional items in the Tender proposal; 
+(e) Transition Management plan; 
+(f) Change Readiness Assessment; 
+(g) Change Impact Assessment; 
+(h) Change Intervention plan; 
+(i) Change Risk Management plan; 
+(j) Change Management Activities and Schedule; 
+(k) User Training Plan and Materials (refer to Clauses 5 and 6  – Training for 
+detailed requirements); 
+(l) Success Measurement Framework, including indicators to measure change 
+success during and beyond Solution implementation, clearly specifying 
+measurement objectives, timelines, measurement indices, and appropriate 
+follow-up actions; 
+(m) Handover plan to enable the Authority team to sustain and institutionalise the 
+change within three (3) months before the end of the SWP for the last 
+Licensee onboarded; 
+(n) Any other proposals or information relating to change management. 
+3.1.3. The Tenderer shall provide a cost breakdown for all Change Management activities 
+as set out in Part 3, Annex I. 
+3.2. Plan Refinement and Approval 
+3.2.1. The Contractor shall finalise and confirm Change Management needs after Tender 
+award and refine the proposed Change Management Plan accordingly. 
+3.2.2. The Contractor shall obtain Authority approval for changes made to the Change 
+Management Plan before execution at different development stages. 
+
+===== PAGE 7 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 7 
+ 
+3.3. Implementation Requirements 
+3.3.1. The Contractor shall work with the Authority to leverage policy makers, 
+stakeholders, and change networks to develop and customise communications and 
+materials. 
+3.3.2. The Contractor may use communication channels such as newsletters, videos, and 
+road shows. The Change Management team shall track and coordinate all 
+communications from all channels and sources. 
+3.3.3. The Contractor shall prepare all engagement and communication materials 
+(including EDMs, posters, briefing slides ) and obtain the Authority’s approval at 
+least five (5) working days before engagement commencement. The Authority 
+reserves the right to modify, add to, and use the materials at any time. 
+3.3.4. The Contractor shall plan and prepare to execute the Change Sustenance Plan post 
+SWP of  the last Licensee onboarded , if the option  under Clause 4  - Change 
+Sustenance Post SWP of the Last Licensee Onboarded is activated. 
+3.3.5. During Change Management programme implementation, the Contractor shall 
+analyse issues related to system usage or adoption and propose additional change 
+management measures to address these issues. 
+3.3.6. The Contractor shall provide timely reviews tracking Key Performance Indicators 
+(KPIs) to validate change management success and provide a post-implementation 
+report one (1) month after each Licensee onboarded, including but not limited to 
+the following: 
+(a) Key successes, challenges, and measures of success; 
+(b) Summary of findings from reviews and retrospective meetings; and 
+(c) Recommendations for sustaining and reinforcing business change efforts, 
+particularly focusing on the human side of change. 
+3.3.7. At the Authority's request, the Contractor shall conduct briefings and updates to 
+stakeholders at relevant platforms, with content ranging from project progress 
+reports to sharing best practices and insights. 
+3.4. Legal and Intellectual Property (IP) 
+3.4.1. The Contractor shall ensure materials do not infringe third-party IP rights and shall 
+indemnify the Authority from all claims arising from IP infringement. 
+ 
+  
+
+===== PAGE 8 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 8 
+ 
+4. CHANGE SUSTENANCE POST SWP OF THE LAST LICENSEE 
+ONBOARDED  
+4.1. Change Sustenance Plan Proposal 
+4.1.1. The Tenderer shall propose as an option for the Authority  to exercise, a detailed 
+Change Sustenance Plan which the Contractor will execute to sustain the change 
+momentum, and ensure stakeholders’ continued adoption of and satisfaction with 
+the Solution post SWP of the last Licensee onboarded. 
+4.1.2. The Plan shall minimally include: 
+(a) Stakeholder Management Plan; 
+(b) Strategy and approach to sustain adoption; 
+(c) Engagement and Communications Plan (including engagements during 
+Solution enhancements); 
+(d) Governance and Team structure; 
+(e) Support framework to sustain any proposed interventions to shape desired 
+behaviour; 
+(f) Capability Building;  
+(g) Tools and Resources; 
+(h) Success measurement indicators for change interventions beyond Solution 
+implementation, clearly specifying measurement objectives, measurement 
+timelines, measurement indices, and appropriate follow-up actions; and  
+(i) Handover plan to enable the Authority team to sustain and institutionalise the 
+change within three (3) months after completing the Change Sustenance Plan.  
+4.2. Plan Execution 
+4.2.1. The Contractor shall refine the proposed Change Sustenance Plan during the pre-
+deployment phase, taking into account feedback and measurements obtained after 
+Solution training.  
+4.2.2. The Contractor shall obtain the Authority’s approval for changes made to the 
+Change Sustenance Plan before executing the Plan post SWP of the last Licensee 
+onboarded.  
+4.2.3. The Tenderer shall itemise the cost for this scope of work as an option for the 
+Authority to exercise as set out in Part 3, Annex I.  
+
+===== PAGE 9 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 9 
+ 
+5. TRAINING 
+5.1. Introduction 
+5.1.1. The Contractor shall provide training to meet the following five (5) main 
+objectives: 
+(a) To enable all Authority users and nominated personnel to manage, operate, 
+configure and use the Solution effectively and proficiently; 
+(b) To enable all Authority -nominated technical personnel to manage, operate, 
+configure and maintain the Solution; 
+(c) To enable all Authority -nominated technical personnel to have an overview 
+of the system architecture and to be able to diagnose and resolve problems in 
+using the Solution; 
+(d) To enable a smooth transfer of knowledge from the Contractor to the 
+Authority-nominated technical personnel; 
+(e) Any other training and education necessary to meet the training objectives 
+5.1.2. The Contractor shall provide at least the following types of training: 
+(a) Product Overview and Business Process Training 
+(b) Configuration for System modules Training 
+(c) Business Rule Training 
+(d) Application Security Administration Overview Training 
+(e) System Maintenance Overview Training 
+(f) Interface and Integration Training 
+(g) Reports and Dashboards Overview Training 
+(h) Senior Management (Pre Go-Live) Briefings 
+(i) Technical Training 
+(j) Training on Software and Tools 
+5.1.3. The Contractor shall propose and provide suitable and adequate customised training 
+for personnel nominated by the Authority to enable them to carry out smooth 
+operation and management of the Solution. 
+
+===== PAGE 10 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 10 
+ 
+5.1.4. The Authority reserves the right to accept part or all of the training courses 
+proposed. 
+5.1.5. The Authority may require the Contractor to make the necessary amendments to 
+the training courses and training materials wherever necessary as determined by the 
+Authority, and to replace any training instructor that the Authority finds 
+unsatisfactory. The Contractor shall comply with any such requirement, at no 
+additional costs to the Authority, within the timeframe stipulated by the Authority 
+in a written notice to the Contractor. 
+5.1.6. The training sessions shall be conducted at the Contractor’s site, Authority’s 
+premises, Licensees’ premises, virtually, or at premises that are convenient to and 
+agreed to by the Authority. 
+5.1.7. If the Authority requires the training to be held in its premises, the Contractor shall 
+be responsible for setting up the entire training environment. If needed, the 
+Contractor shall provide all necessary training equipment that is not currently 
+available in the Authority’s premises for these training purposes. 
+5.1.8. The Contractor shall ensure the readiness of the training environment and inform 
+the Authority of any technical deficit at least three (3) working days in advance of 
+a training session. 
+5.1.9. The Contractor shall ensure that all training instructor(s) are suitably qualified and 
+competent, are well-spoken in English and are well-versed in the System.  
+5.1.10. The medium of instruction and training materials shall be in English. 
+5.1.11. For onsite trainings, the Contractor shall conduct all training sessions in Singapore. 
+The Contractor shall ensure that the training materials should be readily 
+comprehensible even by someone who has not attended the course(s). 
+5.1.12. The Tenderer shall include in its Tender Offer the type of training, target audience, 
+duration of each session, proposed number of sessions, number of trainees per 
+session, schedule of the sessions, training charges and rates in the format as set out 
+in Part 3, Annex I – Price Schedule and Annex VII. For avoidance of doubt, the 
+Tenderer shall note that the exact number of participants for the training sessions 
+will be determined by the Authority during the Contract period. 
+5.1.13. The Contractor shall ensure the maximum number of participants per training 
+session should not be more than thirty (30) to ensure training is delivered 
+effectively, unless otherwise agreed to by the Authority. 
+5.1.14. The Contractor shall provide, at no additional costs to the Authority, all necessary 
+equipment, training materials and logistics coordination (e.g. inform users of 
+training schedule, registration of participants, maintain records of attendance, 
+collate training feedback forms, etc.) of all the training sessions. 
+
+===== PAGE 11 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 11 
+ 
+5.1.15. The Contractor shall: 
+(a) Work with the Authority to adjust details of the training sessions, including 
+details such as the schedule, scope, number of sessions, number of trainees 
+per sessions; 
+(b) Administer the registration and attendance of trainees at all training sessions. 
+5.2. Training Materials 
+5.2.1. The Contractor shall provide all the training materials (inclusive of instructor's 
+guide, slides and trainee's booklet) in soft copy and obtain the Authority’s Approval 
+at least five (5) working days before the commencement of the training. 
+5.2.2. The Authority shall own all the training materials (soft copy) developed under this 
+Contract. The Authority shall have the right to use these training materials to 
+conduct in-house courses for its personnel. 
+5.2.3. The Contractor shall provide each trainee with a complete set of training documents 
+and materials in soft copy for his retention. 
+5.2.4. The Contractor shall update the training materials when the need arises , including 
+to account for any new changes made to the Solution (including newly implemented 
+modules, new releases / patches). 
+5.3. Feedback and Evaluation 
+5.3.1. The Contractor shall collect feedback from all participants of each training session 
+at the end of such session, by distributing evaluation forms to all such participants. 
+The Contractor shall ensure that all participants complete and submit evaluation 
+forms in a training session. The Contractor shall collate the results of the evaluation 
+forms and submit the completed evaluation forms to the Authority for its review 
+within seven (7) days after the end of each training session. 
+5.3.2. If more than fifty percent (50%) of the feedback gathered on any training session 
+conducted by the Contractor is rated three or below (based on a six -point rating 
+scale), the Contractor shall, if so required by the Authority, re-conduct such training 
+sessions at no additional costs to the Authority. 
+5.4. Application 
+5.4.1. The Contractor shall provide training on the application on various roles such as 
+users, administrator, operators, etc. 
+
+===== PAGE 12 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 12 
+ 
+5.5. Tools 
+5.5.1. The Contractor shall provide training on the tools proposed by the Tenderer. During 
+the training, the Contractor shall walkthrough the proposed approach on how the 
+tools in the pipeline will be used in the project and the reports/result that will be 
+collected.  
+5.5.2. The Contractor may propose, at no additional cost to the Authority, additional tools 
+that can aid in change management or training. 
+
+===== PAGE 13 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 13 
+ 
+6. ORIENTATION PROGRAMME 
+6.1. General Requirements for Orientation Programme 
+6.1.1. Prior to the commencement of application software development activities, the 
+Contractor shall provide and deliver, at no additional cost to the Authority, an 
+orientation programme for the Authority’s personnel who are identified to be in the 
+project team, in order to familiarise and prepare these personnel on project and 
+product management activities as provided by the Contractor. 
+6.1.2. The Contractor shall provide the necessary manpower and logistics to support the 
+end-to-end delivery of the proposed orientation programme, which may include the 
+following: 
+(a) Venue where the orientation programme would be conducted (if the proposed 
+venue is not at the Authority’s premises); 
+(b) Printing of presentation or other training/ reference materials; and 
+(c) Coaches to facilitate group discussion activities and gamification. 
+6.1.3. The Tenderer shall provide the following information about the proposed 
+orientation programme into the Tender Offer: 
+(a) Total duration of the orientation programme; 
+(b) Proposed number of personnel from the Authority’s organisation who may 
+attend the orientation programme;  
+(c) Proposed venue where the orientation programme would be conducted; and 
+(d) Broad-level overview of the orientation programme schedule, including the 
+knowledge areas that would be covered, modes of information delivery, types 
+of activities, and approximate durations of the various portions of the 
+orientation. 
+6.1.4. The Tenderer shall propose whether there is a need to have differentiated 
+orientation programmes for the Authority’s working team and the Authority’s 
+management team. If so, the Tenderer shall articulate the portions that are different 
+as separate tracks, in the proposed orientation programme schedule.  
+6.1.5. The orientation programme shall equip the Authority’s personnel with the relevant 
+capabilities for effective and efficient involvement in the development phase of the 
+project. The programme should include the following:  
+(a) Aligning the project , product management, Agile methodology and event 
+milestones (e.g. team organisation structure, prioritised product backlog, 
+release plan, sprint backlog, development processes).  
+
+===== PAGE 14 =====
+PART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 
+ 
+ 14 
+ 
+(b) Sharing roles and responsibilities of key roles in the project (e.g. Product 
+Owner, Business Users, Product Manager, Agile Coach, and the 
+Development Team).   
+(c) Defining Sprint Duration, Definition of Done, Calendar of Ceremonies (e.g. 
+sprint planning, sprint review, sprint retrospective), Communication 
+Platform, etc. 
+(d) Sharing examples of user stories with clear acceptance criteria (e.g. end -to-
+end test scenarios including alternate and exception flow). 
+6.1.6. The orientation program should also share the common industry practices 
+performed during development phase. Below are some examples:  
+(a) Conduct User Research (e.g. through Customer Journey Mapping, 
+Prototyping, Wire frame)  
+(b) Backlog prioritization (e.g. use of MoSCoW, Stack Rank, Last Responsible 
+Moment, etc.)  
+(c) Clarity of User Stories (e.g. use of 3Cs (Card, Conversation and 
+Confirmation), INVEST criteria, etc.) 
+6.1.7. The orientation programme shall be conducted on a date to be determined in 
+consultation with the Authority after the issuance of Letter of Award.  
+ 
+ 
+ 
