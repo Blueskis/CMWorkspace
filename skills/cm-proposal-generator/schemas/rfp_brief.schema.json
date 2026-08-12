@@ -82,10 +82,40 @@
         "submission_channel": { "type": "string" }
       }
     },
+    "named_deliverables": {
+      "type": "array",
+      "description": "Deliverables the RFP names in its own words. Drives section naming (mirror the client's term) and, when no evaluation weights are published, section sizing. A named deliverable must have a home in the response.",
+      "items": {
+        "type": "object",
+        "required": ["name", "clause"],
+        "properties": {
+          "name": { "type": "string", "description": "Verbatim, including the client's capitalisation" },
+          "clause": { "type": "string" },
+          "canonical_section": {
+            "type": "string",
+            "description": "Which section of the library this maps to, e.g. 'change-impact-assessment'. Omit when the RFP names something the canonical list does not carry — those still need a home."
+          },
+          "emphasis_clauses": {
+            "type": "integer",
+            "description": "How many clauses the RFP spends on it. The sizing signal when weights are absent."
+          },
+          "optional_scope": { "type": "boolean", "default": false, "description": "Priced as an option for the client to exercise" }
+        }
+      }
+    },
     "context": {
       "type": "object",
       "description": "Feeds the 'Our Understanding of Your Situation' section",
       "properties": {
+        "delivery_methodology": {
+          "enum": ["agile", "waterfall", "hybrid", "not-stated"],
+          "description": "Shapes the whole CM approach — when change activity happens and what it attaches to. Read from the RFP's vocabulary; if not-stated, ask rather than assume and record it in open_questions."
+        },
+        "methodology_evidence": {
+          "type": "array",
+          "description": "The terms and clauses the methodology call was read from, so it is auditable",
+          "items": { "type": "string" }
+        },
         "drivers": { "type": "array", "items": { "type": "string" } },
         "systems": { "type": "array", "items": { "type": "string" } },
         "affected_population": { "type": ["integer", "string"] },

@@ -732,21 +732,133 @@
       "Stakeholder readiness prior to each phase of Licensee onboarding",
       "Continued adoption and satisfaction post-SWP",
       "Change institutionalised by the Authority team within three months before end of SWP"
+    ],
+    "delivery_methodology": "agile",
+    "methodology_evidence": [
+      "6.1.5(a): 'Aligning the project, product management, Agile methodology and event milestones (prioritised product backlog, release plan, sprint backlog, development processes)'",
+      "6.1.5(b): key roles named as Product Owner, Business Users, Product Manager, Agile Coach, Development Team",
+      "6.1.5(c): 'Defining Sprint Duration, Definition of Done, Calendar of Ceremonies (sprint planning, sprint review, sprint retrospective)'",
+      "6.1.5(d), 6.1.6(c): user stories with acceptance criteria, INVEST criteria, 3Cs",
+      "6.1.6(b): backlog prioritisation - MoSCoW, Stack Rank, Last Responsible Moment",
+      "No waterfall vocabulary anywhere in the chapter: no stage gates, baselined requirements, or single go-live",
+      "Counter-signal: phased Licensee onboarding, each with a Performance Guarantee Period and Solution Warranty Period, is a gated commercial wrapper around agile build. Recorded as agile because all delivery vocabulary is agile; the wrapper is worth confirming."
     ]
   },
   "open_questions": [
+    "No evaluation criteria or weights are published in this chapter, and CM tenders often publish none at all. Sections are therefore sized by named deliverable and clause emphasis (see named_deliverables), not by weight. If the instructions-to-tenderers part does carry weights, re-size before drafting.",
     "This is Chapter 8 of a multi-part tender. Evaluation criteria and weights, the submission deadline, response format and any page or slide limit are not in this chapter \u2014 they will be in the instructions-to-tenderers part. Stage 2 cannot size sections by evaluation weight until those are supplied.",
     "Clause 2.1.1 refers to Part 2 Chapter 4 Clause 6 for role descriptions and required skillsets. Not supplied; needed before the team section can be written.",
     "Clauses 3.1.3, 4.2.3 and 5.1.12 require pricing in the format at Part 3 Annex I and Annex VII. Neither annex is supplied.",
     "The number of Licensees, the onboarding phasing, and the affected population size are not stated. All three drive the size of the engagement and therefore every cost line.",
     "The Solution itself is not described in this chapter, so training scope (5.1.2's ten training types) cannot be estimated.",
-    "PGP and SWP durations are referenced but not defined here, yet they bound the contract term."
+    "PGP and SWP durations are referenced but not defined here, yet they bound the contract term.",
+    "Delivery methodology read as agile from clause 6 vocabulary, but Licensee onboarding is phased with a warranty period per Licensee - a gated wrapper around agile build. Confirm whether the client expects a hybrid change approach."
   ],
   "sources": [
     {
       "path": "inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.pdf",
       "kind": "rfp",
       "parsed_with": "pypdf"
+    }
+  ],
+  "named_deliverables": [
+    {
+      "name": "Change Management Plan",
+      "clause": "3.1.1",
+      "canonical_section": "cm-plan-and-strategy",
+      "emphasis_clauses": 16
+    },
+    {
+      "name": "Change Management Strategy and Approach",
+      "clause": "3.1.2(a)",
+      "canonical_section": "cm-plan-and-strategy",
+      "emphasis_clauses": 6
+    },
+    {
+      "name": "Change Management Team Structure",
+      "clause": "3.1.2(b)",
+      "canonical_section": "team-structure-and-governance",
+      "emphasis_clauses": 8
+    },
+    {
+      "name": "Detailed Stakeholder Engagement Plan",
+      "clause": "3.1.2(c)",
+      "canonical_section": "stakeholder-analysis-and-engagement",
+      "emphasis_clauses": 3
+    },
+    {
+      "name": "Comprehensive Communications Plan",
+      "clause": "3.1.2(d)",
+      "canonical_section": "communications",
+      "emphasis_clauses": 4
+    },
+    {
+      "name": "Transition Management plan",
+      "clause": "3.1.2(e)",
+      "emphasis_clauses": 1
+    },
+    {
+      "name": "Change Readiness Assessment",
+      "clause": "3.1.2(f)",
+      "canonical_section": "change-readiness-assessment",
+      "emphasis_clauses": 1
+    },
+    {
+      "name": "Change Impact Assessment",
+      "clause": "3.1.2(g)",
+      "canonical_section": "change-impact-assessment",
+      "emphasis_clauses": 2
+    },
+    {
+      "name": "Change Intervention plan",
+      "clause": "3.1.2(h)",
+      "emphasis_clauses": 1
+    },
+    {
+      "name": "Change Risk Management plan",
+      "clause": "3.1.2(i)",
+      "emphasis_clauses": 1
+    },
+    {
+      "name": "Change Management Activities and Schedule",
+      "clause": "3.1.2(j)",
+      "canonical_section": "cm-plan-and-strategy",
+      "emphasis_clauses": 1
+    },
+    {
+      "name": "User Training Plan and Materials",
+      "clause": "3.1.2(k), 5",
+      "canonical_section": "training",
+      "emphasis_clauses": 24
+    },
+    {
+      "name": "Success Measurement Framework",
+      "clause": "3.1.2(l)",
+      "canonical_section": "adoption-and-evaluation-metrics",
+      "emphasis_clauses": 3
+    },
+    {
+      "name": "Handover plan",
+      "clause": "3.1.2(m)",
+      "canonical_section": "knowledge-transfer",
+      "emphasis_clauses": 2
+    },
+    {
+      "name": "Change Agent Identification and Training",
+      "clause": "3.1.2(a)(vi)",
+      "canonical_section": "change-agent-network",
+      "emphasis_clauses": 1
+    },
+    {
+      "name": "Change Sustenance Plan",
+      "clause": "4.1.1-4.2.3",
+      "emphasis_clauses": 5,
+      "optional_scope": true
+    },
+    {
+      "name": "Orientation Programme",
+      "clause": "6",
+      "emphasis_clauses": 7
     }
   ]
 }

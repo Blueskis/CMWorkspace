@@ -30,8 +30,43 @@ RFP uses its own terminology (M/D, Essential/Desirable, Pass-Fail), record that 
 `raw_priority` alongside the normalised value.
 
 ### Evaluation criteria and weights
-Capture the criteria and their percentage weights verbatim. Stage 2 sizes the deck from
-these. If weights aren't stated, record `"weight": null` — don't guess one.
+Capture the criteria and their percentage weights verbatim. If weights aren't stated,
+record `"weight": null` — don't guess one.
+
+**Most CM tenders publish no weights at all.** That is normal, not a gap in your reading.
+When there are none, Stage 2 sizes the deck from `named_deliverables` instead, so capturing
+those well becomes the important job.
+
+### Named deliverables
+Every deliverable the RFP names, **verbatim and with its clause reference**, into
+`named_deliverables`. These do two jobs: they give each section its name (Stage 2 mirrors
+the client's term rather than imposing ours), and they size the deck when weights are
+absent.
+
+Record `emphasis_clauses` — how many clauses the RFP spends on each. That ratio is the
+sizing signal: a deliverable specified across fourteen sub-clauses matters more to this
+client than one mentioned once, and the deck should show it.
+
+Mark `optional_scope: true` for anything the RFP asks to be priced as an option the client
+may or may not exercise. It still needs a home in the response, but it is not core scope.
+
+Deliverables that don't match the canonical section list still get recorded — leave
+`canonical_section` empty. Transition Management plans, Change Intervention plans and
+Change Sustenance Plans are all common and none is in the canonical ten.
+
+### Delivery methodology
+Read whether the programme is **agile, waterfall, or hybrid**, and record the evidence in
+`methodology_evidence` so the call is auditable.
+
+- *Agile*: sprint, backlog, ceremonies, Product Owner, user stories, Definition of Done,
+  increments, releases, MVP.
+- *Waterfall*: phases, stage gates, sign-off, baselined requirements, UAT windows, a single
+  go-live.
+- *Hybrid*: both present — commonly agile build inside phase-gated governance. Name it
+  rather than forcing a choice.
+
+This shapes the entire CM approach, so if the RFP is genuinely silent record `not-stated`
+and raise it as an open question. Do not default to either.
 
 ### Constraints
 Submission deadline (with timezone — RFP deadlines are precise and unforgiving), page or

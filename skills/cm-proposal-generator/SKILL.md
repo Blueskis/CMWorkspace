@@ -98,15 +98,30 @@ Rules that matter more than the library itself:
 1. **Follow the RFP's own structure when it dictates one.** Many RFPs prescribe a response
    format or a scoring schedule. If so, mirror it — the evaluators score against their
    structure, not ours. Note the deviation in the plan if we add anything beyond it.
-2. **Weight slide count by evaluation criteria.** If "approach to stakeholder engagement"
-   is 40% of the score, it gets more than one slide. If price is 10%, the commercials
-   section stays short.
-3. **Every requirement ID maps to at least one section.** Build the map explicitly as you
+2. **Name each section the way this tender names the deliverable.** The library's labels
+   are internal handles, not slide titles. If the RFP asks for a "Change Sustenance Plan,"
+   that is the section's name. Evaluators score by finding their requirements, and a
+   renamed deliverable reads as a missing one.
+3. **Size by evaluation weight where weights are published; by named deliverables where
+   they are not.** Most CM tenders publish no weights — do not invent them. Instead, let
+   the RFP's own emphasis do the sizing: a deliverable it names earns a slide, one it
+   spends fourteen sub-clauses on earns several, one it never mentions earns none even if
+   the canonical list carries it.
+4. **Every named deliverable gets a home**, whether or not the canonical list has a slot
+   for it. Give it its own section or fold it into the nearest one and say so — never drop
+   it for not fitting the template.
+5. **Shape the approach to the delivery methodology.** Agile and waterfall programmes need
+   genuinely different change plans — rolling versus one-off impact assessment, just-in-time
+   versus pre-go-live training, release cadence versus stage gates. Read it from the RFP's
+   vocabulary and mirror that vocabulary back. Getting this wrong reads as a template
+   response. See Rule 3 in the section library for the full contrast.
+6. **Every requirement ID maps to at least one section.** Build the map explicitly as you
    go; an unmapped requirement at the end of Stage 2 means the outline is wrong, not that
    the requirement is unimportant.
-4. **Keep it to the length the RFP allows.** Page/slide limits are a hard constraint, and
-   over-length submissions get disqualified. If the plan won't fit, cut sections by
-   evaluation weight — lowest weight goes first — and say what you cut.
+7. **Keep it to the length the RFP allows.** Page/slide limits are a hard constraint, and
+   over-length submissions get disqualified. If the plan won't fit, cut by evaluation
+   weight where weights exist, otherwise by how little the RFP dwells on the deliverable —
+   and say what you cut.
 
 ### Diagnostic methods in the approach sections
 
