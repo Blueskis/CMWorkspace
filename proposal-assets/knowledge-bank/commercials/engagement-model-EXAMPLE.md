@@ -10,7 +10,7 @@ metrics_verified: false
 
 > **This is a format exemplar with invented content. Delete before real use.**
 >
-> **This entry deliberately contains no fee figures.** v0.1 of the proposal generator does
+> **This entry deliberately contains no fee figures.** The proposal generator does
 > not calculate pricing — the commercials slide renders the structure and assumptions from
 > here and leaves the numbers as `[GAP]` for the practitioner. Never generate a fee.
 

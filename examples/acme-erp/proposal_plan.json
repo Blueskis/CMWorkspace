@@ -6,8 +6,8 @@
   "brief_ref": "rfp_brief.json",
   "submission_deadline": "2026-09-04T12:00:00+01:00",
   "template": {
-    "path": "proposal-assets/templates/html-generic",
-    "profile_ref": "proposal-assets/templates/html-generic/template_profile.json"
+    "path": "proposal-assets/templates/pptx-generic/pptx-generic.potx",
+    "profile_ref": "proposal-assets/templates/pptx-generic/template_profile.json"
   },
   "slide_budget": {
     "limit": 12,
@@ -552,7 +552,7 @@
               "content": "",
               "sources": [],
               "gap": true,
-              "gap_note": "Fee figures absent: v0.1 does not calculate pricing, and the rate card is held separately and confirmed per bid. R7 is mandatory and requires a fixed price for the assessment phase — this cannot be submitted until the practitioner completes the table above."
+              "gap_note": "Fee figures absent: the pipeline does not calculate pricing, and the rate card is held separately and confirmed per bid. R7 is mandatory and requires a fixed price for the assessment phase — this cannot be submitted until the practitioner completes the table above."
             }
           ],
           "speaker_notes": "The structure is from the bank; the numbers are deliberately absent. Never generate a fee figure."

@@ -10,7 +10,7 @@ Two template kinds, one output schema:
   * **a directory** — an HTML template; reads layouts.html for <template data-layout>
     blocks and their {{placeholder}} tokens.
 
-Stage 2 needs to know which layouts are available before planning slides, and Stage 4
+Stage 3 needs to know which layouts are available before planning slides, and Stage 5
 needs each layout's placeholder inventory to fill it. Because both kinds emit the same
 profile, build_deck.py validates a proposal plan identically against either — only the
 renderer downstream differs.
@@ -53,6 +53,20 @@ def _text_of(shape):
     return " ".join(t.text or "" for t in shape.iterfind(".//a:t", NS)).strip()
 
 
+def _font_size_pt(shape):
+    """Point size the layout sets for this placeholder's first outline level, if any.
+
+    Renderers use it to estimate whether planned text will fit the box. A layout that
+    leaves the size to the master returns None, and the caller falls back to a default —
+    an estimate from the wrong size is worse than an admitted absence.
+    """
+    for path in (".//a:lstStyle/a:lvl1pPr/a:defRPr", ".//a:pPr/a:defRPr", ".//a:rPr"):
+        el = shape.find(path, NS)
+        if el is not None and el.get("sz"):
+            return int(el.get("sz")) / 100
+    return None
+
+
 def _geometry(shape):
     xfrm = shape.find(".//a:xfrm", NS)
     if xfrm is None:
@@ -84,6 +98,7 @@ def profile_layout(xml_bytes, part_name):
                 "name": name_el.get("name") if name_el is not None else None,
                 "prompt_text": _text_of(shape) or None,
                 "geometry": _geometry(shape),
+                "font_size_pt": _font_size_pt(shape),
             }
         )
 
@@ -131,6 +146,7 @@ def profile_html_template(template_dir):
                     "required": name not in optional,
                     "prompt_text": None,
                     "geometry": None,
+                    "font_size_pt": None,
                 }
             )
         layouts.append(

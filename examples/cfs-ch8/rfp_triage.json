@@ -1,0 +1,1236 @@
+{
+  "sources": [
+    "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt"
+  ],
+  "section_count": 52,
+  "word_count": 3266,
+  "verdict_counts": {
+    "cm-core": 33,
+    "cm-adjacent": 19
+  },
+  "cross_references": [
+    "Annex I",
+    "Annex VII",
+    "Chapter 4",
+    "CHAPTER 8",
+    "PART 2",
+    "Part 3"
+  ],
+  "note": "A shortlist and its reasons, not a decision. Read every cm-core and cm-adjacent section in full before writing requirements, and skim the not-cm list for anything whose heading suggests otherwise \u2014 a training obligation in a service-levels annex scores low and still belongs to us.",
+  "sections": [
+    {
+      "ref": "PART 2",
+      "heading": "CHAPTER 8",
+      "parent_headings": [],
+      "page": 1,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 12,
+      "cm_vocabulary_share": 0.3788,
+      "word_count": 21,
+      "strong_signals": {
+        "change management": 2
+      },
+      "all_signals": {
+        "change management": 2,
+        "training": 2
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "PART 2, CHAPTER 8 CHANGE MANAGEMENT AND TRAINING PART 2 CHANGE MANAGEMENT AND TRAINING CHAPTER 8 3 1. INTRODUCTION 1.1. Introduction"
+    },
+    {
+      "ref": "1.1.1",
+      "heading": "Introduction",
+      "parent_headings": [
+        "1 INTRODUCTION",
+        "1.1 Introduction"
+      ],
+      "page": 3,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 14,
+      "cm_vocabulary_share": 0.1888,
+      "word_count": 49,
+      "strong_signals": {
+        "change management": 2
+      },
+      "all_signals": {
+        "change management": 2,
+        "stakeholder": 1,
+        "readiness": 1,
+        "onboarding": 1
+      },
+      "off_topic_signals": 1,
+      "deliverable_cues": [],
+      "excerpt": "1.1.1. The Contractor shall lead and execute change management activities to ensure stakeholder readiness prior to each phase of Licensee onboarding. The Contractor shall adapt change management approaches as needed throughout the phased im"
+    },
+    {
+      "ref": "1.1.2",
+      "heading": "The stakeholders include but are not limited to the following",
+      "parent_headings": [],
+      "page": 3,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 43,
+      "cm_vocabulary_share": 0.137,
+      "word_count": 160,
+      "strong_signals": {
+        "change management": 1,
+        "change champion": 1,
+        "stakeholder engagement": 1
+      },
+      "all_signals": {
+        "stakeholder": 4,
+        "user": 3,
+        "change management": 1,
+        "change champion": 1,
+        "stakeholder engagement": 1,
+        "superuser": 1,
+        "sponsor": 1,
+        "training": 1,
+        "engagement": 1,
+        "adoption": 1,
+        "staff": 1,
+        "end user": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall develop"
+      ],
+      "excerpt": "1.1.2. The stakeholders include but are not limited to the following: (a) Senior stakeholder groups including executive project sponsors, leadership, board members, service professionals, administrators and staff; (b) Policy divisions, oper"
+    },
+    {
+      "ref": "1.1.4",
+      "heading": "",
+      "parent_headings": [],
+      "page": 3,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 2,
+      "cm_vocabulary_share": 0.0561,
+      "word_count": 29,
+      "strong_signals": {},
+      "all_signals": {
+        "stakeholder": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "1.1.4. The Contractor shall ensure that stakeholders understand the need for change and the impact of new working procedures to promote positive reactions and enthusiasm for adopting the Solution."
+    },
+    {
+      "ref": "1.1.5",
+      "heading": "",
+      "parent_headings": [],
+      "page": 3,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 12,
+      "cm_vocabulary_share": 0.1651,
+      "word_count": 45,
+      "strong_signals": {
+        "change management": 2
+      },
+      "all_signals": {
+        "change management": 2,
+        "training": 1,
+        "stakeholder": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "1.1.5. The Contractor shall ensure stakeholders are well-informed and aligned on project activities to enable a smooth transition with minimal operational disruptions throughout all project development stages. PART 2 CHANGE MANAGEMENT AND T"
+    },
+    {
+      "ref": "2.1.1",
+      "heading": "Team Composition and Structure",
+      "parent_headings": [
+        "2 CHANGE MANAGEMENT TEAM",
+        "2.1 Team Composition and Structure"
+      ],
+      "page": 4,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 16,
+      "cm_vocabulary_share": 0.1702,
+      "word_count": 57,
+      "strong_signals": {
+        "change management": 3,
+        "change manager": 1
+      },
+      "all_signals": {
+        "change management": 3,
+        "change manager": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall propose"
+      ],
+      "excerpt": "2.1.1. The Tenderer shall propose a Change Management Team led by a Contractor Change Manager. Refer to Part 2 Chapter 4 , Clause 6 for detailed role descriptions and required skillsets. The Change Management Team shall possess appropriate "
+    },
+    {
+      "ref": "2.1.2",
+      "heading": "",
+      "parent_headings": [],
+      "page": 4,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 12,
+      "cm_vocabulary_share": 0.125,
+      "word_count": 54,
+      "strong_signals": {
+        "change management": 2,
+        "change manager": 1
+      },
+      "all_signals": {
+        "change management": 2,
+        "change manager": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "2.1.2. The Tenderer shall clearly define the reporting hierarchy and organisational structure of the Change Management Team, including reporting relationships with the Authority's project team and other contractor teams. 2.2. Team Managemen"
+    },
+    {
+      "ref": "2.2.2",
+      "heading": "The appointment of the Change Manager and key Change Management Team",
+      "parent_headings": [
+        "2.2 Team Management and Controls",
+        "2.2.1 The appointment of the Change Manager and key Change Management Team"
+      ],
+      "page": 4,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 32,
+      "cm_vocabulary_share": 0.1281,
+      "word_count": 35,
+      "strong_signals": {
+        "change management": 1,
+        "change manager": 1
+      },
+      "all_signals": {
+        "change management": 1,
+        "change manager": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "2.2.2. The Contractor shall ensure minimal changes to Change Management Team composition throughout the Contract Period. The Contractor shall not change the Change Manager or key team members without prior written approval from the Authorit"
+    },
+    {
+      "ref": "2.2.3",
+      "heading": "Where subcontractors are engaged for change management activities, the",
+      "parent_headings": [],
+      "page": 4,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 33,
+      "cm_vocabulary_share": 0.1494,
+      "word_count": 77,
+      "strong_signals": {
+        "change management": 2,
+        "change manager": 2
+      },
+      "all_signals": {
+        "change management": 2,
+        "change manager": 2,
+        "stakeholder": 1,
+        "adoption": 1,
+        "user": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "2.2.3. Where subcontractors are engaged for change management activities, the Contractor shall detail how these subcontractors will be managed and trained to ensure obligations are met. 2.3. Roles and Responsibilities 2.3.1. The Change Mana"
+    },
+    {
+      "ref": "2.3.3",
+      "heading": "Roles and Responsibilities",
+      "parent_headings": [
+        "2.3 Roles and Responsibilities"
+      ],
+      "page": 4,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 27,
+      "cm_vocabulary_share": 0.3369,
+      "word_count": 51,
+      "strong_signals": {
+        "change management": 4
+      },
+      "all_signals": {
+        "change management": 4,
+        "training": 2,
+        "training materials": 1,
+        "stakeholder": 1,
+        "communication": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "2.3.3. The Change Management team shall review and ensure consistency and coherence in all messaging and communications materials (including emails, presentations, training materials, and announcements) prior to seeking Authority approval a"
+    },
+    {
+      "ref": "3.1.1",
+      "heading": "Change Management Plan",
+      "parent_headings": [
+        "3 CHANGE MANAGEMENT SCOPE",
+        "3.1 Change Management Plan"
+      ],
+      "page": 5,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 18,
+      "cm_vocabulary_share": 0.0841,
+      "word_count": 47,
+      "strong_signals": {
+        "change management": 1
+      },
+      "all_signals": {
+        "change management": 1,
+        "stakeholder": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall propose"
+      ],
+      "excerpt": "3.1.1. The Tenderer shall propose a Change Management Plan that covers the entire project lifecycle, including: (a) implementation stage; (b) post go -live BAU operations stage (including Performance Guarantee Period (PGP) and SWP) ; and (c"
+    },
+    {
+      "ref": "3.1.2",
+      "heading": "",
+      "parent_headings": [],
+      "page": 5,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 142,
+      "cm_vocabulary_share": 0.1918,
+      "word_count": 460,
+      "strong_signals": {
+        "change management": 12,
+        "change agent": 3,
+        "change impact": 2,
+        "change readiness": 1,
+        "stakeholder engagement": 1,
+        "transition management": 1,
+        "change intervention": 1,
+        "communications plan": 1
+      },
+      "all_signals": {
+        "change management": 12,
+        "training": 6,
+        "communication": 4,
+        "change agent": 3,
+        "change impact": 2,
+        "training plan": 2,
+        "stakeholder": 2,
+        "engagement": 2,
+        "change readiness": 1,
+        "stakeholder engagement": 1,
+        "transition management": 1,
+        "change intervention": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide",
+        "shall include"
+      ],
+      "excerpt": "3.1.2. The Tenderer shall provide a comprehensive Change Management proposal in its Tender Offer, including the following: (a) Change Management Strategy and Approach that includes but not limited to the following components: i) Planning \u2013 "
+    },
+    {
+      "ref": "3.2.2",
+      "heading": "Plan Refinement and Approval",
+      "parent_headings": [
+        "3.2 Plan Refinement and Approval"
+      ],
+      "page": 6,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 18,
+      "cm_vocabulary_share": 0.1995,
+      "word_count": 56,
+      "strong_signals": {
+        "change management": 2,
+        "change network": 1
+      },
+      "all_signals": {
+        "change management": 2,
+        "change network": 1,
+        "training": 1,
+        "stakeholder": 1,
+        "communication": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "3.2.2. The Contractor shall obtain Authority approval for changes made to the Change Management Plan before execution at different development stages. PART 2 CHANGE MANAGEMENT AND TRAINING CHAPTER 8 7 3.3. Implementation Requirements 3.3.1."
+    },
+    {
+      "ref": "3.3.2",
+      "heading": "Implementation Requirements",
+      "parent_headings": [
+        "3.3 Implementation Requirements"
+      ],
+      "page": 7,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 8,
+      "cm_vocabulary_share": 0.2139,
+      "word_count": 29,
+      "strong_signals": {
+        "change management": 1
+      },
+      "all_signals": {
+        "communication": 2,
+        "change management": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "3.3.2. The Contractor may use communication channels such as newsletters, videos, and road shows. The Change Management team shall track and coordinate all communications from all channels and sources."
+    },
+    {
+      "ref": "3.3.3",
+      "heading": "",
+      "parent_headings": [],
+      "page": 7,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 8,
+      "cm_vocabulary_share": 0.1331,
+      "word_count": 46,
+      "strong_signals": {},
+      "all_signals": {
+        "engagement": 2,
+        "communication": 1,
+        "briefing": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall prepare"
+      ],
+      "excerpt": "3.3.3. The Contractor shall prepare all engagement and communication materials (including EDMs, posters, briefing slides ) and obtain the Authority\u2019s approval at least five (5) working days before engagement commencement. The Authority rese"
+    },
+    {
+      "ref": "3.3.4",
+      "heading": "",
+      "parent_headings": [],
+      "page": 7,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 8,
+      "cm_vocabulary_share": 0.1498,
+      "word_count": 39,
+      "strong_signals": {
+        "change sustenance": 2
+      },
+      "all_signals": {
+        "change sustenance": 2
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "3.3.4. The Contractor shall plan and prepare to execute the Change Sustenance Plan post SWP of the last Licensee onboarded , if the option under Clause 4 - Change Sustenance Post SWP of the Last Licensee Onboarded is activated."
+    },
+    {
+      "ref": "3.3.5",
+      "heading": "",
+      "parent_headings": [],
+      "page": 7,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 10,
+      "cm_vocabulary_share": 0.2059,
+      "word_count": 27,
+      "strong_signals": {
+        "change management": 2
+      },
+      "all_signals": {
+        "change management": 2,
+        "adoption": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "3.3.5. During Change Management programme implementation, the Contractor shall analyse issues related to system usage or adoption and propose additional change management measures to address these issues."
+    },
+    {
+      "ref": "3.3.6",
+      "heading": "",
+      "parent_headings": [],
+      "page": 7,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 4,
+      "cm_vocabulary_share": 0.0331,
+      "word_count": 71,
+      "strong_signals": {
+        "change management": 1
+      },
+      "all_signals": {
+        "change management": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "3.3.6. The Contractor shall provide timely reviews tracking Key Performance Indicators (KPIs) to validate change management success and provide a post-implementation report one (1) month after each Licensee onboarded, including but not limi"
+    },
+    {
+      "ref": "3.3.7",
+      "heading": "",
+      "parent_headings": [],
+      "page": 7,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 4,
+      "cm_vocabulary_share": 0.0739,
+      "word_count": 36,
+      "strong_signals": {},
+      "all_signals": {
+        "stakeholder": 1,
+        "briefing": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall conduct"
+      ],
+      "excerpt": "3.3.7. At the Authority's request, the Contractor shall conduct briefings and updates to stakeholders at relevant platforms, with content ranging from project progress reports to sharing best practices and insights. 3.4. Legal and Intellect"
+    },
+    {
+      "ref": "3.4.1",
+      "heading": "Legal and Intellectual Property (IP)",
+      "parent_headings": [
+        "3.4 Legal and Intellectual Property (IP)"
+      ],
+      "page": 7,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 14,
+      "cm_vocabulary_share": 0.1903,
+      "word_count": 48,
+      "strong_signals": {
+        "change sustenance": 2,
+        "change management": 1
+      },
+      "all_signals": {
+        "change sustenance": 2,
+        "change management": 1,
+        "training": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "3.4.1. The Contractor shall ensure materials do not infringe third-party IP rights and shall indemnify the Authority from all claims arising from IP infringement. PART 2 CHANGE MANAGEMENT AND TRAINING CHAPTER 8 8 4. CHANGE SUSTENANCE POST S"
+    },
+    {
+      "ref": "4.1.1",
+      "heading": "Change Sustenance Plan Proposal",
+      "parent_headings": [
+        "4 CHANGE SUSTENANCE POST SWP OF THE LAST LICENSEE",
+        "4.1 Change Sustenance Plan Proposal"
+      ],
+      "page": 8,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 20,
+      "cm_vocabulary_share": 0.12,
+      "word_count": 46,
+      "strong_signals": {
+        "change sustenance": 1
+      },
+      "all_signals": {
+        "change sustenance": 1,
+        "stakeholder": 1,
+        "adoption": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall propose"
+      ],
+      "excerpt": "4.1.1. The Tenderer shall propose as an option for the Authority to exercise, a detailed Change Sustenance Plan which the Contractor will execute to sustain the change momentum, and ensure stakeholders\u2019 continued adoption of and satisfactio"
+    },
+    {
+      "ref": "4.1.2",
+      "heading": "",
+      "parent_headings": [],
+      "page": 8,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 25,
+      "cm_vocabulary_share": 0.1609,
+      "word_count": 101,
+      "strong_signals": {
+        "change sustenance": 1,
+        "change intervention": 1,
+        "communications plan": 1
+      },
+      "all_signals": {
+        "engagement": 2,
+        "change sustenance": 1,
+        "change intervention": 1,
+        "communications plan": 1,
+        "capability building": 1,
+        "stakeholder": 1,
+        "communication": 1,
+        "adoption": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "4.1.2. The Plan shall minimally include: (a) Stakeholder Management Plan; (b) Strategy and approach to sustain adoption; (c) Engagement and Communications Plan (including engagements during Solution enhancements); (d) Governance and Team st"
+    },
+    {
+      "ref": "4.2.1",
+      "heading": "Plan Execution",
+      "parent_headings": [
+        "4.2 Plan Execution"
+      ],
+      "page": 8,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 8,
+      "cm_vocabulary_share": 0.1793,
+      "word_count": 25,
+      "strong_signals": {
+        "change sustenance": 1
+      },
+      "all_signals": {
+        "change sustenance": 1,
+        "training": 1,
+        "feedback": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "4.2.1. The Contractor shall refine the proposed Change Sustenance Plan during the pre- deployment phase, taking into account feedback and measurements obtained after Solution training."
+    },
+    {
+      "ref": "4.2.2",
+      "heading": "",
+      "parent_headings": [],
+      "page": 8,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 4,
+      "cm_vocabulary_share": 0.0983,
+      "word_count": 27,
+      "strong_signals": {
+        "change sustenance": 1
+      },
+      "all_signals": {
+        "change sustenance": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "4.2.2. The Contractor shall obtain the Authority\u2019s approval for changes made to the Change Sustenance Plan before executing the Plan post SWP of the last Licensee onboarded."
+    },
+    {
+      "ref": "4.2.3",
+      "heading": "",
+      "parent_headings": [],
+      "page": 8,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 8,
+      "cm_vocabulary_share": 0.1507,
+      "word_count": 41,
+      "strong_signals": {
+        "change management": 1
+      },
+      "all_signals": {
+        "training": 2,
+        "change management": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "4.2.3. The Tenderer shall itemise the cost for this scope of work as an option for the Authority to exercise as set out in Part 3, Annex I. PART 2 CHANGE MANAGEMENT AND TRAINING CHAPTER 8 9 5. TRAINING 5.1. Introduction"
+    },
+    {
+      "ref": "5.1.1",
+      "heading": "Introduction",
+      "parent_headings": [
+        "5 TRAINING",
+        "5.1 Introduction"
+      ],
+      "page": 9,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 7,
+      "cm_vocabulary_share": 0.0391,
+      "word_count": 107,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 3,
+        "user": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "5.1.1. The Contractor shall provide training to meet the following five (5) main objectives: (a) To enable all Authority users and nominated personnel to manage, operate, configure and use the Solution effectively and proficiently; (b) To e"
+    },
+    {
+      "ref": "5.1.2",
+      "heading": "",
+      "parent_headings": [],
+      "page": 9,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 22,
+      "cm_vocabulary_share": 0.1803,
+      "word_count": 66,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 10,
+        "briefing": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "5.1.2. The Contractor shall provide at least the following types of training: (a) Product Overview and Business Process Training (b) Configuration for System modules Training (c) Business Rule Training (d) Application Security Administratio"
+    },
+    {
+      "ref": "5.1.3",
+      "heading": "",
+      "parent_headings": [],
+      "page": 9,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 10,
+      "cm_vocabulary_share": 0.1158,
+      "word_count": 56,
+      "strong_signals": {
+        "change management": 1
+      },
+      "all_signals": {
+        "training": 3,
+        "change management": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall propose"
+      ],
+      "excerpt": "5.1.3. The Contractor shall propose and provide suitable and adequate customised training for personnel nominated by the Authority to enable them to carry out smooth operation and management of the Solution. PART 2 CHANGE MANAGEMENT AND TRA"
+    },
+    {
+      "ref": "5.1.5",
+      "heading": "",
+      "parent_headings": [],
+      "page": 10,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 9,
+      "cm_vocabulary_share": 0.095,
+      "word_count": 66,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 3,
+        "training materials": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "5.1.5. The Authority may require the Contractor to make the necessary amendments to the training courses and training materials wherever necessary as determined by the Authority, and to replace any training instructor that the Authority fin"
+    },
+    {
+      "ref": "5.1.6",
+      "heading": "",
+      "parent_headings": [],
+      "page": 10,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 2,
+      "cm_vocabulary_share": 0.0406,
+      "word_count": 29,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "5.1.6. The training sessions shall be conducted at the Contractor\u2019s site, Authority\u2019s premises, Licensees\u2019 premises, virtually, or at premises that are convenient to and agreed to by the Authority."
+    },
+    {
+      "ref": "5.1.7",
+      "heading": "",
+      "parent_headings": [],
+      "page": 10,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 8,
+      "cm_vocabulary_share": 0.1003,
+      "word_count": 48,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 4
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "5.1.7. If the Authority requires the training to be held in its premises, the Contractor shall be responsible for setting up the entire training environment. If needed, the Contractor shall provide all necessary training equipment that is n"
+    },
+    {
+      "ref": "5.1.8",
+      "heading": "",
+      "parent_headings": [],
+      "page": 10,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 13,
+      "cm_vocabulary_share": 0.135,
+      "word_count": 67,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 4,
+        "training materials": 1,
+        "readiness": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "5.1.8. The Contractor shall ensure the readiness of the training environment and inform the Authority of any technical deficit at least three (3) working days in advance of a training session. 5.1.9. The Contractor shall ensure that all tra"
+    },
+    {
+      "ref": "5.1.11",
+      "heading": "",
+      "parent_headings": [],
+      "page": 10,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 9,
+      "cm_vocabulary_share": 0.1787,
+      "word_count": 34,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 3,
+        "training materials": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall conduct"
+      ],
+      "excerpt": "5.1.11. For onsite trainings, the Contractor shall conduct all training sessions in Singapore. The Contractor shall ensure that the training materials should be readily comprehensible even by someone who has not attended the course(s)."
+    },
+    {
+      "ref": "5.1.12",
+      "heading": "",
+      "parent_headings": [],
+      "page": 10,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 6,
+      "cm_vocabulary_share": 0.0495,
+      "word_count": 81,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 3
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall include"
+      ],
+      "excerpt": "5.1.12. The Tenderer shall include in its Tender Offer the type of training, target audience, duration of each session, proposed number of sessions, number of trainees per session, schedule of the sessions, training charges and rates in the"
+    },
+    {
+      "ref": "5.1.13",
+      "heading": "",
+      "parent_headings": [],
+      "page": 10,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 4,
+      "cm_vocabulary_share": 0.0737,
+      "word_count": 33,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 2
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "5.1.13. The Contractor shall ensure the maximum number of participants per training session should not be more than thirty (30) to ensure training is delivered effectively, unless otherwise agreed to by the Authority."
+    },
+    {
+      "ref": "5.1.14",
+      "heading": "",
+      "parent_headings": [],
+      "page": 10,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 20,
+      "cm_vocabulary_share": 0.2339,
+      "word_count": 52,
+      "strong_signals": {
+        "change management": 1
+      },
+      "all_signals": {
+        "training": 5,
+        "change management": 1,
+        "training materials": 1,
+        "feedback": 1,
+        "user": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "5.1.14. The Contractor shall provide, at no additional costs to the Authority, all necessary equipment, training materials and logistics coordination (e.g. inform users of training schedule, registration of participants, maintain records of"
+    },
+    {
+      "ref": "5.1.15",
+      "heading": "",
+      "parent_headings": [],
+      "page": 11,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 9,
+      "cm_vocabulary_share": 0.1355,
+      "word_count": 46,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 3,
+        "training materials": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "5.1.15. The Contractor shall: (a) Work with the Authority to adjust details of the training sessions, including details such as the schedule, scope, number of sessions, number of trainees per sessions; (b) Administer the registration and at"
+    },
+    {
+      "ref": "5.2.1",
+      "heading": "Training Materials",
+      "parent_headings": [
+        "5.2 Training Materials"
+      ],
+      "page": 11,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 22,
+      "cm_vocabulary_share": 0.1377,
+      "word_count": 37,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 2,
+        "training materials": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "5.2.1. The Contractor shall provide all the training materials (inclusive of instructor's guide, slides and trainee's booklet) in soft copy and obtain the Authority\u2019s Approval at least five (5) working days before the commencement of the tr"
+    },
+    {
+      "ref": "5.2.2",
+      "heading": "",
+      "parent_headings": [],
+      "page": 11,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 12,
+      "cm_vocabulary_share": 0.1709,
+      "word_count": 55,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 3,
+        "training materials": 2
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "5.2.2. The Authority shall own all the training materials (soft copy) developed under this Contract. The Authority shall have the right to use these training materials to conduct in-house courses for its personnel. 5.2.3. The Contractor sha"
+    },
+    {
+      "ref": "5.2.4",
+      "heading": "",
+      "parent_headings": [],
+      "page": 11,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 7,
+      "cm_vocabulary_share": 0.1453,
+      "word_count": 36,
+      "strong_signals": {},
+      "all_signals": {
+        "training materials": 1,
+        "training": 1,
+        "feedback": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "5.2.4. The Contractor shall update the training materials when the need arises , including to account for any new changes made to the Solution (including newly implemented modules, new releases / patches). 5.3. Feedback and Evaluation"
+    },
+    {
+      "ref": "5.3.1",
+      "heading": "Feedback and Evaluation",
+      "parent_headings": [
+        "5.3 Feedback and Evaluation"
+      ],
+      "page": 11,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 14,
+      "cm_vocabulary_share": 0.0654,
+      "word_count": 76,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 3,
+        "feedback": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "5.3.1. The Contractor shall collect feedback from all participants of each training session at the end of such session, by distributing evaluation forms to all such participants. The Contractor shall ensure that all participants complete an"
+    },
+    {
+      "ref": "5.3.2",
+      "heading": "",
+      "parent_headings": [],
+      "page": 11,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 6,
+      "cm_vocabulary_share": 0.0738,
+      "word_count": 53,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 2,
+        "feedback": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "5.3.2. If more than fifty percent (50%) of the feedback gathered on any training session conducted by the Contractor is rated three or below (based on a six -point rating scale), the Contractor shall, if so required by the Authority, re-con"
+    },
+    {
+      "ref": "5.4.1",
+      "heading": "Application",
+      "parent_headings": [
+        "5.4 Application"
+      ],
+      "page": 11,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 9,
+      "cm_vocabulary_share": 0.1968,
+      "word_count": 29,
+      "strong_signals": {
+        "change management": 1
+      },
+      "all_signals": {
+        "training": 2,
+        "change management": 1,
+        "user": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "5.4.1. The Contractor shall provide training on the application on various roles such as users, administrator, operators, etc. PART 2 CHANGE MANAGEMENT AND TRAINING CHAPTER 8 12 5.5. Tools"
+    },
+    {
+      "ref": "5.5.1",
+      "heading": "Tools",
+      "parent_headings": [
+        "5.5 Tools"
+      ],
+      "page": 12,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-adjacent",
+      "score": 4,
+      "cm_vocabulary_share": 0.0599,
+      "word_count": 43,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 2
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "5.5.1. The Contractor shall provide training on the tools proposed by the Tenderer. During the training, the Contractor shall walkthrough the proposed approach on how the tools in the pipeline will be used in the project and the reports/res"
+    },
+    {
+      "ref": "5.5.2",
+      "heading": "",
+      "parent_headings": [],
+      "page": 12,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 28,
+      "cm_vocabulary_share": 0.4887,
+      "word_count": 40,
+      "strong_signals": {
+        "change management": 2,
+        "orientation programme": 2,
+        "orientation program": 2
+      },
+      "all_signals": {
+        "change management": 2,
+        "orientation programme": 2,
+        "orientation program": 2,
+        "training": 2
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "5.5.2. The Contractor may propose, at no additional cost to the Authority, additional tools that can aid in change management or training. PART 2 CHANGE MANAGEMENT AND TRAINING CHAPTER 8 13 6. ORIENTATION PROGRAMME 6.1. General Requirements"
+    },
+    {
+      "ref": "6.1.1",
+      "heading": "General Requirements for Orientation Programme",
+      "parent_headings": [
+        "6 ORIENTATION PROGRAMME",
+        "6.1 General Requirements for Orientation Programme"
+      ],
+      "page": 13,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 32,
+      "cm_vocabulary_share": 0.1023,
+      "word_count": 58,
+      "strong_signals": {
+        "orientation programme": 1,
+        "orientation program": 1
+      },
+      "all_signals": {
+        "orientation programme": 1,
+        "orientation program": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "6.1.1. Prior to the commencement of application software development activities, the Contractor shall provide and deliver, at no additional cost to the Authority, an orientation programme for the Authority\u2019s personnel who are identified to "
+    },
+    {
+      "ref": "6.1.2",
+      "heading": "",
+      "parent_headings": [],
+      "page": 13,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 18,
+      "cm_vocabulary_share": 0.1978,
+      "word_count": 63,
+      "strong_signals": {
+        "orientation programme": 2,
+        "orientation program": 2
+      },
+      "all_signals": {
+        "orientation programme": 2,
+        "orientation program": 2,
+        "training": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "6.1.2. The Contractor shall provide the necessary manpower and logistics to support the end-to-end delivery of the proposed orientation programme, which may include the following: (a) Venue where the orientation programme would be conducted"
+    },
+    {
+      "ref": "6.1.3",
+      "heading": "",
+      "parent_headings": [],
+      "page": 13,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 40,
+      "cm_vocabulary_share": 0.3361,
+      "word_count": 83,
+      "strong_signals": {
+        "orientation programme": 5,
+        "orientation program": 5
+      },
+      "all_signals": {
+        "orientation programme": 5,
+        "orientation program": 5
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall provide"
+      ],
+      "excerpt": "6.1.3. The Tenderer shall provide the following information about the proposed orientation programme into the Tender Offer: (a) Total duration of the orientation programme; (b) Proposed number of personnel from the Authority\u2019s organisation "
+    },
+    {
+      "ref": "6.1.4",
+      "heading": "",
+      "parent_headings": [],
+      "page": 13,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 16,
+      "cm_vocabulary_share": 0.2581,
+      "word_count": 45,
+      "strong_signals": {
+        "orientation programme": 2,
+        "orientation program": 2
+      },
+      "all_signals": {
+        "orientation programme": 2,
+        "orientation program": 2
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "shall propose"
+      ],
+      "excerpt": "6.1.4. The Tenderer shall propose whether there is a need to have differentiated orientation programmes for the Authority\u2019s working team and the Authority\u2019s management team. If so, the Tenderer shall articulate the portions that are differe"
+    },
+    {
+      "ref": "6.1.5",
+      "heading": "",
+      "parent_headings": [],
+      "page": 13,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 18,
+      "cm_vocabulary_share": 0.0907,
+      "word_count": 130,
+      "strong_signals": {
+        "change management": 1,
+        "orientation programme": 1,
+        "orientation program": 1
+      },
+      "all_signals": {
+        "user": 2,
+        "change management": 1,
+        "orientation programme": 1,
+        "orientation program": 1,
+        "training": 1,
+        "communication": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "6.1.5. The orientation programme shall equip the Authority\u2019s personnel with the relevant capabilities for effective and efficient involvement in the development phase of the project. The programme should include the following: (a) Aligning "
+    },
+    {
+      "ref": "6.1.6",
+      "heading": "",
+      "parent_headings": [],
+      "page": 14,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 6,
+      "cm_vocabulary_share": 0.0631,
+      "word_count": 60,
+      "strong_signals": {
+        "orientation program": 1
+      },
+      "all_signals": {
+        "user": 2,
+        "orientation program": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "6.1.6. The orientation program should also share the common industry practices performed during development phase. Below are some examples: (a) Conduct User Research (e.g. through Customer Journey Mapping, Prototyping, Wire frame) (b) Backl"
+    },
+    {
+      "ref": "6.1.7",
+      "heading": "",
+      "parent_headings": [],
+      "page": 14,
+      "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
+      "verdict": "cm-core",
+      "score": 8,
+      "cm_vocabulary_share": 0.2632,
+      "word_count": 25,
+      "strong_signals": {
+        "orientation programme": 1,
+        "orientation program": 1
+      },
+      "all_signals": {
+        "orientation programme": 1,
+        "orientation program": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [],
+      "excerpt": "6.1.7. The orientation programme shall be conducted on a date to be determined in consultation with the Authority after the issuance of Letter of Award."
+    }
+  ]
+}

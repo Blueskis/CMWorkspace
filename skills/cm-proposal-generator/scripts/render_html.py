@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render a proposal plan into a self-contained HTML slide deck (Stage 4, PoC path).
+"""Render a proposal plan into a self-contained HTML slide deck (Stage 5, browser path).
 
     python render_html.py proposal_plan.json proposal-assets/templates/html-generic \\
         -o proposals/acme-20260807/proposal.html
@@ -33,7 +33,7 @@ from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build_deck import build  # noqa: E402  (same-directory sibling module)
+from build_deck import build, load_map  # noqa: E402  (same-directory sibling module)
 
 COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
 TEMPLATE_BLOCK_RE = re.compile(
@@ -185,7 +185,10 @@ def render_slide(step, layouts, plan, sources_mode, position, total):
     values = {}
     for fill in step["fills"]:
         rendered = render_block(fill)
-        key = fill["placeholder"]
+        # The resolved placeholder's name is the layouts.html token, which is not
+        # necessarily what the plan wrote — build_deck may have matched it through an
+        # alias or a case fold.
+        key = fill["resolved"].get("name") or fill["placeholder"]
         values[key] = values.get(key, "") + rendered
 
     values.setdefault("title", esc(step["title"]))
@@ -240,6 +243,8 @@ def main():
                          "'hidden' is for a reviewed client-facing copy only.")
     ap.add_argument("--profile", type=Path,
                     help="template_profile.json (default: <template_dir>/template_profile.json)")
+    ap.add_argument("--map", type=Path, dest="template_map",
+                    help="template_map.json with layout_aliases / placeholder_aliases")
     args = ap.parse_args()
 
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
@@ -248,7 +253,7 @@ def main():
         sys.exit(f"no template profile at {profile_path} — run profile_template.py first")
     profile = json.loads(profile_path.read_text(encoding="utf-8"))
 
-    steps, errors = build(plan, profile)
+    steps, errors = build(plan, profile, load_map(args.template_map))
     if errors:
         for err in errors:
             print(f"  ERROR {err}", file=sys.stderr)

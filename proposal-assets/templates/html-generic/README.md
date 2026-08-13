@@ -4,7 +4,7 @@ A neutral, business-suitable slide template so the proposal pipeline can be exer
 end to end before the firm's approved PowerPoint template is available.
 
 **This is a stand-in.** It is not anyone's brand. Decks built on it must never be
-presented as being on the firm's approved template — see the note in the skill's Stage 4.
+presented as being on the firm's approved template — see the note in the skill's Stage 5.
 
 ## What's here
 

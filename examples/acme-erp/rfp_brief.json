@@ -17,74 +17,147 @@
     {
       "id": "R1",
       "text": "The supplier shall deliver a change impact assessment covering all affected business units prior to system build completion.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "confidence": "stated",
       "raw_priority": "M",
-      "origin": { "document": "ACM-2026-114-RFP.pdf", "section": "3.1", "page": 8 }
+      "origin": {
+        "document": "ACM-2026-114-RFP.pdf",
+        "section": "3.1",
+        "page": 8
+      }
     },
     {
       "id": "R2",
       "text": "The supplier shall design and deliver role-based training for approximately 4,200 users across 6 countries.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "confidence": "stated",
       "raw_priority": "M",
-      "origin": { "document": "ACM-2026-114-RFP.pdf", "section": "3.2", "page": 9 }
+      "origin": {
+        "document": "ACM-2026-114-RFP.pdf",
+        "section": "3.2",
+        "page": 9
+      }
     },
     {
       "id": "R3",
       "text": "The supplier shall provide a stakeholder engagement and communications plan, including approach to identifying and engaging informal influencers.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "confidence": "stated",
       "raw_priority": "M",
-      "origin": { "document": "ACM-2026-114-RFP.pdf", "section": "3.3", "page": 9 }
+      "origin": {
+        "document": "ACM-2026-114-RFP.pdf",
+        "section": "3.3",
+        "page": 9
+      }
     },
     {
       "id": "R4",
       "text": "The supplier shall define adoption measures and report progress to the programme board on an agreed cadence.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "confidence": "stated",
       "raw_priority": "M",
-      "origin": { "document": "ACM-2026-114-RFP.pdf", "section": "3.4", "page": 10 }
+      "origin": {
+        "document": "ACM-2026-114-RFP.pdf",
+        "section": "3.4",
+        "page": 10
+      }
     },
     {
       "id": "R5",
       "text": "Suppliers should evidence prior experience of multi-country system rollouts of comparable scale.",
+      "kind": "proposal-content",
       "priority": "desirable",
       "confidence": "stated",
       "raw_priority": "D",
-      "origin": { "document": "ACM-2026-114-RFP.pdf", "section": "4.1", "page": 12 }
+      "origin": {
+        "document": "ACM-2026-114-RFP.pdf",
+        "section": "4.1",
+        "page": 12
+      }
     },
     {
       "id": "R6",
       "text": "Responses must name the proposed engagement lead and core team, with CVs provided in Annex B.",
+      "kind": "submission-rule",
       "priority": "mandatory",
       "confidence": "stated",
       "raw_priority": "M",
-      "origin": { "document": "ACM-2026-114-RFP.pdf", "section": "2.4 (response format)", "page": 5 }
+      "origin": {
+        "document": "ACM-2026-114-RFP.pdf",
+        "section": "2.4 (response format)",
+        "page": 5
+      }
     },
     {
       "id": "R7",
       "text": "The supplier shall provide a phased fee schedule with a fixed price for the initial assessment phase.",
+      "kind": "commercial-constraint",
       "priority": "mandatory",
       "confidence": "stated",
       "raw_priority": "M",
-      "origin": { "document": "ACM-2026-114-RFP.pdf", "section": "6.1", "page": 18 }
+      "origin": {
+        "document": "ACM-2026-114-RFP.pdf",
+        "section": "6.1",
+        "page": 18
+      }
     },
     {
       "id": "R8",
       "text": "The supplier shall describe its approach to knowledge transfer and exit at engagement close.",
+      "kind": "proposal-content",
       "priority": "desirable",
       "confidence": "inferred",
       "note": "Not in the scope schedule; appears only in the evaluation criteria at 4.2 as 'sustainability of the change beyond the engagement'. Extracted as a requirement because it is scored. Worth a clarification question on the expected level of detail.",
-      "origin": { "document": "ACM-2026-114-RFP.pdf", "section": "4.2 (evaluation criteria)", "page": 12 }
+      "origin": {
+        "document": "ACM-2026-114-RFP.pdf",
+        "section": "4.2 (evaluation criteria)",
+        "page": 12
+      }
     }
   ],
   "evaluation_criteria": [
-    { "criterion": "Change management approach and methodology", "weight": 35, "requirement_ids": ["R1", "R2", "R3"] },
-    { "criterion": "Measurement, governance and sustainability", "weight": 20, "requirement_ids": ["R4", "R8"] },
-    { "criterion": "Relevant experience", "weight": 20, "requirement_ids": ["R5"] },
-    { "criterion": "Proposed team", "weight": 10, "requirement_ids": ["R6"] },
-    { "criterion": "Price", "weight": 15, "requirement_ids": ["R7"] }
+    {
+      "criterion": "Change management approach and methodology",
+      "weight": 35,
+      "requirement_ids": [
+        "R1",
+        "R2",
+        "R3"
+      ]
+    },
+    {
+      "criterion": "Measurement, governance and sustainability",
+      "weight": 20,
+      "requirement_ids": [
+        "R4",
+        "R8"
+      ]
+    },
+    {
+      "criterion": "Relevant experience",
+      "weight": 20,
+      "requirement_ids": [
+        "R5"
+      ]
+    },
+    {
+      "criterion": "Proposed team",
+      "weight": 10,
+      "requirement_ids": [
+        "R6"
+      ]
+    },
+    {
+      "criterion": "Price",
+      "weight": 15,
+      "requirement_ids": [
+        "R7"
+      ]
+    }
   ],
   "constraints": {
     "submission_deadline": "2026-09-04T12:00:00+01:00",
@@ -102,9 +175,20 @@
       "Group finance cannot consolidate month-end without manual reconciliation",
       "A prior 2023 consolidation attempt was halted after nine months"
     ],
-    "systems": ["SAP S/4HANA", "legacy JD Edwards (EMEA)", "legacy Infor (Americas)"],
+    "systems": [
+      "SAP S/4HANA",
+      "legacy JD Edwards (EMEA)",
+      "legacy Infor (Americas)"
+    ],
     "affected_population": 4200,
-    "geography": ["UK", "Germany", "Poland", "USA", "Mexico", "Malaysia"],
+    "geography": [
+      "UK",
+      "Germany",
+      "Poland",
+      "USA",
+      "Mexico",
+      "Malaysia"
+    ],
     "pain_points": [
       "Prior attempt left significant scepticism among plant operations teams",
       "No standing change capability in the Group Transformation Office",
@@ -121,8 +205,20 @@
     "Whether the halted 2023 attempt's impact assessment is available to the incoming partner."
   ],
   "sources": [
-    { "path": "inputs/ACM-2026-114-RFP.pdf", "kind": "rfp", "parsed_with": "pdf skill" },
-    { "path": "inputs/AnnexA-scope-schedule.xlsx", "kind": "annex", "parsed_with": "xlsx skill" },
-    { "path": "inputs/briefing-call-2026-08-04.md", "kind": "briefing-notes", "parsed_with": "read" }
+    {
+      "path": "inputs/ACM-2026-114-RFP.pdf",
+      "kind": "rfp",
+      "parsed_with": "pdf skill"
+    },
+    {
+      "path": "inputs/AnnexA-scope-schedule.xlsx",
+      "kind": "annex",
+      "parsed_with": "xlsx skill"
+    },
+    {
+      "path": "inputs/briefing-call-2026-08-04.md",
+      "kind": "briefing-notes",
+      "parsed_with": "read"
+    }
   ]
 }

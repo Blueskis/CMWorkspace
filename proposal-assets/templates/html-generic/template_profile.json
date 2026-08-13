@@ -19,7 +19,8 @@
           "name": "client",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "title",
@@ -27,7 +28,8 @@
           "name": "title",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "subtitle",
@@ -35,7 +37,8 @@
           "name": "subtitle",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "meta",
@@ -43,7 +46,8 @@
           "name": "meta",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         }
       ],
       "static_images": 0,
@@ -61,7 +65,8 @@
           "name": "kicker",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "title",
@@ -69,7 +74,8 @@
           "name": "title",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "body",
@@ -77,7 +83,8 @@
           "name": "body",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         }
       ],
       "static_images": 0,
@@ -95,7 +102,8 @@
           "name": "kicker",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "title",
@@ -103,7 +111,8 @@
           "name": "title",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "body",
@@ -111,7 +120,8 @@
           "name": "body",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "footer",
@@ -119,7 +129,8 @@
           "name": "footer",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         }
       ],
       "static_images": 0,
@@ -137,7 +148,8 @@
           "name": "kicker",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "title",
@@ -145,7 +157,8 @@
           "name": "title",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "left_heading",
@@ -153,7 +166,8 @@
           "name": "left_heading",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "left",
@@ -161,7 +175,8 @@
           "name": "left",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "right_heading",
@@ -169,7 +184,8 @@
           "name": "right_heading",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "right",
@@ -177,7 +193,8 @@
           "name": "right",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "footer",
@@ -185,7 +202,8 @@
           "name": "footer",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         }
       ],
       "static_images": 0,
@@ -203,7 +221,8 @@
           "name": "kicker",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "title",
@@ -211,7 +230,8 @@
           "name": "title",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "situation",
@@ -219,7 +239,8 @@
           "name": "situation",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "action",
@@ -227,7 +248,8 @@
           "name": "action",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "outcome",
@@ -235,7 +257,8 @@
           "name": "outcome",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "metrics",
@@ -243,7 +266,8 @@
           "name": "metrics",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "footer",
@@ -251,7 +275,8 @@
           "name": "footer",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         }
       ],
       "static_images": 0,
@@ -269,7 +294,8 @@
           "name": "kicker",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "title",
@@ -277,7 +303,8 @@
           "name": "title",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "body",
@@ -285,7 +312,8 @@
           "name": "body",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "metrics",
@@ -293,7 +321,8 @@
           "name": "metrics",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "footer",
@@ -301,7 +330,8 @@
           "name": "footer",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         }
       ],
       "static_images": 0,
@@ -319,7 +349,8 @@
           "name": "kicker",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "title",
@@ -327,7 +358,8 @@
           "name": "title",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "body",
@@ -335,7 +367,8 @@
           "name": "body",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "table",
@@ -343,7 +376,8 @@
           "name": "table",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "footer",
@@ -351,7 +385,8 @@
           "name": "footer",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         }
       ],
       "static_images": 0,
@@ -369,7 +404,8 @@
           "name": "kicker",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "title",
@@ -377,7 +413,8 @@
           "name": "title",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "body",
@@ -385,7 +422,8 @@
           "name": "body",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "phases",
@@ -393,7 +431,8 @@
           "name": "phases",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "footer",
@@ -401,7 +440,8 @@
           "name": "footer",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         }
       ],
       "static_images": 0,
@@ -419,7 +459,8 @@
           "name": "kicker",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "title",
@@ -427,7 +468,8 @@
           "name": "title",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "members",
@@ -435,7 +477,8 @@
           "name": "members",
           "required": true,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         },
         {
           "type": "footer",
@@ -443,7 +486,8 @@
           "name": "footer",
           "required": false,
           "prompt_text": null,
-          "geometry": null
+          "geometry": null,
+          "font_size_pt": null
         }
       ],
       "static_images": 0,

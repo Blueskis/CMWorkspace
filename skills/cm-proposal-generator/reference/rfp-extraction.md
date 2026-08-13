@@ -1,6 +1,18 @@
 # RFP Extraction Guide
 
-How to turn an RFP document into `rfp_brief.json`. Read this in Stage 1.
+How to turn an RFP document into `rfp_brief.json`. Read this in Stage 2, after triage.
+
+## Before extracting: which parts are ours?
+
+On anything bigger than a CM-specific chapter, run `scripts/triage_rfp.py` first and read
+both of its lists. Extraction is expensive attention, and spending it on the procurement
+timetable while the training obligation sits unnoticed in the service-levels annex is the
+failure this guards against.
+
+Record the outcome in `cm_scope`: the sections in scope, the sections **read and
+excluded** with a reason, and the parts the tender cross-references that we were never
+sent. The excluded list is what makes the read auditable — a section in neither list was
+never looked at, which is not the same as a section that was looked at and dismissed.
 
 ## What to pull out
 
@@ -29,17 +41,40 @@ desirable). Mandatory failures are usually disqualifying; desirables are scored.
 RFP uses its own terminology (M/D, Essential/Desirable, Pass-Fail), record that in
 `raw_priority` alongside the normalised value.
 
+### Requirement `kind` — what answering it actually means
+
+Priority says how badly we need to answer. `kind` says what answering *is*, and they are
+independent:
+
+| kind | Reads like | Answered by |
+|---|---|---|
+| `proposal-content` | "the Tenderer shall provide a Transition Management plan" | A slide describing it |
+| `delivery-obligation` | "the Contractor shall collect evaluation forms within seven days" | A commitment inside the relevant approach section |
+| `commercial-constraint` | "at no additional cost to the Authority" | An explicit acknowledgement in commercials |
+| `submission-rule` | "responses must be PDF, 20 pages maximum, named `<ref>`-CM.pdf" | The deck itself. No slide covers it. |
+
+**The tender's own pronouns usually tell you.** Where a document distinguishes *the
+Tenderer* (the bidder, writing this response) from *the Contractor* (the party after
+award), that distinction maps almost directly onto the first two kinds. Where it doesn't
+distinguish, read the verb: describing, proposing and evidencing are proposal content;
+collecting, delivering and maintaining are delivery obligations.
+
+Only `submission-rule` is exempt from slide coverage in Stage 6 — the other three all need
+a home in the deck. So when a requirement could plausibly be two kinds, the cost of
+choosing wrong is small in every direction except one: do not mark something
+`submission-rule` unless it genuinely governs the document rather than the work.
+
 ### Evaluation criteria and weights
 Capture the criteria and their percentage weights verbatim. If weights aren't stated,
 record `"weight": null` — don't guess one.
 
 **Most CM tenders publish no weights at all.** That is normal, not a gap in your reading.
-When there are none, Stage 2 sizes the deck from `named_deliverables` instead, so capturing
+When there are none, Stage 3 sizes the deck from `named_deliverables` instead, so capturing
 those well becomes the important job.
 
 ### Named deliverables
 Every deliverable the RFP names, **verbatim and with its clause reference**, into
-`named_deliverables`. These do two jobs: they give each section its name (Stage 2 uses the
+`named_deliverables`. These do two jobs: they give each section its name (Stage 3 uses the
 client's term rather than imposing ours), and they size the deck when weights are absent.
 
 **Capture the name exactly as the client writes it** — capitalisation, qualifiers and all.
@@ -77,7 +112,7 @@ Submission deadline (with timezone — RFP deadlines are precise and unforgiving
 slide limit, file format, font/size minimums, naming convention for the submitted file,
 portal or email address for submission, question-deadline for clarifications.
 
-Slide limits and font minimums directly constrain Stage 2 and Stage 4. Extract them even
+Slide limits and font minimums directly constrain Stage 3 and Stage 5. Extract them even
 when they feel like boilerplate.
 
 ### Client context
@@ -94,7 +129,7 @@ Mark `"confidence": "inferred"` and write a `note` when:
 - A term is undefined ("comprehensive change support") in a way that materially changes
   the size of the work.
 
-**Never resolve a material ambiguity silently.** Surface it in the Stage 1 read-back — it
+**Never resolve a material ambiguity silently.** Surface it in the Stage 2 read-back — it
 is often worth a clarification question to the client before the question deadline, and
 that deadline is usually well before the submission deadline.
 
@@ -103,7 +138,7 @@ that deadline is usually well before the submission deadline.
 - **Don't merge requirements to tidy the list.** "Provide training and communications
   support" is two requirements; they'll be scored separately and may be covered by
   different sections.
-- **Don't drop requirements we can't meet.** Extract them, then let Stage 3 flag the
+- **Don't drop requirements we can't meet.** Extract them, then let Stage 4 flag the
   `[GAP]`. A requirement we can't meet is a bid/no-bid decision for the practitioner, not
   something to quietly omit.
 - **Don't paraphrase mandatory language.** Keep the client's own wording in `text` — it's

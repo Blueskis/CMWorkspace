@@ -4,7 +4,7 @@
     python retrieve.py kb_index.json --section methodology --tags workday,financial-services
     python retrieve.py kb_index.json --section case-studies --tags erp --top 3 --json
 
-v0.1 scoring is deliberately simple and explainable — literal tag overlap, weighted by
+Scoring is deliberately simple and explainable — literal tag overlap, weighted by
 section match and freshness. It is a shortlist generator, not a decision: the model reads
 the shortlisted entries and chooses what actually fits the slide.
 

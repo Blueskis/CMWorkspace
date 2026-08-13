@@ -1,6 +1,6 @@
 # Knowledge Bank
 
-Reusable proposal content. Stage 3 of `cm-proposal-generator` retrieves from here, and
+Reusable proposal content. Stage 4 of `cm-proposal-generator` retrieves from here, and
 nothing in a generated deck should come from anywhere else.
 
 Format and field rules: `skills/cm-proposal-generator/reference/knowledge-bank-guide.md`.
@@ -16,6 +16,11 @@ Schema: `skills/cm-proposal-generator/schemas/kb_entry.schema.json`.
 | `team/` | Practitioner bios and role profiles |
 | `commercials/` | Engagement models, rate-card structure, assumption boilerplate |
 | `boilerplate/` | Standard clauses — data protection, D&I, exec-summary scaffolds |
+| `past-rfps/` | What previous tenders taught us: recurring requirements, the client's own vocabulary, and whether the response won |
+| `presentations/` | Slide-shaped content that worked, drawn from past decks |
+
+File by what the content **is**, not where it came from: a case study lifted from a deck
+belongs in `case-studies/`. Retrieval scopes by folder, so filing by provenance hides it.
 
 ## Contents
 
@@ -31,3 +36,14 @@ python skills/cm-proposal-generator/scripts/retrieve.py kb_index.json --section 
 ```
 
 Re-index after adding or editing entries — retrieval reads the index, not the files.
+
+## Ingesting a past deck or tender
+
+```bash
+python skills/cm-proposal-generator/scripts/ingest_source.py past-bids/retail-2025.pptx \
+    -o proposal-assets/knowledge-bank/presentations/retail-2025.md --outcome won
+```
+
+Handles `.pptx`, `.docx`, `.md`, `.txt`. Writes a **draft** marked `internal-only` with
+metrics unverified, so it cannot be retrieved into a bid until somebody splits it into
+single-idea entries, checks the numbers, and clears it.

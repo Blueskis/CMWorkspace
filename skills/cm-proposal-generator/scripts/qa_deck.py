@@ -1,12 +1,18 @@
 #!/usr/bin/env python3
-"""Stage 5 audit of a proposal plan: requirement coverage and content provenance.
+"""Stage 6 audit of a proposal plan: requirement coverage and content provenance.
 
     python qa_deck.py rfp_brief.json proposal_plan.json -o qa_report.md
 
-This covers checks 1 and 2 of Stage 5 — the ones that are mechanical and must not be
-done by eye. Check 3 (template fidelity, file validity, visual QA) runs through the pptx
-skill's own QA tooling against the built .pptx; this script prints that checklist rather
-than duplicating it.
+This audits the *plan*. `qa_pptx.py` audits the built file — package integrity, template
+fidelity, overflow — and both are required before handover; this script prints the command
+for the other rather than duplicating its checks.
+
+Coverage is scored by requirement `kind`, because "answered" is not one thing. A
+`submission-rule` ("responses must be PDF, named <ref>-CM.pdf") is a real requirement that
+no slide can cover — the deck as an artifact complies with it. Counting those against
+slide coverage produces a report that can never reach PASS, and a report that can never
+pass is a report nobody reads, which is how the genuinely uncovered requirement beside it
+gets missed. They are listed separately, as a pre-submission checklist.
 
 Exits non-zero if any mandatory requirement is uncovered or any content block lacks both
 sources and a gap marker — those are hard failures, not warnings.
@@ -16,6 +22,9 @@ import argparse
 import json
 import sys
 from pathlib import Path
+
+
+SLIDE_KINDS = ("proposal-content", "delivery-obligation", "commercial-constraint")
 
 
 def audit(brief, plan):
@@ -40,12 +49,22 @@ def audit(brief, plan):
                 elif not block.get("sources"):
                     blocks_missing_provenance.append(where)
 
-    uncovered = [rid for rid in requirements if rid not in covered]
+    # A submission rule ("responses must be PDF, 20 pages, named <ref>-CM.pdf") is a
+    # requirement, but no slide answers it — the deck as an artifact does. Holding it to
+    # the slide-coverage test produces a permanently failing report that gets ignored,
+    # which is how the genuinely uncovered requirement next to it gets missed.
+    needs_slide = [rid for rid, r in requirements.items()
+                   if r.get("kind", "proposal-content") in SLIDE_KINDS]
+    document_rules = [rid for rid in requirements if rid not in needs_slide]
+
+    uncovered = [rid for rid in needs_slide if rid not in covered]
     unknown = [rid for rid in covered if rid not in requirements]
 
     return {
         "requirements": requirements,
         "covered": covered,
+        "needs_slide": needs_slide,
+        "document_rules": document_rules,
         "uncovered": uncovered,
         "unknown": unknown,
         "gaps": gaps,
@@ -65,9 +84,22 @@ def render(result, plan):
         "",
         f"**Status:** {'FAIL — must fix before handover' if hard_fail else 'PASS (mechanical checks)'}",
         "",
+    ]
+
+    needs_slide = set(result["needs_slide"])
+    mapped = len(needs_slide & set(result["covered"]))
+    rules = len(result["document_rules"])
+    tail = "."
+    if rules:
+        tail = (f"; {rules} further requirement{'s' if rules > 1 else ''} "
+                f"govern{'' if rules > 1 else 's'} the response document itself and "
+                f"{'are' if rules > 1 else 'is'} checked against the deck instead.")
+
+    lines += [
         "## 1. Requirement coverage",
         "",
-        f"{len(result['covered'])} of {len(reqs)} requirements mapped to a section.",
+        f"{mapped} of {len(needs_slide)} requirements that need a slide are mapped to a "
+        f"section{tail}",
         "",
     ]
 
@@ -77,9 +109,22 @@ def render(result, plan):
         for rid in sorted(result["uncovered"], key=lambda r: int(r[1:])):
             req = reqs[rid]
             mark = "**MANDATORY**" if req.get("priority") == "mandatory" else "desirable"
-            lines += [f"- `{rid}` ({mark}) — {req['text']}", ""]
+            kind = req.get("kind", "proposal-content")
+            lines += [f"- `{rid}` ({mark}, {kind}) — {req['text']}", ""]
     else:
-        lines += ["Every requirement is mapped.", ""]
+        lines += ["Every requirement that needs a slide is mapped.", ""]
+
+    if result["document_rules"]:
+        lines += [
+            "### Rules about the response document itself",
+            "",
+            "No slide covers these; the deck has to comply with them. Check each before "
+            "submission:",
+            "",
+        ]
+        for rid in sorted(result["document_rules"], key=lambda r: int(r[1:])):
+            lines.append(f"- [ ] `{rid}` — {reqs[rid]['text']}")
+        lines.append("")
 
     if result["unknown"]:
         lines += [
@@ -126,8 +171,12 @@ def render(result, plan):
             "",
         ] + [f"- {s}" for s in budget["cut_for_length"]] + [""]
 
-    html_path = str(plan.get("template", {}).get("path", "")).endswith(("html-generic",)) or \
-        plan.get("template", {}).get("kind") == "html"
+    # The plan names the template it was built against; a .potx/.pptx path means the
+    # pptx path even when the plan predates this field.
+    template = plan.get("template", {})
+    template_path = str(template.get("path", ""))
+    html_path = (template.get("kind") == "html"
+                 or not template_path.lower().endswith((".potx", ".pptx")))
 
     if html_path:
         lines += [
@@ -150,14 +199,22 @@ def render(result, plan):
         ]
     else:
         lines += [
-            "## Remaining checks (run against the built .pptx via the pptx skill)",
+            "## Remaining checks (run against the built .pptx)",
             "",
-            "- [ ] `markitdown proposal.pptx` — content order, typos, missing content",
-            "- [ ] placeholder grep for leftover template text (`lorem`, `[insert`, `xxx`, `TODO`)",
-            "- [ ] `validate.py proposal.pptx --original <approved-template>` — always pass `--original`",
-            "- [ ] visual QA on rendered slides — overflow, overlap, margins",
-            "- [ ] template fidelity — fonts, colours and layouts still the approved template's",
+            "```bash",
+            f"python scripts/qa_pptx.py proposal.pptx --original {template_path or '<approved-template>'}",
+            "```",
+            "",
+            "That covers package integrity, template fidelity, text overflow and leftover",
+            "scaffolding mechanically. Always pass `--original`: without it nothing can",
+            "confirm the template's own master, layouts and theme were left alone.",
+            "",
+            "Then by eye:",
+            "",
+            "- [ ] open the deck and step through every slide at full size",
+            "- [ ] every `[GAP]` panel reads as an action, not as content",
             "- [ ] slide count within the RFP's limit; file named per its convention",
+            "- [ ] before sending to a client: re-render with `--sources hidden`",
             "",
         ]
 
@@ -192,7 +249,11 @@ def main():
         rid for rid in result["uncovered"] if reqs[rid].get("priority") == "mandatory"
     ]
 
-    print(f"Coverage: {len(result['covered'])}/{len(reqs)} requirements mapped")
+    needs_slide = set(result["needs_slide"])
+    print(f"Coverage: {len(needs_slide & set(result['covered']))}/{len(needs_slide)} "
+          f"requirements needing a slide are mapped"
+          + (f"  ({len(result['document_rules'])} document rule(s) listed separately)"
+             if result["document_rules"] else ""))
     print(f"Gaps: {len(result['gaps'])}   Unattributed blocks: {len(result['missing_provenance'])}")
     print(f"Report -> {args.out}")
 

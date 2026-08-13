@@ -1,26 +1,54 @@
 {
-  "_comment": "Example only. Copy to template_map.json next to your real template and replace the layout references with values from that template's profile (profile_template.py prints them). Layout refs may be a part stem (slideLayout3) or the layout's name.",
+  "_comment": "Example only. Copy to template_map.json next to your real template and replace every reference with values from that template's profile (profile_template.py prints them). This file is what lets a proposal plan written in the canonical vocabulary build onto a template that names everything differently — without rewriting the plan.",
+
   "template": "firm-proposal-template.potx",
-  "default_layout": "slideLayout2",
+
+  "_layout_aliases_note": "Canonical layout id -> the layout in YOUR template. Only needed where normalised matching fails: build_deck.py already matches 'title-slide' to a layout named 'Title Slide' on its own. List the ones that genuinely differ.",
+  "layout_aliases": {
+    "section-header": "Divider",
+    "case-study": "Client Story",
+    "metric-row": "Big Numbers",
+    "team-grid": "People"
+  },
+
+  "_placeholder_aliases_note": "Canonical placeholder -> the placeholder on YOUR layout, which may be a name or an idx. '*' applies to every layout; a layout name scopes an alias to that layout only, and wins over '*'.",
+  "placeholder_aliases": {
+    "*": {
+      "kicker": "Eyebrow",
+      "footer": "Footer Placeholder 4"
+    },
+    "Two Content": {
+      "left": "Content Placeholder 2",
+      "right": "Content Placeholder 3"
+    },
+    "Client Story": {
+      "situation": "Content Placeholder 2",
+      "action": "Content Placeholder 3",
+      "outcome": "Content Placeholder 4"
+    }
+  },
+
+  "_sections_note": "Advisory, for Stage 2: which layout each section should normally use. Not enforced by the scripts.",
   "sections": {
-    "cover": { "layout": "Title Slide", "notes": "Client name, RFP reference, date" },
+    "cover": { "layout": "Title Slide", "notes": "Client legal name, RFP reference, date" },
     "executive-summary": { "layout": "Title and Content" },
     "understanding": { "layout": "Two Content", "notes": "Their drivers left, our read right" },
     "methodology": { "layout": "Process Flow", "notes": "Phase diagram — not bullets" },
     "stakeholder-engagement": { "layout": "Two Content" },
     "training": { "layout": "Title and Content" },
     "governance": { "layout": "Table" },
-    "case-studies": { "layout": "Case Study", "notes": "One per slide; metric callout" },
-    "team": { "layout": "Team Grid", "notes": "Delete unused member groups entirely — image and text boxes both" },
+    "case-studies": { "layout": "Client Story", "notes": "One per slide; metric callout" },
+    "team": { "layout": "People", "notes": "Delete unused member groups entirely — image and text boxes both" },
     "delivery-plan": { "layout": "Timeline" },
     "commercials": { "layout": "Table" },
-    "why-us": { "layout": "Section Header" },
+    "why-us": { "layout": "Divider" },
     "compliance-matrix": { "layout": "Table" }
   },
+
   "rules": {
     "vary_layouts": true,
     "_vary_layouts_note": "Never run more than two consecutive slides on the same layout — mapped sections spanning 3+ slides should alternate.",
     "respect_theme_fonts": true,
-    "_respect_theme_fonts_note": "Inherit fonts and colours from the template theme. Do not set explicit fonts or hex colours; that is how a deck silently drifts off-template."
+    "_respect_theme_fonts_note": "Inherit fonts and colours from the template theme. render_pptx.py sets neither on a slide, and qa_pptx.py fails the deck if any slide does — that is how a deck silently drifts off-template."
   }
 }

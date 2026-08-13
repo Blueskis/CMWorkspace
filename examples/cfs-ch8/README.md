@@ -39,12 +39,25 @@ be answered without them.
 (a)–(n), and 3.1.2(a) has six components of its own. This tests the extraction rule about
 not merging requirements to tidy the list.
 
-**Requirement types are mixed.** Some are content for the proposal (*the Tenderer shall
-provide a Transition Management plan*), some are delivery obligations for after award
-(*the Contractor shall collect evaluation forms within seven days*), and some are
-commercial constraints (*at no additional cost to the Authority*, which appears six times).
-The current schema does not distinguish these, and it should — a delivery obligation is
-not something a proposal slide "covers".
+**Requirement types are mixed**, and v0.2 records the difference. Some are content for the
+proposal (*the Tenderer shall provide a Transition Management plan*), some are delivery
+obligations for after award (*the Contractor shall collect evaluation forms within seven
+days*), and some are commercial constraints (*at no additional cost to the Authority*).
+v0.1's schema could not tell them apart, which meant treating a delivery obligation as
+something a slide "covers".
+
+The `kind` on each requirement here follows the chapter's own pronouns — *the Tenderer* is
+the bidder writing the response, *the Contractor* the party after award — with anything
+carrying "at no additional cost" marked commercial:
+
+| kind | Count |
+|---|---|
+| `proposal-content` | 30 |
+| `delivery-obligation` | 29 |
+| `commercial-constraint` | 4 |
+
+No requirement here is a `submission-rule`, which is itself informative: the rules about
+the response document live in the instructions-to-tenderers part, which we were not given.
 
 ## Files
 
@@ -52,21 +65,35 @@ not something a proposal slide "covers".
 |---|---|
 | `inputs/…Change-Mgt-and-Training.pdf` | The source chapter, metadata stripped |
 | `inputs/…Change-Mgt-and-Training.txt` | Extracted text, page-marked |
-| `rfp_brief.json` | Stage 1 output — 63 requirements, 6 open questions |
+| `rfp_triage.json` | Stage 1 output — 52 sections scored for CM relevance |
+| `rfp_brief.json` | Stage 2 output — 63 requirements, 6 open questions |
 
-## Reproduce Stage 1
+## Reproduce Stages 1–2
 
 ```bash
+# Extract the text (the pdf skill, or pypdf directly)
 python3 -c "
 import pypdf
 r = pypdf.PdfReader('examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.pdf')
 print('\n'.join(p.extract_text() for p in r.pages))"
+
+# Stage 1 — triage
+python skills/cm-proposal-generator/scripts/triage_rfp.py \
+    examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt \
+    -o examples/cfs-ch8/rfp_triage.json
 ```
 
 Then extract per `skills/cm-proposal-generator/reference/rfp-extraction.md`.
 
-## Known blocker for Stages 2–5
+**Triage on a CM-only chapter is a degenerate case** — every section scores CM-relevant,
+because every section is. That is the correct answer and a useful control: the interesting
+run is a full multi-part tender, where the set-aside list is most of the document. What it
+does earn its keep for here is ranking: clause 3.1.2 comes out far ahead of everything
+else, which is exactly the fourteen-sub-clause deliverable Stage 3 should size the deck
+around.
+
+## Known blocker for Stages 3–6
 
 Section sizing depends on evaluation weights this chapter does not contain. Either supply
-the instructions-to-tenderers part, or accept an unweighted outline and record the
-assumption. Do not invent weights.
+the instructions-to-tenderers part, or size from `named_deliverables` and the triage
+ranking and record the assumption. Do not invent weights.

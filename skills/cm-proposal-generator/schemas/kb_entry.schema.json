@@ -16,7 +16,7 @@
       "type": "array",
       "minItems": 1,
       "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
-      "description": "Retrieval surface. v0.1 matches tags literally, so vocabulary must be consistent across entries."
+      "description": "Retrieval surface. Tags are matched literally, so vocabulary must be consistent across entries."
     },
     "clearance": {
       "enum": ["named", "anonymised", "internal-only"],
@@ -37,6 +37,29 @@
     "section": {
       "type": "string",
       "description": "Normally derived from the containing folder; set explicitly only to override"
+    },
+    "source_document": {
+      "type": "string",
+      "description": "Where the entry's content came from — a past bid deck, a tender response, a methodology document. Set by ingest_source.py and kept, because an entry drafted from a real artifact should be traceable back to it."
+    },
+    "bid": {
+      "type": "object",
+      "description": "For past-rfps and presentations entries: what this was bid for and how it went. Outcome is the field that makes the bank worth keeping — reusing language from a lost bid without knowing it lost is worse than writing fresh.",
+      "properties": {
+        "client_ref": { "type": "string", "description": "Client, or an anonymised handle when clearance is not 'named'" },
+        "sector": { "type": "string" },
+        "submitted": { "type": "string", "format": "date" },
+        "outcome": {
+          "enum": ["won", "lost", "no-bid", "withdrawn", "pending", "unknown"],
+          "description": "Never guess. 'unknown' is a usable value; a wrong 'won' is not."
+        },
+        "outcome_notes": { "type": "string", "description": "Scored feedback, debrief points, what the evaluators praised or marked down" },
+        "sections_that_scored": {
+          "type": "array",
+          "description": "Sections the client's feedback singled out. The highest-value thing a past bid can tell the next one.",
+          "items": { "type": "string" }
+        }
+      }
     },
     "supersedes": {
       "type": "array",

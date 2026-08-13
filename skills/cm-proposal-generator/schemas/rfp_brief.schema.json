@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "rfp_brief.schema.json",
   "title": "RFP Brief",
-  "description": "Structured extraction of an RFP and accompanying client inputs. Stage 1 output.",
+  "description": "Structured extraction of an RFP and accompanying client inputs. Stage 2 output.",
   "type": "object",
   "required": ["client", "engagement", "requirements", "constraints", "sources"],
   "properties": {
@@ -29,13 +29,18 @@
     },
     "requirements": {
       "type": "array",
-      "description": "Every distinct ask. IDs are the spine of the run — Stage 2 maps to them, Stage 5 checks coverage against them.",
+      "description": "Every distinct ask. IDs are the spine of the run — Stage 3 maps to them, Stage 6 checks coverage against them.",
       "items": {
         "type": "object",
         "required": ["id", "text", "priority", "confidence", "origin"],
         "properties": {
           "id": { "type": "string", "pattern": "^R[0-9]+$" },
           "text": { "type": "string", "description": "The client's own wording, not a paraphrase" },
+          "kind": {
+            "enum": ["proposal-content", "delivery-obligation", "commercial-constraint", "submission-rule"],
+            "default": "proposal-content",
+            "description": "What answering it actually means, which is not the same for every requirement. proposal-content: the response must describe something ('the Tenderer shall provide a Transition Management plan') — a slide covers it. delivery-obligation: something we must do after award ('the Contractor shall collect evaluation forms within seven days') — the deck commits to it, usually inside the relevant approach section. commercial-constraint: a pricing or cost condition ('at no additional cost to the Authority') — belongs in commercials. submission-rule: governs the response document itself (format, page limit, naming) — no slide covers it; Stage 6 checks the deck against it instead."
+          },
           "priority": { "enum": ["mandatory", "desirable"] },
           "raw_priority": { "type": "string", "description": "The RFP's own term, e.g. 'M', 'Essential', 'Pass/Fail'" },
           "confidence": { "enum": ["stated", "inferred"] },
@@ -49,6 +54,45 @@
               "page": { "type": "integer" }
             }
           }
+        }
+      }
+    },
+    "cm_scope": {
+      "type": "object",
+      "description": "Which parts of the RFP the CM response actually answers. Stage 2 writes this from triage_rfp.py plus its own read. It exists so the decision to leave a clause out is recorded rather than implied — on a full multi-part tender most of the document is not CM's to answer, and the risk is dropping the one buried clause that is.",
+      "properties": {
+        "triage_ref": { "type": "string", "description": "Path to rfp_triage.json, when the triage script was run" },
+        "in_scope_sections": {
+          "type": "array",
+          "description": "Clauses or chapters the CM response answers, in the RFP's own numbering",
+          "items": {
+            "type": "object",
+            "required": ["ref"],
+            "properties": {
+              "ref": { "type": "string", "description": "Clause or section reference, e.g. '3.1.2(g)' or 'Part 2, Ch 8'" },
+              "heading": { "type": "string" },
+              "why": { "type": "string", "description": "What makes it CM's to answer" },
+              "requirement_ids": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "reviewed_and_excluded": {
+          "type": "array",
+          "description": "Sections read and judged not CM's to answer. Recording them is the point: a section absent from both lists was never read.",
+          "items": {
+            "type": "object",
+            "required": ["ref", "why"],
+            "properties": {
+              "ref": { "type": "string" },
+              "heading": { "type": "string" },
+              "why": { "type": "string", "description": "e.g. 'hardware warranty terms — no change or training content'" }
+            }
+          }
+        },
+        "not_supplied": {
+          "type": "array",
+          "description": "Parts the RFP cross-references that we were not given. Each is a hole in the read, not an absence of requirements.",
+          "items": { "type": "string" }
         }
       }
     },
@@ -76,7 +120,7 @@
         "min_font_size": { "type": ["number", "null"] },
         "prescribed_structure": {
           "type": "array",
-          "description": "Response structure the RFP mandates. When present, Stage 2 mirrors this order.",
+          "description": "Response structure the RFP mandates. When present, Stage 3 mirrors this order.",
           "items": { "type": "string" }
         },
         "submission_channel": { "type": "string" }

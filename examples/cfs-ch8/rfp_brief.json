@@ -1,12 +1,12 @@
 {
-  "_comment": "SAMPLE INPUT \u2014 a real tender requirements chapter, anonymised at source: all parties appear as generic roles (the Authority, the Contractor, the Tenderer, Licensees). This is ONE CHAPTER of a multi-part tender, which is why the constraints block is largely empty. See open_questions.",
+  "_comment": "SAMPLE INPUT — a real tender requirements chapter, anonymised at source: all parties appear as generic roles (the Authority, the Contractor, the Tenderer, Licensees). This is ONE CHAPTER of a multi-part tender, which is why the constraints block is largely empty. See open_questions.",
   "client": {
     "legal_name": "Not stated in this chapter (referred to throughout as 'the Authority')",
     "sector": "public sector / government",
     "issuing_department": "not stated"
   },
   "engagement": {
-    "title": "Change Management and Training \u2014 Requirement Specifications Part 2, Chapter 8",
+    "title": "Change Management and Training — Requirement Specifications Part 2, Chapter 8",
     "rfp_reference": "not stated in this chapter",
     "term": "Through to the end of the Solution Warranty Period for the last Licensee onboarded"
   },
@@ -14,6 +14,7 @@
     {
       "id": "R1",
       "text": "The Contractor shall lead and execute change management activities to ensure stakeholder readiness prior to each phase of Licensee onboarding, adapting approaches throughout the phased implementation up to the end of the Solution Warranty Period for the last Licensee onboarded.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -25,6 +26,7 @@
     {
       "id": "R2",
       "text": "The Contractor shall develop a stakeholder engagement strategy and Change Management plan addressing the varying levels of concern across different stakeholder groups.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -36,6 +38,7 @@
     {
       "id": "R3",
       "text": "The Contractor shall ensure stakeholders understand the need for change and the impact of new working procedures.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -47,6 +50,7 @@
     {
       "id": "R4",
       "text": "The Contractor shall ensure stakeholders are well-informed and aligned on project activities to enable a smooth transition with minimal operational disruption.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -58,6 +62,7 @@
     {
       "id": "R5",
       "text": "The Tenderer shall propose a Change Management Team led by a Contractor Change Manager, with expertise and experience to partner with the Authority across the project lifecycle.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -69,6 +74,7 @@
     {
       "id": "R6",
       "text": "The Tenderer shall clearly define the reporting hierarchy and organisational structure of the Change Management Team, including reporting relationships with the Authority's project team and other contractor teams.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -80,6 +86,7 @@
     {
       "id": "R7",
       "text": "Appointment of the Change Manager and key Change Management Team members shall be subject to the Authority's approval.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -91,6 +98,7 @@
     {
       "id": "R8",
       "text": "The Contractor shall ensure minimal changes to Change Management Team composition, and shall not change the Change Manager or key members without prior written Authority approval.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -102,6 +110,7 @@
     {
       "id": "R9",
       "text": "Where subcontractors are engaged for change management activities, the Contractor shall detail how they will be managed and trained to ensure obligations are met.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -113,6 +122,7 @@
     {
       "id": "R10",
       "text": "The Change Manager shall collaborate with the development and design team so change management considerations are integrated throughout development.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -124,6 +134,7 @@
     {
       "id": "R11",
       "text": "The Change Manager shall provide ongoing guidance to the development team on stakeholder requirements and user experience factors facilitating adoption.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -135,6 +146,7 @@
     {
       "id": "R12",
       "text": "The Change Management team shall review and ensure consistency and coherence in all messaging and communications materials prior to Authority approval and release.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -146,6 +158,7 @@
     {
       "id": "R13",
       "text": "The Tenderer shall propose a Change Management Plan covering the entire project lifecycle: implementation, post go-live BAU (including PGP and SWP), and maintenance services including new releases and patches.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -157,6 +170,7 @@
     {
       "id": "R14",
       "text": "The Tenderer shall provide a Change Management Strategy and Approach covering Planning (including a capability building plan with just-in-time coaching and mentoring), Evaluation (including change impact analysis across the Authority and Licensees), Communication Strategy (a compelling change narrative), Implementation Schedule, Post-Implementation Review (including pulse check surveys every six months or aligned to milestones), and Change Agent Identification and Training.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -168,6 +182,7 @@
     {
       "id": "R15",
       "text": "The Tenderer shall provide a Change Management Team Structure defining roles and responsibilities of the Contractor team, Subcontractors, the Authority and Licensees.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -179,6 +194,7 @@
     {
       "id": "R16",
       "text": "The Tenderer shall provide a detailed Stakeholder Engagement Plan including methods of engagement (dialogue sessions, seminars) and training approaches to ease onboarding.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -190,6 +206,7 @@
     {
       "id": "R17",
       "text": "The Tenderer shall provide a comprehensive Communications Plan detailing channels, materials development, coordination mechanisms and approval processes, and shall quote communication materials development as optional items.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -201,6 +218,7 @@
     {
       "id": "R18",
       "text": "The Tenderer shall provide a Transition Management plan.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -212,6 +230,7 @@
     {
       "id": "R19",
       "text": "The Tenderer shall provide a Change Readiness Assessment.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -223,6 +242,7 @@
     {
       "id": "R20",
       "text": "The Tenderer shall provide a Change Impact Assessment.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -234,6 +254,7 @@
     {
       "id": "R21",
       "text": "The Tenderer shall provide a Change Intervention plan.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -245,6 +266,7 @@
     {
       "id": "R22",
       "text": "The Tenderer shall provide a Change Risk Management plan.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -256,6 +278,7 @@
     {
       "id": "R23",
       "text": "The Tenderer shall provide Change Management Activities and Schedule.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -267,6 +290,7 @@
     {
       "id": "R24",
       "text": "The Tenderer shall provide a User Training Plan and Materials.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -278,6 +302,7 @@
     {
       "id": "R25",
       "text": "The Tenderer shall provide a Success Measurement Framework specifying measurement objectives, timelines, indices and follow-up actions, covering change success during and beyond implementation.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -289,6 +314,7 @@
     {
       "id": "R26",
       "text": "The Tenderer shall provide a Handover plan enabling the Authority team to sustain and institutionalise the change within three months before the end of the SWP for the last Licensee onboarded.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -300,6 +326,7 @@
     {
       "id": "R27",
       "text": "The Tenderer shall provide a cost breakdown for all Change Management activities as set out in Part 3, Annex I.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -311,6 +338,7 @@
     {
       "id": "R28",
       "text": "The Contractor shall work with the Authority to leverage policy makers, stakeholders and change networks to develop and customise communications and materials.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -322,6 +350,7 @@
     {
       "id": "R29",
       "text": "The Change Management team shall track and coordinate all communications from all channels and sources.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -333,6 +362,7 @@
     {
       "id": "R30",
       "text": "The Contractor shall prepare all engagement and communication materials (including EDMs, posters, briefing slides) and obtain Authority approval at least five working days before engagement commencement.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -344,6 +374,7 @@
     {
       "id": "R31",
       "text": "The Contractor shall analyse issues related to system usage or adoption during implementation and propose additional change management measures to address them.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -355,6 +386,7 @@
     {
       "id": "R32",
       "text": "The Contractor shall provide timely reviews tracking KPIs and a post-implementation report one month after each Licensee is onboarded, covering key successes and challenges, review findings, and recommendations for sustaining change.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -366,6 +398,7 @@
     {
       "id": "R33",
       "text": "At the Authority's request, the Contractor shall conduct briefings and updates to stakeholders at relevant platforms.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall (on request)",
       "confidence": "stated",
@@ -377,6 +410,7 @@
     {
       "id": "R34",
       "text": "The Contractor shall ensure materials do not infringe third-party IP rights and shall indemnify the Authority against IP infringement claims.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -388,6 +422,7 @@
     {
       "id": "R35",
       "text": "The Tenderer shall propose, as an option for the Authority to exercise, a Change Sustenance Plan covering stakeholder management, adoption strategy, engagement and communications, governance and team structure, a support framework for behavioural interventions, capability building, tools and resources, success measurement indicators, and a handover plan.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall (optional scope)",
       "confidence": "stated",
@@ -399,6 +434,7 @@
     {
       "id": "R36",
       "text": "The Tenderer shall itemise the cost for the Change Sustenance scope as an option, as set out in Part 3, Annex I.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall (optional scope)",
       "confidence": "stated",
@@ -410,6 +446,7 @@
     {
       "id": "R37",
       "text": "The Contractor shall provide training meeting five objectives: enabling Authority users and nominated personnel to operate the Solution; enabling technical personnel to manage and maintain it; enabling technical personnel to understand the architecture and diagnose problems; enabling knowledge transfer from Contractor to Authority technical personnel; and any other necessary training.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -421,6 +458,7 @@
     {
       "id": "R38",
       "text": "The Contractor shall provide at least ten types of training: Product Overview and Business Process; Configuration for System modules; Business Rule; Application Security Administration Overview; System Maintenance Overview; Interface and Integration; Reports and Dashboards Overview; Senior Management pre-go-live briefings; Technical Training; and Training on Software and Tools.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -432,6 +470,7 @@
     {
       "id": "R39",
       "text": "The Contractor shall propose customised training for Authority-nominated personnel to enable smooth operation and management of the Solution.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -443,6 +482,7 @@
     {
       "id": "R40",
       "text": "The Contractor shall make amendments to training courses and materials as determined by the Authority, and replace any unsatisfactory instructor, at no additional cost and within the Authority's stipulated timeframe.",
+      "kind": "commercial-constraint",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -454,6 +494,7 @@
     {
       "id": "R41",
       "text": "The Contractor shall be responsible for setting up the entire training environment, including any equipment not available on site, where training is held at the Authority's premises.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -465,6 +506,7 @@
     {
       "id": "R42",
       "text": "The Contractor shall ensure training environment readiness and inform the Authority of any technical deficit at least three working days before a session.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -476,6 +518,7 @@
     {
       "id": "R43",
       "text": "The Contractor shall ensure all training instructors are suitably qualified, competent, well-spoken in English and well-versed in the System.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -487,6 +530,7 @@
     {
       "id": "R44",
       "text": "The medium of instruction and all training materials shall be in English.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -498,6 +542,7 @@
     {
       "id": "R45",
       "text": "For onsite training, the Contractor shall conduct all sessions in Singapore, and shall ensure materials are comprehensible to someone who has not attended the course.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -509,6 +554,7 @@
     {
       "id": "R46",
       "text": "The Tenderer shall include in its Tender Offer the type of training, target audience, duration, proposed number of sessions, trainees per session, schedule, and training charges and rates, in the format at Part 3 Annex I and Annex VII.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -520,6 +566,7 @@
     {
       "id": "R47",
       "text": "The Contractor shall ensure no more than thirty participants per training session unless otherwise agreed.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -531,6 +578,7 @@
     {
       "id": "R48",
       "text": "The Contractor shall provide all equipment, training materials and logistics coordination at no additional cost to the Authority.",
+      "kind": "commercial-constraint",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -542,6 +590,7 @@
     {
       "id": "R49",
       "text": "The Contractor shall administer registration and attendance of trainees at all sessions, and work with the Authority to adjust session details.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -553,6 +602,7 @@
     {
       "id": "R50",
       "text": "The Contractor shall provide all training materials (instructor's guide, slides, trainee's booklet) in soft copy and obtain Authority approval at least five working days before training commences.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -564,6 +614,7 @@
     {
       "id": "R51",
       "text": "The Authority shall own all training materials developed under the Contract, with the right to use them for in-house courses.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -575,6 +626,7 @@
     {
       "id": "R52",
       "text": "The Contractor shall provide each trainee with a complete set of training documents and materials in soft copy for retention.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -586,6 +638,7 @@
     {
       "id": "R53",
       "text": "The Contractor shall update training materials when needed, including to account for new modules, releases and patches.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -597,6 +650,7 @@
     {
       "id": "R54",
       "text": "The Contractor shall collect evaluation forms from all participants of each training session, ensure completion, and submit collated results to the Authority within seven days of each session.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -608,6 +662,7 @@
     {
       "id": "R55",
       "text": "Where more than fifty percent of feedback on a session is rated three or below on a six-point scale, the Contractor shall re-conduct the session at no additional cost if required by the Authority.",
+      "kind": "commercial-constraint",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -619,6 +674,7 @@
     {
       "id": "R56",
       "text": "The Contractor shall provide application training across roles including users, administrators and operators.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -630,6 +686,7 @@
     {
       "id": "R57",
       "text": "The Contractor shall provide training on the tools proposed by the Tenderer, walking through how they will be used in the project and the reports and results collected.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -641,6 +698,7 @@
     {
       "id": "R58",
       "text": "The Contractor shall provide and deliver, at no additional cost, an orientation programme for the Authority's project team personnel prior to the commencement of application software development.",
+      "kind": "commercial-constraint",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -652,6 +710,7 @@
     {
       "id": "R59",
       "text": "The Contractor shall provide the manpower and logistics for end-to-end delivery of the orientation programme, which may include venue, printing of materials, and coaches to facilitate group discussion and gamification.",
+      "kind": "delivery-obligation",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -663,6 +722,7 @@
     {
       "id": "R60",
       "text": "The Tenderer shall provide in the Tender Offer the orientation programme's total duration, proposed number of Authority attendees, proposed venue, and a broad-level schedule overview.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -674,6 +734,7 @@
     {
       "id": "R61",
       "text": "The Tenderer shall propose whether differentiated orientation programmes are needed for the Authority's working team and management team, articulating any separate tracks.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -685,6 +746,7 @@
     {
       "id": "R62",
       "text": "The orientation programme shall equip Authority personnel for the development phase, covering Agile methodology and milestones, key project roles, sprint definitions and ceremonies, and user stories with acceptance criteria.",
+      "kind": "proposal-content",
       "priority": "mandatory",
       "raw_priority": "shall",
       "confidence": "stated",
@@ -696,6 +758,7 @@
     {
       "id": "R63",
       "text": "The orientation programme should share common industry practices used during development, such as user research, backlog prioritisation and user story clarity techniques.",
+      "kind": "proposal-content",
       "priority": "desirable",
       "raw_priority": "should",
       "confidence": "stated",
@@ -746,7 +809,7 @@
   },
   "open_questions": [
     "No evaluation criteria or weights are published in this chapter, and CM tenders often publish none at all. Sections are therefore sized by named deliverable and clause emphasis (see named_deliverables), not by weight. If the instructions-to-tenderers part does carry weights, re-size before drafting.",
-    "This is Chapter 8 of a multi-part tender. Evaluation criteria and weights, the submission deadline, response format and any page or slide limit are not in this chapter \u2014 they will be in the instructions-to-tenderers part. Stage 2 cannot size sections by evaluation weight until those are supplied.",
+    "This is Chapter 8 of a multi-part tender. Evaluation criteria and weights, the submission deadline, response format and any page or slide limit are not in this chapter — they will be in the instructions-to-tenderers part. Stage 2 cannot size sections by evaluation weight until those are supplied.",
     "Clause 2.1.1 refers to Part 2 Chapter 4 Clause 6 for role descriptions and required skillsets. Not supplied; needed before the team section can be written.",
     "Clauses 3.1.3, 4.2.3 and 5.1.12 require pricing in the format at Part 3 Annex I and Annex VII. Neither annex is supplied.",
     "The number of Licensees, the onboarding phasing, and the affected population size are not stated. All three drive the size of the engagement and therefore every cost line.",

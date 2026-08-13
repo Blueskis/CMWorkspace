@@ -175,7 +175,7 @@ the knowledge-bank entry verbatim or not at all. Check `clearance` before naming
 client, and `metrics_verified` before quoting any number.
 
 A **compliance matrix** is worth adding unprompted to any tender with a numbered
-requirement schedule — it renders the Stage 5 coverage check in a form evaluators can score
+requirement schedule — it renders the Stage 6 coverage check in a form evaluators can score
 directly.
 
 ---
