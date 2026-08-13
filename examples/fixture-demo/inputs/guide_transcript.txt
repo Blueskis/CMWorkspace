@@ -1,0 +1,34 @@
+SYNTHETIC FIXTURE — an invented consultant guide track, transcribed as Synthesia would
+transcribe it on upload. Rough, unscripted, filler words already stripped. No real system,
+no real data, no client.
+
+This is the raw SME material Stage 2 writes narration from. Note how much of it is knowledge
+the screen alone does not carry — why a field is mandatory, what goes wrong if it is skipped,
+what people habitually get wrong. That is exactly the part worth capturing, and exactly the
+part a silent recording loses.
+
+---
+
+Okay so this is the launchpad, and everything we need is under Procurement. There are two
+tiles people mix up — Create Purchase Requisition, which is what we want, and My Requisitions
+which is just the list of ones you've already raised.
+
+Right, so Create Purchase Requisition. First line, material number goes in here. And you'll
+see the description and the unit of measure come through on their own, that's from the
+material master, so don't type over those. People do try and they get a validation error they
+don't understand.
+
+Sorry, that's the wrong tile, that's My Requisitions. Let me go back. Again.
+
+Now the important bit, account assignment. Cost centre. This is mandatory for anything
+stocked, and if you leave it blank the requisition just sits there — it won't release for
+approval and there's no error message telling you why, which is the number one thing the
+service desk gets called about. The G/L account fills itself in once the cost centre is there.
+
+And then save, and it takes a moment.
+
+Right, there we go, that's saved and it's gone off for approval.
+
+And that's your requisition number at the top, four five zero zero zero zero one two three
+four. You can check where it's got to under My Requisitions. Usually it moves overnight, so
+if it's still sitting there the next day, that's when you raise a ticket.

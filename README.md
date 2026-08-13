@@ -5,6 +5,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 | Skill | What it does |
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
+| `training-video-generator` | **v0.1 (PoC)** — a consultant's screen recording → a narrated, annotated training module built in Synthesia |
 
 ## Proposal generator (v0.1, MVP)
 
@@ -68,6 +69,69 @@ tag matching), and automated OOXML assembly — `build_deck.py` validates and se
 build, then the `pptx` skill's template workflow executes it. Output is always a **draft
 for practitioner review**, never a submission-ready document.
 
+## Training video generator (v0.1, PoC)
+
+Turns a screen recording a functional consultant made of a live system into a narrated,
+annotated training module, assembled in Synthesia with the practitioner's AI avatar.
+
+The division of labour is forced by access, and the design follows it:
+
+```
+consultant records ─▶ capture_map.json ─▶ video_script.json ─▶ build_sheet.md ─▶ qa_report.md
+   (system access)        INGEST               SCRIPT             SHEET            QA
+                                                            └─ Synthesia editor ─┘
+```
+
+Claude cannot record the demo — the client system is behind the consultant's credentials —
+and Synthesia does the compositing, avatar and voice. What sits in between is the slow,
+error-prone part: reading the footage frame by frame, writing narration that fits each scene's
+measured duration, and proving the result matches.
+
+Two invariants the QA stage enforces mechanically:
+
+- **Screen provenance** — every narration sentence asserting something about the system
+  traces to a keyframe someone actually read, or carries an explicit `[GAP]`. There's no
+  third state, so narration can't confidently say "click Save" over a screen with no Save
+  button.
+- **Capture coverage** — every second of the recording belongs to a scene, kept footage is
+  narrated, and dropped footage carries a stated reason. Nothing the consultant recorded
+  vanishes by accident.
+
+Plus fit (narration inside the word budget its scene duration allows — this is what keeps
+voice and screen in step) and consistency (objectives covered, glossary respected, annotations
+on-canvas and clear of the avatar).
+
+### Try it
+
+A complete worked example ships in `examples/fixture-demo/` — invented system, invented data.
+Stages 2–4 need no ffmpeg and no video:
+
+```bash
+cd examples/fixture-demo
+S=../../skills/training-video-generator/scripts
+
+python $S/fit_narration.py video_script.json
+python $S/qa_video.py capture_map.json video_script.json -o /tmp/qa_report.md
+```
+
+6 scenes, 1m06s, one open `[GAP]`. See that folder's README for what each part demonstrates,
+and how to break the fixture to confirm the checks actually fire.
+
+### Setup before real use
+
+1. **Send `reference/recording-guide.md` to the consultant before they record.** It is the
+   highest-leverage file in the skill — a recording made without it usually has to be redone.
+2. **Build the Synthesia template once** — avatar bottom-right, annotation styles, captions on
+   — per `reference/synthesia-build.md`. Every module inherits it.
+3. **Install ffmpeg** (Stage 1 only; `scripts/preflight.py` checks and tells you how).
+
+### What v0.1 does not do
+
+Record the demo, drive Synthesia by API (that needs Creator tier — there is no Synthesia MCP,
+and Starter has no API at all), speech recognition, multi-language, SCORM packaging, or
+batching modules. Output is always a **draft for practitioner review** — only the consultant
+who recorded the demo can confirm the narration is factually right about their system.
+
 ## Layout
 
 ```
@@ -77,11 +141,17 @@ skills/cm-proposal-generator/
 ├── schemas/              # rfp_brief, proposal_plan, kb_entry contracts
 └── scripts/              # index_kb, retrieve, profile_template, build_deck,
                           #   render_html, qa_deck
+skills/training-video-generator/
+├── SKILL.md              # the four-stage process
+├── reference/            # recording guide (for the consultant), Synthesia build guide
+├── schemas/              # capture_map, video_script contracts
+└── scripts/              # preflight, ingest_capture, fit_narration, build_sheet, qa_video
 proposal-assets/
 ├── templates/
 │   └── html-generic/     # PoC template: 9 layouts, theme, vendored reveal.js (MIT)
 └── knowledge-bank/       # methodology, case-studies, credentials, team, commercials, boilerplate
 examples/acme-erp/        # worked example — fictional client
+examples/fixture-demo/    # worked example — synthetic screen recording
 ```
 
 Scripts are stdlib-only and each runs standalone with `--help`.

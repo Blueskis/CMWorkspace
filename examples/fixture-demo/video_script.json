@@ -1,0 +1,111 @@
+{
+  "_comment": "SYNTHETIC FIXTURE — written against capture_map.json in this folder. Every narration line traces to a frame; S06 is a deliberate [GAP] showing what happens when the footage does not establish what the narration would need to say.",
+  "module": {
+    "slug": "pr-creation",
+    "title": "Raising a Purchase Requisition",
+    "system": "S/4HANA Fiori",
+    "audience": "Requisitioners",
+    "target_runtime": 300
+  },
+  "capture_map": "capture_map.json",
+  "wpm_band": [130, 165],
+  "objectives": [
+    {
+      "id": "O1",
+      "text": "Raise a purchase requisition for a stocked item from the Fiori launchpad"
+    },
+    {
+      "id": "O2",
+      "text": "Assign a cost centre so the requisition releases for approval"
+    }
+  ],
+  "glossary": [
+    {
+      "use": "Purchase Requisition",
+      "avoid": ["PR ticket", "requisition form", "purchase req"],
+      "note": "The client's term throughout. 'PR' is acceptable spoken only after the first full use."
+    },
+    {
+      "use": "cost centre",
+      "avoid": ["cost center"],
+      "note": "British spelling, per the client style guide"
+    }
+  ],
+  "scenes": [
+    {
+      "scene_id": "S01",
+      "role": "intro",
+      "objective_ids": ["O1"],
+      "capture": { "in": 0.0, "out": 12.0, "frame_ref": "frames/S01.png" },
+      "narration": "Welcome. In this module you'll raise a purchase requisition for a stocked item in S four HANA. We'll start from the Fiori launchpad and finish with a requisition number.",
+      "annotations": [
+        { "type": "lower_third", "text": "Priya Raman — Procurement Lead" }
+      ],
+      "avatar": { "visible": true, "position": "bottom-right", "framing": "box" }
+    },
+    {
+      "scene_id": "S02",
+      "role": "step",
+      "objective_ids": ["O1"],
+      "capture": { "in": 12.0, "out": 27.0, "frame_ref": "frames/S02.png" },
+      "narration": "Open the Procurement group and select Create Purchase Requisition. Enter the material number on the first line. The description and unit of measure fill in automatically from the material master, so leave those alone.",
+      "annotations": [
+        {
+          "type": "highlight",
+          "target": "Material field on line 1",
+          "rect": [0.1, 0.3, 0.22, 0.12]
+        },
+        { "type": "callout", "text": "Material number", "anchor": [0.34, 0.36] },
+        { "type": "step_counter", "text": "Step 1 of 3" }
+      ],
+      "avatar": { "visible": false, "position": "bottom-right", "framing": "box" }
+    },
+    {
+      "scene_id": "S04",
+      "role": "step",
+      "objective_ids": ["O2"],
+      "capture": { "in": 31.0, "out": 41.0, "frame_ref": "frames/S04.png" },
+      "narration": "Now assign the cost centre. This field is mandatory for stocked items, and the requisition will not release without a valid one.",
+      "annotations": [
+        {
+          "type": "highlight",
+          "target": "Cost Centre field",
+          "rect": [0.14, 0.44, 0.2, 0.1]
+        },
+        { "type": "callout", "text": "Mandatory for stocked items", "anchor": [0.38, 0.5] },
+        { "type": "step_counter", "text": "Step 2 of 3" }
+      ],
+      "avatar": { "visible": false, "position": "bottom-right", "framing": "box" }
+    },
+    {
+      "scene_id": "S05",
+      "role": "step",
+      "objective_ids": ["O1"],
+      "capture": { "in": 41.0, "out": 49.0, "frame_ref": "frames/S05.png" },
+      "silent": true,
+      "annotations": [],
+      "avatar": { "visible": false, "position": "bottom-right", "framing": "box" }
+    },
+    {
+      "scene_id": "S06",
+      "role": "step",
+      "objective_ids": ["O2"],
+      "capture": { "in": 49.0, "out": 56.0, "frame_ref": "frames/S06.png" },
+      "gap": true,
+      "gap_note": "The approval status chip is truncated at the frame edge, so the recording does not establish who a stocked-item requisition routes to. Consultant to confirm the routing rule before this scene is narrated.",
+      "annotations": [],
+      "avatar": { "visible": false, "position": "bottom-right", "framing": "box" }
+    },
+    {
+      "scene_id": "S07",
+      "role": "outro",
+      "objective_ids": ["O1"],
+      "capture": { "in": 56.0, "out": 70.0, "frame_ref": "frames/S07.png" },
+      "narration": "That's the requisition created, with its number shown in the page header. Check the approval status under My Requisitions tomorrow, and contact the service desk if it hasn't moved by then.",
+      "annotations": [
+        { "type": "callout", "text": "Requisition number", "anchor": [0.3, 0.18] }
+      ],
+      "avatar": { "visible": true, "position": "bottom-right", "framing": "box" }
+    }
+  ]
+}

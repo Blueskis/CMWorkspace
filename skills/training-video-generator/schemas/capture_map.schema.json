@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "capture_map.schema.json",
+  "title": "Capture Map",
+  "description": "What the consultant's screen recording actually contains, scene by scene. Stage 1 output. Scene boundaries come from ffmpeg scene detection; the descriptive fields come from Claude reading the extracted keyframes. The split matters: 'in'/'out' are measured, 'screen'/'action'/'observed' are read, and read_status says which scenes have actually been looked at.",
+  "type": "object",
+  "required": ["module", "source", "detection", "scenes"],
+  "properties": {
+    "module": {
+      "type": "object",
+      "required": ["slug", "title"],
+      "properties": {
+        "slug": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]*$",
+          "description": "Used in the run workspace directory name"
+        },
+        "title": { "type": "string", "description": "Learner-facing module title" },
+        "system": { "type": "string", "description": "The system being demonstrated, in the client's own naming, e.g. 'S/4HANA Fiori'" },
+        "audience": { "type": "string", "description": "Role the module is for, e.g. 'Requisitioners'" }
+      }
+    },
+    "source": {
+      "type": "object",
+      "description": "Measured by ffprobe. Never hand-written — if these are wrong every downstream timing is wrong.",
+      "required": ["path", "duration", "width", "height"],
+      "properties": {
+        "path": { "type": "string", "description": "Path to the recording, relative to the run workspace" },
+        "duration": { "type": "number", "exclusiveMinimum": 0, "description": "Seconds" },
+        "width": { "type": "integer", "exclusiveMinimum": 0 },
+        "height": { "type": "integer", "exclusiveMinimum": 0 },
+        "fps": { "type": "number", "exclusiveMinimum": 0 },
+        "probed_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "detection": {
+      "type": "object",
+      "description": "How the boundaries were found, recorded so a re-run with a different threshold is comparable.",
+      "required": ["threshold"],
+      "properties": {
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1,
+          "description": "ffmpeg select='gt(scene,N)' value. Raise it if the recording is split too finely, lower it if steps are being merged."
+        },
+        "boundaries_found": { "type": "integer", "minimum": 0 },
+        "manual_overrides": {
+          "type": "array",
+          "description": "Boundaries the practitioner added or removed by hand after reviewing the contact sheet",
+          "items": {
+            "type": "object",
+            "required": ["at", "action"],
+            "properties": {
+              "at": { "type": "number", "minimum": 0 },
+              "action": { "enum": ["added", "removed"] },
+              "reason": { "type": "string" }
+            }
+          }
+        }
+      }
+    },
+    "guide_transcript": {
+      "type": "string",
+      "description": "Path to the consultant's spoken walkthrough as transcribed by Synthesia on upload. The SME source for Stage 2 narration. Absent means the module was recorded silent and narration has no SME backing beyond the frames."
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Ordered, non-overlapping, and together covering the whole source duration. qa_video.py checks that tiling; gaps between scenes are a coverage failure, not a rounding detail.",
+      "items": {
+        "type": "object",
+        "required": ["scene_id", "in", "out", "duration", "disposition", "read_status"],
+        "properties": {
+          "scene_id": { "type": "string", "pattern": "^S[0-9]{2,}$" },
+          "in": { "type": "number", "minimum": 0, "description": "Seconds from the start of the source" },
+          "out": { "type": "number", "exclusiveMinimum": 0 },
+          "duration": { "type": "number", "exclusiveMinimum": 0, "description": "out - in, stored so downstream scripts need not recompute" },
+          "frame_ref": { "type": "string", "description": "Extracted keyframe. Required unless disposition is 'cut'." },
+          "disposition": {
+            "enum": ["keep", "cut", "accelerate"],
+            "description": "keep = narrate it. cut = drop it (dead air, mis-click, private data on screen). accelerate = keep but speed up, typically a loading spinner."
+          },
+          "disposition_note": {
+            "type": "string",
+            "description": "Required when disposition is 'cut' or 'accelerate'. Footage does not get dropped without a stated reason."
+          },
+          "screen": { "type": "string", "description": "What screen this is, in the system's own naming" },
+          "action": { "type": "string", "description": "What happens during the scene — the control acted on, the field filled" },
+          "observed": {
+            "type": "array",
+            "description": "Specific things visible in the frame that narration may safely refer to. Anything not listed here is not established by the frame.",
+            "items": { "type": "string" }
+          },
+          "read_status": {
+            "enum": ["read", "unread"],
+            "description": "'read' means the keyframe was actually looked at and screen/action/observed reflect it. 'unread' means the scene is a boundary stub only. Writing narration against an 'unread' scene is what invariant 1 exists to prevent."
+          }
+        }
+      }
+    }
+  }
+}

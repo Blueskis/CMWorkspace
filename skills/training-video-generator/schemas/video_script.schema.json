@@ -1,0 +1,164 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "video_script.schema.json",
+  "title": "Video Script",
+  "description": "The narration, annotations and avatar placement for one training module, one entry per Synthesia scene. Stage 2 output, and the artifact Stage 3 builds the Synthesia session from. Scene IDs and capture timings come from capture_map.json and must agree with it.",
+  "type": "object",
+  "required": ["module", "capture_map", "objectives", "scenes"],
+  "properties": {
+    "module": {
+      "type": "object",
+      "required": ["slug", "title"],
+      "properties": {
+        "slug": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+        "title": { "type": "string" },
+        "system": { "type": "string" },
+        "audience": { "type": "string" },
+        "target_runtime": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Seconds. A planning input, not an outcome — finished video is capped by the Synthesia credit budget, so an over-budget module gets split before it is built."
+        }
+      }
+    },
+    "capture_map": {
+      "type": "string",
+      "description": "Path to the capture_map.json this script was written against"
+    },
+    "objectives": {
+      "type": "array",
+      "minItems": 1,
+      "description": "What a learner should be able to do afterwards. Every keep-scene maps to at least one.",
+      "items": {
+        "type": "object",
+        "required": ["id", "text"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^O[0-9]+$" },
+          "text": { "type": "string", "description": "Behavioural — 'raise a purchase requisition for a stocked item', not 'understand requisitions'" }
+        }
+      }
+    },
+    "glossary": {
+      "type": "array",
+      "description": "Terminology fixed for the module. Same discipline the proposal skill applies to the client's naming convention: pick the client's term and never drift off it.",
+      "items": {
+        "type": "object",
+        "required": ["use"],
+        "properties": {
+          "use": { "type": "string", "description": "The term to use throughout" },
+          "avoid": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Synonyms that must not appear — legacy system names, informal shorthand"
+          },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "wpm_band": {
+      "type": "array",
+      "description": "Words-per-minute range narration is budgeted against. Defaults to [130, 165] — a training pace, slower than conversational.",
+      "items": { "type": "number", "exclusiveMinimum": 0 },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "scenes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["scene_id", "role", "capture", "avatar"],
+        "properties": {
+          "scene_id": { "type": "string", "pattern": "^S[0-9]{2,}$" },
+          "role": {
+            "enum": ["intro", "step", "transition", "outro"],
+            "description": "Drives the avatar default: visible on intro/transition/outro, hidden on step."
+          },
+          "objective_ids": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^O[0-9]+$" }
+          },
+          "capture": {
+            "type": "object",
+            "required": ["in", "out"],
+            "properties": {
+              "in": { "type": "number", "minimum": 0 },
+              "out": { "type": "number", "exclusiveMinimum": 0 },
+              "frame_ref": {
+                "type": "string",
+                "description": "The keyframe this scene's narration was written from. Invariant 1: present, or gap is true. There is no third state."
+              }
+            }
+          },
+          "narration": {
+            "type": "string",
+            "description": "What the avatar says over this scene. Written to the word budget derived from the scene's measured duration."
+          },
+          "silent": {
+            "type": "boolean",
+            "default": false,
+            "description": "A deliberate beat with no narration. Distinct from an unnarrated scene, which is a coverage failure."
+          },
+          "gap": {
+            "type": "boolean",
+            "default": false,
+            "description": "The frame does not establish what this scene needs to say, and the consultant must fill it in. Renders as a visible placeholder in the build sheet, never as plausible-sounding narration."
+          },
+          "gap_note": {
+            "type": "string",
+            "description": "Required when gap is true — what is missing and what the consultant needs to confirm"
+          },
+          "annotations": {
+            "type": "array",
+            "description": "On-screen callouts. Copy must name the object being acted on, never restate the narration — duplicated text splits attention and teaches nothing.",
+            "items": {
+              "type": "object",
+              "required": ["type"],
+              "properties": {
+                "type": {
+                  "enum": ["highlight", "callout", "step_counter", "lower_third"],
+                  "description": "highlight = box around a control. callout = short label with a leader. step_counter = 'Step 3 of 7'. lower_third = name/role strip, intro and outro only."
+                },
+                "text": { "type": "string", "description": "Required for callout, step_counter and lower_third" },
+                "target": { "type": "string", "description": "The on-screen control being marked, in the system's own naming" },
+                "rect": {
+                  "type": "array",
+                  "description": "[x, y, w, h] as fractions of frame width/height, origin top-left. Required for highlight.",
+                  "items": { "type": "number", "minimum": 0, "maximum": 1 },
+                  "minItems": 4,
+                  "maxItems": 4
+                },
+                "anchor": {
+                  "type": "array",
+                  "description": "[x, y] as fractions of frame width/height. Where a callout points.",
+                  "items": { "type": "number", "minimum": 0, "maximum": 1 },
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              }
+            }
+          },
+          "avatar": {
+            "type": "object",
+            "required": ["visible"],
+            "properties": {
+              "visible": {
+                "type": "boolean",
+                "description": "Default false on step scenes. A persistent talking head competes with the screen exactly when the learner is following a click path, and it burns credit on every second of runtime."
+              },
+              "position": {
+                "enum": ["bottom-right", "bottom-left", "top-right", "top-left", "fullscreen"],
+                "default": "bottom-right"
+              },
+              "framing": {
+                "enum": ["box", "circle", "fullscreen"],
+                "default": "box",
+                "description": "Synthesia's avatar framing options"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
