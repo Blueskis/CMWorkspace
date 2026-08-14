@@ -85,13 +85,29 @@ than text-extracted, because a process diagram is often the most informative thi
 
 **Voice recordings** need a transcript first — Claude cannot listen to audio. The skill asks for
 the meeting platform's own transcript (Teams, Zoom and Meet generate one automatically, with
-speaker labels and correctly spelled names), falls back to local transcription via
-`--transcribe`, and treats a cloud ASR service as a data-protection decision rather than a
-default — interview recordings contain named employees discussing job security. Reading verbatim
-transcripts is a different job from reading notes, covered in `reference/interview-evidence.md`:
-attribution (who said it decides whether it is testimony, a claim, design intent or hearsay),
-harvesting quotes, reading hesitation and contradiction, and never banking a number heard only in
-speech.
+speaker labels and correctly spelled names), and otherwise transcribes locally with
+`transcribe_interview.py`. A cloud ASR service is treated as a data-protection decision rather
+than a default — interview recordings contain named employees discussing job security.
+
+`transcribe_interview.py` is built for evidence rather than captions:
+
+- **Names and jargon are biased in.** The attendee roster and a domain vocabulary
+  (`reference/asr-vocabulary.txt`) are fed to the model as decoding context, because ASR fails
+  hardest on exactly the proper nouns a CIA runs on — system names, module names, acronyms.
+- **Doubt is surfaced.** Turns the model was unsure about, and turns showing the repetition
+  signature of a hallucination, are flagged inline. So is every turn stating a quantity —
+  in digits *or* spelled out, since people say "a hundred and fifty", not "150".
+- **Attribution is a first-class step.** Machine transcription cannot tell who is speaking, so
+  the tool emits a turn worksheet; you label it while skimming the audio, and
+  `--apply-speakers` merges it back into a `.vtt` that flows on into ingestion.
+- `--check` reports what's installed and how to fix it, `--dry-run` estimates the time before
+  you commit, and long recordings checkpoint so a failure at minute 80 resumes rather than
+  restarting.
+
+Reading verbatim transcripts is a different job from reading notes, covered in
+`reference/interview-evidence.md`: attribution (who said it decides whether it is testimony, a
+claim, design intent or hearsay), harvesting quotes, reading hesitation and contradiction, and
+never banking a number heard only in speech.
 
 **The template owns the model.** Four-level process taxonomy (L1–L4 with codes), three
 dimensions — People, Process, Technology — each scored 0–3 against the anchors on the
@@ -154,8 +170,9 @@ skills/change-impact-assessment/
 ├── templates/            # the client CIA template the generator populates
 ├── reference/            # source ingestion, interview evidence, extraction guide,
 │                         #   rating methodology, response playbook, input schema
-├── scripts/              # ingest_sources.py — mixed client files → text + manifest
-│                         # generate_cia.py    — validator and workbook builder
+├── scripts/              # transcribe_interview.py — recordings → attributed transcripts
+│                         # ingest_sources.py       — mixed client files → text + manifest
+│                         # generate_cia.py         — validator and workbook builder
 └── examples/             # worked example — six source documents + the assessment
 ```
 

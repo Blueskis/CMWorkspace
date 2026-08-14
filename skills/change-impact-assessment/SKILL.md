@@ -1,6 +1,6 @@
 ---
 name: change-impact-assessment-v1.0
-description: Populates the client's own CIA template (Excel) with a baseline change impact assessment for a system implementation — SAP S/4HANA, Ariba, Workday, Salesforce or similar — built from the programme's own documents. Reads interview and workshop notes, meeting recordings and transcripts (.vtt/.srt from Teams, Zoom or Meet, or raw audio transcribed locally), process design models (Signavio/BPMN), functional specifications, slide decks, spreadsheets and org design material in Word, PowerPoint, Excel, PDF and BPMN formats; extracts one impact row per process change × stakeholder group against a four-level process taxonomy (L1-L4); scores People, Process and Technology 0-3 against the template's own rubric and averages them into an overall impact; and derives the training and communication response from the resulting band. Output is the client template populated and untouched in structure, plus supplementary heatmap, training plan with effort roll-up, comms plan by wave, and source traceability sheets. Use whenever a CM lead wants to build, refresh or sense-check a change impact assessment from project documentation — phrases like "change impact assessment", "CIA", "impact register", "what's the impact of this rollout on each group", "build me the change impacts from these documents", "training needs analysis from the process design", "fill in the CIA template", "here are the interview recordings and the process design", or when someone hands over interview notes, transcripts and design docs and asks what the change means for the business.
+description: Populates the client's own CIA template (Excel) with a baseline change impact assessment for a system implementation — SAP S/4HANA, Ariba, Workday, Salesforce or similar — built from the programme's own documents. Reads interview and workshop notes, meeting transcripts (.vtt/.srt from Teams, Zoom or Meet) and raw audio recordings (.m4a/.mp3/.wav/.mp4, transcribed locally with a bundled tool that flags low-confidence passages and produces an attribution worksheet), process design models (Signavio/BPMN), functional specifications, slide decks, spreadsheets and org design material in Word, PowerPoint, Excel, PDF and BPMN formats; extracts one impact row per process change × stakeholder group against a four-level process taxonomy (L1-L4); scores People, Process and Technology 0-3 against the template's own rubric and averages them into an overall impact; and derives the training and communication response from the resulting band. Output is the client template populated and untouched in structure, plus supplementary heatmap, training plan with effort roll-up, comms plan by wave, and source traceability sheets. Use whenever a CM lead wants to build, refresh or sense-check a change impact assessment from project documentation — phrases like "change impact assessment", "CIA", "impact register", "what's the impact of this rollout on each group", "build me the change impacts from these documents", "training needs analysis from the process design", "fill in the CIA template", "here are the interview recordings and the process design", or when someone hands over interview notes, transcripts and design docs and asks what the change means for the business.
 ---
 
 # Change Impact Assessment — Baseline Generator
@@ -36,12 +36,15 @@ lose credibility.
 |---|---|
 | `templates/CIA_Template.xlsx` | The client template. The default input to the generator. |
 | `reference/source-ingestion.md` | Getting client material into a readable state — formats, BPMN, and the audio decision. **Read at intake.** |
+| `reference/audio-workflow.md` | Recording → transcript → attribution → evidence. **Read whenever a recording arrives.** |
 | `reference/interview-evidence.md` | Reading interviews and verbatim transcripts as evidence — attribution, quotes, contradictions, what not to believe. **Read before mining any interview.** |
 | `reference/extraction-guide.md` | How to mine each source type, build the L1–L4 spine, split/merge rows, and check coverage. **Read before extracting.** |
 | `reference/rating-methodology.md` | The template's 0-3 anchors restated, plus the band cut-offs, overrides, resistance and confidence — the four things the template doesn't define. **Read before scoring.** |
 | `reference/response-playbook.md` | Deriving training method/duration/timing and comms channel/wave/sender from a rating. **Read before filling the response columns.** |
 | `reference/input-schema.md` | Field-by-field contract for `cia_input.json`. |
 | `scripts/ingest_sources.py` | Normalises a folder of mixed client files into readable text + a source manifest. |
+| `scripts/transcribe_interview.py` | Turns interview recordings into attributed, quality-flagged transcripts. |
+| `reference/asr-vocabulary.txt` | Domain terms fed to the transcription model so it stops mangling system names. Trim per programme. |
 | `scripts/generate_cia.py` | Validates the JSON and renders the workbook. |
 | `examples/` | A complete worked example — six source documents and the 20-row `sample_cia_input.json` they produce. |
 
@@ -89,9 +92,26 @@ Then, before reading anything:
    text extractor discards, and on a CIA the diagram is often the most informative thing in the
    document.
 3. **Deal with any audio.** Claude cannot listen to audio, so a recording without a transcript
-   is not yet evidence. Get the platform transcript, or transcribe locally with `--transcribe`.
+   is not yet evidence. Read `reference/audio-workflow.md` and work the decision in this order:
+
+   - **Ask for the meeting platform's transcript.** Teams, Zoom and Meet make one
+     automatically, with speaker labels and correct name spellings. Best evidence, zero cost,
+     and consultants routinely don't realise it exists.
+   - **Otherwise transcribe locally**, then attribute the turns:
+     ```bash
+     python3 scripts/transcribe_interview.py --check                 # is the machine ready?
+     python3 scripts/transcribe_interview.py recordings/ --dry-run   # how long will it take?
+     python3 scripts/transcribe_interview.py recordings/ -o transcripts/ --roster roster.txt
+     # fill the speaker column in transcripts/<name>.turns.csv while skimming the audio
+     python3 scripts/transcribe_interview.py --apply-speakers transcripts/<name>.turns.csv
+     ```
+     Attribution is not optional if you intend to quote anything — an unattributed transcript
+     cannot distinguish the person who does the work from someone repeating what they heard.
+   - **A cloud ASR service is a data-protection decision**, not a convenience. These
+     recordings contain named employees discussing job security.
+
    Never quietly drop a recording — an untranscribed interview is a gap in the assessment and
-   should be named at handover.
+   should be named at handover, along with whose evidence is therefore missing.
 
 ### Step 3: Extract
 
@@ -122,7 +142,13 @@ goes to a committee that may include the speaker's manager.
 **Never bank a number heard only in speech.** Headcounts, volumes and percentages from an
 interview are Low confidence until corroborated against an HR extract or system report, and
 machine transcription mangles exactly the vocabulary a CIA runs on — figures, acronyms, system
-and module names.
+and module names. `transcribe_interview.py` lists every turn stating a quantity, in digits or
+spelled out, precisely so none of them slips through unchecked; work that list.
+
+**Use the transcript's quality flags.** Machine transcripts mark turns the model was unsure
+about and turns showing the repetition signature of a hallucination. Listen back before
+quoting any of them — a fabricated sentence in a steering-committee pack is worse than no
+quote at all.
 
 ### Step 4: Score
 

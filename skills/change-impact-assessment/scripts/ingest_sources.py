@@ -19,10 +19,10 @@ Flags for the Read tool rather than extracting:
     Claude reads these natively, including diagrams, scans and page layout, which a
     text extractor would throw away. The manifest lists them as read_natively.
 
-Audio (.m4a .mp3 .wav .mp4 .aac .ogg .flac .wma) needs --transcribe and faster-whisper.
-Without it they are listed as needs_transcript with instructions. See
-../reference/source-ingestion.md for the audio decision — including why sending client
-interview recordings to a cloud ASR service is a data-protection call, not a technical one.
+Audio (.m4a .mp3 .wav .mp4 .aac .ogg .flac .wma) is handled by transcribe_interview.py —
+pass --transcribe to run it inline, or run that tool directly for roster/vocabulary control
+and the attribution worksheet. Without --transcribe, recordings are listed as
+needs_transcript with instructions. See ../reference/audio-workflow.md.
 
 Output:
     <out_dir>/<REF>__<slug>.md   one readable file per source, with a provenance header
@@ -36,6 +36,7 @@ import io
 import json
 import os
 import re
+import subprocess
 import sys
 import xml.etree.ElementTree as ET
 import zipfile
@@ -406,46 +407,41 @@ def extract_bpmn(path):
 
 def transcribe_audio(path, model_size="small", language=None):
     """
-    Local transcription via faster-whisper. Local by design: interview recordings contain
-    named employees discussing job changes, and shipping them to a third-party ASR service
-    is a data-protection decision, not a convenience. See reference/source-ingestion.md.
+    Delegate to transcribe_interview.py — the dedicated tool.
+
+    Kept as a delegation rather than a second implementation: that tool loads the domain
+    vocabulary and attendee roster into the model's context, flags segments it was unsure
+    about, checkpoints long recordings, and emits an attribution worksheet. Duplicating a
+    thinner version of it here would only guarantee the two drift apart.
     """
+    tool = os.path.join(os.path.dirname(os.path.abspath(__file__)), "transcribe_interview.py")
+    if not os.path.exists(tool):
+        return None, ["transcribe_interview.py not found alongside this script."]
+
+    out_dir = os.path.join(os.path.dirname(os.path.abspath(path)) or ".", "_transcripts")
+    cmd = [sys.executable, tool, path, "-o", out_dir, "--model", model_size]
+    if language:
+        cmd += ["--language", language]
+
+    print(f"    → transcribing via transcribe_interview.py ({model_size})", flush=True)
     try:
-        from faster_whisper import WhisperModel
-    except ImportError:
-        return None, ["faster-whisper not installed. `pip install faster-whisper`, or supply "
-                      "the meeting platform's own transcript instead (preferred — see "
-                      "reference/source-ingestion.md)."]
-    try:
-        model = WhisperModel(model_size, device="cpu", compute_type="int8")
-        segments, info = model.transcribe(path, language=language, vad_filter=True)
+        proc = subprocess.run(cmd, text=True)
     except Exception as e:
-        return None, [f"Transcription failed: {type(e).__name__}: {e}"]
+        return None, [f"Could not run transcribe_interview.py: {type(e).__name__}: {e}"]
+    if proc.returncode != 0:
+        return None, ["Transcription failed — run `transcribe_interview.py --check` for detail, "
+                      "or supply the meeting platform's own transcript instead (preferred)."]
 
-    lines, count, words = [], 0, 0
-    for seg in segments:
-        h, rem = divmod(int(seg.start), 3600)
-        m, s = divmod(rem, 60)
-        txt = seg.text.strip()
-        if txt:
-            lines.append(f"[{h:02d}:{m:02d}:{s:02d}] {txt}")
-            count += 1
-            words += len(txt.split())
-
-    header = [
-        f"**Transcribed locally** with faster-whisper `{model_size}` — "
-        f"detected language `{info.language}` (confidence {info.language_probability:.2f}), "
-        f"duration {info.duration/60:.1f} min, {count} segments, ~{words:,} words.\n",
-        "> **No speaker labels.** Machine transcription cannot tell who is speaking. Attribute "
-        "turns yourself from the audio or the attendee list before relying on anything here — "
-        "who said a thing determines whether it is testimony, a claim, or an opinion.\n",
-        "> **Do not take figures from this transcript unquoted.** Headcounts, system names and "
-        "acronyms are exactly what ASR gets wrong. Corroborate against a document or mark the "
-        "row Low confidence.\n",
-        "---\n",
+    stem = os.path.join(out_dir, os.path.splitext(os.path.basename(path))[0])
+    if not os.path.exists(stem + ".vtt"):
+        return None, ["Transcription produced no .vtt output."]
+    text, warnings = extract_transcript(stem + ".vtt")
+    return text, warnings + [
+        "Machine-transcribed — NOT attributed. Fill the speaker column in "
+        f"{os.path.basename(stem)}.turns.csv, run `transcribe_interview.py --apply-speakers` "
+        "on it, then re-ingest. Who said something decides whether it is testimony or hearsay.",
+        "Verify every figure, acronym and system name against a document before relying on it.",
     ]
-    return "\n".join(header + lines), [
-        "Audio transcribed by machine — no speaker attribution; verify names, acronyms and figures."]
 
 
 # --------------------------------------------------------------------------------------

@@ -78,10 +78,17 @@ generated automatically alongside.
 
 ### 2. Local transcription — when there's only a raw recording
 
+Use the dedicated tool; **`reference/audio-workflow.md` covers this properly.**
+
 ```bash
 pip install faster-whisper
-python3 scripts/ingest_sources.py /path/to/docs -o ingested/ --transcribe --model small
+python3 scripts/transcribe_interview.py --check              # is the machine ready?
+python3 scripts/transcribe_interview.py recordings/ -o transcripts/ --roster roster.txt
 ```
+
+`ingest_sources.py --transcribe` runs the same tool inline if you'd rather do it in one pass,
+but running it directly gets you roster and vocabulary control, a time estimate before you
+commit, and the attribution worksheet.
 
 Runs entirely on the machine. Audio decoding is bundled (PyAV), so no separate ffmpeg install.
 Model weights download once on first use.
@@ -93,9 +100,10 @@ Model weights download once on first use.
 | `medium` / `large-v3` | Slow | A recording that genuinely matters and has poor audio |
 
 **What you lose:** no speaker labels. Machine transcription cannot tell who is talking, and
-attribution is the first discipline in reading interview evidence. Attribute the turns yourself
-from the audio or the attendee list before relying on anything drawn from it, and drop a
-confidence level if you can't.
+attribution is the first discipline in reading interview evidence. The tool emits a turn
+worksheet for exactly this — fill the speaker column while skimming the audio (about 10 minutes
+for a 60-minute interview), then `--apply-speakers` merges it back in. Leave a cell blank where
+you genuinely can't tell; that is a real answer and it is recorded as unattributed.
 
 **Budget the time.** A 60-minute interview on `small` takes roughly 30–60 minutes on a laptop
 CPU. Transcribe overnight rather than blocking a working session.
