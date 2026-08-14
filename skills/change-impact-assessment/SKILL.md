@@ -1,6 +1,6 @@
 ---
 name: change-impact-assessment-v1.0
-description: Populates the client's own CIA template (Excel) with a baseline change impact assessment for a system implementation — SAP S/4HANA, Ariba, Workday, Salesforce or similar — built from the programme's own documents. Reads interview and workshop notes, process design models (Signavio/BPMN), functional specifications and org design material; extracts one impact row per process change × stakeholder group against a four-level process taxonomy (L1-L4); scores People, Process and Technology 0-3 against the template's own rubric and averages them into an overall impact; and derives the training and communication response from the resulting band. Output is the client template populated and untouched in structure, plus supplementary heatmap, training plan with effort roll-up, comms plan by wave, and source traceability sheets. Use whenever a CM lead wants to build, refresh or sense-check a change impact assessment from project documentation — phrases like "change impact assessment", "CIA", "impact register", "what's the impact of this rollout on each group", "build me the change impacts from these documents", "training needs analysis from the process design", "fill in the CIA template", or when someone hands over interview notes and design docs and asks what the change means for the business.
+description: Populates the client's own CIA template (Excel) with a baseline change impact assessment for a system implementation — SAP S/4HANA, Ariba, Workday, Salesforce or similar — built from the programme's own documents. Reads interview and workshop notes, meeting recordings and transcripts (.vtt/.srt from Teams, Zoom or Meet, or raw audio transcribed locally), process design models (Signavio/BPMN), functional specifications, slide decks, spreadsheets and org design material in Word, PowerPoint, Excel, PDF and BPMN formats; extracts one impact row per process change × stakeholder group against a four-level process taxonomy (L1-L4); scores People, Process and Technology 0-3 against the template's own rubric and averages them into an overall impact; and derives the training and communication response from the resulting band. Output is the client template populated and untouched in structure, plus supplementary heatmap, training plan with effort roll-up, comms plan by wave, and source traceability sheets. Use whenever a CM lead wants to build, refresh or sense-check a change impact assessment from project documentation — phrases like "change impact assessment", "CIA", "impact register", "what's the impact of this rollout on each group", "build me the change impacts from these documents", "training needs analysis from the process design", "fill in the CIA template", "here are the interview recordings and the process design", or when someone hands over interview notes, transcripts and design docs and asks what the change means for the business.
 ---
 
 # Change Impact Assessment — Baseline Generator
@@ -35,10 +35,13 @@ lose credibility.
 | File | Use it for |
 |---|---|
 | `templates/CIA_Template.xlsx` | The client template. The default input to the generator. |
+| `reference/source-ingestion.md` | Getting client material into a readable state — formats, BPMN, and the audio decision. **Read at intake.** |
+| `reference/interview-evidence.md` | Reading interviews and verbatim transcripts as evidence — attribution, quotes, contradictions, what not to believe. **Read before mining any interview.** |
 | `reference/extraction-guide.md` | How to mine each source type, build the L1–L4 spine, split/merge rows, and check coverage. **Read before extracting.** |
 | `reference/rating-methodology.md` | The template's 0-3 anchors restated, plus the band cut-offs, overrides, resistance and confidence — the four things the template doesn't define. **Read before scoring.** |
 | `reference/response-playbook.md` | Deriving training method/duration/timing and comms channel/wave/sender from a rating. **Read before filling the response columns.** |
 | `reference/input-schema.md` | Field-by-field contract for `cia_input.json`. |
+| `scripts/ingest_sources.py` | Normalises a folder of mixed client files into readable text + a source manifest. |
 | `scripts/generate_cia.py` | Validates the JSON and renders the workbook. |
 | `examples/` | A complete worked example — six source documents and the 20-row `sample_cia_input.json` they produce. |
 
@@ -48,10 +51,16 @@ lose credibility.
 
 Establish, briefly:
 
-1. **The documents.** Ask for whatever exists — interview/workshop notes, Signavio or BPMN
-   exports, functional specs, org design, solution scope. Take them in any format; if the user
-   points at a folder, read it. **Do not wait for a complete set** — work with what is there and
-   record the gaps as open questions.
+1. **The documents.** Ask for whatever exists — interview and workshop notes, meeting
+   recordings or transcripts, Signavio/BPMN exports, functional specs, org design, solution
+   scope. **Take them in any format**: Word, PowerPoint, PDF, Excel, BPMN, `.vtt`/`.srt`
+   transcripts, or a folder of all of it. **Do not wait for a complete set** — work with what is
+   there and record the gaps as open questions.
+
+   **If there are voice recordings, ask for the meeting platform's transcript first.** Teams,
+   Zoom and Meet generate one automatically, with speaker labels and correctly spelled names.
+   Consultants often have recordings and don't realise a transcript already exists. It is
+   materially better evidence than machine transcription, and it costs nothing.
 2. **Programme basics.** Client, solution scope, go-live date, wave/geography split, who owns
    the assessment.
 3. **Anything already done.** An existing register, stakeholder analysis, or training needs
@@ -61,7 +70,30 @@ If the user has **no documents** and only a narrative, say so plainly: you can s
 register from what they describe, but nearly every row will be Medium or Low confidence, and it
 is worth being explicit that the output is a structured hypothesis rather than a baseline.
 
-### Step 2: Extract
+### Step 2: Ingest
+
+Read `reference/source-ingestion.md`, then normalise everything into readable text with a stable
+reference per source:
+
+```bash
+python3 scripts/ingest_sources.py /path/to/client/documents -o ingested/
+```
+
+Then, before reading anything:
+
+1. **Correct `ingested/sources.json` by hand.** The script guesses `type` from the file
+   extension; only you can tell interview notes from a functional spec. Fix types and titles,
+   add dates and participants.
+2. **Open every PDF and image with the Read tool** — the report lists them. They are not
+   text-extracted on purpose: process diagrams, org charts and page layout carry information a
+   text extractor discards, and on a CIA the diagram is often the most informative thing in the
+   document.
+3. **Deal with any audio.** Claude cannot listen to audio, so a recording without a transcript
+   is not yet evidence. Get the platform transcript, or transcribe locally with `--transcribe`.
+   Never quietly drop a recording — an untranscribed interview is a gap in the assessment and
+   should be named at handover.
+
+### Step 3: Extract
 
 Read `reference/extraction-guide.md` and follow its five passes: build the L1–L4 process spine
 from the design models, attach the to-be, attach the as-is and human signal from interviews,
@@ -76,10 +108,23 @@ is any good, and there is no shortcut — a register built from skimming produce
 describe system features rather than human impacts, and a business audience spots the
 difference immediately.
 
-Keep verbatim quotes from interviews. A real sentence from a real person carries more weight in
-a steering committee than any adjective you can write.
+**For interviews and transcripts, read `reference/interview-evidence.md` first.** A verbatim
+transcript is not a better set of notes, it is a different kind of evidence: raw rather than
+pre-interpreted. It needs attribution discipline — who said something determines whether it is
+testimony, a claim, design intent or hearsay — and it rewards attention to hesitation,
+contradiction, and the questions nobody answered. It also carries the one thing notes never do:
+the actual sentences.
 
-### Step 3: Score
+Keep verbatim quotes. A real sentence from a real person carries more weight in a steering
+committee than any adjective you can write. Attribute them by role, not by name — the register
+goes to a committee that may include the speaker's manager.
+
+**Never bank a number heard only in speech.** Headcounts, volumes and percentages from an
+interview are Low confidence until corroborated against an HR extract or system report, and
+machine transcription mangles exactly the vocabulary a CIA runs on — figures, acronyms, system
+and module names.
+
+### Step 4: Score
 
 Read `reference/rating-methodology.md` and the template's own `Change Impact Ratings` sheet.
 Score People, Process and Technology 0-3 independently against the anchors — do not decide the
@@ -101,7 +146,7 @@ Rate **anticipated resistance separately from impact magnitude** — they are di
 and the confusion between them is the most common flaw in a change impact assessment. A large
 welcome change is High impact / Low resistance; a small unwelcome one can be the reverse.
 
-### Step 4: Derive the training and comms response
+### Step 5: Derive the training and comms response
 
 Read `reference/response-playbook.md`. Rating sets the tier; audience size, frequency of use,
 and whether new judgement is required set the method within it. Use the People score to split
@@ -112,11 +157,11 @@ Write `key_message` from the affected person's point of view, in one sentence, w
 Name a real person or role as `comms_owner` for every High-rated impact — "the change team" is
 the least credible sender available.
 
-### Step 5: Write `cia_input.json`
+### Step 6: Write `cia_input.json`
 
 Per `reference/input-schema.md`. Cite source document refs on every row.
 
-### Step 6: Validate and generate
+### Step 7: Validate and generate
 
 ```bash
 python3 scripts/generate_cia.py cia_input.json -o "Change Impact Assessment — <Client> v0.1.xlsx"
@@ -143,7 +188,7 @@ a source document nothing was derived from). Fix what you can from the documents
 warning reflects a genuine unknown, leave it and report it as an open question rather than
 papering over it.
 
-### Step 7: Hand over
+### Step 8: Hand over
 
 Give the user the file and a short written summary — not a description of the spreadsheet, but
 what the assessment found:
@@ -161,7 +206,7 @@ what the assessment found:
 Lead with the finding, not the file. The user asked for a workbook; what they need is to know
 what is in it.
 
-### Step 8: Memo, deck or refresh (only if asked)
+### Step 9: Memo, deck or refresh (only if asked)
 
 For a client-ready memo or steering committee summary, use the `docx` or `pptx` skill.
 To refresh an existing assessment, edit the JSON and re-run — the workbook is regenerated

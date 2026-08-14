@@ -23,9 +23,17 @@ Field names map onto the client template's own columns; the mapping is shown bel
 | `go_live_date` | | `YYYY-MM-DD`. Drives the dated comms windows on the Comms Plan sheet. |
 | `source_documents` | ✔ | Array. Every `ref` cited by an impact must exist here. |
 
-Each `source_documents` entry: `ref` (short stable ID, e.g. `INT-01`), `type` (`Interview Notes`
-/ `Workshop Notes` / `Process Design` / `Functional Specification` / `Org Design` /
-`Solution Scope` / `Other`), `title`, `date` (optional), `author_or_participants` (optional).
+Each `source_documents` entry: `ref` (short stable ID, e.g. `INT-01`), `type`, `title`, `date`
+(optional), `author_or_participants` (optional).
+
+`type` is free text; these are the conventional values, and the ones `ingest_sources.py` emits:
+`Interview Notes` · `Interview Transcript` · `Interview Recording` · `Workshop Notes` ·
+`Process Design` · `Functional Specification` · `Org Design` · `Solution Scope` · `Document` ·
+`Presentation` · `Spreadsheet` · `Other`.
+
+`scripts/ingest_sources.py` writes this array for you from a folder of client files — but it
+guesses `type` from the file extension, so **correct it by hand** before generating. Only a
+person can tell interview notes from a functional specification.
 
 ## `impacts[]` → template columns A–V
 
@@ -116,7 +124,7 @@ Plan sheets.
 | `stakeholder_group` | ✔ | One group per row. The grouping axis for the heatmap and roll-ups. |
 | `resistance_risk` | ✔ | `Low` · `Medium` · `High` — rated separately from impact magnitude |
 | `change_champion` | | Business owner for this impact |
-| `source_ref` | ✔ | e.g. `INT-03; FS-014`. Every ref must exist in `meta.source_documents`. |
+| `source_ref` | ✔ | e.g. `INT-03; FS-014`. Every ref must exist in `meta.source_documents`. **For transcripts, cite the timestamp**: `INT-04 @00:23:15` — a reviewer can jump straight to the audio and hear the tone, which is often the part being disputed. The validator strips `@…` before checking the ref. |
 | `confidence` | ✔ | `High` · `Medium` · `Low` |
 | `validation_status` | | `Draft` · `In Review` · `Validated` · `Baselined`. Defaults to `Draft`. |
 | `notes` | | Open questions. Required when `confidence` is Low. |

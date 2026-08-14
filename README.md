@@ -71,9 +71,27 @@ for practitioner review**, never a submission-ready document.
 
 ## Change impact assessment (MVP)
 
-Reads a system implementation's own source material — interview and workshop notes,
-Signavio/BPMN process design, functional specifications, org design — and writes a baseline
-assessment into **the client's own CIA template**.
+Reads a system implementation's own source material — interview and workshop notes, meeting
+recordings and transcripts, Signavio/BPMN process design, functional specifications, slide decks,
+spreadsheets, org design — and writes a baseline assessment into **the client's own CIA
+template**.
+
+**Source ingestion.** `ingest_sources.py` normalises a folder of mixed client files into readable
+text plus a source manifest, using the standard library alone: `.docx` and `.pptx` (including
+speaker notes), `.xlsx`/`.csv`, `.vtt`/`.srt` transcripts as speaker turns with timestamps, and
+BPMN exports broken out by **lane — the lanes are the impacted roles**, which is the most useful
+thing a process model gives a CIA. PDFs and images are flagged for Claude to read natively rather
+than text-extracted, because a process diagram is often the most informative thing in the pack.
+
+**Voice recordings** need a transcript first — Claude cannot listen to audio. The skill asks for
+the meeting platform's own transcript (Teams, Zoom and Meet generate one automatically, with
+speaker labels and correctly spelled names), falls back to local transcription via
+`--transcribe`, and treats a cloud ASR service as a data-protection decision rather than a
+default — interview recordings contain named employees discussing job security. Reading verbatim
+transcripts is a different job from reading notes, covered in `reference/interview-evidence.md`:
+attribution (who said it decides whether it is testimony, a claim, design intent or hearsay),
+harvesting quotes, reading hesitation and contradiction, and never banking a number heard only in
+speech.
 
 **The template owns the model.** Four-level process taxonomy (L1–L4 with codes), three
 dimensions — People, Process, Technology — each scored 0–3 against the anchors on the
@@ -109,7 +127,10 @@ Medium 1.50–2.49 / Low 0.50–1.49 / No-Minimal < 0.50, states this on the Ass
 and it is changeable in one constant.
 
 `skills/change-impact-assessment/examples/` holds a complete worked example for an SAP S/4HANA
-and Ariba implementation — six source documents and the 20-impact assessment they produce.
+and Ariba implementation — seven sources, including a real Teams `.vtt` transcript, and the
+21-impact assessment they produce. Two of those rows exist to show what a transcript gives you
+that a note cannot, including one finding that surfaced only because a colleague corrected a
+headline number mid-sentence.
 
 Requires `openpyxl` (`pip install openpyxl`).
 
@@ -131,8 +152,10 @@ examples/acme-erp/        # worked example — fictional client
 skills/change-impact-assessment/
 ├── SKILL.md              # the assessment process
 ├── templates/            # the client CIA template the generator populates
-├── reference/            # extraction guide, rating methodology, response playbook, schema
-├── scripts/              # generate_cia.py — validator and workbook builder
+├── reference/            # source ingestion, interview evidence, extraction guide,
+│                         #   rating methodology, response playbook, input schema
+├── scripts/              # ingest_sources.py — mixed client files → text + manifest
+│                         # generate_cia.py    — validator and workbook builder
 └── examples/             # worked example — six source documents + the assessment
 ```
 

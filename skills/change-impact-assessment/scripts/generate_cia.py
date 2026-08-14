@@ -294,9 +294,19 @@ def validate(data):
 
 
 def split_refs(value):
+    """Split a source_ref into document refs, dropping any `@timestamp` locator.
+
+    Transcript citations carry the moment as well as the document — `INT-04 @00:23:15` —
+    so a reviewer can jump straight to the audio. Only the document part is validated.
+    """
     if not value:
         return []
-    return [p.strip() for p in str(value).replace(",", ";").split(";") if p.strip()]
+    out = []
+    for part in str(value).replace(",", ";").split(";"):
+        ref = part.split("@")[0].strip()
+        if ref:
+            out.append(ref)
+    return out
 
 
 def average_score(imp):

@@ -9,10 +9,17 @@ assessment comes from combining them, not from reading any one of them well.
 | Source | Reliably gives you | Does **not** give you |
 |---|---|---|
 | **Interview / workshop notes** | The real as-is (including workarounds not in any document), pain points, anticipated resistance, headcounts, who actually decides | The to-be. Interviewees speculate; don't record speculation as design. |
+| **Verbatim transcripts** (Teams/Zoom `.vtt`, or transcribed audio) | Everything notes give, plus the actual sentences, hesitation, contradiction, speaker attribution, and the questions nobody answered | Reliable figures — ASR and loose speech both mangle numbers. See `interview-evidence.md`. |
+| **Slide decks** (blueprint, solution scope) | Scope, phasing, go-live dates — and **speaker notes**, which routinely carry the reasoning the slide omits | Detail. A slide is a summary of a decision, not the decision. |
 | **Process design models** (Signavio BPMN, process hierarchy exports) | The to-be flow, swimlanes → impacted roles, hand-offs, approval paths, process IDs for traceability | Why it changed, how people feel, whether the roles named actually exist yet |
 | **Functional specifications** | System behaviour, configuration decisions, field-level change, approval matrices, integrations, what is now *enforced* vs. discretionary | Volume of people affected, the as-is it replaces, business rationale in plain language |
 | **Org design / RACI docs** | Role changes, new positions, shared-service moves | — |
 | **Solution scope / blueprint** | Module scope, wave/geography phasing, go-live dates | — |
+
+Get everything into a readable state first — `source-ingestion.md` covers the formats and the
+audio decision. Interviews and transcripts then need `interview-evidence.md`: reading a verbatim
+transcript is a different job from reading notes, and attribution is the discipline that most
+affects the quality of the register.
 
 **The core move: an impact row is usually one as-is statement (from interviews)
 joined to one to-be statement (from Signavio or the FS).** If you only have one
@@ -51,7 +58,9 @@ For each L3/L4 activity, pull from the process model and functional spec:
 - The to-be flow in one or two sentences of *business* language, not system language.
   "Buyer creates a requisition in Guided Buying and it routes automatically on value"
   — not "REQ_CREATE triggers workflow WF_APPR_01".
-- Which **swimlanes/roles** perform it → these are your impacted roles.
+- Which **swimlanes/lanes** perform it → these are your impacted roles. `ingest_sources.py`
+  groups BPMN activities by lane for exactly this reason; it is the most useful thing a process
+  model gives a CIA.
 - The target module/solution.
 - What the system now **enforces** that used to be discretionary. This is the single
   richest source of impacts and the one most often missed — and because the template has no

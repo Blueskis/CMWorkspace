@@ -1,0 +1,133 @@
+WEBVTT
+
+NOTE
+Microsoft Teams meeting transcript
+Meeting: Project Horizon — Category Management as-is discovery
+Date: 2026-06-19
+Attendees: Priya Raman (CM Lead), Tom Beckett (Category Manager, Technical Services),
+Sarah Okonjo (Category Manager, Indirect), Marcus Bell (Category Manager, Logistics),
+Helen Vance (Head of Procurement Operations, joined 00:31)
+
+00:00:06.240 --> 00:00:14.910
+<v Priya Raman>Thanks all. I want to understand how sourcing actually works today, not how the
+policy says it works. Tom, can you start — walk me through a typical event.
+
+00:00:15.600 --> 00:00:31.220
+<v Tom Beckett>Sure. Requirement lands with me, usually as an email from the business, sometimes
+a conversation in the corridor. I write the spec up properly, build a comparison sheet in Excel,
+and then I email each supplier individually with the requirement.
+
+00:00:31.800 --> 00:00:44.150
+<v Tom Beckett>Responses come back to me. I put them in the sheet. Nobody sees the bids except me
+until I've made a recommendation. Which — yes, I know. Audit flagged that. They flagged it last
+year as well and nothing happened.
+
+00:00:44.900 --> 00:00:50.100
+<v Priya Raman>And how long does a typical event take, start to award?
+
+00:00:50.700 --> 00:00:59.400
+<v Tom Beckett>Two weeks if everyone plays ball. Longer if I'm chasing. Three, four weeks is not
+unusual.
+
+00:01:00.100 --> 00:01:07.850
+<v Priya Raman>What about the second round — when you go back to a shortlist?
+
+00:01:08.400 --> 00:01:22.900
+<v Tom Beckett>That's a phone call. Always has been. That's — I mean, that's the job, isn't it.
+That's where I actually earn my money. You don't get another four percent out of somebody through
+a portal. You get it because they know you and you've got a relationship.
+
+00:01:23.500 --> 00:01:31.200
+<v Sarah Okonjo>To be fair Tom, we've been told the new system does have a negotiation round
+built in. So it's not going away exactly.
+
+00:01:31.900 --> 00:01:45.600
+<v Tom Beckett>A round. Structured, with a timer on it, and everything I say written down. That's
+not negotiating, that's an auction with extra steps. I've been doing this nineteen years and I've
+never closed a deal by typing.
+
+00:01:46.400 --> 00:01:53.100
+<v Priya Raman>That's useful, thank you. Sarah, is it the same picture in Indirect?
+
+00:01:53.800 --> 00:02:06.400
+<v Sarah Okonjo>Broadly. I use templates a bit more, and I do get a colleague to sanity-check
+the comparison before I go to award. But it's the same tools — Excel and email. There's no system
+in it at all.
+
+00:02:07.000 --> 00:02:15.300
+<v Marcus Bell>Same. And the contract goes in the shared drive at the end, under the supplier
+name, and then honestly you forget about it until something goes wrong.
+
+00:02:16.000 --> 00:02:23.400
+<v Priya Raman>How many events would you say the team runs in a year, across all four categories?
+
+00:02:24.100 --> 00:02:33.700
+<v Tom Beckett>Team-wide? A hundred and forty, hundred and fifty. There's eight of us. Call it
+twenty each, roughly.
+
+00:02:34.200 --> 00:02:47.900
+<v Sarah Okonjo>It's more than that though, isn't it. That's the ones we log. If you count the
+small ones, the three-quote jobs where you just ring round, it's closer to two hundred. Maybe
+more. We don't put those anywhere.
+
+00:02:48.500 --> 00:02:53.100
+<v Priya Raman>And where do those smaller ones get recorded at the moment?
+
+00:02:53.900 --> 00:02:57.200
+<v Sarah Okonjo>They don't, really. They just become a PO.
+
+00:02:58.000 --> 00:03:09.400
+<v Priya Raman>Understood. Coming back to the new process — the design has a hundred thousand
+euro threshold above which a competitive event is mandatory in the system. How does that land?
+
+00:03:10.100 --> 00:03:19.800
+<v Marcus Bell>That's already the policy. Has been for years. The difference is nobody could
+check before and now the system won't let you past it.
+
+00:03:20.400 --> 00:03:29.100
+<v Tom Beckett>Which is fine in principle. In practice it'll mean an event for things that don't
+warrant one, and the business will scream about lead times.
+
+00:03:29.900 --> 00:03:38.200
+<v Priya Raman>What happens today when something genuinely urgent comes up and there's no time
+for a competitive process?
+
+00:03:38.900 --> 00:03:43.600
+<v Tom Beckett>You ring Helen and you get a waiver. It's a conversation.
+
+00:03:44.200 --> 00:03:49.900
+<v Priya Raman>And in the new world, is there a waiver route? Does anybody know?
+
+00:03:50.600 --> 00:03:53.100
+<v Marcus Bell>No idea. Nobody's said.
+
+00:03:53.700 --> 00:03:56.400
+<v Sarah Okonjo>I assumed there would be one but I've not seen it written down.
+
+00:03:57.200 --> 00:04:04.800
+<v Priya Raman>Noted — I'll take that away. Last thing from me: what would actually make this
+better for you? Genuinely.
+
+00:04:05.500 --> 00:04:17.200
+<v Sarah Okonjo>Not building the comparison by hand. That's two days of my week gone, every week,
+copying numbers into a spreadsheet. If the system does that I'd take it tomorrow.
+
+00:04:17.900 --> 00:04:24.600
+<v Marcus Bell>Knowing when contracts expire without having to go and look. That would be worth
+a lot.
+
+00:04:25.300 --> 00:04:39.100
+<v Tom Beckett>Look — I'm not against it. Get the admin off me and I'll be the first one cheering.
+I just don't want to be told the relationship part doesn't matter, because that's the bit that
+gets the price down and it's the bit that took me twenty years to learn.
+
+00:04:39.800 --> 00:04:52.400
+<v Helen Vance>Sorry, joining late. If it helps — the last ERP go-live, we had two days of
+training six weeks before and then nothing. Half the team never used it properly. Whatever
+happens this time, that can't be the plan.
+
+00:04:53.100 --> 00:04:58.700
+<v Priya Raman>That's very helpful, thank you. Anything else anyone wants on the record?
+
+00:04:59.300 --> 00:05:04.100
+<v Tom Beckett>Just that we've not been asked about the scoring criteria and I'd like to be.
