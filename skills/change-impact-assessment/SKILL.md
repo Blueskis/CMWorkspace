@@ -99,7 +99,9 @@ Then, before reading anything:
      and consultants routinely don't realise it exists.
    - **Otherwise transcribe locally**, then attribute the turns:
      ```bash
-     python3 scripts/transcribe_interview.py --check                 # is the machine ready?
+     python3 scripts/transcribe_interview.py --check                 # what's installed
+     python3 scripts/transcribe_interview.py --download-model        # cache weights up front
+     python3 scripts/transcribe_interview.py --selftest              # prove it end to end
      python3 scripts/transcribe_interview.py recordings/ --dry-run   # how long will it take?
      python3 scripts/transcribe_interview.py recordings/ -o transcripts/ --roster roster.txt
      # fill the speaker column in transcripts/<name>.turns.csv while skimming the audio
@@ -107,6 +109,11 @@ Then, before reading anything:
      ```
      Attribution is not optional if you intend to quote anything — an unattributed transcript
      cannot distinguish the person who does the work from someone repeating what they heard.
+
+     **Expect the model download to be blocked on a corporate laptop.** Whisper weights come
+     from Hugging Face and enterprise proxies routinely deny it. That is a network policy, not
+     a broken install — pre-stage the model on a connected machine and point `HF_HOME` or
+     `--model-dir` at the copy. `reference/audio-workflow.md` step 0 has the procedure.
    - **A cloud ASR service is a data-protection decision**, not a convenience. These
      recordings contain named employees discussing job security.
 

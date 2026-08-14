@@ -153,7 +153,10 @@ def cmd_check():
     ok = bool(backends) and bool(dec)
     print("\n  " + "─" * 58)
     if ok:
-        print("  Ready. Try:  transcribe_interview.py <recording> --dry-run\n")
+        print("  Equipped. Two things worth doing before you rely on it:")
+        print("    transcribe_interview.py --download-model small   # cache the weights now")
+        print("    transcribe_interview.py --selftest               # prove it end to end")
+        print()
     else:
         print("  Not ready — see above.")
         print("  You may not need any of it: if the interview was recorded on Teams, Zoom or")
@@ -354,6 +357,239 @@ def run_openai_whisper(path, model_size, language, prompt, model_dir, on_segment
 
 
 BACKENDS = {"faster-whisper": run_faster_whisper, "openai-whisper": run_openai_whisper}
+
+
+# --------------------------------------------------------------------------------------
+# Failure classification
+# --------------------------------------------------------------------------------------
+
+def classify_model_error(exc):
+    """
+    Turn a raw exception from model loading into something actionable.
+
+    The blocked-download case matters more than it looks. Whisper weights come from
+    Hugging Face on first use, and corporate networks routinely deny that host — so the
+    single most likely failure on a consultant's laptop is not a bug, it's a proxy. The
+    fix is to pre-stage the model, and the message needs to say so rather than dumping a
+    stack trace.
+    """
+    name = type(exc).__name__
+    text = f"{name}: {exc}".lower()
+
+    blocked = any(s in text for s in (
+        "proxyerror", "403", "forbidden", "connect", "connection", "ssl", "certificate",
+        "timeout", "timed out", "temporary failure in name resolution", "max retries",
+        "newconnectionerror", "failed to establish", "network is unreachable", "eof occurred"))
+    if blocked:
+        return ("Model download blocked by the network.", [
+            "Whisper weights come from Hugging Face on first use, and corporate proxies",
+            "commonly deny that host. This is a network policy, not a broken install.",
+            "",
+            "Pre-stage the model instead:",
+            "  1. On a machine with open internet, run:",
+            "       python3 transcribe_interview.py --download-model small",
+            "  2. Copy the printed cache directory to this machine.",
+            "  3. Point at it, either way:",
+            "       export HF_HOME=/path/to/copied/cache",
+            "       # or:  --model-dir /path/to/copied/cache",
+            "",
+            "Or sidestep it entirely — export the transcript from Teams/Zoom/Meet, which",
+            "also gives you speaker labels that machine transcription cannot.",
+        ])
+
+    if "no such file" in text or "not found" in text or "errno 2" in text:
+        return ("Model files not found where expected.", [
+            "If you passed --model-dir, check the path contains the model, not just its parent.",
+            "Otherwise run --download-model to fetch it, or --check to see the cache location.",
+        ])
+
+    if "memory" in text or "alloc" in text or "killed" in text:
+        return ("Ran out of memory loading the model.", [
+            "Use a smaller model: --model small (or base).",
+            "`large-v3` needs several GB of RAM and is rarely worth it for interview audio.",
+        ])
+
+    if "invalid" in text and ("data" in text or "format" in text) or "decod" in text:
+        return ("The audio could not be decoded.", [
+            "Check the file plays. If it is an unusual container, convert it to .wav first.",
+            "`pip install av` provides decoding for .m4a/.mp3/.mp4 without a separate ffmpeg.",
+        ])
+
+    return (f"{name}: {exc}", [
+        "Run --check to confirm the backend, decoder and model cache are all in place.",
+    ])
+
+
+def print_failure(headline, remedy, indent="      "):
+    print(f"{indent}✗ {headline}")
+    for line in remedy:
+        print(f"{indent}  {line}" if line else "")
+
+
+# --------------------------------------------------------------------------------------
+# Model pre-staging and self-test
+# --------------------------------------------------------------------------------------
+
+def cmd_download_model(model_size, model_dir):
+    """Fetch weights ahead of time — before an engagement, or on a connected machine."""
+    backends = [b["id"] for b in detect_backends() if b["id"] in BACKENDS]
+    if not backends:
+        print("\n✗ No transcription backend installed.\n\n  pip install faster-whisper\n")
+        return 1
+
+    print(f"\n  Fetching `{model_size}` weights for {backends[0]}…")
+    print("  First download only; afterwards it is served from cache.\n")
+    try:
+        if backends[0] == "faster-whisper":
+            from faster_whisper import WhisperModel
+            kwargs = {"device": "cpu", "compute_type": "int8"}
+            if model_dir:
+                kwargs["download_root"] = model_dir
+            WhisperModel(model_size, **kwargs)
+        else:
+            import whisper
+            whisper.load_model(model_size, download_root=model_dir or None)
+    except Exception as e:
+        headline, remedy = classify_model_error(e)
+        print_failure(headline, remedy, indent="  ")
+        print()
+        return 1
+
+    cache = model_dir or os.environ.get("HF_HOME") or os.path.expanduser("~/.cache/huggingface")
+    print(f"  ✓ `{model_size}` is cached at:\n      {cache}\n")
+    print("  To use it on a machine that cannot reach Hugging Face, copy that directory")
+    print("  across and either set HF_HOME to it or pass --model-dir.\n")
+    return 0
+
+
+def make_test_tone(path, seconds=6):
+    """A short synthetic clip — enough to drive the pipeline end to end."""
+    import math
+    import struct
+    with wave.open(path, "w") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(16000)
+        for i in range(16000 * seconds):
+            # alternating speech-band tone and silence, so VAD has something to segment
+            v = int(6000 * math.sin(2 * math.pi * 300 * i / 16000)) if (i // 16000) % 2 == 0 else 0
+            w.writeframes(struct.pack("<h", v))
+
+
+def cmd_selftest(args):
+    """
+    Prove this machine can run the whole local pipeline, before it matters.
+
+    Worth running once on a new laptop, and again before an engagement, rather than
+    discovering at 9pm that the model was never cached.
+
+    Pass your own short clip (`--selftest clip.m4a`) to also check recognition quality.
+    Without one it uses a synthetic tone, which exercises every stage except whether the
+    words come out right — that part needs real speech.
+    """
+    import tempfile
+
+    print("\n  Local Whisper self-test\n  " + "─" * 58)
+    stages, failed = [], False
+
+    # 1 — backend
+    backends = [b["id"] for b in detect_backends() if b["id"] in BACKENDS]
+    if backends:
+        stages.append(("backend", "pass", backends[0]))
+    else:
+        stages.append(("backend", "FAIL", "none installed — pip install faster-whisper"))
+        failed = True
+
+    # 2 — decoder
+    dec = detect_decoder()
+    real_clip = args.selftest if isinstance(args.selftest, str) else None
+    if dec:
+        stages.append(("audio decoder", "pass", dec.split(" (")[0]))
+    elif real_clip and not real_clip.lower().endswith(".wav"):
+        stages.append(("audio decoder", "FAIL", "needed for this clip — pip install av"))
+        failed = True
+    else:
+        stages.append(("audio decoder", "warn", "absent; .wav only"))
+
+    tmp = None
+    if real_clip:
+        if not os.path.exists(real_clip):
+            print(f"\n  ✗ No such file: {real_clip}\n")
+            return 1
+        clip = real_clip
+    else:
+        tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+        tmp.close()
+        make_test_tone(tmp.name)
+        clip = tmp.name
+
+    # 3 — probe
+    probe = probe_audio(clip)
+    if probe["duration"]:
+        stages.append(("probe audio", "pass", f"{fmt_hms(probe['duration'])} via {probe['how']}"))
+    else:
+        stages.append(("probe audio", "FAIL", "could not read duration"))
+        failed = True
+
+    for label, status, detail in stages:
+        mark = {"pass": "✓", "warn": "–", "FAIL": "✗"}[status]
+        print(f"    {mark} {label:18} {detail}")
+
+    if failed:
+        print("\n  " + "─" * 58)
+        print("  Not ready. Fix the failures above, then re-run --selftest.\n")
+        if tmp:
+            os.unlink(tmp.name)
+        return 1
+
+    # 4 — the real check: load the model and decode
+    print(f"    · {'transcribe':18} loading `{args.model}` and decoding…", flush=True)
+    segments = []
+    try:
+        meta = BACKENDS[backends[0]](clip, args.model, args.language, None,
+                                     args.model_dir, segments.append)
+    except Exception as e:
+        print()
+        headline, remedy = classify_model_error(e)
+        print_failure(headline, remedy, indent="    ")
+        print("\n  " + "─" * 58)
+        print("  Self-test failed at the transcription stage.\n")
+        if tmp:
+            os.unlink(tmp.name)
+        return 1
+
+    print(f"    ✓ {'transcribe':18} model loaded, {len(segments)} segment(s) returned")
+
+    # 5 — the pipeline downstream of the model
+    turns = segments_to_turns(segments, args.turn_gap)
+    quality = assess_quality(turns)
+    out = tempfile.mkdtemp(prefix="whisper-selftest-")
+    stem = os.path.join(out, "selftest")
+    write_vtt(stem + ".vtt", turns, meta, [])
+    write_turns_csv(stem + ".turns.csv", turns)
+    write_json(stem + ".json", segments, turns, meta, probe, [])
+    write_markdown(stem + ".md", turns, meta, [], probe, quality)
+    wrote = [f for f in (".vtt", ".turns.csv", ".json", ".md")
+             if os.path.getsize(stem + f) > 0]
+    print(f"    ✓ {'outputs':18} {len(wrote)}/4 files written")
+
+    print("\n  " + "─" * 58)
+    if real_clip:
+        words = sum(len(t["text"].split()) for t in turns)
+        print(f"  Ready. Transcribed your clip: {len(turns)} turns, ~{words} words.")
+        if turns:
+            preview = turns[0]["text"][:100]
+            print(f'    first turn: "{preview}…"')
+        print("  Check that reads correctly — that is the part only you can judge.")
+    else:
+        print("  Ready. The full local pipeline runs on this machine.")
+        print("  Note this used a synthetic tone, so it proves the plumbing, not recognition")
+        print("  quality. Re-run with a short real clip to check that:")
+        print("      transcribe_interview.py --selftest my-clip.m4a")
+    print(f"  Sample output: {out}\n")
+    if tmp:
+        os.unlink(tmp.name)
+    return 0
 
 
 # --------------------------------------------------------------------------------------
@@ -617,10 +853,11 @@ def transcribe_one(path, out_dir, args, prompt, roster):
     except Exception as e:
         with open(ckpt, "w", encoding="utf-8") as fh:
             json.dump({"segments": segments}, fh)
-        print(f"    ✗ {type(e).__name__}: {e}")
+        headline, remedy = classify_model_error(e)
+        print_failure(headline, remedy)
         if segments:
             print(f"      {len(segments)} segments checkpointed; --resume to retry from there.")
-        return {"path": path, "status": "failed", "error": f"{type(e).__name__}: {e}"}
+        return {"path": path, "status": "failed", "error": headline}
 
     meta.setdefault("duration", probe["duration"])
     meta["prompt_used"] = prompt
@@ -665,6 +902,12 @@ def main():
     ap.add_argument("input", nargs="?", help="Audio file or a directory of them")
     ap.add_argument("-o", "--out", default="transcripts", help="Output directory")
     ap.add_argument("--check", action="store_true", help="Report what's installed and exit")
+    ap.add_argument("--selftest", nargs="?", const=True, metavar="CLIP",
+                    help="Prove the whole local pipeline runs on this machine. Optionally "
+                         "pass a short real clip to also check recognition quality.")
+    ap.add_argument("--download-model", action="store_true",
+                    help="Fetch model weights now — before an engagement, or on a machine "
+                         "that can reach Hugging Face, to copy across afterwards")
     ap.add_argument("--dry-run", action="store_true", help="Probe and estimate; don't transcribe")
     ap.add_argument("--apply-speakers", metavar="TURNS_CSV",
                     help="Merge a filled-in turn worksheet back into the transcript")
@@ -684,6 +927,10 @@ def main():
 
     if args.check:
         return cmd_check()
+    if args.download_model:
+        return cmd_download_model(args.model, args.model_dir)
+    if args.selftest:
+        return cmd_selftest(args)
     if args.apply_speakers:
         return cmd_apply_speakers(args.apply_speakers)
     if not args.input:

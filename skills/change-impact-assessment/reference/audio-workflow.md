@@ -52,23 +52,39 @@ technical convenience — it isn't one.
 
 ## The local workflow
 
-### 0. Check the machine is ready
+### 0. Prove the machine can do the job — before you need it
+
+Three commands, once per machine. Do this when you set up, not the night before a deadline.
 
 ```bash
-python3 scripts/transcribe_interview.py --check
+pip install faster-whisper                                  # pulls in PyAV for .m4a/.mp3/.mp4
+python3 scripts/transcribe_interview.py --check             # what's installed
+python3 scripts/transcribe_interview.py --download-model    # cache the weights now
+python3 scripts/transcribe_interview.py --selftest          # run the whole pipeline
 ```
 
-Reports the backend, the audio decoder and the model cache, with the exact command to fix
-whatever is missing. If nothing is installed:
+`--selftest` walks each stage — backend, decoder, audio probe, model load, output writing —
+and tells you which one failed rather than dumping a stack trace. Pass a short real clip
+(`--selftest clip.m4a`) and it also transcribes that, so you can judge recognition quality
+yourself; without one it uses a synthetic tone, which proves the plumbing but not the words.
 
-```bash
-pip install faster-whisper
-```
+#### Expect the model download to be blocked on a corporate laptop
 
-That pulls in PyAV too, so `.m4a`, `.mp3` and `.mp4` decode without a separate ffmpeg install.
+Whisper weights come from Hugging Face on first use, and **enterprise proxies routinely deny
+that host**. This is the single most likely setup failure, it is a network policy rather than
+a broken install, and the tool says so explicitly when it happens.
 
-**Air-gapped or offline?** Model weights download once from Hugging Face. Fetch them on a
-connected machine, copy `~/.cache/huggingface`, and set `HF_HOME` — or pass `--model-dir`.
+The fix is to pre-stage the model:
+
+1. On a machine with open internet: `--download-model small`. It prints the cache directory.
+2. Copy that directory across.
+3. On the restricted machine, either `export HF_HOME=/path/to/copied/cache` or pass
+   `--model-dir /path/to/copied/cache`.
+
+The same procedure covers genuinely air-gapped client environments. Model sizes: `tiny` ~75 MB,
+`base` ~145 MB, `small` ~500 MB, `medium` ~1.5 GB, `large-v3` ~3 GB.
+
+If none of that is available to you, the answer is route 1 — get the platform transcript.
 
 ### 1. Size the job before starting it
 
@@ -171,7 +187,8 @@ Two things to confirm before any of this material reaches a workbook:
 | Symptom | What it means |
 |---|---|
 | `No transcription backend installed` | `pip install faster-whisper` — or get the platform transcript instead |
-| Download fails / proxy 403 | Model weights are blocked. Fetch on another machine and set `HF_HOME`. |
+| `Model download blocked by the network` | Expected on a corporate laptop. Pre-stage the model (step 0) and set `HF_HOME` or `--model-dir`. |
+| Not sure which stage is broken | `--selftest` — it checks backend, decoder, probe, model load and output writing separately |
 | `.m4a`/`.mp3` fails, `.wav` works | No audio decoder. `pip install av`, or install ffmpeg. |
 | Garbled output, many flags | Poor audio. Try `--model medium`, and check `--language` if it misdetected. |
 | Long stretches of repeated words | Whisper hallucinating on silence. Flagged as `possible-repetition`; delete those turns. |

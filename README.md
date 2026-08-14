@@ -100,9 +100,14 @@ than a default — interview recordings contain named employees discussing job s
 - **Attribution is a first-class step.** Machine transcription cannot tell who is speaking, so
   the tool emits a turn worksheet; you label it while skimming the audio, and
   `--apply-speakers` merges it back into a `.vtt` that flows on into ingestion.
-- `--check` reports what's installed and how to fix it, `--dry-run` estimates the time before
-  you commit, and long recordings checkpoint so a failure at minute 80 resumes rather than
-  restarting.
+- **Setup is verifiable before it matters.** `--check` reports what's installed,
+  `--download-model` caches the weights up front, and `--selftest` runs the whole pipeline
+  stage by stage so a failure points at backend, decoder, probe, model load or output writing
+  rather than a stack trace. `--dry-run` estimates the time before you commit to a batch, and
+  long recordings checkpoint so a failure at minute 80 resumes rather than restarting.
+- **The likeliest setup failure is handled by name.** Whisper weights come from Hugging Face
+  and enterprise proxies routinely deny that host; the tool recognises the blocked download,
+  says it is a network policy rather than a broken install, and gives the pre-staging steps.
 
 Reading verbatim transcripts is a different job from reading notes, covered in
 `reference/interview-evidence.md`: attribution (who said it decides whether it is testimony, a
