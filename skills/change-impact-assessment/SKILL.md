@@ -46,6 +46,8 @@ lose credibility.
 | `scripts/transcribe_interview.py` | Turns interview recordings into attributed, quality-flagged transcripts. |
 | `reference/asr-vocabulary.txt` | Domain terms fed to the transcription model so it stops mangling system names. Trim per programme. |
 | `scripts/generate_cia.py` | Validates the JSON and renders the workbook. |
+| `scripts/push_to_airtable.py` | Publishes the same assessment to Airtable as a live, relational workspace. |
+| `reference/airtable-workspace.md` | Airtable route — setup, the linked-table design, views, and which copy is master. |
 | `examples/` | A complete worked example — six source documents and the 20-row `sample_cia_input.json` they produce. |
 
 ## Process
@@ -239,7 +241,36 @@ what the assessment found:
 Lead with the finding, not the file. The user asked for a workbook; what they need is to know
 what is in it.
 
-### Step 9: Memo, deck or refresh (only if asked)
+### Step 9: Publish to Airtable (only if asked)
+
+Some teams want the baseline as a workspace rather than a file. Read
+`reference/airtable-workspace.md`, then either use the Airtable connector (OAuth, no tokens
+— easiest) or the script:
+
+```bash
+export AIRTABLE_PAT=pat_xxx
+python3 scripts/push_to_airtable.py cia_input.json --check
+python3 scripts/push_to_airtable.py cia_input.json --base-id appXXXX --create
+```
+
+Two linked tables — `Sources` and `Change Impacts` — so traceability works in both
+directions, and the workbook's four roll-up sheets become filtered views that cannot drift
+from the register.
+
+Three things to say when handing the base over:
+
+1. **Which copy is master.** Records upsert on Impact ID, so re-running syncs from the JSON.
+   The moment business owners start editing in Airtable, stop re-running or you will
+   overwrite them.
+2. **Convert `Overall Impact` and `Rating` to formula fields** (the script prints the
+   formulas). Airtable's API cannot create formula fields, so this one-time UI step is what
+   restores the live re-scoring the workbook had.
+3. **Set base permissions deliberately.** A live link of named-role assessments is more
+   exposed than a file someone had to be sent.
+
+Keep generating the workbook too — it is the client's own template, and Airtable is not.
+
+### Step 10: Memo, deck or refresh (only if asked)
 
 For a client-ready memo or steering committee summary, use the `docx` or `pptx` skill.
 To refresh an existing assessment, edit the JSON and re-run — the workbook is regenerated

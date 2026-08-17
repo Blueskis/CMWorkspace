@@ -153,6 +153,16 @@ and Ariba implementation — seven sources, including a real Teams `.vtt` transc
 that a note cannot, including one finding that surfaced only because a colleague corrected a
 headline number mid-sentence.
 
+**Airtable as a live alternative.** `push_to_airtable.py` publishes the same assessment as
+two linked tables — `Sources` and `Change Impacts` — so traceability works in both directions
+(open a source, see every impact derived from it), and the workbook's roll-up sheets become
+filtered views that cannot drift from the register. Records upsert on Impact ID, so the JSON
+stays the master and re-running syncs rather than duplicating. Standard library only; the
+official Airtable connector is the no-token alternative. One constraint worth knowing:
+Airtable's API cannot create formula fields, so live re-scoring needs a one-time field
+conversion in the UI — the script prints the formulas and then defers to them on later runs.
+See `reference/airtable-workspace.md`.
+
 Requires `openpyxl` (`pip install openpyxl`).
 
 ## Layout
@@ -178,6 +188,7 @@ skills/change-impact-assessment/
 ├── scripts/              # transcribe_interview.py — recordings → attributed transcripts
 │                         # ingest_sources.py       — mixed client files → text + manifest
 │                         # generate_cia.py         — validator and workbook builder
+│                         # push_to_airtable.py     — same assessment as a live Airtable base
 └── examples/             # worked example — six source documents + the assessment
 ```
 
