@@ -1,0 +1,198 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "brand_profile.schema.json",
+  "title": "Brand Profile",
+  "description": "The client's approved theme, voice and channel specifications. Authored once per client and reused across changes. `approval` is the mechanical form of the never-build-a-lookalike rule: apply_brand.py and qa_comms.py both hard-fail when it is unpopulated.",
+  "type": "object",
+  "required": ["client", "source", "approval", "palette", "typography", "tone"],
+  "properties": {
+    "client": { "type": "string" },
+
+    "source": {
+      "enum": [
+        "client-supplied-guidelines",
+        "extracted-from-template",
+        "practitioner-authored-from-approved-materials"
+      ],
+      "description": "There is deliberately no 'inferred' value. A palette nobody approved is a lookalike, and this schema will not record one."
+    },
+    "source_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind"],
+        "properties": {
+          "path": { "type": "string" },
+          "kind": { "enum": ["brand-guidelines", "potx", "pptx", "docx", "dotx", "style-guide", "other"] }
+        }
+      }
+    },
+
+    "approval": {
+      "type": "object",
+      "required": ["approved_by", "role", "approved_date"],
+      "properties": {
+        "approved_by": { "type": "string" },
+        "role": { "type": "string" },
+        "approved_date": { "type": "string", "format": "date" },
+        "scope": { "type": "string", "description": "What was approved — e.g. 'internal employee comms, all channels'" }
+      },
+      "description": "Filled by a human, always. A profile with this blank is treated as no profile at all: stop and ask."
+    },
+
+    "palette": {
+      "type": "object",
+      "description": "Maps 1:1 onto the CSS custom properties in the HTML template's theme.css, which is how apply_brand.py recolours a deck without touching layouts.",
+      "additionalProperties": false,
+      "properties": {
+        "primary":   { "$ref": "#/$defs/colour" },
+        "secondary": { "$ref": "#/$defs/colour" },
+        "accent":    { "$ref": "#/$defs/colour" },
+        "ink":       { "$ref": "#/$defs/colour", "description": "Headings and primary text" },
+        "ink_soft":  { "$ref": "#/$defs/colour", "description": "Body text" },
+        "muted":     { "$ref": "#/$defs/colour" },
+        "canvas":    { "$ref": "#/$defs/colour", "description": "Slide background" },
+        "panel":     { "$ref": "#/$defs/colour" },
+        "rule":      { "$ref": "#/$defs/colour" },
+        "error":     { "$ref": "#/$defs/colour" },
+        "success":   { "$ref": "#/$defs/colour" }
+      }
+    },
+    "palette_rules": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Human rules a script cannot check — e.g. 'accent never on body text', 'primary only on full-bleed panels'."
+    },
+
+    "typography": {
+      "type": "object",
+      "required": ["heading", "body"],
+      "properties": {
+        "heading": { "$ref": "#/$defs/typeface" },
+        "body": { "$ref": "#/$defs/typeface" },
+        "min_size_pt": { "type": "number" },
+        "web_safe_fallback": {
+          "type": "string",
+          "description": "What the HTML render actually uses. The template fetches no webfonts by design, so a brand font that is not installed locally will not appear."
+        }
+      }
+    },
+
+    "logo": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string" },
+        "clear_space": { "type": "string" },
+        "min_width_px": { "type": "integer" },
+        "permitted_backgrounds": { "type": "array", "items": { "type": "string" } },
+        "prohibited_uses": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "tone": {
+      "type": "object",
+      "required": ["voice", "person"],
+      "description": "The part no extraction can produce. Always hand-written, whatever the source of the palette.",
+      "properties": {
+        "voice": { "type": "array", "items": { "type": "string" }, "description": "e.g. ['direct', 'warm', 'never corporate']" },
+        "person": { "enum": ["first", "second", "third"] },
+        "formality": { "enum": ["formal", "neutral", "informal"] },
+        "sentence_length_guidance": { "type": "string" },
+        "reading_age_target": { "type": ["integer", "null"] },
+        "do": { "type": "array", "items": { "type": "string" } },
+        "dont": { "type": "array", "items": { "type": "string" } },
+        "banned_words": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Checked mechanically against every block of draft text."
+        },
+        "preferred_terms": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Map of avoid -> use, e.g. {\"staff\": \"colleagues\"}. Checked mechanically."
+        }
+      }
+    },
+
+    "channel_specs": {
+      "type": "object",
+      "description": "All optional; all enforced when present. A stated limit is a hard failure in Stage 4, an unstated one falls back to the channel library's default as a warning.",
+      "properties": {
+        "email": {
+          "type": "object",
+          "properties": {
+            "subject_max_chars": { "type": "integer" },
+            "preheader_max_chars": { "type": "integer" },
+            "max_words": { "type": "integer" },
+            "sender_display_name": { "type": "string" },
+            "signature_block": { "type": "string" },
+            "html_width_px": { "type": "integer" }
+          }
+        },
+        "sharepoint_banner": {
+          "type": "object",
+          "properties": {
+            "image_width_px": { "type": "integer" },
+            "image_height_px": { "type": "integer" },
+            "headline_max_chars": { "type": "integer" },
+            "body_max_chars": { "type": "integer" },
+            "cta_max_chars": { "type": "integer" },
+            "safe_area_px": { "type": "integer" }
+          }
+        },
+        "slide_deck": {
+          "type": "object",
+          "properties": {
+            "aspect_ratio": { "type": "string" },
+            "max_slides": { "type": "integer" },
+            "title_max_chars": { "type": "integer" },
+            "bullets_per_slide_max": { "type": "integer" }
+          }
+        },
+        "short_form_video": {
+          "type": "object",
+          "properties": {
+            "max_duration_seconds": { "type": "integer" },
+            "aspect_ratio": { "type": "string" },
+            "captions_required": { "type": "boolean" },
+            "words_per_minute": {
+              "type": "integer",
+              "default": 150,
+              "description": "Used to convert script length into an estimated runtime."
+            }
+          }
+        }
+      }
+    },
+
+    "accessibility": {
+      "type": "object",
+      "properties": {
+        "min_contrast_ratio": { "type": "number", "default": 4.5 },
+        "alt_text_required": { "type": "boolean", "default": true },
+        "plain_language_required": { "type": "boolean", "default": true },
+        "captions_required": { "type": "boolean", "default": true }
+      }
+    }
+  },
+
+  "$defs": {
+    "colour": {
+      "type": "object",
+      "required": ["hex"],
+      "properties": {
+        "name": { "type": "string" },
+        "hex": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+      }
+    },
+    "typeface": {
+      "type": "object",
+      "required": ["family"],
+      "properties": {
+        "family": { "type": "string" },
+        "fallbacks": { "type": "array", "items": { "type": "string" } },
+        "weight": { "type": ["string", "integer"] }
+      }
+    }
+  }
+}

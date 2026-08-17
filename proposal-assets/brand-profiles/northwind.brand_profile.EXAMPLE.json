@@ -1,0 +1,111 @@
+{
+  "client": "Northwind Foods",
+  "source": "client-supplied-guidelines",
+  "source_files": [
+    { "path": "inputs/northwind-brand-guidelines-v4.pdf", "kind": "brand-guidelines" }
+  ],
+  "approval": {
+    "approved_by": "Priya Raghavan",
+    "role": "Head of Internal Communications, Northwind Foods",
+    "approved_date": "2026-06-30",
+    "scope": "Internal employee communications, all channels, to 2027-06-30"
+  },
+
+  "palette": {
+    "primary":   { "name": "Northwind Deep Green", "hex": "#14432a" },
+    "secondary": { "name": "Harvest",              "hex": "#7a5c1e" },
+    "accent":    { "name": "Signal Green",         "hex": "#1a7a45" },
+    "ink":       { "name": "Northwind Deep Green", "hex": "#14432a" },
+    "ink_soft":  { "name": "Slate",                "hex": "#3f4a52" },
+    "muted":     { "name": "Stone",                "hex": "#7b858d" },
+    "canvas":    { "name": "White",                "hex": "#ffffff" },
+    "panel":     { "name": "Oat",                  "hex": "#f4f1ea" },
+    "rule":      { "name": "Oat Dark",             "hex": "#ddd6c7" },
+    "error":     { "name": "Alert",                "hex": "#a12b1f" },
+    "success":   { "name": "Signal Green",         "hex": "#1a7a45" }
+  },
+  "palette_rules": [
+    "Signal Green is an accent only — never as a background for body text",
+    "Harvest is reserved for hospitality and brand campaigns; not used in operational comms",
+    "Never place Deep Green type on the Harvest panel"
+  ],
+
+  "typography": {
+    "heading": { "family": "Northwind Sans", "fallbacks": ["Segoe UI", "Arial"], "weight": 600 },
+    "body": { "family": "Northwind Sans", "fallbacks": ["Segoe UI", "Arial"], "weight": 400 },
+    "min_size_pt": 11,
+    "web_safe_fallback": "system-ui, sans-serif"
+  },
+
+  "logo": {
+    "path": "inputs/northwind-logo-rgb.svg",
+    "clear_space": "Half the logo height on all sides",
+    "min_width_px": 120,
+    "permitted_backgrounds": ["White", "Oat", "Northwind Deep Green (reversed logo only)"],
+    "prohibited_uses": [
+      "Never on a photograph without the clear-space panel",
+      "Never recoloured",
+      "Never stretched or rotated"
+    ]
+  },
+
+  "tone": {
+    "voice": ["direct", "warm", "practical", "never corporate"],
+    "person": "second",
+    "formality": "neutral",
+    "sentence_length_guidance": "One idea per sentence. Split anything over 25 words.",
+    "reading_age_target": 12,
+    "do": [
+      "Say what someone needs to do, and when, in the first three lines",
+      "Name a real person at the end of every comm",
+      "State what is not changing wherever it is known"
+    ],
+    "dont": [
+      "Open with 'As you may be aware'",
+      "Describe an operational change as 'exciting'",
+      "Promise detail 'shortly' without a date"
+    ],
+    "banned_words": ["restructure", "synergies", "rightsizing", "leverage"],
+    "preferred_terms": {
+      "staff": "colleagues",
+      "employees": "colleagues",
+      "HR": "the People team"
+    }
+  },
+
+  "channel_specs": {
+    "email": {
+      "subject_max_chars": 50,
+      "preheader_max_chars": 90,
+      "sender_display_name": "Northwind People team",
+      "html_width_px": 640
+    },
+    "sharepoint_banner": {
+      "image_width_px": 1920,
+      "image_height_px": 480,
+      "headline_max_chars": 60,
+      "body_max_chars": 120,
+      "cta_max_chars": 25,
+      "safe_area_px": 160
+    },
+    "slide_deck": {
+      "aspect_ratio": "16:9",
+      "max_slides": 12,
+      "title_max_chars": 70,
+      "bullets_per_slide_max": 5
+    },
+    "short_form_video": {
+      "max_duration_seconds": 75,
+      "aspect_ratio": "9:16",
+      "captions_required": true,
+      "words_per_minute": 150
+    }
+  },
+
+  "accessibility": {
+    "min_contrast_ratio": 4.5,
+    "alt_text_required": true,
+    "plain_language_required": true,
+    "captions_required": true
+  }
+}

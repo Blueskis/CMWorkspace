@@ -1,0 +1,227 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "change_brief.schema.json",
+  "title": "Change Brief",
+  "description": "The structured read of a change, authored once at Stage 1 and reused by every channel run. Audience IDs (A*), message IDs (M*) and milestone IDs (T*) are the spine of every run: Stage 2 maps content to them and Stage 4 proves none went unaddressed.",
+  "type": "object",
+  "required": ["client", "change", "audiences", "key_messages", "governance"],
+  "properties": {
+    "brief_id": { "type": "string", "description": "e.g. 'northwind-payroll-2026'" },
+    "client": {
+      "type": "object",
+      "required": ["trading_name"],
+      "properties": {
+        "legal_name": { "type": "string" },
+        "trading_name": { "type": "string", "description": "What appears in the comms. Legal name rarely does." },
+        "sector": { "type": "string" }
+      }
+    },
+
+    "change": {
+      "type": "object",
+      "required": ["title", "type", "what_is_changing", "rationale"],
+      "properties": {
+        "title": { "type": "string", "description": "The practitioner's own name for the change. Carried into the plan as engagement_title." },
+        "type": {
+          "enum": ["people", "process", "technology", "hybrid"],
+          "description": "Drives channel and tone advice. 'hybrid' is the common real case — model it, don't force a false choice."
+        },
+        "type_evidence": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Why that call was made. Keeps a judgement call auditable."
+        },
+        "what_is_changing": { "type": "string", "description": "The one-sentence factual statement. Everything else elaborates it." },
+        "rationale": {
+          "type": "string",
+          "description": "The why. Not optional — a comms without one reads as a decree, and it is the single most common omission."
+        },
+        "rationale_confidence": {
+          "enum": ["stated", "inferred"],
+          "default": "stated",
+          "description": "An inferred rationale must never be written as though the sponsor said it."
+        },
+        "what_is_not_changing": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Named reassurance stops more rumour than any amount of positive messaging. Always ask for it."
+        }
+      }
+    },
+
+    "audiences": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "impact_level", "whats_in_it_for_me", "required_action"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^A[0-9]+$" },
+          "label": { "type": "string" },
+          "size": { "type": ["integer", "null"] },
+          "location": { "type": "string" },
+          "impact_level": { "enum": ["high", "medium", "low", "informational"] },
+          "whats_in_it_for_me": {
+            "type": "string",
+            "description": "Required. A segment with no articulable WIIFM is a segment nobody has thought about yet."
+          },
+          "required_action": {
+            "type": "object",
+            "required": ["action", "optional"],
+            "properties": {
+              "action": { "type": "string" },
+              "by_date": { "type": ["string", "null"], "format": "date" },
+              "effort": { "type": "string", "description": "e.g. '10 minutes'. Stating it raises completion." },
+              "optional": {
+                "type": "boolean",
+                "description": "true is the honest encoding of 'nothing to do'. An empty action string is not."
+              }
+            }
+          },
+          "concerns": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Anticipated objections. Drives which messages lead."
+          },
+          "preferred_channels": {
+            "type": "array",
+            "items": { "enum": ["email", "sharepoint_banner", "slide_deck", "short_form_video", "line_manager", "town_hall", "intranet"] }
+          },
+          "manager_cascade_required": {
+            "type": "boolean",
+            "default": false,
+            "description": "High-impact segments usually need a manager brief before the mass comm."
+          }
+        }
+      }
+    },
+
+    "key_messages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "priority", "audience_ids"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^M[0-9]+$" },
+          "text": { "type": "string", "description": "The message in its intended voice, not a topic label." },
+          "priority": {
+            "enum": ["must-land", "supporting"],
+            "description": "qa_comms hard-fails on an uncovered must-land; warns on a supporting."
+          },
+          "audience_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "pattern": "^A[0-9]+$" },
+            "description": "Lets a single-audience run compute its own coverage denominator."
+          },
+          "milestone_ids": { "type": "array", "items": { "type": "string", "pattern": "^T[0-9]+$" } },
+          "evidence": { "type": "string", "description": "What backs the claim, where it makes one." },
+          "sensitivity": {
+            "enum": ["routine", "sensitive", "market-sensitive"],
+            "default": "routine",
+            "description": "Gates the channel. market-sensitive may not be planned onto an open channel."
+          }
+        }
+      }
+    },
+
+    "milestones": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "date", "label"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^T[0-9]+$" },
+          "date": { "type": "string", "format": "date" },
+          "date_confidence": {
+            "enum": ["confirmed", "indicative"],
+            "default": "confirmed",
+            "description": "Not garnish. Publishing an indicative date as confirmed burns a programme's credibility faster than anything else, so Stage 4 requires indicative dates to be hedged in the draft text."
+          },
+          "label": { "type": "string" },
+          "audience_ids": { "type": "array", "items": { "type": "string", "pattern": "^A[0-9]+$" } },
+          "visible_to_audience": {
+            "type": "boolean",
+            "default": true,
+            "description": "Internal programme gates must not leak into an all-staff comm."
+          }
+        }
+      }
+    },
+
+    "governance": {
+      "type": "object",
+      "required": ["sender", "help_route"],
+      "properties": {
+        "sender": {
+          "type": "object",
+          "required": ["name", "role"],
+          "properties": {
+            "name": { "type": "string" },
+            "role": { "type": "string" },
+            "why_this_messenger": {
+              "type": "string",
+              "description": "The messenger is content, not metadata. The same words from a line manager and from a comms mailbox land differently."
+            }
+          }
+        },
+        "approver": {
+          "type": "object",
+          "properties": {
+            "name": { "type": "string" },
+            "role": { "type": "string" },
+            "approved": { "type": "boolean", "default": false },
+            "approved_date": { "type": ["string", "null"], "format": "date" }
+          },
+          "description": "approved:false at draft time is normal. It is reported at handover, not failed."
+        },
+        "help_route": {
+          "type": "object",
+          "required": ["channel", "detail"],
+          "properties": {
+            "channel": { "type": "string", "description": "e.g. 'Service desk', 'Payroll inbox'" },
+            "detail": { "type": "string", "description": "The actual address, number or link" },
+            "hours": { "type": "string" },
+            "escalation": { "type": "string" }
+          },
+          "description": "Structured, not prose, so its presence can be asserted mechanically. Every required action needs a route for when it fails."
+        },
+        "embargo": { "type": ["string", "null"], "description": "Nothing may be published before this date/time." }
+      }
+    },
+
+    "constraints": {
+      "type": "object",
+      "properties": {
+        "channels_available": { "type": "array", "items": { "type": "string" } },
+        "accessibility_requirements": { "type": "array", "items": { "type": "string" } },
+        "languages": { "type": "array", "items": { "type": "string" } },
+        "prohibited_terms": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Checked mechanically in Stage 4 — e.g. 'restructure', 'efficiencies', a competitor name."
+        }
+      }
+    },
+
+    "open_questions": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "What the practitioner could not answer. These become visible [GAP]s downstream rather than confident invention."
+    },
+
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind"],
+        "properties": {
+          "path": { "type": "string" },
+          "kind": { "enum": ["briefing-notes", "programme-plan", "sponsor-email", "impact-assessment", "faq", "other"] },
+          "parsed_with": { "type": "string" }
+        }
+      }
+    }
+  }
+}

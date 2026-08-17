@@ -38,3 +38,17 @@ every bid.
 
 If the template ships with example slides, they're the best guide to intended usage:
 thumbnail them and mirror how each layout is actually used in practice.
+
+## Shared with the comms generator
+
+`html-generic/` is used by both skills. `cm-comms-generator`'s slide-deck channel renders
+through the same `render_html.py` against the same layouts, so a change here affects both —
+re-run `profile_template.py` and re-render both worked examples after editing `layouts.html`.
+
+The comms skill never renders directly from this directory. `apply_brand.py` copies it into
+the run and appends a client palette override, so each comms run keeps a snapshot of exactly
+what it was built on. A recoloured copy is still the generic template, not the client's
+approved one.
+
+Client brand profiles — palette, typography, voice, channel specs — live one level up in
+`../brand-profiles/`, not here. This folder is for slide templates.

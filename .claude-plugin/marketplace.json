@@ -8,8 +8,8 @@
     {
       "name": "cm-workspace",
       "source": "./",
-      "description": "Change-management working tools. Currently: an RFP-to-proposal deck generator that plans a bid against the client's stated requirements and evaluation criteria, writes it from a curated knowledge bank, and audits the result for requirement coverage and content provenance.",
-      "version": "0.1.0"
+      "description": "Change-management working tools. Two skills: an RFP-to-proposal deck generator that plans a bid against the client's stated requirements and evaluation criteria, and a communications generator that drafts change comms for a requested channel — email, intranet banner, slide deck, or short-form video outline. Both write from a shared curated knowledge bank and audit their output for coverage and content provenance.",
+      "version": "0.2.0"
     }
   ]
 }
