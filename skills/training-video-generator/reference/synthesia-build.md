@@ -91,6 +91,26 @@ Check the reasons as you go. A scene cut for showing production data is not opti
 
 For each scene in `build_sheet.md`, paste from the matching `scenes/S**.txt`.
 
+**Expect to hold frames.** The narration keeps the consultant's own words, and people speak
+faster casually (~190 wpm) than the avatar delivers at a training pace (~145). So most scenes
+need a little more time than the clip they play over — the build sheet marks each one with
+`⏸ Hold the last frame for ~Xs`.
+
+Synthesia sets scene length from the script, so this is the natural behaviour rather than a
+workaround: extend the background clip, or let the last frame hold, until the narration
+finishes. **Do not trim what the consultant said to make it fit** — that is the one edit the
+whole fidelity model exists to prevent.
+
+Two consequences worth planning for:
+
+- **The built video is longer than the footage**, and credits bill on the built length. The
+  build sheet and `fit_narration.py` both report it. A 66-second recording became an
+  81-second module in the shipped example — about a quarter more credit than the raw clip
+  suggests.
+- **A hold longer than half the clip means the scene boundary is wrong.** `fit_narration.py`
+  fails those rather than warning. It usually means the boundary sits where the *screen*
+  changed while the consultant was still talking; move it and regenerate.
+
 **Paste — do not retype, and do not edit in the editor.** If a line is wrong, fix
 `video_script.json`, re-run `fit_narration.py`, regenerate the build sheet, and paste again.
 Editing in place is how the reviewed script and the built video quietly become different

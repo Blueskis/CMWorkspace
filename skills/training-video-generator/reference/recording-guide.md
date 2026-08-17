@@ -31,16 +31,33 @@ Then:
 
 ## While recording
 
-**Talk through what you are doing.** This matters more than people expect. Say what you are
-clicking and why — "now I pick the cost centre, and this one is mandatory for stocked items,
-people forget that". Rough and unscripted is fine. Do not write a script, do not do retakes,
-do not worry about ums.
+**Talk through what you are doing. Your words become the script, close to verbatim.**
 
-That commentary is the source the narration gets written from. It is where your knowledge of
-the system enters the process. **A silent recording produces a much weaker module**, because
-then the only thing available is what the screen happens to show — and the screen does not
-explain why a field is mandatory or what goes wrong if you skip it. Your voice does not end up
-in the final video; the presenter avatar re-records it properly.
+Say what you are clicking and why — "now I pick the cost centre, and this one is mandatory for
+stocked items, people forget that". Rough and unscripted is fine. Do not write a script, do
+not do retakes, do not worry about ums: fillers, false starts and the bit where you take a
+wrong turn all get edited out.
+
+What does *not* get added is anything you did not say. The narration is your explanation with
+the mess removed — not a rewrite, and not somebody else's guess at why a field matters. So the
+useful instinct while recording is simply to **explain more than feels necessary**:
+
+- Why a field is mandatory, and what happens if it is skipped.
+- What people habitually get wrong here.
+- What the system is doing when it pauses.
+- Which of two similar-looking options is the right one, and how to tell.
+
+That is the knowledge the screen cannot show, and it is the difference between a module that
+demonstrates the clicks and one that actually prepares somebody. **A silent recording produces
+a much weaker module**, because then the only material available is what the screen happens to
+display.
+
+Your voice does not end up in the final video — the presenter avatar re-records it in a
+consistent voice — but the words stay yours.
+
+Anything you cannot answer on camera, say so out loud ("I'd have to check who this routes
+to"). That becomes a flagged gap for you to confirm later, rather than someone inventing a
+plausible answer.
 
 Then:
 
@@ -99,7 +116,9 @@ just that fragment, matching the original resolution and zoom level so it cuts i
 [ ] Training/sandbox client — no production data, no real client names
 [ ] 1920x1080, notifications off, browser clean
 [ ] UI zoomed enough to read on a laptop
-[ ] Talking through the steps as I go
+[ ] Talking through the steps as I go — my words become the script
+[ ] Explaining why, not just what: gotchas, mandatory fields, what breaks
+[ ] Said out loud anything I wasn't sure about
 [ ] One second pause between steps
 [ ] Aiming for 3-5 minutes
 [ ] Noted the release/environment I recorded against

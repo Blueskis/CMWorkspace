@@ -30,7 +30,8 @@ python $S/build_sheet.py capture_map.json video_script.json \
 python $S/qa_video.py capture_map.json video_script.json -o /tmp/qa_report.md
 ```
 
-Expected: fit check passes, 6 scenes and 1m06s, one open `[GAP]`, QA passes with no warnings.
+Expected: fit check passes with three warnings, 66s of footage building to an 81s module, one
+open `[GAP]`, QA passes.
 
 To exercise Stage 1 as well, generate the video first — this needs ffmpeg:
 
@@ -51,11 +52,30 @@ content cannot vanish silently between the recording and the video.
 **An acceleration (`S05`).** Eight seconds of a posting spinner. Kept, sped up, and narrated
 as a deliberate silent beat rather than padded with filler.
 
-**A `[GAP]` (`S06`).** The approval status chip is truncated at the frame edge, so the
-recording never establishes where a stocked-item requisition routes. Rather than writing a
-plausible sentence about approval routing, the scene is flagged for the consultant to confirm.
-This is the invariant that matters most — the narration cannot assert something the footage
-does not show.
+**Cleaned-verbatim narration.** Every scene carries `source_excerpt` — what the consultant
+actually said — beside the cleaned `narration`. Compare S02's pair to see the whole editorial
+policy in one place: `"Right, so Create Purchase Requisition. First line, material number goes
+in here."` becomes `"So, Create Purchase Requisition. First line, the material number goes in
+here."` Filler out, article in, meaning and voice untouched. Nothing is added anywhere, and
+`qa_video.py` diffs the vocabulary against the transcript to prove it.
+
+**Frame holds (`S01`, `S02`, `S04`).** The consultant talks faster than the avatar delivers,
+so all three step scenes need more time than their clip — 1.8s, 2.4s and 3.8s. That is the
+normal case in cleaned-verbatim mode, not a defect: the footage holds its last frame. It is
+also why the built module is 81s against 66s of recording, and why credits are budgeted on the
+former.
+
+**A boundary that had to move (`S04`/`S05`).** As first cut, S04 ran 31–41s and its narration
+needed 7.8s more — too long to hold a still for, so `fit_narration.py` failed it and said to
+re-cut. The boundary was wrong: the consultant kept explaining the cost centre rule while the
+save spinner started. Moving it to 45s fixed the scene and shrank the spinner to 4s. The
+`disposition_note` on S05 records why.
+
+**A `[GAP]` (`S06`).** The consultant says the requisition has "gone off for approval" but
+never says to whom, and the approval status chip is truncated at the frame edge — so neither
+the words nor the screen establish the routing. Rather than writing a plausible sentence about
+approval rules, the scene is flagged for the consultant to confirm. This is the invariant that
+matters most.
 
 **An intermittent avatar.** Visible on the intro and outro, hidden across the three step
 scenes. Two of six scenes, not six of six: a talking head competes with the screen exactly
@@ -76,13 +96,17 @@ python check_invariants.py
 ```
 
 ```
-  ok    control (clean fixture passes)
+  ok    control (clean fixture passes, no fidelity warning)
   ok    provenance: narration over a frame nobody read
   ok    coverage: hole in the scene tiling
   ok    fit: narration over its word budget
   ok    consistency: annotation parked under the avatar
+  ok    fidelity: narration invents content the SME never said
   ...
-all 13 invariant breaches caught
+all 16 invariant breaches caught
 ```
+
+Fidelity breaches are warnings rather than failures, so those cases are asserted against the
+report text instead of the exit code.
 
 Run it after changing anything in `qa_video.py` or `fit_narration.py`.

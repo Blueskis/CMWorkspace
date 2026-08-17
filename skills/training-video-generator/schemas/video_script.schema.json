@@ -62,6 +62,16 @@
       "minItems": 2,
       "maxItems": 2
     },
+    "fidelity_mode": {
+      "enum": ["cleaned-verbatim", "rewritten"],
+      "default": "cleaned-verbatim",
+      "description": "How far narration may depart from what the consultant actually said. 'cleaned-verbatim' keeps their wording and structure, removing only fillers, mis-steps and digressions — the SME's phrasing survives, and the checks enforce that it does. 'rewritten' allows narration to be composed to fit each scene's duration, trading fidelity for tighter sync.",
+      "default_note": "cleaned-verbatim is the default because the consultant's words carry knowledge the screen does not, and because narration recorded while doing the task is already roughly in step with it."
+    },
+    "guide_transcript": {
+      "type": "string",
+      "description": "Path to the consultant's transcribed walkthrough. Required in cleaned-verbatim mode: it is what fidelity is checked against, and without it 'verbatim' is an unverifiable claim."
+    },
     "scenes": {
       "type": "array",
       "minItems": 1,
@@ -92,7 +102,11 @@
           },
           "narration": {
             "type": "string",
-            "description": "What the avatar says over this scene. Written to the word budget derived from the scene's measured duration."
+            "description": "What the avatar says over this scene. In cleaned-verbatim mode this is source_excerpt with fillers, mis-steps and digressions removed and terminology corrected — not a fresh composition."
+          },
+          "source_excerpt": {
+            "type": "string",
+            "description": "The consultant's actual words for this scene, verbatim from the guide transcript. Required in cleaned-verbatim mode. This is what narration is diffed against, so a 'light clean' that quietly became a rewrite is visible rather than assumed."
           },
           "silent": {
             "type": "boolean",

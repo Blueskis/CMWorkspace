@@ -116,25 +116,54 @@ frames alone and needs closer review from the consultant.
 Write `video_script.json` against `schemas/video_script.schema.json`. Set objectives first;
 every `keep` scene maps to at least one.
 
-### Narration rules
+### Narration rules — cleaned verbatim
 
-- **Write to the word budget.** `fit_narration.py` computes it from each scene's measured
-  duration at 130–165 wpm — a training pace, not a conversational one. A 7.7s scene takes
-  roughly 17–21 words. Overrunning is not a style problem: it is precisely what
-  desynchronises the voice from the screen, and it is checked mechanically.
-- **Narrate the action, not the interface.** "Select Create Purchase Requisition" beats
-  "click the button labelled Create Purchase Requisition in the upper left".
-- **Say what the learner should do, in the order they will do it.** Present tense, second
-  person, one action per sentence.
-- **Never narrate something the frame does not show.** If a step needs a claim the footage
-  does not establish, mark the scene `gap: true` with a `gap_note`. A plausible-sounding
-  sentence is worse than a visible hole, because nobody will catch it later.
-- **Fix terminology once, in the glossary, and never drift.** Legacy system names and informal
-  shorthand are the commonest defect in system training — the `training-qa-agent` skill's
-  system-training lens exists largely for this.
-- **Write for a cloned voice.** Spell out acronyms the first time. Break long sentences with
-  full stops rather than commas; TTS handles short declaratives far better. Write transaction
-  codes as the avatar should say them.
+**The default is `fidelity_mode: "cleaned-verbatim"`: you are editing the consultant's words,
+not writing your own.** They explained the system while doing it; that explanation carries
+knowledge the screen does not, and it is already roughly in step with the action. Your job is
+to clean it, not improve it.
+
+Every scene carries `source_excerpt` — the consultant's actual words — alongside `narration`.
+That is what makes "lightly cleaned" checkable rather than merely claimed, and `fit_narration.py`
+fails a scene that omits it.
+
+**Remove:** fillers and hesitations; false starts; mis-steps and their recovery ("sorry,
+that's the wrong tile, let me go back"); asides that go nowhere; repetition of something
+already said in an earlier scene.
+
+**Change only:** terminology, to the glossary's fixed term; sentence boundaries, splitting
+run-ons into short declaratives because TTS handles those far better; acronyms and long
+numbers, written as the avatar should say them ("S four HANA"). A spoken digit string usually
+reads better as the annotation than as speech — put it on screen instead.
+
+**Never:** add an explanation the consultant did not give, reorder their reasoning, or
+smooth their phrasing into corporate prose. `qa_video.py` diffs the narration's vocabulary
+against the guide transcript and flags content that appears from nowhere; that check exists
+because inventing a confident-sounding sentence is exactly the failure mode this skill is
+supposed to prevent.
+
+**Still applies regardless of mode:** if a step needs a claim the footage does not establish,
+mark the scene `gap: true` with a `gap_note` rather than filling the hole. A plausible
+sentence is worse than a visible gap, because nobody catches it later.
+
+### Fit — the footage moves, not the words
+
+Casual speech runs near 190 wpm; the avatar delivers at a training pace of 130–165. So
+faithfully kept narration routinely needs **more** time than the clip it plays over. That is
+expected, not a defect.
+
+Synthesia sets scene length from the script, so the fix is to hold the last frame while the
+narration finishes. `fit_narration.py` reports the hold per scene and totals the **built**
+runtime, which is what credits are charged on — always longer than the raw footage.
+
+A hold only becomes a failure when it exceeds half the clip's length. At that point the still
+would be conspicuous, and the real problem is the scene boundary: re-cut it or split the
+scene. In practice this means the boundary sits where the *screen* changed but the consultant
+was still talking, and moving it is the honest fix.
+
+If you genuinely need narration composed to fit fixed footage instead, set
+`fidelity_mode: "rewritten"` — the word budget then becomes a hard constraint and overruns
+fail. That trades the SME's voice for tighter sync; do it deliberately, not by drift.
 
 ### Annotation types
 
@@ -188,12 +217,17 @@ Four checks, all mechanical, exiting non-zero on any hard failure:
 
 1. **Screen provenance.** Every narrated scene has a `frame_ref` whose scene is `read`, or
    `gap: true`. No third state.
-2. **Scene coverage.** Scenes tile the recording without gaps or overlaps; every `keep` scene
-   has narration or `silent: true`; every `cut`/`accelerate` has a reason.
-3. **Fit.** Narration inside the word budget; annotations readable at their duration; total
-   runtime within the module's target.
+2. **Scene coverage.** Scenes tile the recording without gaps or overlaps; every `keep` or
+   `accelerate` scene appears in the script; every `cut`/`accelerate` has a reason.
+3. **Fit.** Frame holds within bounds; annotations readable at their duration; built runtime
+   within the module's target.
 4. **Consistency.** Glossary `avoid` terms absent; objectives all covered; annotation
    geometry on-canvas and not colliding with a visible avatar.
+5. **Fidelity** (cleaned-verbatim only). Narration keeps enough of the source to be a clean
+   rather than a rewrite, and introduces no content word absent from the guide transcript.
+   Warnings, not failures — a light edit can legitimately introduce a word, and a check that
+   cries wolf gets switched off. Pass `--transcript` if the path in the script does not
+   resolve.
 
 Then hand `video_script.json` to the **`training-qa-agent`** skill for the instructional-design
 pass — objective alignment, sequencing, assessment fit. That checklist is not duplicated here.

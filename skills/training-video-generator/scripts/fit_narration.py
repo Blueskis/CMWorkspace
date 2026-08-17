@@ -26,15 +26,27 @@ import sys
 from pathlib import Path
 
 DEFAULT_WPM_BAND = (130.0, 165.0)
+DEFAULT_MODE = "cleaned-verbatim"
 # Reading speed for on-screen text, plus a floor so a two-word callout still registers.
 SECONDS_PER_ANNOTATION_WORD = 0.4
 MIN_ANNOTATION_SECONDS = 1.5
 # Below this fraction of the minimum budget, a scene is carrying conspicuous dead air.
-UNDERRUN_FRACTION = 0.5
+# Cleaned-verbatim narration is expected to come in short — stripping fillers removes real
+# words — so it is held to a looser floor than freshly composed narration.
+UNDERRUN_FRACTION = {"cleaned-verbatim": 0.35, "rewritten": 0.5}
+# Fidelity bounds for cleaned-verbatim: below the floor the "clean" has become a rewrite,
+# above the ceiling words have been added that the consultant never said.
+RETENTION_FLOOR = 0.55
+RETENTION_CEILING = 1.15
 
 
 def word_count(text):
     return len(str(text or "").split())
+
+
+def speech_seconds(words, wpm):
+    """How long the avatar will take to say this many words at a given pace."""
+    return round(words * 60.0 / wpm, 2) if wpm else 0.0
 
 
 def budget_for(duration, wpm_band=DEFAULT_WPM_BAND):
@@ -47,7 +59,7 @@ def budget_for(duration, wpm_band=DEFAULT_WPM_BAND):
     return (int(duration * low / 60), int(duration * high / 60))
 
 
-def check_scene(scene, wpm_band=DEFAULT_WPM_BAND):
+def check_scene(scene, wpm_band=DEFAULT_WPM_BAND, mode=DEFAULT_MODE):
     """Return (findings, words, budget) for one scene. Findings are (severity, message)."""
     findings = []
     capture = scene.get("capture", {})
@@ -82,21 +94,80 @@ def check_scene(scene, wpm_band=DEFAULT_WPM_BAND):
 
     if words > budget[1]:
         over = words - budget[1]
-        findings.append(
-            (
-                "fail",
-                f"{scene_id}: {words} words over {duration}s — budget is "
-                f"{budget[0]}-{budget[1]}; cut {over} word{'s' if over != 1 else ''}",
+        extension = round(speech_seconds(words, wpm_band[1]) - duration, 1)
+
+        if mode == "cleaned-verbatim":
+            # Expected, not a defect. Casual speech runs near 190 wpm; the avatar delivers
+            # at a training pace, so faithfully kept words routinely need more time than the
+            # footage. Synthesia's scene length follows the script, so the fix is to hold the
+            # last frame — the consultant's words are the fixed side of the equation.
+            # It only becomes a failure when the shortfall is large enough that holding a
+            # still would be conspicuous, which means the scene boundary is in the wrong place.
+            if extension <= duration * 0.5:
+                findings.append(
+                    (
+                        "warn",
+                        f"{scene_id}: {words} words needs ~{extension}s more than the "
+                        f"{duration}s of footage — hold the last frame",
+                    )
+                )
+            else:
+                findings.append(
+                    (
+                        "fail",
+                        f"{scene_id}: {words} words needs ~{extension}s more than the "
+                        f"{duration}s of footage — too much to hold a still for; re-cut the "
+                        f"scene boundary or split the scene",
+                    )
+                )
+        else:
+            findings.append(
+                (
+                    "fail",
+                    f"{scene_id}: {words} words needs longer than the {duration}s of footage "
+                    f"(budget {budget[0]}-{budget[1]}); cut {over} "
+                    f"word{'s' if over != 1 else ''}",
+                )
             )
-        )
-    elif words < budget[0] * UNDERRUN_FRACTION:
+    elif words < budget[0] * UNDERRUN_FRACTION.get(mode, 0.5):
         findings.append(
             (
                 "warn",
                 f"{scene_id}: {words} words over {duration}s leaves dead air — "
-                f"budget is {budget[0]}-{budget[1]}; add detail or shorten the clip",
+                f"budget is {budget[0]}-{budget[1]}; trim the clip or let the scene breathe",
             )
         )
+
+    if mode == "cleaned-verbatim":
+        source = scene.get("source_excerpt")
+        if source is None:
+            findings.append(
+                (
+                    "fail",
+                    f"{scene_id}: cleaned-verbatim mode needs source_excerpt — without the "
+                    f"consultant's actual words there is nothing to verify the clean against",
+                )
+            )
+        else:
+            source_words = word_count(source)
+            if source_words:
+                retention = words / source_words
+                if retention < RETENTION_FLOOR:
+                    findings.append(
+                        (
+                            "warn",
+                            f"{scene_id}: only {retention:.0%} of the consultant's "
+                            f"{source_words} words survive — that is a rewrite, not a clean",
+                        )
+                    )
+                elif retention > RETENTION_CEILING:
+                    findings.append(
+                        (
+                            "warn",
+                            f"{scene_id}: narration is {retention:.0%} of what was said — "
+                            f"words have been added that the consultant did not say",
+                        )
+                    )
 
     for i, annotation in enumerate(scene.get("annotations") or []):
         text = annotation.get("text")
@@ -119,19 +190,45 @@ def check_scene(scene, wpm_band=DEFAULT_WPM_BAND):
 
 def check(script):
     wpm_band = tuple(script.get("wpm_band") or DEFAULT_WPM_BAND)
+    mode = script.get("fidelity_mode") or DEFAULT_MODE
     rows, findings = [], []
     total_duration = 0.0
 
+    if mode == "cleaned-verbatim" and not script.get("guide_transcript"):
+        findings.append(
+            (
+                "warn",
+                "cleaned-verbatim mode without a guide_transcript — fidelity is being "
+                "asserted rather than checked",
+            )
+        )
+
+    footage_total = 0.0
+    midpoint_wpm = sum(wpm_band) / 2
+
     for scene in script.get("scenes", []):
-        scene_findings, words, budget = check_scene(scene, wpm_band)
+        scene_findings, words, budget = check_scene(scene, wpm_band, mode)
         findings.extend(scene_findings)
         capture = scene.get("capture", {})
-        duration = round(float(capture.get("out", 0)) - float(capture.get("in", 0)), 3)
-        total_duration += max(duration, 0)
+        duration = max(
+            round(float(capture.get("out", 0)) - float(capture.get("in", 0)), 3), 0
+        )
+        # Synthesia's scene length follows the script, so a scene runs for however long the
+        # narration takes if that is longer than the clip. Budgeting credits against the raw
+        # footage would understate the bill on every scene that holds a frame.
+        speech = 0.0 if scene.get("silent") or scene.get("gap") else speech_seconds(
+            words, midpoint_wpm
+        )
+        built = round(max(duration, speech), 2)
+
+        footage_total += duration
+        total_duration += built
         rows.append(
             {
                 "scene_id": scene.get("scene_id", "?"),
                 "duration": duration,
+                "speech": speech,
+                "built": built,
                 "words": words,
                 "budget": list(budget),
                 "role": scene.get("role"),
@@ -152,29 +249,45 @@ def check(script):
         "scenes": rows,
         "findings": findings,
         "total_duration": round(total_duration, 3),
+        "footage_duration": round(footage_total, 3),
         "wpm_band": list(wpm_band),
+        "fidelity_mode": mode,
         "target_runtime": target,
     }
 
 
 def render(result):
     lines = [
-        f"{'scene':6} {'role':10} {'secs':>7} {'words':>6} {'budget':>10}",
-        "-" * 43,
+        f"{'scene':6} {'role':10} {'clip':>6} {'speech':>7} {'built':>7} "
+        f"{'words':>6} {'budget':>9}",
+        "-" * 56,
     ]
     for row in result["scenes"]:
         budget = f"{row['budget'][0]}-{row['budget'][1]}"
+        held = "+" if row["built"] > row["duration"] + 0.05 else " "
         lines.append(
             f"{row['scene_id']:6} {str(row['role'] or ''):10} "
-            f"{row['duration']:>7.1f} {row['words']:>6} {budget:>10}"
+            f"{row['duration']:>6.1f} {row['speech']:>7.1f} {row['built']:>6.1f}{held} "
+            f"{row['words']:>6} {budget:>9}"
         )
 
     minutes, seconds = divmod(result["total_duration"], 60)
+    footage_m, footage_s = divmod(result.get("footage_duration", 0), 60)
     lines.append("")
     lines.append(
-        f"{len(result['scenes'])} scenes, {int(minutes)}m {seconds:04.1f}s total "
-        f"at {result['wpm_band'][0]:g}-{result['wpm_band'][1]:g} wpm"
+        f"{len(result['scenes'])} scenes at "
+        f"{result['wpm_band'][0]:g}-{result['wpm_band'][1]:g} wpm "
+        f"({result.get('fidelity_mode', DEFAULT_MODE)})"
     )
+    lines.append(
+        f"footage {int(footage_m)}m {footage_s:04.1f}s  →  "
+        f"built video {int(minutes)}m {seconds:04.1f}s "
+        f"({result['total_duration'] * 2:.0f} Synthesia credits)"
+    )
+    if result["total_duration"] > result.get("footage_duration", 0) + 0.5:
+        lines.append(
+            "  '+' marks scenes that hold the last frame while narration finishes."
+        )
 
     fails = [m for sev, m in result["findings"] if sev == "fail"]
     warns = [m for sev, m in result["findings"] if sev == "warn"]
@@ -204,22 +317,44 @@ def self_test():
     check_eq("budget 60s", budget_for(60.0), (130, 165))
     check_eq("budget 7.7s", budget_for(7.7), (16, 21))
 
+    R = "rewritten"  # mode where narration is composed, so no source_excerpt is expected
+
     over = {
         "scene_id": "S01",
         "capture": {"in": 0, "out": 5},
         "narration": " ".join(["word"] * 40),
     }
-    findings, words, _ = check_scene(over)
+    findings, words, _ = check_scene(over, mode=R)
     check_eq("overrun words", words, 40)
     check_eq("overrun fails", [s for s, _ in findings], ["fail"])
     assert "cut 27 words" in findings[0][1], findings[0][1]
+
+    # Cleaned-verbatim, modest overrun: expected, so warn and hold the frame — the footage
+    # moves, never the consultant's words.
+    mild = {
+        "scene_id": "S01b",
+        "capture": {"in": 0, "out": 20},
+        "narration": " ".join(["word"] * 60),
+        "source_excerpt": " ".join(["word"] * 66),
+    }
+    mild_findings = check_scene(mild)[0]
+    check_eq("mild verbatim overrun warns", [s for s, _ in mild_findings], ["warn"])
+    assert "hold the last frame" in mild_findings[0][1], mild_findings
+    assert not any("cut " in m for _, m in mild_findings)
+
+    # Cleaned-verbatim, extreme overrun: holding a still that long would be conspicuous,
+    # so the scene boundary is wrong, not the narration.
+    extreme = dict(over, source_excerpt=" ".join(["word"] * 44))
+    extreme_findings = check_scene(extreme)[0]
+    check_eq("extreme verbatim overrun fails", [s for s, _ in extreme_findings], ["fail"])
+    assert "re-cut the scene boundary" in extreme_findings[0][1], extreme_findings
 
     ok = {
         "scene_id": "S02",
         "capture": {"in": 0, "out": 8},
         "narration": " ".join(["word"] * 18),
     }
-    check_eq("in-budget clean", check_scene(ok)[0], [])
+    check_eq("in-budget clean", check_scene(ok, mode=R)[0], [])
 
     silent = {"scene_id": "S03", "capture": {"in": 0, "out": 3}, "silent": True}
     check_eq("silent clean", check_scene(silent)[0], [])
@@ -246,14 +381,35 @@ def self_test():
         "narration": "Two words",
         "annotations": [{"type": "callout", "text": "a much longer callout than fits"}],
     }
-    assert any("needs" in m for _, m in check_scene(unreadable)[0])
+    assert any("needs" in m for _, m in check_scene(unreadable, mode=R)[0])
 
     underrun = {
         "scene_id": "S07",
         "capture": {"in": 0, "out": 20},
         "narration": "Barely anything.",
     }
-    check_eq("underrun warns", [s for s, _ in check_scene(underrun)[0]], ["warn"])
+    check_eq("underrun warns", [s for s, _ in check_scene(underrun, mode=R)[0]], ["warn"])
+
+    # --- cleaned-verbatim fidelity -------------------------------------------------
+    no_source = {
+        "scene_id": "S08",
+        "capture": {"in": 0, "out": 8},
+        "narration": " ".join(["word"] * 18),
+    }
+    assert any("source_excerpt" in m for _, m in check_scene(no_source)[0])
+
+    faithful = dict(no_source, source_excerpt=" ".join(["word"] * 22))
+    check_eq("faithful clean passes", check_scene(faithful)[0], [])
+
+    gutted = dict(no_source, source_excerpt=" ".join(["word"] * 60))
+    assert any("rewrite, not a clean" in m for _, m in check_scene(gutted)[0])
+
+    padded = dict(no_source, source_excerpt=" ".join(["word"] * 12))
+    assert any("words have been added" in m for _, m in check_scene(padded)[0])
+
+    # A cleaned-verbatim script with no transcript at all warns at the script level.
+    no_transcript = check({"scenes": [], "fidelity_mode": "cleaned-verbatim"})
+    assert any("guide_transcript" in m for _, m in no_transcript["findings"])
 
     for f in failures:
         print(f"FAIL  {f}", file=sys.stderr)

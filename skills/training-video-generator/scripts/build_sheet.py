@@ -25,6 +25,9 @@ import json
 import sys
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from fit_narration import DEFAULT_WPM_BAND, speech_seconds, word_count  # noqa: E402
+
 
 def timecode(seconds):
     """mm:ss.s — the form Synthesia's timeline shows."""
@@ -51,7 +54,7 @@ def build_trim_rows(capture_map):
     return rows
 
 
-def _scene_block(scene, capture_scene):
+def _scene_block(scene, capture_scene, wpm_band=DEFAULT_WPM_BAND):
     scene_id = scene.get("scene_id", "?")
     capture = scene.get("capture", {})
     start, end = capture.get("in", 0), capture.get("out", 0)
@@ -90,17 +93,32 @@ def _scene_block(scene, capture_scene):
         lines.append("")
     else:
         narration = scene.get("narration", "")
-        words = len(narration.split())
-        budget = scene.get("word_budget") or {}
-        budget_note = (
-            f" (budget {budget['min']}-{budget['max']})"
-            if budget.get("min") is not None
-            else ""
-        )
-        lines.append(f"**Narration** — {words} words{budget_note}, paste from `{scene_id}.txt`:")
+        words = word_count(narration)
+        midpoint = sum(wpm_band) / 2
+        speech = speech_seconds(words, midpoint)
+        hold = round(speech - duration, 1)
+
+        lines.append(f"**Narration** — {words} words, ~{speech:.1f}s, paste from `{scene_id}.txt`:")
         lines.append("")
         lines.append(f"> {narration}")
         lines.append("")
+
+        if hold > 0.3:
+            lines.append(
+                f"⏸ **Hold the last frame for ~{hold}s** — the narration runs longer than "
+                f"this clip. Synthesia sets scene length from the script, so extend the "
+                f"background rather than trimming what was said."
+            )
+            lines.append("")
+
+        source = scene.get("source_excerpt")
+        if source and source.strip() != narration.strip():
+            lines.append("<details><summary>What the consultant actually said</summary>")
+            lines.append("")
+            lines.append(f"> {source}")
+            lines.append("")
+            lines.append("</details>")
+            lines.append("")
 
     annotations = scene.get("annotations") or []
     if annotations:
@@ -126,13 +144,21 @@ def _scene_block(scene, capture_scene):
 def render_sheet(capture_map, script):
     module = script.get("module", {})
     scenes = script.get("scenes", [])
+    wpm_band = tuple(script.get("wpm_band") or DEFAULT_WPM_BAND)
     capture_by_id = {s.get("scene_id"): s for s in capture_map.get("scenes", [])}
 
-    total = sum(
-        float(s.get("capture", {}).get("out", 0)) - float(s.get("capture", {}).get("in", 0))
-        for s in scenes
-    )
-    minutes, seconds = divmod(total, 60)
+    midpoint = sum(wpm_band) / 2
+    built = 0.0
+    for s in scenes:
+        capture = s.get("capture", {})
+        clip = float(capture.get("out", 0)) - float(capture.get("in", 0))
+        speech = (
+            0.0
+            if s.get("silent") or s.get("gap")
+            else speech_seconds(word_count(s.get("narration")), midpoint)
+        )
+        built += max(clip, speech)
+    minutes, seconds = divmod(built, 60)
     gaps = [s for s in scenes if s.get("gap")]
     avatar_scenes = [s for s in scenes if s.get("avatar", {}).get("visible")]
 
@@ -141,7 +167,8 @@ def render_sheet(capture_map, script):
         "",
         f"**System:** {module.get('system', 'not stated')}  ",
         f"**Audience:** {module.get('audience', 'not stated')}  ",
-        f"**Runtime:** {int(minutes)}m {seconds:04.1f}s across {len(scenes)} scenes  ",
+        f"**Built runtime:** {int(minutes)}m {seconds:04.1f}s across {len(scenes)} scenes "
+        f"(~{built * 2:.0f} Synthesia credits)  ",
         f"**Avatar appears in:** {len(avatar_scenes)} of {len(scenes)} scenes",
         "",
         "Work through this in the Synthesia editor. Do not rewrite narration here — if a "
@@ -166,7 +193,9 @@ def render_sheet(capture_map, script):
 
     lines += ["## Scenes", ""]
     for scene in scenes:
-        lines += _scene_block(scene, capture_by_id.get(scene.get("scene_id")))
+        lines += _scene_block(
+            scene, capture_by_id.get(scene.get("scene_id")), wpm_band
+        )
 
     cuts = [
         r for r in build_trim_rows(capture_map) if r["disposition"] != "keep"

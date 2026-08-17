@@ -228,7 +228,90 @@ def check_consistency(script, frame_width=None):
     return findings, warnings
 
 
-def audit(capture_map, script):
+STOPWORDS = {
+    "a", "an", "and", "are", "as", "at", "be", "but", "by", "can", "do", "does", "for",
+    "from", "get", "go", "has", "have", "here", "how", "if", "in", "into", "is", "it",
+    "its", "just", "like", "not", "now", "of", "on", "once", "one", "or", "our", "out",
+    "over", "own", "put", "see", "so", "some", "than", "that", "the", "their", "them",
+    "then", "there", "these", "they", "this", "those", "to", "too", "up", "use", "very",
+    "was", "we", "were", "what", "when", "where", "which", "while", "who", "will",
+    "with", "you", "your", "well", "okay", "right", "next", "also", "want", "need",
+}
+# Shortest prefix two words must share to count as the same word. Compared over the shorter
+# of the pair, so 'pick'/'picking' and 'tile'/'tiles' match while 'escalates'/'escape' do not.
+MIN_STEM = 4
+
+
+def content_words(text):
+    """Lowercase alphabetic words carrying meaning, with function words dropped."""
+    words = re.findall(r"[a-z]+", str(text or "").lower())
+    return [w for w in words if w not in STOPWORDS and len(w) > 2]
+
+
+def _known(word, allowed):
+    """Is this word — or an inflection of it — present in the allowed vocabulary?"""
+    if word in allowed:
+        return True
+    for candidate in allowed:
+        shared = min(len(word), len(candidate))
+        if shared >= MIN_STEM and word[:shared] == candidate[:shared]:
+            return True
+    return False
+
+
+def check_fidelity(script, transcript_text):
+    """Cleaned-verbatim mode: narration must not introduce content the consultant never said.
+
+    Crude prefix stemming, deliberately — it absorbs plurals and tense ('requisition' vs
+    'requisitions', 'assign' vs 'assigned') without pulling in a stemming dependency, and the
+    check only needs to catch whole concepts that were invented, not word-form drift.
+
+    Warnings rather than failures: a light edit can legitimately introduce a word, and a
+    check that cries wolf gets switched off. What it reliably catches is a scene where
+    someone has written a confident explanation the SME never gave.
+    """
+    if (script.get("fidelity_mode") or "cleaned-verbatim") != "cleaned-verbatim":
+        return []
+    if not transcript_text:
+        return []
+
+    allowed = set(content_words(transcript_text))
+    for entry in script.get("glossary", []) or []:
+        allowed |= set(content_words(entry.get("use", "")))
+
+    warnings = []
+    for scene in script.get("scenes", []):
+        if scene.get("silent") or scene.get("gap"):
+            continue
+        invented = sorted(
+            {
+                word
+                for word in content_words(scene.get("narration"))
+                if not _known(word, allowed)
+            }
+        )
+        if invented:
+            shown = ", ".join(invented[:6]) + ("…" if len(invented) > 6 else "")
+            warnings.append(
+                f"{scene.get('scene_id')}: narration introduces {len(invented)} word(s) "
+                f"absent from the guide transcript ({shown}) — confirm the consultant "
+                f"actually said this"
+            )
+    return warnings
+
+
+def load_transcript(script, script_path, override=None):
+    """Resolve the guide transcript, relative to the script unless overridden."""
+    path = override or script.get("guide_transcript")
+    if not path:
+        return None
+    candidate = Path(path)
+    if not candidate.is_absolute():
+        candidate = Path(script_path).resolve().parent / candidate
+    return candidate.read_text() if candidate.exists() else None
+
+
+def audit(capture_map, script, transcript_text=None):
     provenance = check_provenance(capture_map, script)
     coverage = check_coverage(capture_map, script)
     fit = fit_check(script)
@@ -236,14 +319,16 @@ def audit(capture_map, script):
 
     fit_failures = [m for sev, m in fit["findings"] if sev == "fail"]
     fit_warnings = [m for sev, m in fit["findings"] if sev == "warn"]
+    fidelity_warnings = check_fidelity(script, transcript_text)
 
     return {
         "provenance": provenance,
         "coverage": coverage,
         "fit": fit_failures,
         "consistency": consistency,
-        "warnings": fit_warnings + consistency_warnings,
+        "warnings": fit_warnings + consistency_warnings + fidelity_warnings,
         "fit_detail": fit,
+        "transcript_checked": transcript_text is not None,
         "hard_fail": bool(provenance or coverage or fit_failures or consistency),
     }
 
@@ -258,9 +343,20 @@ def render(result, script):
         "",
         f"**Status:** {'FAIL — fix before handover' if result['hard_fail'] else 'PASS (mechanical checks)'}",
         "",
-        f"{len(script.get('scenes', []))} scenes, {int(minutes)}m {seconds:04.1f}s runtime.",
+        f"{len(script.get('scenes', []))} scenes, {int(minutes)}m {seconds:04.1f}s runtime, "
+        f"{fit.get('fidelity_mode', 'cleaned-verbatim')} narration.",
         "",
     ]
+
+    if fit.get("fidelity_mode", "cleaned-verbatim") == "cleaned-verbatim" and not result.get(
+        "transcript_checked"
+    ):
+        lines += [
+            "> **Fidelity unchecked.** No guide transcript was found, so narration could "
+            "not be compared against what the consultant actually said. In cleaned-verbatim "
+            "mode that is the check that matters most.",
+            "",
+        ]
 
     sections = [
         (
@@ -348,6 +444,7 @@ def self_test():
     }
     script = {
         "module": {"title": "T"},
+        "fidelity_mode": "rewritten",
         "objectives": [{"id": "O1", "text": "do the thing"}],
         "scenes": [
             {"scene_id": "S01", "role": "intro", "objective_ids": ["O1"],
@@ -361,6 +458,44 @@ def self_test():
 
     clean = audit(capture_map, script)
     check("clean run passes", clean["hard_fail"], False)
+
+    # --- cleaned-verbatim fidelity ------------------------------------------------
+    transcript = (
+        "so this is the launchpad and we pick the procurement tile, then the material "
+        "number goes on the first line and the description fills itself in"
+    )
+    verbatim = {
+        "module": {"title": "V"},
+        "fidelity_mode": "cleaned-verbatim",
+        "objectives": [{"id": "O1", "text": "do the thing"}],
+        "scenes": [
+            {
+                "scene_id": "S01",
+                "role": "step",
+                "objective_ids": ["O1"],
+                "capture": {"in": 0, "out": 10, "frame_ref": "frames/S01.png"},
+                "narration": "Pick the Procurement tile. The material number goes on the first line.",
+                "source_excerpt": "so we pick the procurement tile, then the material number goes on the first line",
+                "avatar": {"visible": False},
+            }
+        ],
+    }
+    check("faithful narration clean", check_fidelity(verbatim, transcript), [])
+
+    invented = json.loads(json.dumps(verbatim))
+    invented["scenes"][0]["narration"] = (
+        "Pick the Procurement tile. Approval routing escalates to the finance controller."
+    )
+    fidelity = check_fidelity(invented, transcript)
+    assert fidelity and "escalates" in fidelity[0], fidelity
+
+    # Word-form drift must not trip it — that is noise, not invention.
+    inflected = json.loads(json.dumps(verbatim))
+    inflected["scenes"][0]["narration"] = "Picking the procurement tiles and the materials."
+    check("inflection tolerated", check_fidelity(inflected, transcript), [])
+
+    # In rewritten mode the check does not apply at all.
+    check("rewritten mode skips fidelity", check_fidelity(script, transcript), [])
 
     # 1. Narration over a frame nobody read.
     unread = json.loads(json.dumps(capture_map))
@@ -418,6 +553,10 @@ def main():
     parser.add_argument("capture_map", nargs="?", help="capture_map.json")
     parser.add_argument("script", nargs="?", help="video_script.json")
     parser.add_argument("-o", "--output", help="where to write qa_report.md")
+    parser.add_argument(
+        "--transcript",
+        help="guide transcript path (default: the script's guide_transcript field)",
+    )
     parser.add_argument("--self-test", action="store_true", help="run tests and exit")
     args = parser.parse_args()
 
@@ -434,7 +573,8 @@ def main():
     capture_map = json.loads(Path(args.capture_map).read_text())
     script = json.loads(Path(args.script).read_text())
 
-    result = audit(capture_map, script)
+    transcript_text = load_transcript(script, args.script, args.transcript)
+    result = audit(capture_map, script, transcript_text)
     report = render(result, script)
 
     if args.output:

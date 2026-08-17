@@ -87,7 +87,12 @@ and Synthesia does the compositing, avatar and voice. What sits in between is th
 error-prone part: reading the footage frame by frame, writing narration that fits each scene's
 measured duration, and proving the result matches.
 
-Two invariants the QA stage enforces mechanically:
+**The narration is the consultant's own words, cleaned — not rewritten.** They explain the
+system while demonstrating it, and that explanation carries what the screen cannot: why a
+field is mandatory, what breaks if you skip it, which of two similar options is right.
+Fillers, false starts and wrong turns come out; nothing gets added.
+
+Three invariants the QA stage enforces mechanically:
 
 - **Screen provenance** — every narration sentence asserting something about the system
   traces to a keyframe someone actually read, or carries an explicit `[GAP]`. There's no
@@ -96,10 +101,14 @@ Two invariants the QA stage enforces mechanically:
 - **Capture coverage** — every second of the recording belongs to a scene, kept footage is
   narrated, and dropped footage carries a stated reason. Nothing the consultant recorded
   vanishes by accident.
+- **Fidelity** — narration is diffed against the guide transcript, so content that appears
+  from nowhere gets flagged. "Lightly cleaned" is checked, not claimed.
 
-Plus fit (narration inside the word budget its scene duration allows — this is what keeps
-voice and screen in step) and consistency (objectives covered, glossary respected, annotations
-on-canvas and clear of the avatar).
+Plus fit and consistency. Fit is the counter-intuitive one: people speak faster casually
+(~190 wpm) than an avatar delivers at a training pace (~145), so faithful narration routinely
+needs *more* time than the clip. Synthesia sets scene length from the script, so the footage
+holds its last frame and **the built video runs longer than the recording** — which is what
+credits bill on, and what the tooling reports.
 
 ### Try it
 
@@ -114,8 +123,9 @@ python $S/fit_narration.py video_script.json
 python $S/qa_video.py capture_map.json video_script.json -o /tmp/qa_report.md
 ```
 
-6 scenes, 1m06s, one open `[GAP]`. See that folder's README for what each part demonstrates,
-and how to break the fixture to confirm the checks actually fire.
+6 scenes, 66s of footage building to an 81s module, one open `[GAP]`, three frame holds. See
+that folder's README for what each part demonstrates, and run its `check_invariants.py` to
+confirm all 16 checks actually fire.
 
 ### Setup before real use
 

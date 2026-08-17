@@ -85,6 +85,10 @@ def orphan_objective(cm, vs):
     vs["objectives"].append({"id": "O3", "text": "never taught anywhere"})
 
 
+def missing_source_excerpt(cm, vs):
+    del scene(vs, "S04")["source_excerpt"]
+
+
 CASES = [
     ("provenance: narration over a frame nobody read", unread_frame),
     ("provenance: narrated scene with no frame_ref", no_frame_ref),
@@ -99,19 +103,50 @@ CASES = [
     ("consistency: annotation off-canvas", annotation_off_canvas),
     ("consistency: banned glossary term used", glossary_violation),
     ("consistency: objective no scene teaches", orphan_objective),
+    ("fidelity: source_excerpt missing in verbatim mode", missing_source_excerpt),
+]
+
+
+# Fidelity breaches are warnings rather than failures — a light edit can legitimately
+# introduce a word, and a check that cries wolf gets switched off. They are asserted on the
+# report text instead of the exit code.
+def invented_content(cm, vs):
+    scene(vs, "S04")["narration"] = (
+        "Now the important bit: account assignment, cost centre. Unassigned requisitions "
+        "escalate automatically to the divisional finance controller within seventy-two hours."
+    )
+
+
+def rewrite_not_clean(cm, vs):
+    scene(vs, "S04")["narration"] = "Assign the cost centre."
+
+
+WARNING_CASES = [
+    ("fidelity: narration invents content the SME never said", invented_content, "absent from the guide transcript"),
+    ("fidelity: 'clean' that is really a rewrite", rewrite_not_clean, "rewrite, not a clean"),
 ]
 
 
 def run_qa(capture_map, script, workdir):
+    """Returns (exit_code, report_text)."""
     cm_path = workdir / "capture_map.json"
     vs_path = workdir / "video_script.json"
     cm_path.write_text(json.dumps(capture_map))
     vs_path.write_text(json.dumps(script))
-    return subprocess.run(
-        [sys.executable, str(QA), str(cm_path), str(vs_path)],
+    out = subprocess.run(
+        [
+            sys.executable,
+            str(QA),
+            str(cm_path),
+            str(vs_path),
+            # The fixture's transcript path is relative to this folder, not the temp dir.
+            "--transcript",
+            str(HERE / "inputs" / "guide_transcript.txt"),
+        ],
         capture_output=True,
         text=True,
-    ).returncode
+    )
+    return out.returncode, out.stdout
 
 
 def main():
@@ -122,26 +157,38 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         workdir = Path(tmp)
 
-        if run_qa(base_cm, base_vs, workdir) != 0:
+        control_code, control_report = run_qa(base_cm, base_vs, workdir)
+        if control_code != 0:
             failures.append("control: the clean fixture should pass, but QA failed it")
-            print("  FAIL  control (clean fixture passes)")
-        else:
-            print("  ok    control (clean fixture passes)")
+        if "absent from the guide transcript" in control_report:
+            failures.append("control: clean fixture should raise no fidelity warning")
+        ok = control_code == 0 and "absent from the guide transcript" not in control_report
+        print(f"  {'ok  ' if ok else 'FAIL'}  control (clean fixture passes, no fidelity warning)")
 
         for name, mutate in CASES:
             cm, vs = copy.deepcopy(base_cm), copy.deepcopy(base_vs)
             mutate(cm, vs)
-            caught = run_qa(cm, vs, workdir) != 0
+            caught = run_qa(cm, vs, workdir)[0] != 0
             if not caught:
                 failures.append(f"{name}: mutation was NOT caught")
             print(f"  {'ok  ' if caught else 'FAIL'}  {name}")
 
+        for name, mutate, expected in WARNING_CASES:
+            cm, vs = copy.deepcopy(base_cm), copy.deepcopy(base_vs)
+            mutate(cm, vs)
+            report = run_qa(cm, vs, workdir)[1]
+            caught = expected in report
+            if not caught:
+                failures.append(f"{name}: expected {expected!r} in the report")
+            print(f"  {'ok  ' if caught else 'FAIL'}  {name}")
+
+    total = len(CASES) + len(WARNING_CASES)
     print()
     if failures:
         for failure in failures:
             print(f"FAILED: {failure}", file=sys.stderr)
         return 1
-    print(f"all {len(CASES)} invariant breaches caught")
+    print(f"all {total} invariant breaches caught")
     return 0
 
 
