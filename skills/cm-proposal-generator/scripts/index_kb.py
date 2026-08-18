@@ -64,6 +64,21 @@ def _coerce(value):
     return value.strip("\"'")
 
 
+def _jsonable(value):
+    """Frontmatter passed through YAML can hold dates; the index is JSON.
+
+    Applies to nested blocks like `bid`, where a `submitted:` field parses as a real date
+    object and would otherwise fail the whole index at write time.
+    """
+    if isinstance(value, (date, datetime)):
+        return value.isoformat()
+    if isinstance(value, dict):
+        return {k: _jsonable(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [_jsonable(v) for v in value]
+    return value
+
+
 def _as_date(value):
     if isinstance(value, date):
         return value
@@ -98,6 +113,15 @@ def index_entry(path, bank_root):
     if stale:
         warnings.append(f"last reviewed {reviewed.isoformat()} — confirm before shipping")
 
+    # A past bid's outcome only matters if it survives into the index — retrieval and any
+    # front end read the index, never the files. An entry from a lost bid that indexes as
+    # indistinguishable from a won one defeats the point of recording the outcome at all.
+    bid = fm.get("bid") if isinstance(fm.get("bid"), dict) else None
+    if bid and not bid.get("outcome"):
+        warnings.append("bid block has no outcome — record it, or set it to 'unknown'")
+    if section in ("past-rfps", "presentations") and not bid:
+        warnings.append(f"{section} entry has no bid block — outcome unknown to retrieval")
+
     return {
         "id": str(fm["id"]),
         "title": str(fm["title"]),
@@ -109,6 +133,8 @@ def index_entry(path, bank_root):
         "owner": fm.get("owner"),
         "metrics_verified": bool(fm.get("metrics_verified", False)),
         "supersedes": fm.get("supersedes") or [],
+        "bid": _jsonable(bid),
+        "source_document": fm.get("source_document"),
         "path": str(rel),
         "word_count": len(body.split()),
         "excerpt": " ".join(body.split())[:300],

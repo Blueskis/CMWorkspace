@@ -1,0 +1,1603 @@
+<title>Bid Intake Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
+
+<style>
+/* ---------------------------------------------------------------
+   Tokens. Light is the bare :root; dark is redefined twice so the
+   un-stamped (system) state and the explicit toggle both resolve.
+   --------------------------------------------------------------- */
+:root {
+  --paper:      #F2F4F3;
+  --surface:    #FFFFFF;
+  --surface-2:  #E9EDEC;
+  --ink:        #131C21;
+  --ink-2:      #38484D;
+  --muted:      #5C6E73;
+  --faint:      #8A9C9F;
+  --rule:       #DCE3E2;
+  --rule-firm:  #C3CFCD;
+
+  --seal:       #0E6B60;
+  --seal-soft:  #DCEDE9;
+  --seal-ink:   #0A4F47;
+
+  --amber:      #935604;
+  --amber-soft: #FBEEDA;
+  --red:        #8B2E31;
+  --red-soft:   #F8E4E3;
+
+  --shadow: 0 1px 2px rgba(19, 28, 33, .06), 0 8px 24px -14px rgba(19, 28, 33, .30);
+
+  --ui: "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+  --doc: "Newsreader", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:      #0E1416;
+    --surface:    #151E20;
+    --surface-2:  #1D282A;
+    --ink:        #E4EDEB;
+    --ink-2:      #C0CFCD;
+    --muted:      #93A6A8;
+    --faint:      #6C7F81;
+    --rule:       #25322F;
+    --rule-firm:  #34443F;
+
+    --seal:       #4FB3A3;
+    --seal-soft:  #12312D;
+    --seal-ink:   #7FD0C2;
+
+    --amber:      #D9973F;
+    --amber-soft: #33240D;
+    --red:        #DE8286;
+    --red-soft:   #35181A;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 10px 28px -16px rgba(0, 0, 0, .8);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper:      #0E1416;
+  --surface:    #151E20;
+  --surface-2:  #1D282A;
+  --ink:        #E4EDEB;
+  --ink-2:      #C0CFCD;
+  --muted:      #93A6A8;
+  --faint:      #6C7F81;
+  --rule:       #25322F;
+  --rule-firm:  #34443F;
+
+  --seal:       #4FB3A3;
+  --seal-soft:  #12312D;
+  --seal-ink:   #7FD0C2;
+
+  --amber:      #D9973F;
+  --amber-soft: #33240D;
+  --red:        #DE8286;
+  --red-soft:   #35181A;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 10px 28px -16px rgba(0, 0, 0, .8);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink-2);
+  font-family: var(--ui);
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { color: var(--ink); font-weight: 600; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+code, kbd { font-family: var(--mono); }
+
+:focus-visible {
+  outline: 2px solid var(--seal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+
+/* --- masthead ------------------------------------------------- */
+
+.masthead {
+  border-bottom: 1px solid var(--rule-firm);
+  background: var(--surface);
+}
+.masthead .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 40px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-top: 30px;
+  padding-bottom: 26px;
+}
+.brand h1 {
+  font-size: 27px;
+  letter-spacing: -.018em;
+  line-height: 1.1;
+}
+.brand .stamp {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--seal);
+  margin-bottom: 9px;
+}
+.brand p {
+  margin-top: 10px;
+  max-width: 56ch;
+  color: var(--muted);
+  font-size: 14px;
+}
+.scope {
+  border-left: 2px solid var(--rule-firm);
+  padding-left: 16px;
+  max-width: 34ch;
+  font-size: 13px;
+  color: var(--muted);
+}
+.scope b { color: var(--ink); font-weight: 600; }
+
+/* --- generic panel -------------------------------------------- */
+
+main { padding: 34px 0 120px; }
+
+.stage { margin-top: 34px; }
+.stage:first-child { margin-top: 0; }
+
+.stage-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.stage-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--seal);
+  border: 1px solid var(--rule-firm);
+  border-radius: 2px;
+  padding: 2px 6px;
+  letter-spacing: .04em;
+}
+.stage-head h2 { font-size: 17px; letter-spacing: -.01em; }
+.stage-head .aside { font-size: 13px; color: var(--faint); margin-left: auto; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  box-shadow: var(--shadow);
+}
+
+/* --- intake ---------------------------------------------------- */
+
+.drop {
+  padding: 40px 28px;
+  text-align: center;
+  border: 1px dashed var(--rule-firm);
+  border-radius: 3px;
+  margin: 14px;
+  transition: background .12s ease, border-color .12s ease;
+}
+.drop.over { border-color: var(--seal); background: var(--seal-soft); }
+.drop h3 { font-size: 16px; }
+.drop p { color: var(--muted); font-size: 13.5px; margin-top: 8px; }
+
+.btnrow { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+
+button {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: 3px;
+  border: 1px solid var(--rule-firm);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 8px 15px;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease;
+}
+button:hover { background: var(--surface-2); }
+button.primary { background: var(--seal); border-color: var(--seal); color: #fff; }
+button.primary:hover { background: var(--seal-ink); border-color: var(--seal-ink); }
+:root[data-theme="dark"] button.primary,
+:root:not([data-theme="light"]) button.primary { color: #06201C; }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) button.primary { color: #fff; }
+}
+button.quiet { border-color: transparent; color: var(--muted); padding: 6px 8px; }
+button.quiet:hover { color: var(--ink); background: var(--surface-2); }
+
+.formats {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+  letter-spacing: .04em;
+  margin-top: 16px;
+}
+
+textarea {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  width: 100%;
+  min-height: 190px;
+  resize: vertical;
+  padding: 14px;
+  border: 1px solid var(--rule-firm);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--ink-2);
+}
+
+.notice {
+  margin: 0 14px 14px;
+  padding: 13px 15px;
+  border-radius: 3px;
+  font-size: 13.5px;
+  border-left: 3px solid var(--amber);
+  background: var(--amber-soft);
+  color: var(--ink);
+}
+.notice b { font-weight: 600; }
+.notice code {
+  font-size: 12px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 1px 5px;
+}
+
+/* --- document read -------------------------------------------- */
+
+.readout { padding: 4px 0 0; }
+.readout-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 30px;
+  align-items: baseline;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--rule);
+}
+.readout-top .filename {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 15px;
+}
+.readout-top .replace { margin-left: auto; }
+
+.tallies { display: flex; flex-wrap: wrap; gap: 26px; padding: 18px 20px; }
+.tally { display: block; }
+.tally .n {
+  display: block;
+  font-family: var(--mono);
+  font-size: 24px;
+  color: var(--ink);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tally .n.core { color: var(--seal); }
+.tally .k {
+  display: block;
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-top: 7px;
+}
+
+.topics {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  padding: 0 20px 18px;
+}
+.topics-k {
+  width: 100%;
+  font-size: 11px; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 3px;
+}
+.topics .chip b { color: var(--ink); font-weight: 500; }
+
+.clauses { border-top: 1px solid var(--rule); }
+.clause {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  gap: 16px;
+  align-items: baseline;
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--rule);
+}
+.clause:last-child { border-bottom: 0; }
+.clause .ref {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--seal);
+}
+.clause .ref .pg { color: var(--faint); display: block; font-size: 10.5px; margin-top: 2px; }
+.clause .what { min-width: 0; }
+.clause .head { color: var(--ink); font-weight: 500; font-size: 14px; }
+.clause .quote {
+  font-family: var(--doc);
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 3px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.clause .sig { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.verdict {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.verdict.core { background: var(--seal-soft); color: var(--seal-ink); }
+.verdict.adj { background: var(--surface-2); color: var(--muted); }
+
+details.setaside { border-top: 1px solid var(--rule); }
+details.setaside > summary {
+  padding: 13px 20px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--muted);
+  list-style: none;
+}
+details.setaside > summary::-webkit-details-marker { display: none; }
+details.setaside > summary::before { content: "▸ "; color: var(--faint); }
+details.setaside[open] > summary::before { content: "▾ "; }
+details.setaside > summary:hover { color: var(--ink); }
+.setaside-body { padding: 0 20px 16px; }
+
+/* --- workspace ------------------------------------------------- */
+
+.workspace {
+  display: grid;
+  grid-template-columns: 296px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+@media (max-width: 950px) { .workspace { grid-template-columns: 1fr; } }
+
+.rail { position: sticky; top: 18px; }
+@media (max-width: 950px) { .rail { position: static; } }
+
+.rail-block { padding: 16px 18px; border-bottom: 1px solid var(--rule); }
+.rail-block:last-child { border-bottom: 0; }
+.rail-block h3 {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-weight: 600;
+  margin-bottom: 11px;
+}
+.rail-block .hint { font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 3px 4px 3px 8px;
+  border-radius: 2px;
+  background: var(--seal-soft);
+  color: var(--seal-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.chip button {
+  border: 0; background: none; padding: 0 3px; cursor: pointer;
+  color: inherit; opacity: .55; font-size: 13px; line-height: 1;
+}
+.chip button:hover { opacity: 1; background: none; }
+.chip.plain { background: var(--surface-2); color: var(--muted); }
+.suggest { margin-top: 10px; align-items: center; }
+.suggest .sublabel {
+  width: 100%;
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 2px;
+}
+button.chip.add {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 400;
+  padding: 3px 8px;
+  border: 1px dashed var(--rule-firm);
+}
+button.chip.add:hover { background: var(--seal-soft); color: var(--seal-ink); border-style: solid; }
+
+input[type="text"], select {
+  font: inherit;
+  font-size: 13px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--rule-firm);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--ink);
+}
+input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
+
+.toggle {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  font-size: 13px;
+  color: var(--ink-2);
+  cursor: pointer;
+  margin-top: 11px;
+}
+.toggle input { margin: 3px 0 0; accent-color: var(--seal); flex: 0 0 auto; }
+.toggle .sub { display: block; color: var(--faint); font-size: 12px; }
+.toggle.warn .sub { color: var(--red); }
+
+/* --- bank ------------------------------------------------------ */
+
+.bank-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+  color: var(--muted);
+}
+.bank-top .grow { flex: 1 1 auto; }
+
+.entry {
+  display: grid;
+  grid-template-columns: 26px 46px minmax(0, 1fr);
+  gap: 14px;
+  padding: 15px 18px;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+.entry:last-child { border-bottom: 0; }
+.entry.on { background: var(--seal-soft); }
+.entry > input { margin: 3px 0 0; accent-color: var(--seal); width: 15px; height: 15px; }
+
+.meter { padding-top: 1px; display: block; }
+.meter .val {
+  display: block;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.meter .val.zero { color: var(--faint); }
+.meter .bar {
+  display: block;
+  height: 3px;
+  background: var(--surface-2);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.meter .bar i { display: block; height: 3px; background: var(--seal); }
+
+.entry .title { color: var(--ink); font-weight: 600; font-size: 14.5px; }
+.entry .idline {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--faint);
+  margin-top: 3px;
+  overflow-wrap: anywhere;
+}
+.entry .excerpt {
+  font-family: var(--doc);
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 7px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.entry .row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; align-items: center; }
+
+.flag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 2px;
+  background: var(--surface-2);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.flag.sec { background: transparent; border: 1px solid var(--rule-firm); }
+.flag.risk { background: var(--red-soft); color: var(--red); }
+.flag.warn { background: var(--amber-soft); color: var(--amber); }
+.flag.won  { background: var(--seal-soft); color: var(--seal-ink); }
+
+.empty { padding: 34px 20px; text-align: center; color: var(--muted); font-size: 13.5px; }
+.empty code { font-size: 12px; }
+
+/* --- handoff --------------------------------------------------- */
+
+.handoff-body { padding: 18px 20px; }
+.summary-line { font-size: 14px; color: var(--ink); }
+.warnlist { margin: 13px 0 0; padding: 0; list-style: none; display: grid; gap: 7px; }
+.warnlist li {
+  font-size: 13px;
+  padding: 9px 12px;
+  border-radius: 3px;
+  border-left: 3px solid var(--amber);
+  background: var(--amber-soft);
+  color: var(--ink);
+}
+.warnlist li.risk { border-left-color: var(--red); background: var(--red-soft); }
+
+.codeblock { margin-top: 16px; }
+.codeblock .cap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 7px;
+}
+.codeblock .cap button { margin-left: auto; font-size: 12px; padding: 4px 10px; }
+pre {
+  margin: 0;
+  padding: 14px 15px;
+  background: var(--surface-2);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--ink-2);
+}
+
+/* --- sticky tally --------------------------------------------- */
+
+.dock {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--rule-firm);
+  box-shadow: 0 -6px 22px -18px rgba(0,0,0,.6);
+  transform: translateY(110%);
+  transition: transform .18s ease;
+  z-index: 20;
+}
+.dock.up { transform: translateY(0); }
+.dock .wrap {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-top: 11px;
+  padding-bottom: 11px;
+  font-size: 13.5px;
+}
+.dock .count { font-family: var(--mono); color: var(--ink); font-variant-numeric: tabular-nums; }
+.dock .grow { flex: 1 1 auto; color: var(--muted); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+.foot {
+  border-top: 1px solid var(--rule);
+  margin-top: 36px;
+  padding-top: 18px;
+  font-size: 12.5px;
+  color: var(--faint);
+  max-width: 74ch;
+}
+.foot code { font-size: 11.5px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="brand">
+      <div class="stamp">cm-proposal-generator · v0.2</div>
+      <h1>Bid Intake Desk</h1>
+      <p>Read a tender, see which clauses are change management's to answer, and choose
+         the knowledge-bank entries the proposal should be written from.</p>
+    </div>
+    <div class="scope">
+      <b>This is the intake half.</b> It runs the triage and retrieval stages and hands
+      you a selection. Building the <code>.pptx</code> still happens in the repo — the
+      commands are at the bottom.
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Stage 1 ------------------------------------------------- -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-num">01</span>
+      <h2>Read the tender</h2>
+      <span class="aside" id="stage1-aside">Nothing loaded</span>
+    </div>
+
+    <div class="panel" id="intake-panel">
+      <div class="drop" id="drop">
+        <h3>Drop the RFP here</h3>
+        <p>Or browse for it. Everything is read in your browser — no file leaves this page.</p>
+        <div class="btnrow">
+          <button class="primary" id="browse">Choose a file</button>
+          <button id="paste-toggle">Paste text instead</button>
+          <button id="demo">Load the sample tender</button>
+        </div>
+        <div class="formats">.TXT · .MD · .DOCX · .PPTX</div>
+        <input type="file" id="file" class="sr" accept=".txt,.md,.docx,.pptx,.pdf">
+      </div>
+
+      <div id="paste-area" hidden style="padding: 0 14px 14px;">
+        <textarea id="paste-text" placeholder="Paste the tender text here, then press Read."
+          aria-label="Tender text"></textarea>
+        <div class="btnrow" style="justify-content: flex-start; margin-top: 10px;">
+          <button class="primary" id="paste-run">Read it</button>
+          <button class="quiet" id="paste-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div id="intake-notice"></div>
+      <div id="readout" class="readout" hidden></div>
+    </div>
+  </section>
+
+  <!-- Stage 2 ------------------------------------------------- -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-num">02</span>
+      <h2>Choose the evidence</h2>
+      <span class="aside" id="stage2-aside"></span>
+    </div>
+
+    <div class="workspace">
+      <aside class="panel rail">
+        <div class="rail-block">
+          <h3>Retrieval tags</h3>
+          <div class="chips" id="tag-chips"></div>
+          <form id="tag-form" style="margin-top: 10px;">
+            <label class="sr" for="tag-input">Add a tag</label>
+            <input type="text" id="tag-input" placeholder="add a tag, e.g. erp" autocomplete="off">
+          </form>
+          <div class="chips suggest" id="tag-suggest"></div>
+          <p class="hint" id="tag-hint">Reading a tender fills these with the bank tags it
+             actually mentions. Retrieval matches tags literally, so only tags the bank
+             already uses can match — add sector, system or region from the list above.</p>
+        </div>
+
+        <div class="rail-block">
+          <h3>Section focus</h3>
+          <label class="sr" for="section-select">Section focus</label>
+          <select id="section-select"><option value="">All sections</option></select>
+          <label class="toggle">
+            <input type="checkbox" id="strict">
+            <span>Only this section
+              <span class="sub">Otherwise it is a ranking boost, not a filter</span></span>
+          </label>
+          <label class="toggle warn">
+            <input type="checkbox" id="internal">
+            <span>Include internal-only
+              <span class="sub">Excluded by default. These have not been cleared for
+                client-facing material.</span></span>
+          </label>
+        </div>
+
+        <div class="rail-block">
+          <h3>Bank</h3>
+          <p class="hint" id="bank-stats"></p>
+          <div class="btnrow" style="justify-content: flex-start; margin-top: 12px;">
+            <button id="load-index">Load a different bank</button>
+          </div>
+          <input type="file" id="index-file" class="sr" accept=".json">
+        </div>
+      </aside>
+
+      <div class="panel">
+        <div class="bank-top">
+          <span class="grow" id="bank-caption"></span>
+          <button class="quiet" id="select-top">Select top 5</button>
+          <button class="quiet" id="clear-sel">Clear</button>
+        </div>
+        <div id="bank"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stage 3 ------------------------------------------------- -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-num">03</span>
+      <h2>Hand off to the pipeline</h2>
+    </div>
+    <div class="panel">
+      <div class="handoff-body" id="handoff"></div>
+    </div>
+  </section>
+
+  <p class="foot">
+    Relevance is literal tag overlap, weighted exactly as <code>retrieve.py</code> weights
+    it: +3 a matching tag, +2 the focused section, −2 stale, −3 superseded. It is a
+    shortlist and its reasons, not a judgement — open anything whose title looks right
+    even when it scores nothing. Triage scoring is the same lexicon
+    <code>triage_rfp.py</code> uses.
+  </p>
+</main>
+
+<div class="dock" id="dock">
+  <div class="wrap">
+    <span class="count" id="dock-count">0</span>
+    <span class="grow" id="dock-note">entries selected</span>
+    <button class="primary" id="dock-jump">Go to handoff</button>
+  </div>
+</div>
+
+<script type="application/json" id="kb-seed">__KB_SEED__</script>
+<script type="application/json" id="sample-doc">__SAMPLE_DOC__</script>
+
+<script>
+"use strict";
+
+/* =================================================================
+   Shared vocabulary — a direct port of triage_rfp.py's lexicon, so
+   the page scores a document the same way the pipeline does.
+   ================================================================= */
+const LEXICON = {
+  4: ["change management","change manager","change impact","change readiness",
+      "change agent","change champion","change network","change strategy",
+      "change sustenance","organisational change","organizational change",
+      "stakeholder engagement","stakeholder analysis","user adoption",
+      "training needs analysis","train-the-trainer","train the trainer",
+      "transition management","knowledge transfer","behavioural change",
+      "behavioral change","change intervention","orientation programme",
+      "orientation program","change plan","communications plan","communication plan"],
+  3: ["super user","superuser","power user","readiness assessment","hypercare",
+      "floorwalking","floor walking","adoption rate","user acceptance",
+      "training plan","training materials","training strategy","curriculum",
+      "e-learning","elearning","instructor-led","post-implementation review",
+      "sustainment","reinforcement","capability building","upskilling",
+      "change fatigue","resistance","sponsor","sponsorship"],
+  2: ["training","stakeholder","communication","engagement","readiness","workshop",
+      "briefing","onboarding","coaching","mentoring","learning","user guide","job aid",
+      "help desk","helpdesk","feedback","survey","awareness","buy-in","culture","adoption"],
+  1: ["user","staff","employee","end-user","end user","roll-out","rollout"]
+};
+const OFF_TOPIC = ["warranty period","liquidated damages","indemnity","source code escrow",
+  "bandwidth","firewall","database schema","encryption","api","uptime","disaster recovery",
+  "backup","penetration test","hardware","server","bill of quantities","insurance","bond",
+  "arbitration","jurisdiction"];
+const DELIVERABLE_CUES = ["shall provide","shall develop","shall submit","shall prepare",
+  "shall produce","shall deliver","shall propose","shall establish","shall conduct",
+  "shall define","must provide","must submit","is required to provide","shall include"];
+
+const CROSS_REF = /\b(?:part|chapter|annex|appendix|schedule|section|volume)[ \t]+(?:[IVXLC]+|\d+(?:\.\d+)*)\b/gi;
+const PAGE_MARKER = /^=+\s*PAGE\s+(\d+)\s*=+\s*$/;
+const TOC_LINE = /\.{4,}\s*\d+\s*$/;
+const TOC_PAGE = /table of contents|^[ \t]*contents[ \t]*$/im;
+const MODAL = /\b(shall|must|should|may|will)\b/i;
+const HEADINGS = [
+  /^\s{0,6}(\d{1,2}(?:\.\d{1,3}){0,4})\.?\s+(\S.{2,110})$/,
+  /^\s{0,6}((?:PART|CHAPTER|ANNEX|APPENDIX|SCHEDULE|SECTION|VOLUME)\s+(?:[IVXLC]+|\d+))\b[\s,:.–-]*(.{0,110})$/i
+];
+
+const slug = v => String(v).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const esc = v => String(v).replace(/[&<>"']/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* Knowledge-bank bodies are Markdown. An excerpt is for reading, so drop the syntax
+   rather than showing the reader a diff of someone's source file. */
+const unmark = v => String(v)
+  .replace(/^\s*>+\s*/g, "")
+  .replace(/\s>\s/g, " ")
+  .replace(/#{1,6}\s*/g, "")
+  .replace(/\*\*|\*|`/g, "")
+  .replace(/\s+/g, " ")
+  .trim();
+
+/* --- document splitting (port of split_sections) ----------------- */
+
+function looksLikeHeading(text) {
+  if (!text) return true;
+  const trimmed = text.trim();
+  const words = trimmed.split(/\s+/);
+  // A real heading does not trail off: "Where subcontractors are engaged for change
+  // management activities, the" passes every other test and is plainly a fragment.
+  const dangling = /[,:;]$/.test(trimmed)
+    || /\b(the|a|an|and|or|of|to|in|for|with|that|which|shall)$/i.test(trimmed);
+  return trimmed.length <= 70 && words.length <= 11 && !MODAL.test(trimmed)
+    && !/[.;]$/.test(trimmed) && !dangling;
+}
+
+function runningHeaders(text) {
+  const counts = new Map();
+  for (const line of text.split("\n")) {
+    const norm = line.trim().replace(/\s+/g, " ");
+    if (norm.length > 6 && norm.length < 120) counts.set(norm, (counts.get(norm) || 0) + 1);
+  }
+  return new Set([...counts].filter(([, n]) => n >= 3).map(([l]) => l));
+}
+
+function stripTocPages(text) {
+  const lines = text.split("\n");
+  const markerAt = lines.map(l => PAGE_MARKER.test(l.trim()));
+  if (!markerAt.some(Boolean)) return text;
+  const out = [];
+  let dropping = false, buffer = [], bufferStart = -1;
+  const flush = () => {
+    if (bufferStart >= 0) out.push(dropping ? "" : buffer.join("\n"));
+    buffer = []; dropping = false;
+  };
+  lines.forEach((line, i) => {
+    if (markerAt[i]) { flush(); out.push(line); bufferStart = i; return; }
+    buffer.push(line);
+    if (TOC_PAGE.test(line)) dropping = true;
+  });
+  flush();
+  return out.join("\n");
+}
+
+function splitSections(text, minWords) {
+  const furniture = runningHeaders(text);
+  const lines = text.split("\n");
+  const marks = [];
+  let offset = 0;
+  for (const line of lines) {
+    const norm = line.trim().replace(/\s+/g, " ");
+    if (!TOC_LINE.test(line) && !furniture.has(norm)) {
+      for (const pattern of HEADINGS) {
+        const m = line.match(pattern);
+        if (m) {
+          const tail = (m[2] || "").replace(/^[\s.:–-]+|[\s.:–-]+$/g, "");
+          marks.push({ offset, ref: m[1].replace(/\.$/, ""),
+                       heading: looksLikeHeading(tail) ? tail : "" });
+          break;
+        }
+      }
+    }
+    offset += line.length + 1;
+  }
+  if (!marks.length) return [{ ref: "(whole document)", heading: "", body: text, offset: 0 }];
+
+  const sections = [];
+  if (marks[0].offset > 0)
+    sections.push({ ref: "(preamble)", heading: "", offset: 0, body: text.slice(0, marks[0].offset) });
+  marks.forEach((mark, i) => {
+    const end = i + 1 < marks.length ? marks[i + 1].offset : text.length;
+    sections.push({ ref: mark.ref, heading: mark.heading, offset: mark.offset,
+                    body: text.slice(mark.offset, end) });
+  });
+
+  // A heading with almost nothing under it is a parent of the clauses below it. Fold it
+  // forward but keep its title as the child's breadcrumb.
+  const merged = [];
+  let pending = [];
+  for (const section of sections) {
+    if (section.body.trim().split(/\s+/).filter(Boolean).length < minWords) {
+      if (section.heading) pending.push(section.heading);
+      if (merged.length) merged[merged.length - 1].body += section.body;
+      continue;
+    }
+    if (pending.length && !section.heading) section.heading = pending[pending.length - 1];
+    section.parents = pending;
+    pending = [];
+    merged.push(section);
+  }
+  return merged;
+}
+
+function scoreSection(section) {
+  const body = section.body.replace(/\s+/g, " ").toLowerCase();
+  const heading = section.heading.toLowerCase();
+  let score = 0, signalChars = 0;
+  const hits = {}, strong = {};
+
+  for (const weight of [4, 3, 2, 1]) {
+    for (const term of LEXICON[weight]) {
+      const count = body.split(term).length - 1;
+      if (!count) continue;
+      hits[term] = count;
+      if (weight === 4) strong[term] = count;
+      score += weight * count;
+      signalChars += term.length * count;
+      if (heading.includes(term)) score += weight * 3;
+    }
+  }
+
+  const strongTotal = Object.values(strong).reduce((a, b) => a + b, 0);
+  const headingStrong = LEXICON[4].some(t => heading.includes(t));
+  const coverage = signalChars / Math.max(body.length, 1);
+
+  let verdict;
+  if (strongTotal && (strongTotal >= 2 || headingStrong || coverage >= 0.02)) verdict = "cm-core";
+  else if (strongTotal || score >= 6 || coverage >= 0.015) verdict = "cm-adjacent";
+  else verdict = "not-cm";
+
+  return {
+    verdict, score, coverage,
+    strong: Object.keys(strong).sort((a, b) => strong[b] - strong[a]),
+    offTopic: OFF_TOPIC.reduce((n, t) => n + (body.split(t).length - 1), 0),
+    cues: DELIVERABLE_CUES.filter(c => body.includes(c)),
+    excerpt: section.body.replace(/\s+/g, " ").trim().slice(0, 240)
+  };
+}
+
+function triage(text) {
+  const cleaned = stripTocPages(text);
+  const lines = cleaned.split("\n");
+  const pageAt = [];
+  let page = null, cursor = 0;
+  for (const line of lines) {
+    const m = line.trim().match(PAGE_MARKER);
+    if (m) page = Number(m[1]);
+    pageAt.push({ offset: cursor, page });
+    cursor += line.length + 1;
+  }
+  const pageFor = off => {
+    let found = null;
+    for (const p of pageAt) { if (p.offset <= off) found = p.page; else break; }
+    return found;
+  };
+
+  const sections = splitSections(cleaned, 25)
+    .map(s => ({ ...s, ...scoreSection(s), page: pageFor(s.offset) }))
+    .filter(s => s.body.replace(/\s+/g, " ").trim().split(" ").filter(Boolean).length >= 5);
+
+  const furniture = [...runningHeaders(cleaned)].map(l => l.toLowerCase());
+  const refs = new Map();
+  for (const m of cleaned.matchAll(CROSS_REF)) {
+    const ref = m[0].replace(/\s+/g, " ");
+    // "PART 2 … CHAPTER 8" is this document's own running header. Listing it as a part
+    // to chase turns a real warning into noise.
+    if (furniture.some(line => line.includes(ref.toLowerCase()))) continue;
+    if (!refs.has(ref.toLowerCase())) refs.set(ref.toLowerCase(), ref);
+  }
+
+  return {
+    sections,
+    words: cleaned.trim().split(/\s+/).filter(Boolean).length,
+    crossRefs: [...refs.values()].sort((a, b) => a.localeCompare(b)),
+    counts: sections.reduce((acc, s) => (acc[s.verdict] = (acc[s.verdict] || 0) + 1, acc),
+                            { "cm-core": 0, "cm-adjacent": 0, "not-cm": 0 })
+  };
+}
+
+/* What kind of change work this tender describes — its own CM vocabulary, ranked.
+   Context for the reader, not a retrieval key: it says what the work IS, while the
+   bank is tagged by sector, system and content type. */
+function topicProfile(text) {
+  const lowered = text.toLowerCase();
+  const found = [];
+  for (const weight of [4, 3]) {
+    for (const term of LEXICON[weight]) {
+      const n = lowered.split(term).length - 1;
+      if (n) found.push({ term, n, weight });
+    }
+  }
+  return found.sort((a, b) => b.weight - a.weight || b.n - a.n);
+}
+
+/* Retrieval tags seeded from the bank's OWN vocabulary.
+
+   Deriving tags from the CM lexicon instead looks reasonable and retrieves nothing:
+   the lexicon names the work ("change-readiness") while a bank is tagged by sector and
+   system ("erp", "public-sector"), so the two namespaces never meet. Asking which of
+   the bank's existing tags this tender actually mentions can only propose tags that
+   exist to be matched — and it works whatever vocabulary the bank happens to use. */
+function bankTagsIn(text, bank) {
+  const lowered = " " + text.toLowerCase().replace(/\s+/g, " ") + " ";
+  const all = new Set();
+  for (const entry of bank.entries) for (const tag of entry.tags) all.add(tag);
+  const hits = [];
+  for (const tag of all) {
+    if (tag === "example") continue;   // a format-exemplar marker, not a subject
+    const phrase = tag.replace(/-/g, " ");
+    const re = new RegExp("[^a-z0-9]" + phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      + "(?:s|es)?[^a-z0-9]", "i");
+    if (re.test(lowered)) hits.push(tag);
+  }
+  return hits.sort();
+}
+
+/* The tags a bank uses most, for when a tender mentions none of them. */
+function commonBankTags(bank, limit = 10) {
+  const counts = {};
+  for (const e of bank.entries) for (const t of e.tags)
+    if (t !== "example") counts[t] = (counts[t] || 0) + 1;
+  return Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b))
+    .slice(0, limit);
+}
+
+/* =================================================================
+   File reading. .docx and .pptx are ZIPs of XML; DecompressionStream
+   inflates them without a library. PDFs genuinely cannot be read here.
+   ================================================================= */
+
+async function inflateRaw(bytes) {
+  const stream = new Blob([bytes]).stream()
+    .pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+async function unzip(buffer, wanted) {
+  const dv = new DataView(buffer);
+  let eocd = -1;
+  const floor = Math.max(0, buffer.byteLength - 66000);
+  for (let i = buffer.byteLength - 22; i >= floor; i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("This does not look like a .docx or .pptx file.");
+
+  const count = dv.getUint16(eocd + 10, true);
+  let at = dv.getUint32(eocd + 16, true);
+  const decoder = new TextDecoder();
+  const out = new Map();
+
+  for (let n = 0; n < count; n++) {
+    if (dv.getUint32(at, true) !== 0x02014b50) break;
+    const method = dv.getUint16(at + 10, true);
+    const compSize = dv.getUint32(at + 20, true);
+    const nameLen = dv.getUint16(at + 28, true);
+    const extraLen = dv.getUint16(at + 30, true);
+    const commentLen = dv.getUint16(at + 32, true);
+    const localAt = dv.getUint32(at + 42, true);
+    const name = decoder.decode(new Uint8Array(buffer, at + 46, nameLen));
+    at += 46 + nameLen + extraLen + commentLen;
+    if (!wanted(name)) continue;
+
+    const start = localAt + 30 + dv.getUint16(localAt + 26, true)
+                            + dv.getUint16(localAt + 28, true);
+    const raw = new Uint8Array(buffer, start, compSize);
+    out.set(name, method === 0 ? raw : await inflateRaw(raw));
+  }
+  return out;
+}
+
+function xmlToText(bytes, breakTags) {
+  let s = new TextDecoder().decode(bytes);
+  for (const tag of breakTags) s = s.split(tag).join("\n");
+  s = s.replace(/<[^>]*>/g, "");
+  return s.replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+          .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+          .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+          .replace(/&amp;/g, "&");
+}
+
+class PdfNotice extends Error {}
+
+async function readDocument(file) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith(".pdf")) throw new PdfNotice();
+
+  if (name.endsWith(".docx")) {
+    const parts = await unzip(await file.arrayBuffer(), n => n === "word/document.xml");
+    const doc = parts.get("word/document.xml");
+    if (!doc) throw new Error("No document body found inside that .docx.");
+    return xmlToText(doc, ["</w:p>", "</w:tr>"]);
+  }
+  if (name.endsWith(".pptx")) {
+    const parts = await unzip(await file.arrayBuffer(),
+      n => /^ppt\/slides\/slide\d+\.xml$/.test(n));
+    if (!parts.size) throw new Error("No slides found inside that .pptx.");
+    return [...parts.keys()]
+      .sort((a, b) => Number(a.match(/(\d+)/)[1]) - Number(b.match(/(\d+)/)[1]))
+      .map(k => xmlToText(parts.get(k), ["</a:p>", "</p:sp>"]))
+      .join("\n");
+  }
+  return await file.text();
+}
+
+/* =================================================================
+   State
+   ================================================================= */
+
+const state = {
+  doc: null,          // { name, text, triage }
+  tags: new Set(),
+  bank: JSON.parse(document.getElementById("kb-seed").textContent),
+  bankName: "the repository's bank",
+  selected: new Set(),
+  section: "",
+  strict: false,
+  internal: false
+};
+
+const $ = id => document.getElementById(id);
+
+/* --- relevance (port of retrieve.py's scoring) -------------------- */
+
+function scoreEntry(entry) {
+  const matched = entry.tags.filter(t => state.tags.has(t));
+  let score = 3 * matched.length;
+  const why = matched.map(t => "tag:" + t);
+  if (state.section && entry.section === state.section) { score += 2; why.push("section:" + state.section); }
+  if (entry.stale) { score -= 2; why.push("stale"); }
+  if (entry.superseded) { score -= 3; why.push("superseded"); }
+  return { score, matched, why };
+}
+
+function visibleEntries() {
+  return state.bank.entries
+    .filter(e => state.internal || e.clearance !== "internal-only")
+    .filter(e => !(state.strict && state.section) || e.section === state.section)
+    .map(e => ({ ...e, ...scoreEntry(e) }))
+    .sort((a, b) => state.tags.size
+      ? (b.score - a.score || a.id.localeCompare(b.id))
+      : (a.section.localeCompare(b.section) || a.title.localeCompare(b.title)));
+}
+
+/* =================================================================
+   Rendering
+   ================================================================= */
+
+function renderTags() {
+  const host = $("tag-chips");
+  const suggest = $("tag-suggest");
+  if (!state.tags.size) {
+    host.innerHTML = '<span class="chip plain">no tags yet</span>';
+  } else {
+    host.innerHTML = [...state.tags].sort().map(t =>
+      `<span class="chip">${esc(t)}<button data-tag="${esc(t)}"
+         aria-label="Remove tag ${esc(t)}">&times;</button></span>`).join("");
+  }
+  host.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    state.tags.delete(b.dataset.tag);
+    renderTags(); renderBank(); renderHandoff();
+  }));
+
+  // The bank's own vocabulary is the only thing worth suggesting: a tag the bank does
+  // not use can never match anything, however well it describes the tender.
+  const spare = commonBankTags(state.bank, 10).filter(t => !state.tags.has(t));
+  suggest.innerHTML = spare.length
+    ? `<span class="sublabel">from this bank's vocabulary</span>` + spare.map(t =>
+        `<button class="chip plain add" data-add="${esc(t)}">${esc(t)} +</button>`).join("")
+    : "";
+  suggest.querySelectorAll("button[data-add]").forEach(b =>
+    b.addEventListener("click", () => {
+      state.tags.add(b.dataset.add);
+      renderTags(); renderBank(); renderHandoff();
+    }));
+}
+
+function flagsFor(entry) {
+  const out = [`<span class="flag sec">${esc(entry.section)}</span>`];
+  if (entry.clearance === "internal-only")
+    out.push('<span class="flag risk">internal only</span>');
+  else if (entry.clearance === "anonymised")
+    out.push('<span class="flag warn">do not name client</span>');
+  if (entry.bid && entry.bid.outcome) {
+    const o = entry.bid.outcome;
+    const cls = o === "won" ? "won" : (o === "lost" ? "risk" : "");
+    out.push(`<span class="flag ${cls}">bid ${esc(o)}</span>`);
+  }
+  if (!entry.metrics_verified) out.push('<span class="flag warn">metrics unverified</span>');
+  if (entry.stale) out.push('<span class="flag warn">stale</span>');
+  if (entry.superseded) out.push('<span class="flag warn">superseded</span>');
+  return out.join("");
+}
+
+function renderBank() {
+  const entries = visibleEntries();
+  const ranking = state.tags.size > 0;
+  const scored = ranking ? entries.filter(e => e.score > 0) : entries;
+  const unscored = ranking ? entries.filter(e => e.score <= 0) : [];
+  const top = Math.max(1, ...scored.map(e => e.score));
+  const host = $("bank");
+
+  const rowFor = e => {
+    const pct = ranking && e.score > 0 ? Math.round((e.score / top) * 100) : 0;
+    const val = !ranking ? "&mdash;" : (e.score > 0 ? "+" + e.score : "0");
+    const matched = e.matched.map(t => `<span class="chip">${esc(t)}</span>`).join("");
+    const others = e.tags.filter(t => !state.tags.has(t)).slice(0, 4)
+      .map(t => `<span class="chip plain">${esc(t)}</span>`).join("");
+    return `
+      <label class="entry${state.selected.has(e.id) ? " on" : ""}">
+        <input type="checkbox" data-id="${esc(e.id)}"
+          ${state.selected.has(e.id) ? "checked" : ""}
+          aria-label="Select ${esc(e.title)}">
+        <span class="meter">
+          <span class="val${ranking && e.score > 0 ? "" : " zero"}">${val}</span>
+          <span class="bar"><i style="width:${pct}%"></i></span>
+        </span>
+        <span class="what">
+          <span class="title">${esc(e.title)}</span>
+          <span class="idline">${esc(e.id)} · ${esc(e.path)}</span>
+          <span class="excerpt">${esc(unmark(e.excerpt))}</span>
+          <span class="row">${flagsFor(e)}</span>
+          <span class="row">${matched}${others}</span>
+        </span>
+      </label>`;
+  };
+
+  let html = "";
+  if (!entries.length) {
+    html = `<div class="empty">
+      <p>Nothing in this bank matches those filters.</p>
+      <p style="margin-top:8px">Section entries are created by
+        <code>ingest_source.py</code> and indexed by <code>index_kb.py</code>.</p></div>`;
+  } else {
+    html = scored.map(rowFor).join("");
+    if (!scored.length) {
+      html = `<div class="empty">
+        <p>No entry shares a tag with this tender.</p>
+        <p style="margin-top:8px">Add tags on the left from the bank's own vocabulary —
+           only tags the bank already uses can match.</p></div>`;
+    }
+    if (unscored.length) {
+      html += `<details class="setaside">
+        <summary>${unscored.length} entr${unscored.length === 1 ? "y" : "ies"} with no
+          tag overlap — <code>retrieve.py</code> would drop these, but a low score is not
+          a verdict</summary>
+        <div>${unscored.map(rowFor).join("")}</div></details>`;
+    }
+  }
+  host.innerHTML = html;
+
+  host.querySelectorAll('input[type="checkbox"]').forEach(box => {
+    box.addEventListener("change", () => {
+      if (box.checked) state.selected.add(box.dataset.id);
+      else state.selected.delete(box.dataset.id);
+      renderBank(); renderHandoff();
+    });
+  });
+
+  const hidden = state.bank.entries.length - entries.length;
+  $("bank-caption").textContent = ranking
+    ? `${scored.length} of ${entries.length} entries share a tag with this tender`
+      + (hidden ? ` · ${hidden} hidden by filters` : "")
+    : `${entries.length} entries, by section · read a tender to rank them`
+      + (hidden ? ` · ${hidden} hidden by filters` : "");
+
+  const sections = {};
+  for (const e of state.bank.entries) sections[e.section] = (sections[e.section] || 0) + 1;
+  $("bank-stats").innerHTML = `${state.bank.entries.length} entries from ${esc(state.bankName)}.<br>`
+    + Object.keys(sections).sort().map(s => `${esc(s)} ${sections[s]}`).join(" · ");
+  $("stage2-aside").textContent = `${state.selected.size} selected`;
+}
+
+function renderReadout() {
+  const { doc } = state;
+  const panel = $("readout");
+  if (!doc) { panel.hidden = true; return; }
+  const t = doc.triage;
+  const relevant = t.sections.filter(s => s.verdict !== "not-cm")
+    .sort((a, b) => b.score - a.score);
+  const aside = t.sections.filter(s => s.verdict === "not-cm");
+
+  const clauseRow = s => `
+    <div class="clause">
+      <span class="ref">${esc(s.ref)}${s.page ? `<span class="pg">page ${s.page}</span>` : ""}</span>
+      <span class="what">
+        ${s.heading ? `<span class="head">${esc(s.heading)}</span>` : ""}
+        <span class="quote">${esc(s.excerpt)}</span>
+        ${s.cues.length ? `<span class="sig"><span class="flag">names deliverables:
+          ${esc(s.cues.slice(0, 3).join(", "))}</span></span>` : ""}
+      </span>
+      <span class="sig">
+        <span class="verdict ${s.verdict === "cm-core" ? "core" : "adj"}">${esc(s.verdict)}</span>
+      </span>
+    </div>`;
+
+  panel.innerHTML = `
+    <div class="readout-top">
+      <span class="filename">${esc(doc.name)}</span>
+      <span style="color:var(--muted);font-size:13px">${t.words.toLocaleString()} words ·
+        ${t.sections.length} sections</span>
+      <span class="replace"><button class="quiet" id="replace-doc">Read a different file</button></span>
+    </div>
+    <div class="tallies">
+      <span class="tally"><span class="n core">${t.counts["cm-core"]}</span>
+        <span class="k">CM core</span></span>
+      <span class="tally"><span class="n">${t.counts["cm-adjacent"]}</span>
+        <span class="k">CM adjacent</span></span>
+      <span class="tally"><span class="n">${t.counts["not-cm"]}</span>
+        <span class="k">Set aside</span></span>
+      <span class="tally"><span class="n">${t.crossRefs.length}</span>
+        <span class="k">Cross-references</span></span>
+    </div>
+    ${t.crossRefs.length ? `<div class="notice">
+      <b>Confirm you have every part this tender points at.</b>
+      ${esc(t.crossRefs.slice(0, 12).join(" · "))}. A requirement you cannot answer because
+      an annex was never sent is a clarification question, and that deadline comes first.
+    </div>` : ""}
+    ${doc.topics.length ? `<div class="topics">
+      <span class="topics-k">Its change vocabulary</span>
+      ${doc.topics.slice(0, 12).map(t =>
+        `<span class="chip plain">${esc(t.term)} <b>${t.n}</b></span>`).join("")}
+    </div>` : ""}
+    <div class="clauses">${relevant.slice(0, 12).map(clauseRow).join("")
+      || '<div class="empty">Nothing in this document scored as CM-relevant.</div>'}</div>
+    ${aside.length ? `<details class="setaside">
+      <summary>${aside.length} section${aside.length === 1 ? "" : "s"} set aside — read the
+        headings, do not assume</summary>
+      <div class="setaside-body clauses">${aside.map(clauseRow).join("")}</div>
+    </details>` : ""}`;
+  panel.hidden = false;
+
+  const replace = $("replace-doc");
+  if (replace) replace.addEventListener("click", () => {
+    state.doc = null; state.tags.clear();
+    $("drop").hidden = false; $("intake-notice").innerHTML = "";
+    $("stage1-aside").textContent = "Nothing loaded";
+    renderReadout(); renderTags(); renderBank(); renderHandoff();
+  });
+}
+
+function renderHandoff() {
+  const chosen = state.bank.entries.filter(e => state.selected.has(e.id));
+  const host = $("handoff");
+
+  if (!chosen.length) {
+    host.innerHTML = `<p class="summary-line" style="color:var(--muted)">
+      Select the entries this proposal should be written from, and the retrieval command
+      and selection file appear here.</p>`;
+    $("dock").classList.remove("up");
+    return;
+  }
+
+  const warnings = [];
+  const internal = chosen.filter(e => e.clearance === "internal-only");
+  const lost = chosen.filter(e => e.bid && e.bid.outcome === "lost");
+  const unverified = chosen.filter(e => !e.metrics_verified);
+  const anon = chosen.filter(e => e.clearance === "anonymised");
+  const stale = chosen.filter(e => e.stale);
+
+  if (internal.length) warnings.push({ risk: true, text:
+    `<b>${internal.length} selected ${internal.length === 1 ? "entry is" : "entries are"}
+     internal-only.</b> Retrieval excludes these from client-facing material by default.
+     Clear them, or drop them: ${internal.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
+  if (lost.length) warnings.push({ risk: true, text:
+    `<b>${lost.length} came from a bid that lost.</b> Language from a losing bid reads
+     exactly as well as language from a winning one. Check the debrief notes before
+     reusing it: ${lost.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
+  if (unverified.length) warnings.push({ text:
+    `<b>${unverified.length} ${unverified.length === 1 ? "entry states" : "entries state"}
+     numbers that are not verified.</b> No figure from these can ship until somebody checks
+     it: ${unverified.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
+  if (anon.length) warnings.push({ text:
+    `<b>${anon.length} ${anon.length === 1 ? "is" : "are"} anonymised.</b> Describe the
+     client generically — never name them: ${anon.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
+  if (stale.length) warnings.push({ text:
+    `<b>${stale.length} ${stale.length === 1 ? "was" : "were"} last reviewed over two years
+     ago.</b> Confirm before shipping: ${stale.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
+
+  const selection = {
+    generated: new Date().toISOString().slice(0, 10),
+    source_document: state.doc ? state.doc.name : null,
+    retrieval_tags: [...state.tags].sort(),
+    section_focus: state.section || null,
+    strict_section: state.strict,
+    include_internal: state.internal,
+    selected_entries: chosen.map(e => ({
+      id: e.id,
+      section: e.section,
+      clearance: e.clearance,
+      metrics_verified: e.metrics_verified,
+      bid_outcome: e.bid && e.bid.outcome ? e.bid.outcome : null
+    })),
+    cm_scope: state.doc ? {
+      in_scope_sections: state.doc.triage.sections
+        .filter(s => s.verdict === "cm-core")
+        .map(s => ({ ref: s.ref, heading: s.heading || null, page: s.page })),
+      reviewed_and_excluded: state.doc.triage.sections
+        .filter(s => s.verdict === "not-cm")
+        .map(s => ({ ref: s.ref, heading: s.heading || null })),
+      not_supplied: state.doc.triage.crossRefs
+    } : null
+  };
+
+  const flags = [
+    state.tags.size ? `--tags ${[...state.tags].sort().join(",")}` : "",
+    state.section ? `--section ${state.section}` : "",
+    state.strict ? "--strict-section" : "",
+    state.internal ? "--include-internal" : ""
+  ].filter(Boolean).join(" ");
+
+  const commands =
+`# Confirm this shortlist against the bank itself
+python skills/cm-proposal-generator/scripts/retrieve.py kb_index.json \\
+    ${flags || "--tags <add tags>"} --top 10
+
+# Then Stages 3-6 in the repo: plan, retrieve, build, QA
+python skills/cm-proposal-generator/scripts/render_pptx.py proposals/<run>/proposal_plan.json \\
+    proposal-assets/templates/pptx-generic/pptx-generic.potx -o proposals/<run>/proposal.pptx
+python skills/cm-proposal-generator/scripts/qa_deck.py proposals/<run>/rfp_brief.json \\
+    proposals/<run>/proposal_plan.json -o proposals/<run>/qa_report.md
+python skills/cm-proposal-generator/scripts/qa_pptx.py proposals/<run>/proposal.pptx \\
+    --original proposal-assets/templates/pptx-generic/pptx-generic.potx -o proposals/<run>/qa_pptx.md`;
+
+  host.innerHTML = `
+    <p class="summary-line"><b>${chosen.length}</b> entr${chosen.length === 1 ? "y" : "ies"}
+      selected across ${new Set(chosen.map(e => e.section)).size} section(s).</p>
+    ${warnings.length ? `<ul class="warnlist">${warnings.map(w =>
+      `<li class="${w.risk ? "risk" : ""}">${w.text}</li>`).join("")}</ul>` : ""}
+    <div class="codeblock">
+      <div class="cap">selection.json
+        <button data-copy="sel">Copy</button></div>
+      <pre id="sel-json">${esc(JSON.stringify(selection, null, 2))}</pre>
+    </div>
+    <div class="codeblock">
+      <div class="cap">next commands
+        <button data-copy="cmd">Copy</button></div>
+      <pre id="cmd-block">${esc(commands)}</pre>
+    </div>`;
+
+  host.querySelectorAll("button[data-copy]").forEach(btn => {
+    btn.addEventListener("click", async () => {
+      const text = $(btn.dataset.copy === "sel" ? "sel-json" : "cmd-block").textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = "Copied";
+      } catch {
+        const range = document.createRange();
+        range.selectNodeContents($(btn.dataset.copy === "sel" ? "sel-json" : "cmd-block"));
+        const sel = window.getSelection();
+        sel.removeAllRanges(); sel.addRange(range);
+        btn.textContent = "Selected — press ⌘C";
+      }
+      setTimeout(() => { btn.textContent = "Copy"; }, 2200);
+    });
+  });
+
+  $("dock-count").textContent = String(chosen.length);
+  $("dock-note").textContent = warnings.length
+    ? `selected · ${warnings.length} thing${warnings.length === 1 ? "" : "s"} to check first`
+    : "entries selected";
+  $("dock").classList.add("up");
+}
+
+/* =================================================================
+   Wiring
+   ================================================================= */
+
+function ingest(name, text) {
+  if (!text.trim()) { showNotice("That file came through empty. Try pasting the text instead."); return; }
+  state.doc = { name, text, triage: triage(text), topics: topicProfile(text) };
+  bankTagsIn(text, state.bank).forEach(t => state.tags.add(t));
+  $("drop").hidden = true;
+  $("paste-area").hidden = true;
+  $("intake-notice").innerHTML = "";
+  $("stage1-aside").textContent =
+    `${state.doc.triage.counts["cm-core"]} CM-core section(s)`;
+  renderReadout(); renderTags(); renderBank(); renderHandoff();
+  $("readout").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function showNotice(html) { $("intake-notice").innerHTML = `<div class="notice">${html}</div>`; }
+
+async function handleFile(file) {
+  showNotice(`Reading <b>${esc(file.name)}</b>…`);
+  try {
+    ingest(file.name, await readDocument(file));
+  } catch (err) {
+    if (err instanceof PdfNotice) {
+      showNotice(`<b>PDFs can't be read in the browser.</b> Extract the text first, then
+        drop the <code>.txt</code> here — or paste it:<br>
+        <code>python3 -c "import pypdf;print(chr(10).join(p.extract_text() for p in
+        pypdf.PdfReader('tender.pdf').pages))" &gt; tender.txt</code>`);
+    } else {
+      showNotice(`<b>Could not read ${esc(file.name)}.</b> ${esc(err.message)}
+        Pasting the text works for anything.`);
+    }
+  }
+}
+
+const drop = $("drop");
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.add("over");
+}));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.remove("over");
+}));
+drop.addEventListener("drop", e => {
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+$("browse").addEventListener("click", () => $("file").click());
+$("file").addEventListener("change", e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+$("paste-toggle").addEventListener("click", () => {
+  const area = $("paste-area");
+  area.hidden = !area.hidden;
+  if (!area.hidden) $("paste-text").focus();
+});
+$("paste-cancel").addEventListener("click", () => { $("paste-area").hidden = true; });
+$("paste-run").addEventListener("click", () => {
+  const text = $("paste-text").value;
+  if (text.trim()) ingest("pasted text", text);
+});
+$("demo").addEventListener("click", () => {
+  const sample = JSON.parse($("sample-doc").textContent);
+  ingest(sample.name, sample.text);
+});
+
+$("tag-form").addEventListener("submit", e => {
+  e.preventDefault();
+  const raw = $("tag-input").value.trim();
+  if (raw) { raw.split(/[,\s]+/).filter(Boolean).forEach(t => state.tags.add(slug(t))); }
+  $("tag-input").value = "";
+  renderTags(); renderBank(); renderHandoff();
+});
+
+$("section-select").addEventListener("change", e => {
+  state.section = e.target.value; renderBank(); renderHandoff();
+});
+$("strict").addEventListener("change", e => {
+  state.strict = e.target.checked; renderBank(); renderHandoff();
+});
+$("internal").addEventListener("change", e => {
+  state.internal = e.target.checked;
+  if (!state.internal) {
+    state.bank.entries.filter(en => en.clearance === "internal-only")
+      .forEach(en => state.selected.delete(en.id));
+  }
+  renderBank(); renderHandoff();
+});
+
+$("select-top").addEventListener("click", () => {
+  visibleEntries().filter(e => e.score > 0).slice(0, 5).forEach(e => state.selected.add(e.id));
+  renderBank(); renderHandoff();
+});
+$("clear-sel").addEventListener("click", () => {
+  state.selected.clear(); renderBank(); renderHandoff();
+});
+$("dock-jump").addEventListener("click", () =>
+  $("handoff").scrollIntoView({ behavior: "smooth", block: "center" }));
+
+$("load-index").addEventListener("click", () => $("index-file").click());
+$("index-file").addEventListener("change", async e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  try {
+    const parsed = JSON.parse(await file.text());
+    if (!Array.isArray(parsed.entries)) throw new Error("no entries array");
+    state.bank = parsed;
+    state.bankName = file.name;
+    state.selected.clear();
+    fillSections();
+    renderBank(); renderHandoff();
+  } catch (err) {
+    alert(`That is not a kb_index.json. Generate one with index_kb.py.\n\n${err.message}`);
+  }
+});
+
+function fillSections() {
+  const select = $("section-select");
+  const sections = [...new Set(state.bank.entries.map(e => e.section))].sort();
+  select.innerHTML = '<option value="">All sections</option>'
+    + sections.map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  state.section = "";
+}
+
+fillSections();
+renderTags();
+renderBank();
+renderHandoff();
+</script>

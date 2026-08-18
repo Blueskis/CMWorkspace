@@ -149,13 +149,21 @@ def marker_index(text, pattern, cast=str):
     return at
 
 
+DANGLING = re.compile(r"\b(the|a|an|and|or|of|to|in|for|with|that|which|shall)$", re.I)
+
+
 def looks_like_heading(text):
     """Distinguish a section title from the first line of a numbered clause."""
     if not text:
         return True
-    words = text.split()
-    return (len(text) <= 70 and len(words) <= 11 and not MODAL.search(text)
-            and not text.rstrip().endswith((".", ";")))
+    trimmed = text.rstrip()
+    words = trimmed.split()
+    # A real heading does not trail off. "Where subcontractors are engaged for change
+    # management activities, the" passes every other test and is plainly a fragment.
+    if trimmed.endswith((",", ":", ";")) or DANGLING.search(trimmed):
+        return False
+    return (len(trimmed) <= 70 and len(words) <= 11 and not MODAL.search(trimmed)
+            and not trimmed.endswith((".", ";")))
 
 
 def running_headers(text, threshold=3):
@@ -324,9 +332,15 @@ def main():
 
     # Deduplicate case-insensitively but keep the tender's own capitalisation — "Annex
     # III" is how the document names it and how a clarification question must too.
+    # Skip anything that only appears in the document's own running header: a chapter
+    # headed "PART 2 ... CHAPTER 8" would otherwise list itself among the parts to chase,
+    # which is noise in a list whose whole job is to be acted on.
+    furniture = [line.lower() for line in running_headers(text)]
     seen = {}
     for match in CROSS_REF.finditer(text):
         ref = " ".join(match.group(0).split())
+        if any(ref.lower() in line for line in furniture):
+            continue
         seen.setdefault(ref.lower(), ref)
     cross_refs = sorted(seen.values(), key=str.lower)
 

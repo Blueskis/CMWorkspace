@@ -12,8 +12,6 @@
     "Annex I",
     "Annex VII",
     "Chapter 4",
-    "CHAPTER 8",
-    "PART 2",
     "Part 3"
   ],
   "note": "A shortlist and its reasons, not a decision. Read every cm-core and cm-adjacent section in full before writing requirements, and skim the not-cm list for anything whose heading suggests otherwise \u2014 a training obligation in a service-levels annex scores low and still belongs to us.",
@@ -216,12 +214,12 @@
     },
     {
       "ref": "2.2.3",
-      "heading": "Where subcontractors are engaged for change management activities, the",
+      "heading": "",
       "parent_headings": [],
       "page": 4,
       "source": "examples/cfs-ch8/inputs/CFS-Part2-Ch8-Change-Mgt-and-Training.txt",
       "verdict": "cm-core",
-      "score": 33,
+      "score": 21,
       "cm_vocabulary_share": 0.1494,
       "word_count": 77,
       "strong_signals": {

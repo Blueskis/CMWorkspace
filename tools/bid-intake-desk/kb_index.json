@@ -1,0 +1,238 @@
+{
+  "bank_root": "proposal-assets/knowledge-bank",
+  "generated": "2026-08-18T01:50:42",
+  "entry_count": 8,
+  "sections": [
+    "boilerplate",
+    "case-studies",
+    "commercials",
+    "credentials",
+    "methodology",
+    "past-rfps",
+    "team"
+  ],
+  "entries": [
+    {
+      "id": "bp-data-protection-example",
+      "title": "EXAMPLE \u2014 Data protection and information handling",
+      "section": "boilerplate",
+      "tags": [
+        "boilerplate",
+        "data-protection",
+        "gdpr",
+        "security",
+        "compliance",
+        "example"
+      ],
+      "clearance": "named",
+      "last_reviewed": "2026-01-30",
+      "stale": false,
+      "owner": "unassigned",
+      "metrics_verified": true,
+      "supersedes": [],
+      "bid": null,
+      "source_document": null,
+      "path": "boilerplate/data-protection-EXAMPLE.md",
+      "word_count": 184,
+      "excerpt": "> **This is a format exemplar with invented content. Delete before real use \u2014 and never > ship compliance boilerplate that hasn't been through the firm's own legal review.** ## Handling of client data All client information is processed under the firm's information security policy and the data proce",
+      "warnings": [],
+      "superseded": false
+    },
+    {
+      "id": "cs-hris-rollout-example",
+      "title": "EXAMPLE \u2014 HRIS rollout, multinational manufacturer",
+      "section": "case-studies",
+      "tags": [
+        "case-study",
+        "hris",
+        "workday",
+        "manufacturing",
+        "emea",
+        "5k-plus",
+        "system-rollout",
+        "example"
+      ],
+      "clearance": "anonymised",
+      "last_reviewed": "2026-04-18",
+      "stale": false,
+      "owner": "unassigned",
+      "metrics_verified": false,
+      "supersedes": [],
+      "bid": null,
+      "source_document": null,
+      "path": "case-studies/hris-rollout-EXAMPLE.md",
+      "word_count": 221,
+      "excerpt": "> **This is a format exemplar with invented content and unverified metrics. Delete before > real use.** Note `clearance: anonymised` \u2014 an entry like this must never name the client > in a deck, and `metrics_verified: false` means the numbers below could not be shipped > even if the entry were real. ",
+      "warnings": [
+        "body contains numbers but metrics_verified is not true \u2014 unverified metrics must not reach a bid"
+      ],
+      "superseded": false
+    },
+    {
+      "id": "comm-engagement-model-example",
+      "title": "EXAMPLE \u2014 Engagement model and commercial assumptions",
+      "section": "commercials",
+      "tags": [
+        "commercials",
+        "engagement-model",
+        "assumptions",
+        "example"
+      ],
+      "clearance": "named",
+      "last_reviewed": "2026-04-05",
+      "stale": false,
+      "owner": "unassigned",
+      "metrics_verified": false,
+      "supersedes": [],
+      "bid": null,
+      "source_document": null,
+      "path": "commercials/engagement-model-EXAMPLE.md",
+      "word_count": 216,
+      "excerpt": "> **This is a format exemplar with invented content. Delete before real use.** > > **This entry deliberately contains no fee figures.** The proposal generator does > not calculate pricing \u2014 the commercials slide renders the structure and assumptions from > here and leaves the numbers as `[GAP]` for ",
+      "warnings": [],
+      "superseded": false
+    },
+    {
+      "id": "cred-differentiators-example",
+      "title": "EXAMPLE \u2014 Firm differentiators for change engagements",
+      "section": "credentials",
+      "tags": [
+        "credentials",
+        "differentiators",
+        "why-us",
+        "example"
+      ],
+      "clearance": "named",
+      "last_reviewed": "2026-02-02",
+      "stale": false,
+      "owner": "unassigned",
+      "metrics_verified": false,
+      "supersedes": [],
+      "bid": null,
+      "source_document": null,
+      "path": "credentials/differentiators-EXAMPLE.md",
+      "word_count": 210,
+      "excerpt": "> **This is a format exemplar with invented content. Delete before real use.** Only claim > a differentiator the bank can actually evidence \u2014 an unsupported claim is worse than > omitting the slide. ## Diagnostic before prescription Engagements open with a structured diagnostic rather than a standar",
+      "warnings": [],
+      "superseded": false
+    },
+    {
+      "id": "meth-adoption-approach-example",
+      "title": "EXAMPLE \u2014 Four-phase adoption approach for system rollouts",
+      "section": "methodology",
+      "tags": [
+        "methodology",
+        "adoption",
+        "system-rollout",
+        "erp",
+        "example"
+      ],
+      "clearance": "named",
+      "last_reviewed": "2026-06-01",
+      "stale": false,
+      "owner": "unassigned",
+      "metrics_verified": false,
+      "supersedes": [],
+      "bid": null,
+      "source_document": null,
+      "path": "methodology/adkar-adoption-approach-EXAMPLE.md",
+      "word_count": 221,
+      "excerpt": "> **This is a format exemplar with invented content. Delete before real use.** ## Approach A four-phase structure that runs alongside the technical delivery plan rather than after it, so change activity lands before the system does. **Assess.** Establish the change baseline \u2014 who is affected, how fa",
+      "warnings": [],
+      "superseded": false
+    },
+    {
+      "id": "meth-governance-metrics-example",
+      "title": "EXAMPLE \u2014 Change governance, adoption metrics and reporting",
+      "section": "methodology",
+      "tags": [
+        "methodology",
+        "governance",
+        "metrics",
+        "reporting",
+        "adoption",
+        "erp",
+        "example"
+      ],
+      "clearance": "named",
+      "last_reviewed": "2026-05-20",
+      "stale": false,
+      "owner": "unassigned",
+      "metrics_verified": true,
+      "supersedes": [],
+      "bid": null,
+      "source_document": null,
+      "path": "methodology/governance-and-metrics-EXAMPLE.md",
+      "word_count": 227,
+      "excerpt": "> **This is a format exemplar with invented content. Delete before real use.** ## Reporting cadence A weekly change status pack into the programme board, a fortnightly readiness review with business owners, and a phase-gate review at each transition. The phase gate is the only one with a decision at",
+      "warnings": [],
+      "superseded": false
+    },
+    {
+      "id": "rfp-authority-erp-example",
+      "title": "EXAMPLE \u2014 public-sector ERP tender, requirement patterns and terminology",
+      "section": "past-rfps",
+      "tags": [
+        "past-rfp",
+        "public-sector",
+        "erp",
+        "agile",
+        "training-prescriptive",
+        "example"
+      ],
+      "clearance": "internal-only",
+      "last_reviewed": "2026-06-02",
+      "stale": false,
+      "owner": "unassigned",
+      "metrics_verified": false,
+      "supersedes": [],
+      "bid": {
+        "client_ref": "anonymised: national infrastructure authority",
+        "sector": "public sector",
+        "submitted": "2025-11-14",
+        "outcome": "lost",
+        "outcome_notes": "Scored well on training operational detail, marked down on knowledge transfer \u2014 the debrief said the handover section \"described intent rather than a plan with dates\". Fictional, like the rest of this entry.\n",
+        "sections_that_scored": [
+          "User Training Plan and Materials",
+          "Change Agent Identification and Training"
+        ]
+      },
+      "source_document": "EXAMPLE \u2014 no real document",
+      "path": "past-rfps/authority-erp-EXAMPLE.md",
+      "word_count": 376,
+      "excerpt": "> **This is a format exemplar with invented content. Delete before real use.** Note > `clearance: internal-only` \u2014 which means retrieval excludes it, which is the right > default for anything drawn from a past bid until somebody has cleared it. Note also > that `outcome: lost` is recorded prominentl",
+      "warnings": [
+        "body contains numbers but metrics_verified is not true \u2014 unverified metrics must not reach a bid"
+      ],
+      "superseded": false
+    },
+    {
+      "id": "team-core-roles-example",
+      "title": "EXAMPLE \u2014 Core engagement roles for a system rollout",
+      "section": "team",
+      "tags": [
+        "team",
+        "roles",
+        "staffing",
+        "system-rollout",
+        "example"
+      ],
+      "clearance": "named",
+      "last_reviewed": "2026-03-11",
+      "stale": false,
+      "owner": "unassigned",
+      "metrics_verified": false,
+      "supersedes": [],
+      "bid": null,
+      "source_document": null,
+      "path": "team/core-roles-EXAMPLE.md",
+      "word_count": 204,
+      "excerpt": "> **This is a format exemplar with invented content. Delete before real use.** Named > individuals must never be proposed without confirming their availability for the > engagement dates \u2014 flag as `[GAP]` until staffing is confirmed. ## Change Lead Owns the change approach and the relationship with ",
+      "warnings": [
+        "body contains numbers but metrics_verified is not true \u2014 unverified metrics must not reach a bid"
+      ],
+      "superseded": false
+    }
+  ],
+  "errors": []
+}
