@@ -115,7 +115,8 @@ proposal-assets/
                           #   boilerplate, past-rfps, presentations
 examples/
 ├── acme-erp/             # worked example — fictional client
-└── cfs-ch8/              # real tender chapter, anonymised — sample input
+├── cfs-ch8/              # real tender chapter, anonymised — "shall", page-marked
+└── transport-erp/        # real ERP tender, anonymised — "should", deeply nested
 ```
 
 Scripts are stdlib-only and each runs standalone with `--help`.
