@@ -47,9 +47,9 @@ artifacts exist at all:
 - **Requirement kinds.** A rule about the response document is not answered by a slide; a
   post-award delivery obligation is answered differently from proposal content. QA now
   scores them separately instead of failing forever on requirements no slide can cover.
-- **Past RFPs and past decks in the knowledge bank**, with `ingest_source.py` to draft
-  entries from `.pptx`/`.docx`/`.md`/`.txt`, and a `bid.outcome` field — because language
-  from a losing bid reads exactly as well as language from a winning one.
+- **Past bids in Airtable**, read live by the intake page, with `ingest_source.py` to
+  draft knowledge-bank entries from the decks and tenders attached to them. Airtable holds
+  the documents; the bank holds the prose the deck is written from.
 
 ### Try it
 
@@ -112,7 +112,7 @@ proposal-assets/
 │   ├── pptx-generic/     # generated stand-in .potx: 9 layouts, 16:9
 │   └── html-generic/     # the same 9 layouts as HTML, vendored reveal.js (MIT)
 └── knowledge-bank/       # methodology, case-studies, credentials, team, commercials,
-                          #   boilerplate, past-rfps, presentations
+                          #   boilerplate  (past bids live in Airtable)
 examples/
 ├── acme-erp/             # worked example — fictional client
 ├── cfs-ch8/              # real tender chapter, anonymised — "shall", page-marked

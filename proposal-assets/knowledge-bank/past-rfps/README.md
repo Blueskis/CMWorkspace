@@ -1,39 +1,27 @@
-# past-rfps
+# past-rfps — moved to Airtable
 
-Requirement chapters and response text from tenders we have already answered. See
-`../README.md` for the entry format and `../../../skills/cm-proposal-generator/reference/knowledge-bank-guide.md`
-for the field rules.
+Past tenders and the proposals answering them live in **Airtable**:
+`CM Knowledge Bank → Proposals and Tenders`. Nothing belongs in this folder any more.
 
-## What belongs here
+Keeping a Markdown copy alongside would make two sources of truth for one section, and
+they would drift. `index_kb.py` warns if it finds an entry here for exactly that reason.
 
-Not the tender PDFs — those are documents, and a document is not retrievable content.
-What belongs here is what a past tender **taught us**, written as entries Stage 4 can pull:
+## What Airtable holds, and what it does not
 
-- **Requirement patterns that recur.** "Public-sector ERP tenders in this region always
-  specify class sizes, languages and re-run obligations for training" is worth an entry,
-  because the next one will too and the response can be ready rather than assembled.
-- **The client's own vocabulary.** Which authorities call it a Change Sustenance Plan,
-  which call it Transition Management. Stage 2 has to mirror the client's term, and this
-  is where the mapping is remembered.
-- **Response text that was actually scored.** With the `bid.outcome` and, where the
-  debrief gave one, `bid.sections_that_scored`.
+An Airtable row is a **past project**: the tender document, the proposal deck, the
+location, the price. Those are documents.
 
-## Why `outcome` is not optional
-
-Language from a losing bid reads exactly as well as language from a winning one. Reusing
-it without knowing which it was is the specific failure this folder creates the
-opportunity for, so the `bid` block carries `outcome` and `outcome_notes`. `unknown` is a
-legitimate value — a guess is not.
-
-## Getting content in
+The generator does not write slides from documents. Stage 4 retrieves an entry and adapts
+its *prose* to the new client, so a PDF attachment cannot become a slide — someone has to
+extract what the bid taught us first:
 
 ```bash
-# PDFs first: extract with the `pdf` skill, then ingest the text
-python skills/cm-proposal-generator/scripts/ingest_source.py past-bids/authority-2025.txt \
-    -o proposal-assets/knowledge-bank/past-rfps/authority-erp-2025.md \
-    --outcome lost --client-ref "anonymised: national health authority"
+python skills/cm-proposal-generator/scripts/ingest_source.py <downloaded-deck>.pptx \
+    -o proposal-assets/knowledge-bank/methodology/<name>.md
 ```
 
-`ingest_source.py` writes a **draft**: one file per source document, clearance
-`internal-only`, metrics unverified. Split it into single-idea entries and clear it before
-it can reach a bid — a whole tender ingested as one entry retrieves as one lump.
+The extracted entries land in `methodology/`, `case-studies/`, `credentials/`, `team/`,
+`commercials/` and `boilerplate/` — filed by what the content **is**, not by which past bid
+it came from. That is what the deck is written from.
+
+So the relationship is: **Airtable is the input to the bank, not the bank itself.**

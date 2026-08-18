@@ -466,6 +466,15 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
 }
 .bank-top .grow { flex: 1 1 auto; }
 .stack { display: grid; gap: 22px; align-content: start; }
+.joiner {
+  font-size: 13px;
+  color: var(--muted);
+  border-left: 2px solid var(--rule-firm);
+  padding: 2px 0 2px 14px;
+  margin: 0;
+}
+.joiner b { color: var(--ink); font-weight: 600; }
+.joiner code { font-size: 12px; }
 .src-title { color: var(--ink); font-weight: 600; font-size: 14px; }
 .src-sub { color: var(--muted); font-size: 12.5px; display: block; margin-top: 2px; }
 .src-status {
@@ -776,10 +785,15 @@ pre {
       </aside>
 
       <div class="stack">
+      <p class="joiner">Airtable holds the <b>documents</b>; the bank below holds the
+        <b>prose</b> extracted from them. Stage 4 adapts prose to this client, so every
+        slide is sourced from the lower panel — the upper one is where that material comes
+        from in the first place, via <code>ingest_source.py</code>.</p>
       <div class="panel" id="airtable-panel">
         <div class="bank-top">
-          <span class="grow"><b class="src-title">Past projects</b>
-            <span class="src-sub">Airtable · CM Knowledge Bank → Proposals and Tenders</span></span>
+          <span class="grow"><b class="src-title">Past bids — source documents</b>
+            <span class="src-sub">Airtable · CM Knowledge Bank → Proposals and Tenders.
+              Tenders and decks to mine; a slide cannot cite one directly.</span></span>
           <span id="airtable-status" class="src-status">connecting…</span>
         </div>
         <div id="airtable-body"></div>
@@ -787,7 +801,7 @@ pre {
 
       <div class="panel">
         <div class="bank-top">
-          <span class="grow"><b class="src-title">Retrievable entries</b>
+          <span class="grow"><b class="src-title">Reusable content — what the deck is written from</b>
             <span class="src-sub" id="bank-caption"></span></span>
           <button class="quiet" id="select-top">Select top 5</button>
           <button class="quiet" id="clear-sel">Clear</button>
@@ -1602,9 +1616,9 @@ function renderBank() {
 
   const hidden = state.bank.entries.length - entries.length;
   $("bank-caption").textContent = ranking
-    ? `${scored.length} of ${entries.length} entries share a tag with this tender`
+    ? `${scored.length} of ${entries.length} share a tag with this tender`
       + (hidden ? ` · ${hidden} hidden by filters` : "")
-    : `${entries.length} entries, by section · read a tender to rank them`
+    : `${entries.length} entries · methodology, credentials, team, commercials, case studies, boilerplate`
       + (hidden ? ` · ${hidden} hidden by filters` : "");
 
   const sections = {};

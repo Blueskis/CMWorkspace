@@ -16,11 +16,12 @@ Schema: `skills/cm-proposal-generator/schemas/kb_entry.schema.json`.
 | `team/` | Practitioner bios and role profiles |
 | `commercials/` | Engagement models, rate-card structure, assumption boilerplate |
 | `boilerplate/` | Standard clauses — data protection, D&I, exec-summary scaffolds |
-| `past-rfps/` | What previous tenders taught us: recurring requirements, the client's own vocabulary, and whether the response won |
-| `presentations/` | Slide-shaped content that worked, drawn from past decks |
 
-File by what the content **is**, not where it came from: a case study lifted from a deck
-belongs in `case-studies/`. Retrieval scopes by folder, so filing by provenance hides it.
+Past tenders and past proposal decks are **not** here — they live in Airtable
+(`CM Knowledge Bank → Proposals and Tenders`). Airtable holds the documents; these folders
+hold the prose extracted from them. File by what the content **is**, not where it came
+from: a case study lifted from a past deck belongs in `case-studies/`. Retrieval scopes by
+folder, so filing by provenance hides it.
 
 ## Contents
 
