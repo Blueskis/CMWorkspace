@@ -23,8 +23,20 @@ Use this when you want it done now and interactively.
 export AIRTABLE_PAT=pat_xxx
 python3 scripts/push_to_airtable.py cia_input.json --check
 python3 scripts/push_to_airtable.py cia_input.json --base-id appXXXX --dry-run
+
+# into an existing base
 python3 scripts/push_to_airtable.py cia_input.json --base-id appXXXX --create
+
+# or a new base of its own
+python3 scripts/push_to_airtable.py cia_input.json \
+    --create-base "Live CIA" --workspace-id wspXXXXXXXXXXXXXX
 ```
+
+The workspace ID is the `wsp…` segment of any Airtable URL.
+
+`--create` and `--create-base` are both idempotent and self-healing: existing tables are
+reused, and any missing link or formula field is added rather than duplicated. Safe to
+re-run.
 
 Standard library only. Use this when the sync needs to be repeatable, run from a machine
 without the connector, or scripted into a refresh cycle.
@@ -109,6 +121,23 @@ The band cut-offs are this skill's assumption, not the client template's — see
 `2.33` as `2`. If the Overall Impact column looks suspiciously round, set its formatting to
 2 decimal places in the field's Formatting tab. The stored value is correct either way, so
 `Rating` bands accurately regardless.
+
+## Moving an assessment to its own base
+
+Airtable cannot move a table between bases, so "moving" means recreating and re-syncing:
+
+```bash
+python3 scripts/push_to_airtable.py cia_input.json \
+    --create-base "Live CIA" --workspace-id wspXXXXXXXXXXXXXX
+```
+
+**This is lossless only because the JSON is the master.** Everything in the register is
+rebuilt from `cia_input.json`, so the new base is identical to the old one — unless someone
+has already edited in Airtable, in which case those edits exist nowhere else and will be
+lost. Export them first, or fold them back into the JSON.
+
+Once the new base is verified, delete the old tables by hand. The script never deletes
+anything: a wrong `--base-id` should cost you a stray table, not a register.
 
 ## Sync model
 

@@ -317,9 +317,68 @@ def get_tables(base_id, token):
     return request("GET", f"{API}/meta/bases/{base_id}/tables", token).get("tables", [])
 
 
+def impact_base_fields():
+    """The non-computed fields. Link and formula fields are added once the table exists."""
+    out = []
+    for name, ftype, opts, _k in IMPACT_FIELDS:
+        f = {"name": name, "type": ftype}
+        if opts:
+            f["options"] = opts
+        out.append(f)
+    return out
+
+
+def finalise_impacts_table(base_id, impacts_id, sources_id, token, existing_names):
+    """Add the link to Sources and the two formula fields."""
+    if LINK_FIELD not in existing_names:
+        request("POST", f"{API}/meta/bases/{base_id}/tables/{impacts_id}/fields", token, {
+            "name": LINK_FIELD, "type": "multipleRecordLinks",
+            "description": "The documents this impact was derived from. Open a source to see "
+                           "every impact traced to it.",
+            "options": {"linkedTableId": sources_id},
+        })
+        print(f"    ✓ {LINK_FIELD:18} link to {SOURCES_TABLE}")
+        time.sleep(RATE_PAUSE)
+    return add_computed_fields(base_id, impacts_id, token, existing_names)
+
+
+def create_base_with_tables(workspace_id, name, token):
+    """
+    Create a new base holding just this assessment.
+
+    Airtable cannot move a table between bases, so 'moving' an assessment means creating
+    it fresh here and re-syncing from the JSON. That is lossless precisely because the
+    JSON is the master — unless someone has already edited in the old base, in which case
+    export those edits first.
+    """
+    res = request("POST", f"{API}/meta/bases", token, {
+        "name": name,
+        "workspaceId": workspace_id,
+        "tables": [
+            {"name": SOURCES_TABLE,
+             "description": "Documents each impact was derived from. Linked from "
+                            f"{IMPACTS_TABLE}, so opening a source shows every impact "
+                            "traced to it.",
+             "fields": SOURCES_FIELDS},
+            {"name": IMPACTS_TABLE,
+             "description": "Baseline change impact assessment. One record per process "
+                            "change x stakeholder group. Scored 0-3 on People, Process and "
+                            "Technology; Overall Impact is the unweighted average.",
+             "fields": impact_base_fields()},
+        ],
+    })
+    by_name = {t["name"]: t for t in res.get("tables", [])}
+    print(f"    ✓ base `{name}` created ({res['id']})")
+    for n in (SOURCES_TABLE, IMPACTS_TABLE):
+        print(f"      {n:18} {by_name[n]['id']}")
+    time.sleep(RATE_PAUSE)
+    return res["id"], by_name
+
+
 def create_tables(base_id, token, existing):
     by_name = {t["name"]: t for t in existing}
     created = {}
+    formulas = set()
 
     if SOURCES_TABLE in by_name:
         print(f"    · {SOURCES_TABLE:18} already exists — reusing")
@@ -337,17 +396,13 @@ def create_tables(base_id, token, existing):
     if IMPACTS_TABLE in by_name:
         print(f"    · {IMPACTS_TABLE:18} already exists — reusing")
         created[IMPACTS_TABLE] = by_name[IMPACTS_TABLE]
+        # Self-healing: a table made by hand, or by an older version of this script, may be
+        # missing the link or the formula fields. finalise_ adds only what is absent.
+        formulas = finalise_impacts_table(
+            base_id, by_name[IMPACTS_TABLE]["id"], created[SOURCES_TABLE]["id"], token,
+            {f["name"] for f in by_name[IMPACTS_TABLE].get("fields", [])})
     else:
-        fields = []
-        for name, ftype, opts, _k in IMPACT_FIELDS:
-            f = {"name": name, "type": ftype}
-            if opts:
-                f["options"] = opts
-            fields.append(f)
-        fields.append({
-            "name": LINK_FIELD, "type": "multipleRecordLinks",
-            "options": {"linkedTableId": created[SOURCES_TABLE]["id"]},
-        })
+        fields = impact_base_fields()
         t = request("POST", f"{API}/meta/bases/{base_id}/tables", token, {
             "name": IMPACTS_TABLE,
             "description": "Baseline change impact assessment. One row per process change "
@@ -357,10 +412,10 @@ def create_tables(base_id, token, existing):
         print(f"    ✓ {IMPACTS_TABLE:18} created ({t['id']}) with {len(fields)} fields")
         created[IMPACTS_TABLE] = t
         time.sleep(RATE_PAUSE)
-        add_computed_fields(base_id, t["id"], token,
-                            {f["name"] for f in t.get("fields", [])})
+        formulas = finalise_impacts_table(base_id, t["id"], created[SOURCES_TABLE]["id"],
+                                          token, {f["name"] for f in t.get("fields", [])})
 
-    return created
+    return created, formulas
 
 
 def add_computed_fields(base_id, table_id, token, existing_names):
@@ -457,6 +512,13 @@ def main():
     ap.add_argument("--check", action="store_true", help="Verify token, scopes and bases")
     ap.add_argument("--dry-run", action="store_true", help="Show what would be sent")
     ap.add_argument("--create", action="store_true", help="Create the tables if absent")
+    ap.add_argument("--create-base", metavar="NAME",
+                    help="Create a NEW base of this name holding just this assessment. "
+                         "Use to move an assessment out of a cluttered base — Airtable "
+                         "cannot move tables, so this recreates and re-syncs from the JSON.")
+    ap.add_argument("--workspace-id", metavar="wspXXXX",
+                    help="Workspace for --create-base. Take it from the Airtable URL: "
+                         "airtable.com/<wspXXXX>/...")
     ap.add_argument("--token-env", default="AIRTABLE_PAT",
                     help="Env var holding the personal access token (default AIRTABLE_PAT)")
     args = ap.parse_args()
@@ -485,26 +547,40 @@ def main():
     if args.dry_run:
         return cmd_dry_run(data)
 
-    if not args.base_id:
-        print("✗ --base-id is required. Run --check to list the bases your token can see.")
+    if args.create_base and not args.workspace_id:
+        print("✗ --create-base also needs --workspace-id (the wspXXXX in your Airtable URL).")
+        return 1
+    if not args.base_id and not args.create_base:
+        print("✗ --base-id is required, or --create-base NAME --workspace-id wspXXXX to "
+              "start a new one.\n  Run --check to list the bases your token can see.")
         return 1
 
     impacts = data["impacts"]
     sources = data["meta"].get("source_documents", [])
-    print(f"\n  → base {args.base_id}")
+    created_formulas = set()
 
     try:
-        existing = get_tables(args.base_id, token)
-        if args.create:
-            print("\n  Tables")
-            tables = create_tables(args.base_id, token, existing)
+        if args.create_base:
+            print(f"\n  New base in workspace {args.workspace_id}")
+            args.base_id, tables = create_base_with_tables(
+                args.workspace_id, args.create_base, token)
+            created_formulas = finalise_impacts_table(
+                args.base_id, tables[IMPACTS_TABLE]["id"],
+                tables[SOURCES_TABLE]["id"], token, set())
         else:
-            by_name = {t["name"]: t for t in existing}
-            missing = [n for n in (SOURCES_TABLE, IMPACTS_TABLE) if n not in by_name]
-            if missing:
-                print(f"\n✗ Missing table(s): {', '.join(missing)}. Re-run with --create.\n")
-                return 1
-            tables = {n: by_name[n] for n in (SOURCES_TABLE, IMPACTS_TABLE)}
+            print(f"\n  → base {args.base_id}")
+            existing = {t["name"]: t for t in get_tables(args.base_id, token)}
+            if args.create:
+                print("\n  Tables")
+                tables, created_formulas = create_tables(
+                    args.base_id, token, list(existing.values()))
+            else:
+                missing = [n for n in (SOURCES_TABLE, IMPACTS_TABLE) if n not in existing]
+                if missing:
+                    print(f"\n✗ Missing table(s): {', '.join(missing)}. "
+                          f"Re-run with --create.\n")
+                    return 1
+                tables = {n: existing[n] for n in (SOURCES_TABLE, IMPACTS_TABLE)}
 
         print("\n  Sources")
         src_records = [{"Ref": s.get("ref"), "Type": s.get("type", ""),
@@ -516,7 +592,8 @@ def main():
 
         # A formula field cannot be written to; if the user converted it, respect that.
         fresh = {t["name"]: t for t in get_tables(args.base_id, token)}
-        computed = formula_fields_present(fresh.get(IMPACTS_TABLE, {})) & COMPUTED
+        computed = (formula_fields_present(fresh.get(IMPACTS_TABLE, {})) | created_formulas) \
+            & COMPUTED
         if computed:
             print(f"\n  {', '.join(sorted(computed))} is a formula field — leaving it to Airtable")
 
