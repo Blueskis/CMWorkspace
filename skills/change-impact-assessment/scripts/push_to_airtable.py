@@ -22,10 +22,10 @@ shape the spreadsheet could not have:
 
 Standard library only — no dependencies.
 
-One Airtable constraint worth knowing up front: **the API cannot create formula fields.**
-`Overall Impact` is therefore created as a number and written with the computed average.
-If you convert it to a formula in the UI (the script prints the formula to paste), it
-becomes live — and this script detects that on the next run and stops writing to it.
+`Overall Impact` and `Rating` are created as **formula fields**, so the score recalculates
+live when someone re-scores a dimension in a validation workshop — the same behaviour the
+workbook has. Verified against a live base. If a token or API version ever rejects the
+formula type, the script falls back to a written value and says so.
 """
 
 import argparse
@@ -44,7 +44,11 @@ RATE_PAUSE = 0.25   # 5 requests/second/base; stay comfortably under
 IMPACTS_TABLE = "Change Impacts"
 SOURCES_TABLE = "Sources"
 
-OVERALL_FORMULA = "ROUND(({People (0-3)} + {Process (0-3)} + {Technology (0-3)}) / 3, 2)"
+OVERALL_FORMULA = (
+    "IF(AND({People (0-3)} != BLANK(), {Process (0-3)} != BLANK(), "
+    "{Technology (0-3)} != BLANK()), "
+    "ROUND(({People (0-3)} + {Process (0-3)} + {Technology (0-3)}) / 3, 2), BLANK())"
+)
 RATING_FORMULA = (
     'IF({Overall Impact} = BLANK(), "", '
     'IF({Overall Impact} >= 2.5, "High", '
@@ -94,12 +98,6 @@ IMPACT_FIELDS = [
     ("Process (0-3)", "number", {"precision": 0}, "score_process"),
     ("Technology Impact", "multilineText", None, "tech_impact"),
     ("Technology (0-3)", "number", {"precision": 0}, "score_technology"),
-    # Number by default because the API cannot create formula fields. Convert in the UI
-    # to make it live; the script notices and stops writing it.
-    ("Overall Impact", "number", {"precision": 2}, None),
-    ("Rating", "singleSelect",
-     sel(("No / Minimal", "grayLight2"), ("Low", "greenLight2"),
-         ("Medium", "yellowLight2"), ("High", "orangeLight2")), None),
     ("Anticipated Resistance", "singleSelect",
      sel(("Low", "greenLight2"), ("Medium", "yellowLight2"), ("High", "orangeLight2")),
      "resistance_risk"),
@@ -136,6 +134,27 @@ IMPACT_FIELDS = [
 
 COMPUTED = {"Overall Impact", "Rating"}
 LINK_FIELD = "Sources"
+
+# Added after the table exists, so the formulas can reference fields by name.
+# Formula first; if the API rejects the type, fall back to a written value.
+COMPUTED_SPECS = [
+    ("Overall Impact",
+     {"name": "Overall Impact", "type": "formula",
+      "description": "Unweighted average of the three dimension scores, per the client "
+                     "CIA template.",
+      "options": {"formula": OVERALL_FORMULA}},
+     {"name": "Overall Impact", "type": "number", "options": {"precision": 2}}),
+    ("Rating",
+     {"name": "Rating", "type": "formula",
+      "description": "Band on the 0-3 average. High >= 2.50, Medium 1.50-2.49, "
+                     "Low 0.50-1.49, No/Minimal < 0.50. These cut-offs are an assumption of "
+                     "the assessment method, not the client template, which defines only the "
+                     "per-dimension scale. Confirm before baselining.",
+      "options": {"formula": RATING_FORMULA}},
+     {"name": "Rating", "type": "singleSelect",
+      "options": sel(("No / Minimal", "grayLight2"), ("Low", "greenLight2"),
+                     ("Medium", "yellowLight2"), ("High", "orangeLight2"))}),
+]
 
 VIEWS_TO_CREATE = [
     ("Impact Register", "All impacts. Group by Stakeholder Group or L1 to read the heatmap."),
@@ -338,8 +357,38 @@ def create_tables(base_id, token, existing):
         print(f"    ✓ {IMPACTS_TABLE:18} created ({t['id']}) with {len(fields)} fields")
         created[IMPACTS_TABLE] = t
         time.sleep(RATE_PAUSE)
+        add_computed_fields(base_id, t["id"], token,
+                            {f["name"] for f in t.get("fields", [])})
 
     return created
+
+
+def add_computed_fields(base_id, table_id, token, existing_names):
+    """
+    Add Overall Impact and Rating as formula fields.
+
+    Verified against a live base: the API does accept type `formula`, so these come out
+    live and the script never writes to them. If a future API version or a restricted
+    token rejects it, fall back to a plain number/select that the script populates —
+    correct either way, just not self-updating.
+    """
+    formulas = set()
+    for name, formula_spec, fallback_spec in COMPUTED_SPECS:
+        if name in existing_names:
+            continue
+        try:
+            f = request("POST", f"{API}/meta/bases/{base_id}/tables/{table_id}/fields",
+                        token, formula_spec)
+            valid = f.get("options", {}).get("isValid", True)
+            print(f"    ✓ {name:18} formula field" + ("" if valid else "  ⚠ formula invalid"))
+            if valid:
+                formulas.add(name)
+        except AirtableError:
+            request("POST", f"{API}/meta/bases/{base_id}/tables/{table_id}/fields",
+                    token, fallback_spec)
+            print(f"    · {name:18} formula rejected — created as a written value instead")
+        time.sleep(RATE_PAUSE)
+    return formulas
 
 
 def upsert(base_id, table, token, records, merge_on):
@@ -483,13 +532,15 @@ def main():
     print(f"\n  ✓ {len(impacts)} impacts and {len(src_records)} sources synced")
     print(f"    {url}\n")
 
-    if not computed:
-        print("  To make the score live (30 seconds, once):")
-        print(f"    Change `Overall Impact` to a Formula field:")
-        print(f"      {OVERALL_FORMULA}")
-        print(f"    Change `Rating` to a Formula field:")
-        print(f"      {RATING_FORMULA}")
-        print("    Re-runs then leave both to Airtable.\n")
+    if computed:
+        print(f"  {', '.join(sorted(computed))} recalculate live — re-scoring a dimension in "
+              f"a workshop\n  updates the rating without a re-run.\n")
+    else:
+        print("  Overall Impact / Rating hold written values rather than formulas. To make "
+              "them live,\n  change each to a Formula field in the UI:")
+        print(f"    Overall Impact:  {OVERALL_FORMULA}")
+        print(f"    Rating:          {RATING_FORMULA}")
+        print("  Re-runs then leave both to Airtable.\n")
 
     print("  Views worth adding (each is a filter over the one table, not a copy):")
     for name, how in VIEWS_TO_CREATE:

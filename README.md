@@ -157,11 +157,11 @@ headline number mid-sentence.
 two linked tables — `Sources` and `Change Impacts` — so traceability works in both directions
 (open a source, see every impact derived from it), and the workbook's roll-up sheets become
 filtered views that cannot drift from the register. Records upsert on Impact ID, so the JSON
-stays the master and re-running syncs rather than duplicating. Standard library only; the
-official Airtable connector is the no-token alternative. One constraint worth knowing:
-Airtable's API cannot create formula fields, so live re-scoring needs a one-time field
-conversion in the UI — the script prints the formulas and then defers to them on later runs.
-See `reference/airtable-workspace.md`.
+stays the master and re-running syncs rather than duplicating. `Overall Impact` and `Rating` are created as formula fields, so re-scoring a dimension in a
+validation workshop updates the rating live, as it does in the workbook. Standard library
+only; the official Airtable connector is the no-token alternative. See
+`reference/airtable-workspace.md` — including why importing the workbook straight into
+Airtable produces a base that looks right and is not.
 
 Requires `openpyxl` (`pip install openpyxl`).
 

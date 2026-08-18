@@ -80,31 +80,35 @@ over the single table — which also means they cannot drift out of step with th
 
 Each takes a few seconds in the UI. The script prints the list after a successful sync.
 
-## The one real constraint: formula fields
+## The score stays live
 
-**Airtable's API cannot create formula fields.** So `Overall Impact` and `Rating` are created
-as a number and a single-select, and the script writes the computed values.
-
-To get the live recalculation the workbook had, convert them once in the UI:
+`Overall Impact` and `Rating` are created as **formula fields**, so re-scoring a dimension in
+a validation workshop updates the rating immediately — the same behaviour the workbook has,
+with no manual step. Verified against a live base.
 
 ```
-Overall Impact  →  Formula
-  ROUND(({People (0-3)} + {Process (0-3)} + {Technology (0-3)}) / 3, 2)
+Overall Impact
+  IF(AND({People (0-3)} != BLANK(), {Process (0-3)} != BLANK(), {Technology (0-3)} != BLANK()),
+  ROUND(({People (0-3)} + {Process (0-3)} + {Technology (0-3)}) / 3, 2), BLANK())
 
-Rating  →  Formula
+Rating
   IF({Overall Impact} = BLANK(), "",
   IF({Overall Impact} >= 2.5, "High",
   IF({Overall Impact} >= 1.5, "Medium",
   IF({Overall Impact} >= 0.5, "Low", "No / Minimal"))))
 ```
 
-The script detects this on the next run and stops writing to those fields, leaving them to
-Airtable. Do it once and re-scoring in a workshop updates the rating live, exactly as in the
-workbook.
+Because they are formulas, the sync never writes to them — the scores are the input, the
+rating is derived, and the two cannot fall out of step.
 
-Note the band cut-offs in that formula are this skill's assumption, not the client
-template's — see `rating-methodology.md`. If the client sets different cut-offs, change the
-formula and `BANDS` in `generate_cia.py` together.
+The band cut-offs are this skill's assumption, not the client template's — see
+`rating-methodology.md`. If the client sets different cut-offs, change the formula and
+`BANDS` in `generate_cia.py` together.
+
+**One display detail:** Airtable infers a formula field's number precision, and may show
+`2.33` as `2`. If the Overall Impact column looks suspiciously round, set its formatting to
+2 decimal places in the field's Formatting tab. The stored value is correct either way, so
+`Rating` bands accurately regardless.
 
 ## Sync model
 
@@ -130,6 +134,12 @@ work, and it is a process decision rather than a technical one.
 sources; per-row comments so validation happens in the record rather than in email; filtered
 views that cannot drift; interfaces for a steering-committee read-only view; and change
 history per field, which matters when a rating is disputed later.
+
+**Watch for:** importing the workbook straight into Airtable rather than syncing. That
+produces a base that looks right and is not — Excel formulas arrive as static numbers, the
+spare rows under the register import as dozens of empty records, and the roll-up sheets
+arrive as tables of `Field 1..7` because they were presentation layouts, not data. Sync from
+the JSON instead.
 
 **Gives up:** the client's own CIA template. The workbook mirrors their format exactly, cell
 for cell, and the `Change Impact Ratings` rubric sheet travels with it. Airtable is a

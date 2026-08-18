@@ -262,9 +262,10 @@ Three things to say when handing the base over:
 1. **Which copy is master.** Records upsert on Impact ID, so re-running syncs from the JSON.
    The moment business owners start editing in Airtable, stop re-running or you will
    overwrite them.
-2. **Convert `Overall Impact` and `Rating` to formula fields** (the script prints the
-   formulas). Airtable's API cannot create formula fields, so this one-time UI step is what
-   restores the live re-scoring the workbook had.
+2. **The score stays live.** `Overall Impact` and `Rating` are created as formula fields, so
+   re-scoring a dimension in a workshop updates the rating without a re-sync. Check the
+   Overall Impact column shows 2 decimal places — Airtable infers precision and may round
+   2.33 to 2 on display, though the stored value and the banding stay correct.
 3. **Set base permissions deliberately.** A live link of named-role assessments is more
    exposed than a file someone had to be sent.
 
