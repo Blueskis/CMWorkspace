@@ -1,6 +1,6 @@
 # Airtable as the source for past RFPs and past proposals
 
-The `past-rfps` and `presentations` sections can live in Airtable instead of Markdown
+Past tenders and past proposal decks live in Airtable rather than in Markdown
 files: **CM Knowledge Bank → Proposals and Tender**. The other six sections
 (`methodology`, `case-studies`, `credentials`, `team`, `commercials`, `boilerplate`) stay
 as Markdown in this folder.

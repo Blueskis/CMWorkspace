@@ -24,10 +24,6 @@ than which bid it came from. See `reference/airtable-source.md`.
 One entry per Markdown file. The folder is the entry's `section`, which is how Stage 4
 retrieval scopes a query. Nested subfolders are allowed and don't affect the section.
 
-**File by what content *is*, not where it came from.** A case study that happens to have
-been lifted from a deck belongs in `case-studies/`, not `presentations/`. Retrieval scopes
-by section, so an entry filed by provenance is an entry nobody finds.
-
 ## Entry format
 
 YAML frontmatter, then Markdown body. Validated against
@@ -71,21 +67,26 @@ Adoption reached 87% of the target population within 90 days of go-live.
 - **`metrics_verified`** — must be `true` for any entry whose body states a number.
   Unverified metrics are the single most dangerous content in a bid: they're specific,
   quotable, and contractually awkward when wrong.
-- **`bid`** — for `past-rfps` and `presentations` entries: what this was bid for and how
-  it went. `outcome` is the field that earns those folders their place. Language from a
-  losing bid reads exactly as well as language from a winning one, and reusing it without
-  knowing which is which is the specific hazard of keeping past bids at all. `unknown` is
-  a legitimate value; a guess is not. Where a debrief named the sections that scored, put
-  them in `sections_that_scored` — it's the most transferable thing a past bid holds.
+- **`bid`** — optional, for an entry extracted from a past bid: what it was bid for and
+  how it went. Language from a losing bid reads exactly as well as language from a winning
+  one, so carry `outcome` across from the Airtable record rather than losing it in the
+  extraction. `unknown` is a legitimate value; a guess is not. Where a debrief named the
+  sections that scored, put them in `sections_that_scored` — the most transferable thing a
+  past bid holds.
 - **`source_document`** — set by `ingest_source.py`. An entry drafted from a real artifact
   should be traceable to it, so a claim can be checked against its origin later.
 
 ## Ingesting past decks and tenders
 
+Download the deck or tender from its Airtable record, then:
+
 ```bash
-python skills/cm-proposal-generator/scripts/ingest_source.py past-bids/retail-2025.pptx \
-    -o proposal-assets/knowledge-bank/presentations/retail-2025.md --outcome won
+python skills/cm-proposal-generator/scripts/ingest_source.py ~/Downloads/retail-2025.pptx \
+    -o proposal-assets/knowledge-bank/methodology/retail-phasing.md --outcome won
 ```
+
+The destination folder is chosen by what the extracted content **is** — a phase model goes
+to `methodology/`, an outcome story to `case-studies/`, a proof point to `credentials/`.
 
 Reads `.pptx`, `.docx`, `.md` and `.txt` (for a PDF, extract with the `pdf` skill first),
 and writes a **draft**: frontmatter filled as far as it can honestly be, body extracted

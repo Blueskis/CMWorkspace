@@ -1,6 +1,6 @@
 ---
 name: cm-proposal-generator-v0.2
-description: Generates a change-management proposal deck (.pptx) from an RFP and the context of a project bid, built on an approved slide template and populated from a curated knowledge bank of methodology, past RFPs, past presentations, case studies, credentials, team bios and commercial boilerplate. Runs a six-stage pipeline — triage a full tender to find the sections that are CM's to answer, parse those into a structured brief, plan the proposal's sections against the client's stated requirements and their own naming, retrieve matching knowledge-bank content, build the .pptx on the template, then QA it for requirement coverage, provenance and template fidelity. Use whenever a CM practitioner wants to draft, assemble, or respond to an RFP, ITT, RFI, or client brief with a proposal, pitch, or bid deck — phrases like "generate a proposal from this RFP", "draft a CM proposal", "respond to this tender", "build a pitch deck for this client", "which parts of this RFP are ours", "we've been invited to bid". Do NOT use for diagnosing or assessing an existing change initiative — this skill writes bids, it does not analyse programmes.
+description: Generates a change-management proposal deck (.pptx) from an RFP and the context of a project bid, built on an approved slide template and populated from a curated knowledge bank of methodology, case studies, credentials, team bios and commercial boilerplate, with past tenders and past decks held in Airtable as source documents. Runs a six-stage pipeline — triage a full tender to find the sections that are CM's to answer, parse those into a structured brief, plan the proposal's sections against the client's stated requirements and their own naming, retrieve matching knowledge-bank content, build the .pptx on the template, then QA it for requirement coverage, provenance and template fidelity. Use whenever a CM practitioner wants to draft, assemble, or respond to an RFP, ITT, RFI, or client brief with a proposal, pitch, or bid deck — phrases like "generate a proposal from this RFP", "draft a CM proposal", "respond to this tender", "build a pitch deck for this client", "which parts of this RFP are ours", "we've been invited to bid". Do NOT use for diagnosing or assessing an existing change initiative — this skill writes bids, it does not analyse programmes.
 ---
 
 # CM Proposal Generator
@@ -201,11 +201,15 @@ python scripts/index_kb.py proposal-assets/knowledge-bank -o proposals/<run>/kb_
 python scripts/retrieve.py proposals/<run>/kb_index.json --section methodology --tags erp,workday --top 5
 ```
 
-Eight sections are available: `methodology`, `case-studies`, `credentials`, `team`,
-`commercials`, `boilerplate`, plus `past-rfps` and `presentations`. The last two are worth
-querying early on a tender that resembles one we've bid before — `past-rfps` entries carry
-the client's own vocabulary and, crucially, `bid.outcome`. Language from a losing bid reads
-exactly as well as language from a winning one, so check the outcome before reusing it.
+Six sections are available: `methodology`, `case-studies`, `credentials`, `team`,
+`commercials`, `boilerplate`.
+
+**Past tenders and past decks are not among them — they are documents, and they live in
+Airtable** (`CM Knowledge Bank → Proposals and Tenders`). Nothing on a slide can cite a
+PDF. When a tender resembles one we have bid before, open that record, download what it
+holds, and run `ingest_source.py` to extract entries into the six sections above; carry
+`bid.outcome` across as you go, because language from a losing bid reads exactly as well
+as language from a winning one.
 
 For each planned slide, pull candidate entries, choose what actually fits, and write the
 slide into `proposal_plan.json` with its `sources` — the KB entry IDs the content came

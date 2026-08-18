@@ -189,8 +189,8 @@ def main():
     ap.add_argument("-o", "--out", type=Path, default=Path("kb_index.json"))
     ap.add_argument("--merge", type=Path, action="append", default=[],
                     metavar="FILE",
-                    help="a synced store to fold in, e.g. the Airtable export holding "
-                         "past-rfps and presentations. Repeatable.")
+                    help="a synced store of entries to fold in, in this pipeline's own "
+                         "field names. Repeatable.")
     args = ap.parse_args()
 
     if not args.bank_root.is_dir():

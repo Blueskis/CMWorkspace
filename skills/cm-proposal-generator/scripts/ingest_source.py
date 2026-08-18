@@ -2,7 +2,7 @@
 """Draft a knowledge-bank entry from a past deck, tender response, or method document.
 
     python ingest_source.py past-bids/healthcare-erp-2025.pptx \\
-        -o proposal-assets/knowledge-bank/presentations/healthcare-erp-2025.md
+        -o proposal-assets/knowledge-bank/methodology/healthcare-phasing.md
     python ingest_source.py methodology/adoption-approach.docx --tags erp,public-sector
 
 Reads .pptx, .docx, .md and .txt and writes a Markdown entry with frontmatter filled in
@@ -49,8 +49,11 @@ P_NS = "{http://schemas.openxmlformats.org/presentationml/2006/main}"
 W_NS = "{http://schemas.openxmlformats.org/wordprocessingml/2006/main}"
 R_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
 
+# Where extracted content can be filed. Past tenders and past decks are not among them:
+# those are documents and live in Airtable. What comes *out* of one is filed by what it
+# is — a phase model is methodology, an outcome story is a case study.
 SECTIONS = ("methodology", "case-studies", "credentials", "team", "commercials",
-            "boilerplate", "past-rfps", "presentations")
+            "boilerplate")
 
 
 def slug(value):
@@ -201,7 +204,7 @@ def frontmatter(entry_id, title, tags, section, source, args):
     ]
     if args.owner:
         fields.append(f"owner: {args.owner}")
-    if section in ("past-rfps", "presentations"):
+    if args.outcome != "unknown" or args.client_ref:
         fields += [
             "bid:",
             f"  client_ref: {args.client_ref or 'REVIEW-set-client-or-anonymised-handle'}",
@@ -228,7 +231,9 @@ def main():
                          "a client-facing deck until somebody says it is")
     ap.add_argument("--outcome",
                     choices=["won", "lost", "no-bid", "withdrawn", "pending", "unknown"],
-                    default="unknown", help="for past-rfps/presentations entries")
+                    default="unknown",
+                    help="how the bid this came from went — carry it across from the "
+                         "Airtable record rather than losing it in extraction")
     ap.add_argument("--client-ref", help="client name or anonymised handle")
     ap.add_argument("--owner", help="who maintains this entry")
     args = ap.parse_args()
@@ -285,9 +290,10 @@ def main():
     print(f"  section: {section or 'UNSET — move it into a knowledge-bank folder'}"
           f"   clearance: {args.clearance}")
     print(f"  suggested tags: {', '.join(tags) if tags else '(none found — add your own)'}")
-    if section in ("past-rfps", "presentations") and args.outcome == "unknown":
-        print("  bid outcome is 'unknown' — set it. Reusing language from a bid without "
-              "knowing whether it won is the failure this field exists to prevent.")
+    if args.outcome == "unknown":
+        print("  bid outcome is 'unknown' — pass --outcome from the Airtable record. "
+              "Reusing language from a bid without knowing whether it won is the failure "
+              "that field exists to prevent.")
     print("  This is a DRAFT: split it into single-idea entries, verify the numbers, "
           "then re-run index_kb.py.")
     return 0

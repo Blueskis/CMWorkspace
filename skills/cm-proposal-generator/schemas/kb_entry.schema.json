@@ -44,7 +44,7 @@
     },
     "bid": {
       "type": "object",
-      "description": "For past-rfps and presentations entries: what this was bid for and how it went. Outcome is the field that makes the bank worth keeping — reusing language from a lost bid without knowing it lost is worse than writing fresh.",
+      "description": "Optional, for an entry extracted from a past bid: what it was bid for and how it went. Carry outcome across from the Airtable record rather than losing it in extraction — reusing language from a lost bid without knowing it lost is worse than writing fresh.",
       "properties": {
         "client_ref": { "type": "string", "description": "Client, or an anonymised handle when clearance is not 'named'" },
         "sector": { "type": "string" },
