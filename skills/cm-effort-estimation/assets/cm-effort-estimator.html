@@ -2214,7 +2214,26 @@ Anonymised extract of a public-sector requirement specification, used as the sam
     return rows.filter((r) => r.some((c) => c !== ""));
   }
 
-  function download(filename, text) {
+  // Saving a file works two ways: through the host when the page is published,
+  // and through an anchor when the file is opened straight off disk.
+  async function download(filename, text) {
+    const host = typeof claude !== "undefined" && claude.use ? await claude.use("downloads").catch(() => null) : null;
+    if (host) {
+      try {
+        await host.save({ filename, data: text });
+        toast("Saved " + filename);
+        return;
+      } catch (err) {
+        if (err && err.code === "extension_not_enabled") {
+          const asText = filename.replace(/\.csv$/, ".txt");
+          try { await host.save({ filename: asText, data: text }); toast("Saved " + asText); return; }
+          catch (e2) { /* fall through to the anchor */ }
+        } else if (err && (err.code === "declined" || err.code === "rate_limited")) {
+          toast(err.code === "declined" ? "Save cancelled" : "Try that again in a moment");
+          return;
+        }
+      }
+    }
     const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url; a.download = filename;
