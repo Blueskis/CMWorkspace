@@ -24,6 +24,9 @@ from pathlib import Path
 STALE_AFTER_DAYS = 730  # 24 months, per reference/knowledge-bank-guide.md
 REQUIRED_FIELDS = ("id", "title", "tags", "last_reviewed")
 NUMBER_RE = re.compile(r"\d")
+# Sections whose store is Airtable rather than this folder. Named here so the
+# indexer can say so when it finds a stray Markdown file in one of them.
+AIRTABLE_SECTIONS = ("past-rfps", "presentations")
 
 
 def parse_frontmatter(text):
@@ -87,16 +90,17 @@ def _as_date(value):
     return datetime.strptime(str(value), "%Y-%m-%d").date()
 
 
-def index_entry(path, bank_root):
-    """Build one index record. Raises ValueError with a fixable message on bad input."""
-    fm, body = parse_frontmatter(path.read_text(encoding="utf-8"))
+def build_record(fm, body, *, section, location, source, record_url=None):
+    """One index record, from a Markdown entry's frontmatter or an Airtable row alike.
 
+    Both stores answer to the same required fields and the same warnings, because
+    retrieval reads the index and must not be able to tell them apart. A record that
+    validated more loosely because it came from a spreadsheet would be a hole in every
+    guard the Markdown side enforces.
+    """
     missing = [f for f in REQUIRED_FIELDS if not fm.get(f)]
     if missing:
-        raise ValueError(f"missing required frontmatter: {', '.join(missing)}")
-
-    rel = path.relative_to(bank_root)
-    section = fm.get("section") or (rel.parts[0] if len(rel.parts) > 1 else "uncategorised")
+        raise ValueError(f"missing required fields: {', '.join(missing)}")
 
     tags = fm["tags"] if isinstance(fm["tags"], list) else [fm["tags"]]
     tags = [str(t).strip().lower() for t in tags if str(t).strip()]
@@ -119,7 +123,7 @@ def index_entry(path, bank_root):
     bid = fm.get("bid") if isinstance(fm.get("bid"), dict) else None
     if bid and not bid.get("outcome"):
         warnings.append("bid block has no outcome — record it, or set it to 'unknown'")
-    if section in ("past-rfps", "presentations") and not bid:
+    if section in AIRTABLE_SECTIONS and not bid:
         warnings.append(f"{section} entry has no bid block — outcome unknown to retrieval")
 
     return {
@@ -135,17 +139,58 @@ def index_entry(path, bank_root):
         "supersedes": fm.get("supersedes") or [],
         "bid": _jsonable(bid),
         "source_document": fm.get("source_document"),
-        "path": str(rel),
+        "source": source,
+        "record_url": record_url,
+        "path": location,
         "word_count": len(body.split()),
         "excerpt": " ".join(body.split())[:300],
         "warnings": warnings,
     }
 
 
+def index_entry(path, bank_root):
+    """Build one index record from a Markdown file."""
+    fm, body = parse_frontmatter(path.read_text(encoding="utf-8"))
+    rel = path.relative_to(bank_root)
+    section = fm.get("section") or (rel.parts[0] if len(rel.parts) > 1 else "uncategorised")
+    return build_record(fm, body, section=section, location=str(rel), source="markdown")
+
+
+def load_merge(path):
+    """Read a synced store into index records.
+
+    The file is a list of entries already in this pipeline's own field names — mapping
+    Airtable's columns onto them is the fetcher's job, so nothing downstream has to know
+    what a base or a view is. See skills/cm-proposal-generator/reference/airtable-source.md.
+    """
+    data = json.loads(Path(path).read_text(encoding="utf-8"))
+    source = data.get("source") or Path(path).stem
+    records, errors = [], []
+
+    for raw in data.get("entries", []):
+        body = str(raw.get("body") or "")
+        section = raw.get("section")
+        where = raw.get("record_url") or raw.get("id") or "(unidentified row)"
+        if not section:
+            errors.append({"path": where, "error": "no section — cannot be retrieved"})
+            continue
+        try:
+            records.append(build_record(
+                raw, body, section=section, location=where, source=source,
+                record_url=raw.get("record_url")))
+        except (ValueError, KeyError) as exc:
+            errors.append({"path": where, "error": str(exc)})
+    return records, errors, data
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("bank_root", type=Path)
     ap.add_argument("-o", "--out", type=Path, default=Path("kb_index.json"))
+    ap.add_argument("--merge", type=Path, action="append", default=[],
+                    metavar="FILE",
+                    help="a synced store to fold in, e.g. the Airtable export holding "
+                         "past-rfps and presentations. Repeatable.")
     args = ap.parse_args()
 
     if not args.bank_root.is_dir():
@@ -168,6 +213,31 @@ def main():
         seen[entry["id"]] = entry["path"]
         entries.append(entry)
 
+    merged_from = []
+    for merge_path in args.merge:
+        if not merge_path.is_file():
+            sys.exit(f"merge file not found: {merge_path}")
+        records, merge_errors, meta = load_merge(merge_path)
+        errors.extend(merge_errors)
+        merged_from.append({k: meta.get(k) for k in ("source", "base", "table", "fetched")
+                            if meta.get(k)})
+        for record in records:
+            if record["id"] in seen:
+                errors.append({"path": record["path"],
+                               "error": f"duplicate id '{record['id']}' "
+                                        f"(also in {seen[record['id']]})"})
+                continue
+            seen[record["id"]] = record["path"]
+            entries.append(record)
+
+    # A Markdown file in a section whose store is Airtable is a second source of truth for
+    # that section, and the two will drift. Say so rather than indexing both quietly.
+    for entry in entries:
+        if entry["source"] == "markdown" and entry["section"] in AIRTABLE_SECTIONS:
+            entry["warnings"].append(
+                f"{entry['section']} is stored in Airtable — this Markdown entry is a "
+                f"second source for that section and will drift from it")
+
     superseded = {sid for e in entries for sid in e["supersedes"]}
     for entry in entries:
         entry["superseded"] = entry["id"] in superseded
@@ -177,13 +247,19 @@ def main():
         "generated": datetime.now().isoformat(timespec="seconds"),
         "entry_count": len(entries),
         "sections": sorted({e["section"] for e in entries}),
+        "merged_from": merged_from,
         "entries": entries,
         "errors": errors,
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(index, indent=2), encoding="utf-8")
 
-    print(f"Indexed {len(entries)} entries across {len(index['sections'])} sections -> {args.out}")
+    by_source = {}
+    for entry in entries:
+        by_source[entry["source"]] = by_source.get(entry["source"], 0) + 1
+    breakdown = ", ".join(f"{n} {src}" for src, n in sorted(by_source.items()))
+    print(f"Indexed {len(entries)} entries across {len(index['sections'])} sections "
+          f"({breakdown}) -> {args.out}")
     warned = sum(1 for e in entries if e["warnings"])
     if warned:
         print(f"  {warned} of {len(entries)} entries carry warnings (see index)")

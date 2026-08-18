@@ -465,6 +465,60 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
   color: var(--muted);
 }
 .bank-top .grow { flex: 1 1 auto; }
+.stack { display: grid; gap: 22px; align-content: start; }
+.src-title { color: var(--ink); font-weight: 600; font-size: 14px; }
+.src-sub { color: var(--muted); font-size: 12.5px; display: block; margin-top: 2px; }
+.src-status {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.src-status.live { color: var(--seal); }
+.src-status.down { color: var(--red); }
+
+.project {
+  display: grid;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+.project:last-child { border-bottom: 0; }
+.project.on { background: var(--seal-soft); }
+.project > input { margin: 3px 0 0; accent-color: var(--seal); width: 15px; height: 15px; }
+.project .name { color: var(--ink); font-weight: 600; font-size: 14.5px; }
+.project .name.blank { color: var(--faint); font-weight: 500; font-style: italic; }
+.project .row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.project .open {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--seal);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 1px solid transparent;
+}
+.project .open:hover { border-bottom-color: var(--seal); }
+.doclink {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid var(--rule-firm);
+  color: var(--ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.doclink:hover { background: var(--surface-2); border-color: var(--seal); color: var(--seal-ink); }
+.doclink.none { border-style: dashed; color: var(--faint); }
+
+.mcp-state { padding: 26px 20px; font-size: 13.5px; color: var(--muted); }
+.mcp-state b { color: var(--ink); display: block; margin-bottom: 5px; font-weight: 600; }
+.mcp-state.bad { border-left: 3px solid var(--red); background: var(--red-soft); color: var(--ink); }
+.mcp-state.warn { border-left: 3px solid var(--amber); background: var(--amber-soft); color: var(--ink); }
 
 .entry {
   display: grid;
@@ -720,13 +774,25 @@ pre {
         </div>
       </aside>
 
+      <div class="stack">
+      <div class="panel" id="airtable-panel">
+        <div class="bank-top">
+          <span class="grow"><b class="src-title">Past projects</b>
+            <span class="src-sub">Airtable · CM Knowledge Bank → Proposals and Tenders</span></span>
+          <span id="airtable-status" class="src-status">connecting…</span>
+        </div>
+        <div id="airtable-body"></div>
+      </div>
+
       <div class="panel">
         <div class="bank-top">
-          <span class="grow" id="bank-caption"></span>
+          <span class="grow"><b class="src-title">Retrievable entries</b>
+            <span class="src-sub" id="bank-caption"></span></span>
           <button class="quiet" id="select-top">Select top 5</button>
           <button class="quiet" id="clear-sel">Clear</button>
         </div>
         <div id="bank"></div>
+      </div>
       </div>
     </div>
   </section>
@@ -1124,6 +1190,9 @@ const state = {
   bank: JSON.parse(document.getElementById("kb-seed").textContent),
   bankName: "the repository's bank",
   selected: new Set(),
+  selectedProjects: new Set(),
+  airtable: { phase: "loading", projects: [], failure: null },
+  airtableStop: null,
   section: "",
   strict: false,
   internal: false
@@ -1151,6 +1220,247 @@ function visibleEntries() {
     .sort((a, b) => state.tags.size
       ? (b.score - a.score || a.id.localeCompare(b.id))
       : (a.section.localeCompare(b.section) || a.title.localeCompare(b.title)));
+}
+
+/* =================================================================
+   Airtable — the store for past RFPs and past proposal decks.
+
+   Read live through the viewer's own Airtable connector, so the page
+   never holds a token and never holds a stale copy. Field IDs rather
+   than names: renaming a column in Airtable must not break this page.
+   ================================================================= */
+
+const AIRTABLE = {
+  server: "Airtable",
+  tool: "list_records_for_table",
+  baseId: "appAi9h5mT0hPz5o2",
+  tableId: "tblxQyGlAV81vz3ES",
+  where: "CM Knowledge Bank → Proposals and Tenders",
+  field: {
+    name:     "fld2pcQSSx8pxXaGi",
+    location: "fldAICNuwryB6il5R",
+    rfp:      "fld9cmwu4nuBkQnuS",
+    deck:     "fldXrhDwayxbGplBC",
+    price:    "fldW3eQtJ67m8wt56"
+  }
+};
+
+const recordUrl = id =>
+  `https://airtable.com/${AIRTABLE.baseId}/${AIRTABLE.tableId}/${id}`;
+
+/* Airtable encodes a cell differently per field type — a select is an object, a
+   collaborator is an object, plain text is a string. Read the shapes tolerantly rather
+   than asserting one: a wrong assertion renders a blank cell and looks like missing data. */
+function cellText(value) {
+  if (value == null) return "";
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (Array.isArray(value)) return value.map(cellText).filter(Boolean).join(", ");
+  if (typeof value === "object")
+    return String(value.name ?? value.text ?? value.value ?? value.filename ?? "");
+  return "";
+}
+
+function cellFiles(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(a => a && typeof a === "object")
+    .map(a => ({ name: a.filename || a.name || "attachment", url: a.url || null }));
+}
+
+function projectFrom(record) {
+  const cells = record.cellValuesByFieldId || record.fields || {};
+  const get = key => cells[AIRTABLE.field[key]];
+  return {
+    id: record.id,
+    url: recordUrl(record.id),
+    name: cellText(get("name")),
+    location: cellText(get("location")),
+    price: cellText(get("price")),
+    rfp: cellFiles(get("rfp")),
+    deck: cellFiles(get("deck")),
+    empty: !Object.keys(cells).length
+  };
+}
+
+/* Every error code the contract defines has a different correct fix. Collapsing them
+   into one banner hides the single action that would repair the page. */
+function mcpFailure(error) {
+  const code = (error && error.code) || "upstream_error";
+  const table = {
+    needs_reauth: ["Airtable needs reconnecting",
+      "Its credentials have lapsed. Reconnect Airtable in claude.ai Settings → Connectors, then reload."],
+    server_not_connected: ["No Airtable connector",
+      "This page reads past projects from your Airtable. Add Airtable in claude.ai Settings → Connectors."],
+    selection_required: ["More than one Airtable connector",
+      "Choose which Airtable account this page should read, then reload."],
+    server_not_found: ["That Airtable connector no longer exists",
+      "It was removed upstream. Re-add Airtable in claude.ai Settings → Connectors."],
+    blocked_by_policy: ["Blocked by your organisation's policy",
+      "An administrator has blocked this Airtable tool. The rest of the page still works."],
+    approval_required: ["Needs per-call approval",
+      "Your organisation requires approval for this tool, which artifacts cannot request yet."],
+    not_in_manifest: ["This page is not cleared to read that table",
+      "It was published without Airtable in its manifest. Republish it with the connector declared."],
+    tool_error: ["Airtable rejected the request",
+      (error && error.message) || "The table may have been renamed, moved, or deleted."],
+    server_unavailable: ["Airtable is not answering",
+      "Usually brief. The page will try again on its next refresh."],
+    rate_limited: ["Too many requests",
+      "Waiting before asking Airtable again."],
+    not_granted: ["Live data is off for this view",
+      "This view did not grant connector access, so past projects cannot be listed here."],
+    capability_disabled: ["Live data is unavailable here",
+      "This viewer cannot run connector calls. Everything else on the page still works."]
+  };
+  const [title, detail] = table[code] || ["Could not reach Airtable",
+    (error && error.message) || "An unexpected error. Reload to try again."];
+  const hard = ["needs_reauth", "server_not_connected", "selection_required",
+                "server_not_found", "blocked_by_policy", "approval_required",
+                "not_in_manifest"].includes(code);
+  return { title, detail, code, hard };
+}
+
+function renderAirtable() {
+  const host = $("airtable-body");
+  const status = $("airtable-status");
+  const { phase, projects, failure } = state.airtable;
+
+  if (phase === "unavailable" || phase === "error") {
+    const f = failure || { title: "Live data unavailable", detail: "", code: "" };
+    status.textContent = f.code || "offline";
+    status.className = "src-status down";
+    host.innerHTML = `<div class="mcp-state ${f.hard ? "bad" : "warn"}">
+      <b>${esc(f.title)}</b>${esc(f.detail)}</div>`;
+    return;
+  }
+  if (phase === "loading") {
+    status.textContent = "reading…";
+    status.className = "src-status";
+    host.innerHTML = `<div class="mcp-state">Reading ${esc(AIRTABLE.where)}…</div>`;
+    return;
+  }
+
+  status.textContent = `${projects.length} record${projects.length === 1 ? "" : "s"}`;
+  status.className = "src-status live";
+
+  if (!projects.length) {
+    host.innerHTML = `<div class="mcp-state">
+      <b>No rows yet</b>The table is reachable but empty. Rows added in Airtable appear
+      here the next time this page refreshes.</div>`;
+    return;
+  }
+
+  const filled = projects.filter(p => !p.empty).length;
+  const docLink = (file, label) => file
+    ? `<a class="doclink" href="${esc(file.url || "#")}" target="_blank"
+         rel="noopener noreferrer">${esc(label)}: ${esc(file.name)}</a>`
+    : `<span class="doclink none">no ${esc(label.toLowerCase())}</span>`;
+
+  host.innerHTML =
+    (filled === 0 ? `<div class="mcp-state warn"><b>${projects.length} rows, all blank</b>
+       The rows exist but no fields are filled in, so there is nothing to match a tender
+       against yet.</div>` : "")
+    + projects.map(p => `
+      <label class="project${state.selectedProjects.has(p.id) ? " on" : ""}">
+        <input type="checkbox" data-project="${esc(p.id)}"
+          aria-label="Select ${esc(p.name || "untitled row")}">
+        <span>
+          <span class="name${p.name ? "" : " blank"}">${esc(p.name || "Untitled row")}</span>
+          <span class="row">
+            ${p.location ? `<span class="flag sec">${esc(p.location)}</span>` : ""}
+            ${p.price ? `<span class="flag">${esc(p.price)}</span>` : ""}
+          </span>
+          <span class="row">
+            ${docLink(p.rfp[0], "RFP")}
+            ${docLink(p.deck[0], "Deck")}
+          </span>
+        </span>
+        <a class="open" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
+          open in Airtable →</a>
+      </label>`).join("");
+
+  host.querySelectorAll("input[data-project]").forEach(box => {
+    box.checked = state.selectedProjects.has(box.dataset.project);
+    box.addEventListener("change", () => {
+      if (box.checked) state.selectedProjects.add(box.dataset.project);
+      else state.selectedProjects.delete(box.dataset.project);
+      renderAirtable(); renderHandoff();
+    });
+  });
+}
+
+async function initAirtable() {
+  const mcp = await window.claude?.use?.("mcp").catch(() => null);
+  if (!mcp) {
+    state.airtable = { phase: "unavailable", projects: [], failure: {
+      title: "Live Airtable data is not available in this view",
+      detail: "Past projects are read through your own Airtable connector. Everything "
+            + "else on this page works without it.", code: "", hard: false } };
+    renderAirtable();
+    return;
+  }
+
+  // Ask what is actually callable before calling. If the connector or tool is named
+  // differently than this page expects, say so — far better than an empty panel.
+  try {
+    const { servers = [] } = await mcp.listTools();
+    const server = servers.find(s => s.server === AIRTABLE.server);
+    if (!server) {
+      const names = servers.map(s => s.server).filter(Boolean);
+      state.airtable = { phase: "error", projects: [], failure: {
+        title: "No Airtable connector for this viewer",
+        detail: names.length
+          ? `This page asks for "${AIRTABLE.server}". Connectors available here: `
+            + `${names.join(", ")}.`
+          : "Add Airtable in claude.ai Settings → Connectors, then reload.",
+        code: "server_not_connected", hard: true } };
+      renderAirtable();
+      return;
+    }
+    const tools = (server.tools || []).map(t => t.name);
+    if (tools.length && !tools.includes(AIRTABLE.tool)) {
+      state.airtable = { phase: "error", projects: [], failure: {
+        title: "That Airtable tool is not available",
+        detail: `This page calls "${AIRTABLE.tool}". This connector offers: `
+              + `${tools.slice(0, 8).join(", ")}.`,
+        code: "not_in_manifest", hard: true } };
+      renderAirtable();
+      return;
+    }
+  } catch (err) {
+    state.airtable = { phase: "error", projects: [], failure: mcpFailure(err) };
+    renderAirtable();
+    return;
+  }
+
+  state.airtable.phase = "loading";
+  renderAirtable();
+
+  state.airtableStop = mcp.watchTool(
+    AIRTABLE.server, AIRTABLE.tool,
+    { baseId: AIRTABLE.baseId, tableId: AIRTABLE.tableId, pageSize: 100 },
+    ev => {
+      if (ev.type === "error") {
+        const failure = mcpFailure(ev.error);
+        // Transient trouble keeps whatever is on screen; an authz denial retracts it,
+        // because showing data the viewer may no longer read is the worse failure.
+        if (!failure.hard && state.airtable.projects.length) {
+          $("airtable-status").textContent = "stale";
+          $("airtable-status").className = "src-status down";
+          return;
+        }
+        state.airtable = { phase: "error", projects: [], failure };
+        state.selectedProjects.clear();
+        renderAirtable(); renderHandoff();
+        return;
+      }
+      const payload = ev.result && ev.result.payload;
+      const records = (payload && payload.records) || [];
+      state.airtable = { phase: "ready", projects: records.map(projectFrom), failure: null };
+      renderAirtable(); renderHandoff();
+    },
+    { refetchInterval: 60000 }
+  );
 }
 
 /* =================================================================
@@ -1352,12 +1662,13 @@ function renderReadout() {
 
 function renderHandoff() {
   const chosen = state.bank.entries.filter(e => state.selected.has(e.id));
+  const projects = state.airtable.projects.filter(p => state.selectedProjects.has(p.id));
   const host = $("handoff");
 
-  if (!chosen.length) {
+  if (!chosen.length && !projects.length) {
     host.innerHTML = `<p class="summary-line" style="color:var(--muted)">
-      Select the entries this proposal should be written from, and the retrieval command
-      and selection file appear here.</p>`;
+      Pick the past projects worth mining and the entries this proposal should be written
+      from. The selection file and the commands appear here.</p>`;
     $("dock").classList.remove("up");
     return;
   }
@@ -1395,6 +1706,15 @@ function renderHandoff() {
     section_focus: state.section || null,
     strict_section: state.strict,
     include_internal: state.internal,
+    // Airtable rows are source documents, not retrievable content: an RFP PDF and a
+    // deck cannot go on a slide. They are listed separately as material to extract from.
+    source_material: projects.map(p => ({
+      record: p.url,
+      project: p.name || null,
+      location: p.location || null,
+      rfp_document: p.rfp.map(f => f.name),
+      proposal_deck: p.deck.map(f => f.name)
+    })),
     selected_entries: chosen.map(e => ({
       id: e.id,
       section: e.section,
@@ -1433,9 +1753,19 @@ python skills/cm-proposal-generator/scripts/qa_deck.py proposals/<run>/rfp_brief
 python skills/cm-proposal-generator/scripts/qa_pptx.py proposals/<run>/proposal.pptx \\
     --original proposal-assets/templates/pptx-generic/pptx-generic.potx -o proposals/<run>/qa_pptx.md`;
 
+  const summary = [
+    chosen.length ? `<b>${chosen.length}</b> retrievable entr${chosen.length === 1 ? "y" : "ies"}`
+                  : "",
+    projects.length ? `<b>${projects.length}</b> past project${projects.length === 1 ? "" : "s"} to mine`
+                    : ""
+  ].filter(Boolean).join(" · ");
+
   host.innerHTML = `
-    <p class="summary-line"><b>${chosen.length}</b> entr${chosen.length === 1 ? "y" : "ies"}
-      selected across ${new Set(chosen.map(e => e.section)).size} section(s).</p>
+    <p class="summary-line">${summary}.</p>
+    ${projects.length ? `<ul class="warnlist"><li><b>Past projects are documents, not
+      content.</b> An RFP PDF and a proposal deck cannot go on a slide — extract each into
+      knowledge-bank entries first with <code>ingest_source.py</code>, then they become
+      retrievable. Download them from the Airtable records listed in the file below.</li></ul>` : ""}
     ${warnings.length ? `<ul class="warnlist">${warnings.map(w =>
       `<li class="${w.risk ? "risk" : ""}">${w.text}</li>`).join("")}</ul>` : ""}
     <div class="codeblock">
@@ -1466,7 +1796,7 @@ python skills/cm-proposal-generator/scripts/qa_pptx.py proposals/<run>/proposal.
     });
   });
 
-  $("dock-count").textContent = String(chosen.length);
+  $("dock-count").textContent = String(chosen.length + projects.length);
   $("dock-note").textContent = warnings.length
     ? `selected · ${warnings.length} thing${warnings.length === 1 ? "" : "s"} to check first`
     : "entries selected";
@@ -1600,4 +1930,6 @@ fillSections();
 renderTags();
 renderBank();
 renderHandoff();
+renderAirtable();
+initAirtable();
 </script>

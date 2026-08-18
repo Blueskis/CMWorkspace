@@ -9,10 +9,40 @@ Whichever store an entry comes from, it has to arrive at retrieval as the same r
 `kb_index.json` stays the one interchange format, and `retrieve.py` never learns where an
 entry came from. Anything else and the pipeline and the intake page rank different banks.
 
-## Fields to create
+## What the table actually holds
 
-Airtable field names are on the left; the contract they satisfy is on the right. The
-first five are required — an entry missing any of them cannot be indexed.
+`CM Knowledge Bank → Proposals and Tenders` (`appAi9h5mT0hPz5o2` / `tblxQyGlAV81vz3ES`):
+
+| Field | Type |
+|---|---|
+| Project Name | Single line text (primary) |
+| Location | Single select |
+| RFP Document | Attachments |
+| Proposal (pptx) Deck | Attachments |
+| Quoted Price for CM | Single line text |
+
+**This is a register of past projects, not retrievable content.** One row is one bid,
+with the tender and the deck attached. That is a good way to keep bid records and a poor
+way to feed a generator: Stage 4 retrieves an entry and adapts its *prose* to the new
+client, and an attached PDF is a file, not prose. The two jobs are different and both
+are needed — the register tells you which past bid resembles this one, and
+`ingest_source.py` turns that bid's documents into entries the generator can write from.
+
+## Fields worth adding to the register
+
+Three columns would let the intake page rank past projects against a tender instead of
+just listing them. Everything else it can already do.
+
+| Add | Type | Why |
+|---|---|---|
+| Tags | Multiple select | The only thing retrieval matches on. Without it, ranking has nothing to work with but Location. |
+| Outcome | Single select — `won`, `lost`, `no-bid`, `withdrawn`, `pending`, `unknown` | Language from a losing bid reads exactly as well as language from a winning one. |
+| Submitted | Date | Lets old bids be marked stale rather than quietly reused. |
+
+## Fields for entries extracted from those documents
+
+If extracted entries are kept in Airtable too rather than as Markdown, this is the shape
+they need. The first five are required — an entry missing any of them cannot be indexed.
 
 | Airtable field | Type | Maps to | Required |
 |---|---|---|---|
