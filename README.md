@@ -76,9 +76,9 @@ page — open it in any browser, no install, no server, no network calls. It par
 and .pdf scope documents in the browser, reads scope drivers out of them (impacted
 headcount, business units, countries, languages, waves, duration, training modules,
 class-size caps), and prices a schedule of CM deliverables against an editable table of
-your past project quotes. Day rates and effort-per-unit are medians of your own history
-indexed to the current year; anything without history falls back to a standard assumption
-and is labelled as such. Scope the tender asks to be quoted as an option is detected and
+your past project quotes. Day rates are medians of your own history indexed to the current
+year, falling back to the blended median where a deliverable has no comparable quote; every
+figure is labelled with the basis it came from. Scope the tender asks to be quoted as an option is detected and
 subtotalled separately, outside the headline total. Exports the priced schedule to CSV or
 Markdown, and prints to PDF.
 
