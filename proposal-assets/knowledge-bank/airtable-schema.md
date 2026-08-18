@@ -1,0 +1,81 @@
+# Airtable as the source for past RFPs and past proposals
+
+The `past-rfps` and `presentations` sections can live in Airtable instead of Markdown
+files: **CM Knowledge Bank → Proposals and Tender**. The other six sections
+(`methodology`, `case-studies`, `credentials`, `team`, `commercials`, `boilerplate`) stay
+as Markdown in this folder.
+
+Whichever store an entry comes from, it has to arrive at retrieval as the same record —
+`kb_index.json` stays the one interchange format, and `retrieve.py` never learns where an
+entry came from. Anything else and the pipeline and the intake page rank different banks.
+
+## Fields to create
+
+Airtable field names are on the left; the contract they satisfy is on the right. The
+first five are required — an entry missing any of them cannot be indexed.
+
+| Airtable field | Type | Maps to | Required |
+|---|---|---|---|
+| Entry ID | Single line text | `id` | ✓ |
+| Title | Single line text | `title` | ✓ |
+| Section | Single select — `past-rfps`, `presentations` | `section` | ✓ |
+| Content | Long text | the retrievable body | ✓ |
+| Tags | Multiple select | `tags` | ✓ |
+| Last reviewed | Date | `last_reviewed` | ✓ |
+| Clearance | Single select — `internal-only`, `anonymised`, `named` | `clearance` | |
+| Metrics verified | Checkbox | `metrics_verified` | |
+| Owner | Collaborator or single line text | `owner` | |
+| Supersedes | Link to another record (same table) | `supersedes` | |
+| Source document | Attachment | `source_document` | |
+| Client | Single line text | `bid.client_ref` | |
+| Sector | Single line text | `bid.sector` | |
+| Submitted | Date | `bid.submitted` | |
+| Outcome | Single select — `won`, `lost`, `no-bid`, `withdrawn`, `pending`, `unknown` | `bid.outcome` | |
+| Outcome notes | Long text | `bid.outcome_notes` | |
+| Sections that scored | Long text | `bid.sections_that_scored` | |
+
+## Three field defaults that carry the safety properties
+
+These are not cosmetic. Each one is a guard that exists because the alternative has a
+specific, expensive failure mode.
+
+- **Clearance defaults to `internal-only`.** Retrieval excludes internal-only entries, so
+  a record added in a hurry cannot reach a client deck before somebody has checked whether
+  the last client agreed to be named. Set the default in Airtable, not by convention.
+- **Metrics verified defaults to off.** A number in a past proposal was true of *that*
+  engagement on the day it was written. Carrying it into a new bid is a fresh claim, made
+  by a person.
+- **Outcome defaults to `unknown`, never `won`.** Language from a losing bid reads exactly
+  as well as language from a winning one. `unknown` is a usable value; a wrong `won` is
+  the reason this column exists.
+
+## Tags must match the rest of the bank
+
+Retrieval is literal tag matching. `financial-services` and `finserv` are two different
+tags and only one will match; so are `Public Sector` and `public-sector`. Use a
+**Multiple select** rather than free text so Airtable enforces the vocabulary, and seed
+its options from the tags already in the Markdown bank:
+
+```bash
+python skills/cm-proposal-generator/scripts/index_kb.py proposal-assets/knowledge-bank \
+    -o /tmp/kb_index.json
+python3 -c "
+import json, collections
+idx = json.load(open('/tmp/kb_index.json'))
+counts = collections.Counter(t for e in idx['entries'] for t in e['tags'])
+print('\n'.join(f'{n:>3}  {t}' for t, n in counts.most_common()))"
+```
+
+Lowercase kebab-case throughout, matching what is already there.
+
+## One entry per idea, not one per document
+
+The rule that applies to the Markdown bank applies here: retrieval pulls a record whole
+and adapts it to the client. A twelve-slide deck pasted into one Content cell retrieves
+as a twelve-slide lump. Split it — a methodology record, a case study, a set of
+credentials — and let `Source document` carry the original.
+
+## Status
+
+Not wired up yet. Enabling the Airtable connector for the chat is what unblocks reading
+the real field names and response shape; until then nothing here is bound to code.
