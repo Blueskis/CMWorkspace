@@ -1,0 +1,190 @@
+section,category,deliverable,task,unit,archetype,complexity,hours
+1,Planning & Design,CM Plan,Develop CM strategy and approach,Per plan,Strategic Plans & Models,Complex,12
+1,Planning & Design,CM Plan,Define CM roadmap and key milestones,Per roadmap,Strategic Plans & Models,Standard,8
+1,Planning & Design,CM Plan,Define change governance approach,Per plan,Strategic Plans & Models,Standard,8
+1,Planning & Design,CM Plan,Draft Change Management Plan,Per draft,Strategic Plans & Models,Complex,12
+1,Planning & Design,CM Plan,Review and update CM Plan based on stakeholder feedback,Per review cycle,Recurring PMO / Admin,Simple,1
+1,Planning & Design,CM Plan,Prepare CM Plan presentation deck,Per deck,Decks & Visual Assets,Standard,6
+1,Planning & Design,CM Plan,Facilitate CM strategy alignment workshop,Per workshop (per day),Facilitation & Sessions,Complex,12
+1,Planning & Design,CM Team Structure,Define CM team structure,Per structure,Strategic Plans & Models,Standard,8
+1,Planning & Design,CM Team Structure,Define roles and responsibilities,Per RACI,Strategic Plans & Models,Standard,8
+1,Planning & Design,CM Team Structure,Develop CM governance and escalation model,Per model,Strategic Plans & Models,Complex,12
+1,Planning & Design,CM Team Structure,Validate CM team structure with client/project team,Per review cycle,Facilitation & Sessions,Simple,3
+2,Stakeholder Engagement,Stakeholder Engagement Plan,Identify stakeholder groups,Per stakeholder group,"Surveys, Reports & Analytics",Simple,4
+2,Stakeholder Engagement,Stakeholder Engagement Plan,Build stakeholder register,Per register,Trackers & Registers,Standard,3
+2,Stakeholder Engagement,Stakeholder Engagement Plan,Conduct stakeholder mapping,Per stakeholder / group,"Surveys, Reports & Analytics",Standard,8
+2,Stakeholder Engagement,Stakeholder Engagement Plan,Develop power-interest grid,Per grid,Decks & Visual Assets,Standard,6
+2,Stakeholder Engagement,Stakeholder Engagement Plan,"Segment stakeholders by role, function, country, and impact level",Per stakeholder group,"Surveys, Reports & Analytics",Standard,8
+2,Stakeholder Engagement,Stakeholder Engagement Plan,Define stakeholder engagement approach,Per plan,Strategic Plans & Models,Standard,8
+2,Stakeholder Engagement,Stakeholder Engagement Plan,Draft Stakeholder Engagement Plan,Per plan,Strategic Plans & Models,Complex,12
+2,Stakeholder Engagement,Stakeholder Engagement Sessions,Prepare engagement session materials,Per session,Decks & Visual Assets,Standard,6
+2,Stakeholder Engagement,Stakeholder Engagement Sessions,Schedule stakeholder engagement sessions,Per session,Recurring PMO / Admin,Simple,1
+2,Stakeholder Engagement,Stakeholder Engagement Sessions,Facilitate stakeholder engagement sessions,Per session,Facilitation & Sessions,Standard,6
+2,Stakeholder Engagement,Stakeholder Engagement Sessions,Capture meeting notes and actions,Per session,Recurring PMO / Admin,Simple,1
+2,Stakeholder Engagement,Stakeholder Engagement Sessions,Track stakeholder concerns and feedback,Per feedback log,Trackers & Registers,Standard,3
+2,Stakeholder Engagement,Stakeholder Engagement Sessions,Update stakeholder engagement tracker,Per update cycle,Trackers & Registers,Simple,1
+3,Change Agent Network,Change Agent Network Activation,Define change agent model,Per model,Strategic Plans & Models,Standard,8
+3,Change Agent Network,Change Agent Network Activation,Define change agent roles and responsibilities,Per role description,Strategic Plans & Models,Simple,6
+3,Change Agent Network,Change Agent Network Activation,Identify change agent candidates,Per change agent,Trackers & Registers,Simple,1
+3,Change Agent Network,Change Agent Network Activation,Prepare change agent onboarding materials,Per deck / pack,Decks & Visual Assets,Standard,6
+3,Change Agent Network,Change Agent Network Activation,Conduct change agent onboarding session,Per session,Facilitation & Sessions,Standard,6
+3,Change Agent Network,Change Agent Network Activation,Run change agent check-ins,Per session,Facilitation & Sessions,Simple,3
+3,Change Agent Network,Change Agent Network Activation,Capture change agent feedback,Per feedback cycle,Trackers & Registers,Simple,1
+3,Change Agent Network,Change Agent Network Activation,Maintain change agent tracker,Per update cycle,Trackers & Registers,Simple,1
+4,Communications Management,Communications Plan,Define communications strategy,Per plan,Strategic Plans & Models,Complex,12
+4,Communications Management,Communications Plan,Define communication audiences,Per audience group,Strategic Plans & Models,Simple,6
+4,Communications Management,Communications Plan,Define communication channels,Per channel,Strategic Plans & Models,Simple,6
+4,Communications Management,Communications Plan,Develop key messages,Per message set,Written Comms & Guides,Standard,4
+4,Communications Management,Communications Plan,Develop communication calendar,Per calendar,Trackers & Registers,Standard,3
+4,Communications Management,Communications Plan,Draft Communications Plan,Per plan,Strategic Plans & Models,Complex,12
+4,Communications Management,Communications Plan,Review and revise Communications Plan,Per review cycle,Written Comms & Guides,Simple,2
+5,Communications Collaterals,SharePoint Site,Design SharePoint structure,Per site,Video & Digital Assets,Complex,12
+5,Communications Collaterals,SharePoint Site,Draft SharePoint page content,Per page,Written Comms & Guides,Standard,4
+5,Communications Collaterals,SharePoint Site,Upload and format content,Per page,Video & Digital Assets,Simple,4
+5,Communications Collaterals,SharePoint Site,Maintain SharePoint updates,Per update,Recurring PMO / Admin,Simple,1
+5,Communications Collaterals,Email Communications,Draft global email communication,Per email,Written Comms & Guides,Standard,4
+5,Communications Collaterals,Email Communications,Localize email communication,Per market / language,Written Comms & Guides,Simple,2
+5,Communications Collaterals,Email Communications,Route email for review and approval,Per review cycle,Recurring PMO / Admin,Simple,1
+5,Communications Collaterals,Email Communications,Finalize and issue email communication,Per email,Written Comms & Guides,Simple,2
+5,Communications Collaterals,Orientation Programme Communications,Draft invitation and reminder communications,Per communication,Written Comms & Guides,Simple,2
+5,Communications Collaterals,Leadership Video Message,Draft leadership video script,Per script,Written Comms & Guides,Standard,4
+5,Communications Collaterals,Leadership Video Message,Develop video storyboard,Per storyboard,Decks & Visual Assets,Standard,6
+5,Communications Collaterals,Leadership Video Message,Coordinate recording,Per recording,Recurring PMO / Admin,Standard,2
+5,Communications Collaterals,Leadership Video Message,Edit leadership video,Per video,Video & Digital Assets,Complex,12
+5,Communications Collaterals,Leadership Video Message,Manage video review cycles,Per review cycle,Recurring PMO / Admin,Simple,1
+5,Communications Collaterals,Briefings,Develop briefing deck,Per deck,Decks & Visual Assets,Standard,6
+5,Communications Collaterals,Briefings,Prepare speaker notes,Per deck,Written Comms & Guides,Standard,4
+5,Communications Collaterals,Briefings,Support briefing delivery,Per session,Facilitation & Sessions,Standard,6
+5,Communications Collaterals,CRA Survey Communications,Draft CRA launch communication,Per communication,Written Comms & Guides,Simple,2
+5,Communications Collaterals,CRA Survey Communications,Draft CRA reminder communication,Per communication,Written Comms & Guides,Simple,2
+5,Communications Collaterals,CRA Survey Communications,Draft CRA results summary communication,Per communication,Written Comms & Guides,Standard,4
+6,"Assessment, Analysis & Insight Generation",Change Readiness Assessments,Define CRA approach,Per approach,Strategic Plans & Models,Standard,8
+6,"Assessment, Analysis & Insight Generation",Change Readiness Assessments,Develop CRA questionnaire,Per survey,"Surveys, Reports & Analytics",Standard,8
+6,"Assessment, Analysis & Insight Generation",Change Readiness Assessments,Configure CRA survey,Per survey,"Surveys, Reports & Analytics",Simple,4
+6,"Assessment, Analysis & Insight Generation",Change Readiness Assessments,Test CRA survey,Per survey,"Surveys, Reports & Analytics",Simple,4
+6,"Assessment, Analysis & Insight Generation",Change Readiness Assessments,Launch CRA survey,Per survey,Recurring PMO / Admin,Simple,1
+6,"Assessment, Analysis & Insight Generation",Change Readiness Assessments,Send CRA reminders,Per reminder,Written Comms & Guides,Simple,2
+6,"Assessment, Analysis & Insight Generation",Change Readiness Assessments,Monitor survey responses,Per response cycle,Trackers & Registers,Simple,1
+6,"Assessment, Analysis & Insight Generation",Change Readiness Assessments,Analyze CRA results,Per survey,"Surveys, Reports & Analytics",Complex,12
+6,"Assessment, Analysis & Insight Generation",Change Readiness Assessments,Develop CRA report,Per report,"Surveys, Reports & Analytics",Complex,12
+6,"Assessment, Analysis & Insight Generation",Change Readiness Assessments,Present CRA findings,Per session,Facilitation & Sessions,Standard,6
+6,"Assessment, Analysis & Insight Generation",Change Impact Assessments,Review process documentation,Per process,"Surveys, Reports & Analytics",Standard,8
+6,"Assessment, Analysis & Insight Generation",Change Impact Assessments,Attend functional walkthroughs,Per session,Facilitation & Sessions,Standard,6
+6,"Assessment, Analysis & Insight Generation",Change Impact Assessments,Identify change impacts,Per process / role,"Surveys, Reports & Analytics",Standard,8
+6,"Assessment, Analysis & Insight Generation",Change Impact Assessments,Map impacts by stakeholder group,Per stakeholder group,"Surveys, Reports & Analytics",Standard,8
+6,"Assessment, Analysis & Insight Generation",Change Impact Assessments,Assess impact severity,Per impact,"Surveys, Reports & Analytics",Standard,8
+6,"Assessment, Analysis & Insight Generation",Change Impact Assessments,Build impact heatmap,Per heatmap,Decks & Visual Assets,Complex,10
+6,"Assessment, Analysis & Insight Generation",Change Impact Assessments,Develop change impact register,Per register,Trackers & Registers,Complex,6
+6,"Assessment, Analysis & Insight Generation",Change Impact Assessments,Facilitate impact validation workshop,Per workshop,Facilitation & Sessions,Complex,12
+6,"Assessment, Analysis & Insight Generation",Change Impact Assessments,Update impact assessment after validation,Per update cycle,Trackers & Registers,Simple,1
+6,"Assessment, Analysis & Insight Generation",Change Impact Assessments,Create CIA summary deck,Per deck,Decks & Visual Assets,Complex,10
+7,Training,Training Plan,Conduct training needs analysis,Per role / group,"Surveys, Reports & Analytics",Standard,8
+7,Training,Training Plan,Define training audience groups,Per audience group,Strategic Plans & Models,Simple,6
+7,Training,Training Plan,Develop training curriculum,Per curriculum,Strategic Plans & Models,Complex,12
+7,Training,Training Plan,Define training approach,Per plan,Strategic Plans & Models,Standard,8
+7,Training,Training Plan,Develop training schedule,Per schedule,Trackers & Registers,Standard,3
+7,Training,Training Plan,Draft Training Plan,Per plan,Strategic Plans & Models,Complex,12
+7,Training,Training Plan,Review and revise Training Plan,Per review cycle,Strategic Plans & Models,Simple,6
+8,Training Collaterals,Instructor-Led Training Materials,Storyboard ILT content,Per module,Decks & Visual Assets,Standard,6
+8,Training Collaterals,Instructor-Led Training Materials,Develop ILT deck,Per deck,Decks & Visual Assets,Complex,10
+8,Training Collaterals,Instructor-Led Training Materials,Format ILT deck,Per deck,Decks & Visual Assets,Simple,4
+8,Training Collaterals,Instructor-Led Training Materials,Manage ILT review cycles,Per review cycle,Recurring PMO / Admin,Simple,1
+8,Training Collaterals,Training Materials and Quizzes,Draft quiz questions,Per quiz,Written Comms & Guides,Standard,4
+8,Training Collaterals,Training Materials and Quizzes,Configure quiz,Per quiz,"Surveys, Reports & Analytics",Simple,4
+8,Training Collaterals,User Guides,Draft user guide,Per guide,Written Comms & Guides,Complex,6
+8,Training Collaterals,User Guides,Format user guide,Per guide,Written Comms & Guides,Simple,2
+8,Training Collaterals,Training Videos,Draft video script,Per video,Written Comms & Guides,Standard,4
+8,Training Collaterals,Training Videos,Record training video,Per video,Video & Digital Assets,Standard,8
+8,Training Collaterals,Training Videos,Edit training video,Per video,Video & Digital Assets,Standard,8
+8,Training Collaterals,System Demo Videos,Draft demo script,Per video,Written Comms & Guides,Standard,4
+8,Training Collaterals,System Demo Videos,Record system demo,Per video,Video & Digital Assets,Standard,8
+8,Training Collaterals,System Demo Videos,Edit system demo video,Per video,Video & Digital Assets,Standard,8
+8,Training Collaterals,Micro-Learning Materials,Design micro-learning asset,Per asset,Decks & Visual Assets,Standard,6
+8,Training Collaterals,Micro-Learning Materials,Draft micro-learning content,Per asset,Written Comms & Guides,Standard,4
+8,Training Collaterals,Micro-Learning Materials,Review and finalize micro-learning content,Per asset,Written Comms & Guides,Simple,2
+8,Training Collaterals,Localized Training Materials,Localize training deck,Per market / language,Decks & Visual Assets,Standard,6
+8,Training Collaterals,Localized Training Materials,Reformat translated materials,Per deck,Decks & Visual Assets,Simple,4
+8,Training Collaterals,Localized Training Materials,Conduct translation quality check,Per asset,Written Comms & Guides,Simple,2
+8,Training Collaterals,QRGs,Draft quick reference guide,Per QRG,Written Comms & Guides,Standard,4
+8,Training Collaterals,QRGs,Format quick reference guide,Per QRG,Written Comms & Guides,Simple,2
+8,Training Collaterals,FAQs,Collect frequently asked questions,Per FAQ set,Written Comms & Guides,Simple,2
+8,Training Collaterals,FAQs,Draft FAQ responses,Per FAQ set,Written Comms & Guides,Standard,4
+8,Training Collaterals,User Adoption Clinics,Prepare clinic materials,Per clinic,Decks & Visual Assets,Standard,6
+8,Training Collaterals,User Adoption Clinics,Facilitate user adoption clinic,Per clinic,Facilitation & Sessions,Standard,6
+8,Training Collaterals,Helpdesk Support,Develop helpdesk knowledge articles,Per article,Written Comms & Guides,Standard,4
+8,Training Collaterals,Helpdesk Support,Prepare support scripts,Per script,Written Comms & Guides,Standard,4
+8,Training Collaterals,Expert User Groups,Set up expert user group,Per group,Trackers & Registers,Simple,1
+8,Training Collaterals,Expert User Groups,Facilitate expert user group session,Per session,Facilitation & Sessions,Standard,6
+8,Training Collaterals,Peer Support Groups,Set up peer support group,Per group,Trackers & Registers,Simple,1
+8,Training Collaterals,Peer Support Groups,Coordinate peer support activities,Per activity,Facilitation & Sessions,Simple,3
+9,Content Delivery,Train-the-Trainer Sessions,Prepare TTT materials,Per session,Decks & Visual Assets,Standard,6
+9,Content Delivery,Train-the-Trainer Sessions,Deliver TTT session,Per session,Facilitation & Sessions,Complex,12
+9,Content Delivery,Train-the-Trainer Sessions,Capture attendance and feedback,Per session,Recurring PMO / Admin,Simple,1
+9,Content Delivery,End User Training,Prepare EUT session materials,Per session,Decks & Visual Assets,Standard,6
+9,Content Delivery,End User Training,Deliver EUT session,Per session,Facilitation & Sessions,Standard,6
+9,Content Delivery,End User Training,Track EUT attendance,Per session,Recurring PMO / Admin,Simple,1
+9,Content Delivery,Local Process Training,Prepare local process training materials,Per market,Decks & Visual Assets,Standard,6
+9,Content Delivery,Local Process Training,Deliver local process training,Per session,Facilitation & Sessions,Standard,6
+9,Content Delivery,UAT Support Training,Prepare UAT briefing materials,Per session,Decks & Visual Assets,Standard,6
+9,Content Delivery,UAT Support Training,Deliver UAT briefing or walkthrough,Per session,Facilitation & Sessions,Standard,6
+9,Content Delivery,Training Administration,Schedule training sessions,Per session,Recurring PMO / Admin,Simple,1
+9,Content Delivery,Training Administration,Send invitations and reminders,Per communication,Written Comms & Guides,Simple,2
+9,Content Delivery,Training Administration,Consolidate training completion data,Per report,"Surveys, Reports & Analytics",Standard,8
+10,Content Creation & Asset Production,PowerPoint Decks,Build presentation deck,Per deck,Decks & Visual Assets,Complex,10
+10,Content Creation & Asset Production,PowerPoint Decks,Format presentation deck,Per deck,Decks & Visual Assets,Simple,4
+10,Content Creation & Asset Production,PowerPoint Decks,Apply branding and visual clean-up,Per deck,Decks & Visual Assets,Simple,4
+10,Content Creation & Asset Production,PowerPoint Decks,Update deck based on review comments,Per review cycle,Decks & Visual Assets,Simple,4
+10,Content Creation & Asset Production,Videos,Edit functional system demo video,Per video,Video & Digital Assets,Complex,12
+10,Content Creation & Asset Production,Videos,Add subtitles or captions,Per video,Video & Digital Assets,Simple,4
+10,Content Creation & Asset Production,Videos,Cut video into shorter learning clips,Per video,Video & Digital Assets,Simple,4
+10,Content Creation & Asset Production,Infographics,Design infographic,Per asset,Decks & Visual Assets,Complex,10
+10,Content Creation & Asset Production,Posters / Banners,Draft and design visual collateral,Per asset,Decks & Visual Assets,Standard,6
+10,Content Creation & Asset Production,SharePoint Content,Draft and upload digital content,Per page / update,Video & Digital Assets,Simple,4
+11,Evaluation & Reports,Global Evaluation and Success Measures Plan and Approach,Define evaluation approach,Per plan,Strategic Plans & Models,Standard,8
+11,Evaluation & Reports,Global Evaluation and Success Measures Plan and Approach,Define success metrics and KPIs,Per KPI set,Strategic Plans & Models,Standard,8
+11,Evaluation & Reports,Global Evaluation and Success Measures Plan and Approach,Define data collection approach,Per plan,Strategic Plans & Models,Standard,8
+11,Evaluation & Reports,Global Evaluation and Success Measures Plan and Approach,Draft evaluation framework,Per framework,Strategic Plans & Models,Complex,12
+11,Evaluation & Reports,Post-Globalisation Evaluation Report,Collect post-globalisation data,Per report,"Surveys, Reports & Analytics",Standard,8
+11,Evaluation & Reports,Post-Globalisation Evaluation Report,Analyze results,Per report,"Surveys, Reports & Analytics",Complex,12
+11,Evaluation & Reports,Post-Globalisation Evaluation Report,Draft report,Per report,"Surveys, Reports & Analytics",Complex,12
+11,Evaluation & Reports,Post-Localisation Evaluation Report,Collect post-localisation data,Per report,"Surveys, Reports & Analytics",Standard,8
+11,Evaluation & Reports,Post-Localisation Evaluation Report,Analyze results,Per report,"Surveys, Reports & Analytics",Complex,12
+11,Evaluation & Reports,Post-Localisation Evaluation Report,Draft report,Per report,"Surveys, Reports & Analytics",Complex,12
+11,Evaluation & Reports,Post-UAT Evaluation Report,Collect UAT feedback,Per report,"Surveys, Reports & Analytics",Simple,4
+11,Evaluation & Reports,Post-UAT Evaluation Report,Analyze UAT feedback,Per report,"Surveys, Reports & Analytics",Standard,8
+11,Evaluation & Reports,Post-UAT Evaluation Report,Draft UAT evaluation report,Per report,"Surveys, Reports & Analytics",Standard,8
+11,Evaluation & Reports,Post-Implementation Review Report,Collect PIR inputs,Per report,"Surveys, Reports & Analytics",Standard,8
+11,Evaluation & Reports,Post-Implementation Review Report,Conduct lessons learned analysis,Per report,"Surveys, Reports & Analytics",Complex,12
+11,Evaluation & Reports,Post-Implementation Review Report,Draft PIR report,Per report,"Surveys, Reports & Analytics",Complex,12
+11,Evaluation & Reports,Adoption Reporting,Prepare adoption dashboard,Per dashboard,"Surveys, Reports & Analytics",Complex,12
+11,Evaluation & Reports,Adoption Reporting,Update adoption metrics,Per reporting cycle,"Surveys, Reports & Analytics",Simple,4
+12,Handover & Transition,Handover Plan,Define handover scope,Per plan,Strategic Plans & Models,Standard,8
+12,Handover & Transition,Handover Plan,Identify receiving teams,Per team,Strategic Plans & Models,Simple,6
+12,Handover & Transition,Handover Plan,Prepare handover checklist,Per checklist,Trackers & Registers,Standard,3
+12,Handover & Transition,Handover Plan,Compile handover documentation,Per pack,Decks & Visual Assets,Standard,6
+12,Handover & Transition,Handover Plan,Conduct handover session,Per session,Facilitation & Sessions,Standard,6
+12,Handover & Transition,Transition Plan,Define transition activities,Per plan,Strategic Plans & Models,Standard,8
+12,Handover & Transition,Transition Plan,Map transition ownership,Per activity,Strategic Plans & Models,Standard,8
+12,Handover & Transition,Transition Plan,Define support model,Per support model,Strategic Plans & Models,Complex,12
+12,Handover & Transition,Transition Plan,Track transition readiness,Per checkpoint,Trackers & Registers,Standard,3
+12,Handover & Transition,Change Sustenance Plan,Define sustenance approach,Per plan,Strategic Plans & Models,Complex,12
+12,Handover & Transition,Change Sustenance Plan,Define reinforcement activities,Per activity,Strategic Plans & Models,Standard,8
+12,Handover & Transition,Change Sustenance Plan,Define BAU ownership,Per owner group,Strategic Plans & Models,Standard,8
+12,Handover & Transition,Change Sustenance Plan,Develop sustainment tracker,Per tracker,Trackers & Registers,Standard,3
+13,Orientation Programme,Orientation Programme Plan,Define orientation objectives,Per plan,Strategic Plans & Models,Simple,6
+13,Orientation Programme,Orientation Programme Plan,Define audience and participant groups,Per audience group,Strategic Plans & Models,Simple,6
+13,Orientation Programme,Orientation Programme Plan,Develop orientation agenda,Per agenda,Written Comms & Guides,Simple,2
+13,Orientation Programme,Orientation Programme Plan,Develop orientation materials,Per deck / pack,Decks & Visual Assets,Standard,6
+13,Orientation Programme,Orientation Programme Plan,Coordinate orientation logistics,Per session,Recurring PMO / Admin,Simple,1
+13,Orientation Programme,Orientation Programme Plan,Deliver orientation programme,Per session,Facilitation & Sessions,Standard,6
+13,Orientation Programme,Orientation Programme Plan,Capture orientation attendance and feedback,Per session,Recurring PMO / Admin,Simple,1
+14,Governance & PMO Support,CM Status Reporting,Prepare weekly CM status update,Per week,Recurring PMO / Admin,Simple,1
+14,Governance & PMO Support,CM Status Reporting,Update CM workplan,Per update,Trackers & Registers,Simple,1
+14,Governance & PMO Support,CM Status Reporting,Track CM deliverables,Per update cycle,Trackers & Registers,Simple,1
+14,Governance & PMO Support,Steering Committee Support,Prepare SteerCo CM slides,Per meeting,Decks & Visual Assets,Complex,10
+14,Governance & PMO Support,Working Group Support,Prepare working group materials,Per meeting,Decks & Visual Assets,Standard,6
+14,Governance & PMO Support,Working Group Support,Capture meeting minutes and actions,Per meeting,Recurring PMO / Admin,Simple,1
+14,Governance & PMO Support,RAID Management,"Update CM risks, issues, actions, dependencies",Per update,Trackers & Registers,Simple,1
+14,Governance & PMO Support,Deliverable Management,Manage review tracker,Per tracker,Trackers & Registers,Simple,1
+14,Governance & PMO Support,Deliverable Management,Consolidate comments from reviewers,Per review cycle,Written Comms & Guides,Simple,2
+14,Governance & PMO Support,Deliverable Management,Version control CM deliverables,Per version,Recurring PMO / Admin,Simple,1

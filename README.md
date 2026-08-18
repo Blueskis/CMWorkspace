@@ -82,6 +82,13 @@ and is labelled as such. Scope the tender asks to be quoted as an option is dete
 subtotalled separately, outside the headline total. Exports the priced schedule to CSV or
 Markdown, and prints to PDF.
 
+Effort comes from `assets/hours-library.csv` — 189 costed tasks across 53 deliverables,
+imported from the firm's itemised CM deliverables workbook. Each task is typed by archetype
+and complexity rather than estimated individually, so editing one cell of that 8 × 3 matrix
+reprices every task that uses it. Tasks can be excluded or overridden per pursuit, and the
+deliverable's effort — and its price — follow immediately. Past quotes stay in charge of day
+rates; the library is in charge of hours.
+
 The built-in sample scope, `assets/sample-rfp-change-management.txt`, is an anonymised
 public-sector change management and training requirement specification — all party names
 removed — and doubles as the regression case for the detection and pricing logic. It is a
@@ -105,7 +112,7 @@ examples/acme-erp/        # worked example — fictional client
 
 skills/cm-effort-estimation/
 ├── SKILL.md              # how to run an estimate
-└── assets/               # the self-contained estimator page + anonymised sample scope
+└── assets/               # estimator page, hours library, anonymised sample scope
 ```
 
 Scripts are stdlib-only and each runs standalone with `--help`.

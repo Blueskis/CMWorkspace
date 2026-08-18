@@ -307,8 +307,9 @@
 <nav class="steps" role="tablist" aria-label="Estimation steps">
   <button class="step" role="tab" aria-selected="true" data-panel="scope"><span class="idx">01</span> RFP scope</button>
   <button class="step" role="tab" aria-selected="false" data-panel="quotes"><span class="idx">02</span> Past quotes</button>
-  <button class="step" role="tab" aria-selected="false" data-panel="rates"><span class="idx">03</span> Rate card</button>
-  <button class="step" role="tab" aria-selected="false" data-panel="quote"><span class="idx">04</span> Priced deliverables</button>
+  <button class="step" role="tab" aria-selected="false" data-panel="library"><span class="idx">03</span> Hours library</button>
+  <button class="step" role="tab" aria-selected="false" data-panel="rates"><span class="idx">04</span> Rate card</button>
+  <button class="step" role="tab" aria-selected="false" data-panel="quote"><span class="idx">05</span> Priced deliverables</button>
 </nav>
 
 <div class="layout">
@@ -399,6 +400,47 @@
       </div>
     </section>
 
+    <!-- ============ 03 HOURS LIBRARY ============ -->
+    <section class="panel" id="panel-library" role="tabpanel">
+      <div class="card">
+        <header>
+          <h2>Effort archetypes</h2>
+          <span class="hint">Hours per task by archetype and complexity — the engine behind every effort figure</span>
+        </header>
+        <div class="body">
+          <p class="note">Each task in the library is typed by archetype and complexity rather than estimated individually. Change a cell here and every task still using it reprices; a task with its own hours below is left alone.</p>
+          <div class="tablewrap">
+            <table id="archetype-table">
+              <thead><tr><th>Archetype</th><th class="n">Simple</th><th class="n">Standard</th><th class="n">Complex</th></tr></thead>
+              <tbody id="archetype-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header>
+          <h2>Task library</h2>
+          <span class="hint" id="library-meta"></span>
+        </header>
+        <div class="body">
+          <p class="note">Hours per deliverable, built bottom-up from the tasks that make it up. Untick a task the pursuit doesn't need, or type over its hours — the deliverable's effort, and the price, follow immediately.</p>
+          <div class="row">
+            <button class="btn ghost small" id="btn-library-reset">Reset library to source</button>
+            <button class="btn ghost small" id="btn-library-export">Export CSV</button>
+          </div>
+          <div class="tablewrap">
+            <table id="library-table">
+              <thead>
+                <tr><th class="n">In</th><th style="min-width:250px">Task</th><th>Unit</th><th>Archetype</th><th>Complexity</th><th class="n">Hours</th></tr>
+              </thead>
+              <tbody id="library-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- ============ 03 RATE CARD ============ -->
     <section class="panel" id="panel-rates" role="tabpanel">
       <div class="card">
@@ -416,14 +458,18 @@
               <label for="fallback-rate">Fallback day rate</label>
               <input type="number" id="fallback-rate" min="0" step="50">
             </div>
-            <p class="note" style="flex:1;min-width:200px">Deliverables with no history fall back to the blended median day rate and a standard effort assumption. Type into <em>Override</em> to pin a value for this pursuit.</p>
+            <div class="field" style="max-width:150px">
+              <label for="hours-per-day">Hours per day</label>
+              <input type="number" id="hours-per-day" min="1" max="24" step="0.5">
+            </div>
+            <p class="note" style="flex:1;min-width:200px">Effort comes from the hours library; day rates come from your past quotes, falling back to the blended median where a deliverable has no history. Type into <em>Override</em> to pin either for this pursuit.</p>
           </div>
           <div class="tablewrap">
             <table id="rates-table">
               <thead>
                 <tr>
-                  <th>Deliverable</th><th>Unit</th><th class="n">Samples</th>
-                  <th class="n">Benchmark days/unit</th><th class="n">Benchmark day rate</th>
+                  <th>Deliverable</th><th>Unit</th><th class="n">Library hours</th>
+                  <th class="n">Library days/unit</th><th class="n">Quoted days/unit</th><th class="n">Quoted day rate</th>
                   <th class="n">Override days</th><th class="n">Override rate</th><th>Basis</th>
                 </tr>
               </thead>
@@ -631,6 +677,325 @@
 
   const BY_ID = Object.fromEntries(TAXONOMY.map((t) => [t.id, t]));
 
+  // ---- Hours knowledge base, imported from the itemised CM deliverables workbook ----
+  // 189 costed tasks across 53 deliverables. Hours per task come from an archetype x
+  // complexity matrix; editing the matrix reprices every task that still uses it.
+  const ARCHETYPE_HOURS = {
+    "Decks & Visual Assets": { Simple: 4.0, Standard: 6.0, Complex: 10.0 },
+    "Facilitation & Sessions": { Simple: 3.0, Standard: 6.0, Complex: 12.0 },
+    "Recurring PMO / Admin": { Simple: 1.0, Standard: 2.0, Complex: null },
+    "Strategic Plans & Models": { Simple: 6.0, Standard: 8.0, Complex: 12.0 },
+    "Surveys, Reports & Analytics": { Simple: 4.0, Standard: 8.0, Complex: 12.0 },
+    "Trackers & Registers": { Simple: 1.0, Standard: 3.0, Complex: 6.0 },
+    "Video & Digital Assets": { Simple: 4.0, Standard: 8.0, Complex: 12.0 },
+    "Written Comms & Guides": { Simple: 2.0, Standard: 4.0, Complex: 6.0 },
+  };
+
+  const CATALOG = [
+    { id: "cm_plan", name: "CM Plan", section: 1, cat: "Planning & Design", unit: "plan", rateKey: "cm_strategy", qty: "one", core: true, geo: false, hours: 59 },
+    { id: "cm_team", name: "CM Team Structure", section: 1, cat: "Planning & Design", unit: "structure", rateKey: "cm_strategy", qty: "one", core: true, geo: false, hours: 31 },
+    { id: "stakeholder_plan", name: "Stakeholder Engagement Plan", section: 2, cat: "Stakeholder Engagement", unit: "plan", rateKey: "stakeholder_plan", qty: "one", core: true, geo: false, hours: 49 },
+    { id: "stakeholder_sessions", name: "Stakeholder Engagement Sessions", section: 2, cat: "Stakeholder Engagement", unit: "session", rateKey: "leadership_workshops", qty: "months", core: false, geo: false, hours: 18 },
+    { id: "change_network", name: "Change Agent Network Activation", section: 3, cat: "Change Agent Network", unit: "network", rateKey: "change_network", qty: "one", core: false, geo: true, hours: 32 },
+    { id: "comms_plan", name: "Communications Plan", section: 4, cat: "Communications Management", unit: "plan", rateKey: "comms_strategy", qty: "one", core: true, geo: false, hours: 45 },
+    { id: "sharepoint_site", name: "SharePoint Site", section: 5, cat: "Communications Collaterals", unit: "site", rateKey: "comms_collateral", qty: "one", core: false, geo: false, hours: 21 },
+    { id: "email_comms", name: "Email Communications", section: 5, cat: "Communications Collaterals", unit: "email", rateKey: "comms_collateral", qty: "comms_cadence", core: false, geo: false, hours: 9 },
+    { id: "orientation_comms", name: "Orientation Programme Communications", section: 5, cat: "Communications Collaterals", unit: "communication", rateKey: "comms_collateral", qty: "two", core: false, geo: false, hours: 2 },
+    { id: "leader_video", name: "Leadership Video Message", section: 5, cat: "Communications Collaterals", unit: "video", rateKey: "comms_collateral", qty: "waves", core: false, geo: false, hours: 25 },
+    { id: "briefings", name: "Briefings", section: 5, cat: "Communications Collaterals", unit: "briefing", rateKey: "comms_collateral", qty: "units_min2", core: false, geo: false, hours: 16 },
+    { id: "cra_comms", name: "CRA Survey Communications", section: 5, cat: "Communications Collaterals", unit: "cycle", rateKey: "comms_collateral", qty: "waves", core: false, geo: false, hours: 8 },
+    { id: "readiness_assess", name: "Change Readiness Assessments", section: 6, cat: "Assessment, Analysis & Insight Generation", unit: "wave", rateKey: "readiness_assess", qty: "waves", core: false, geo: true, hours: 58 },
+    { id: "impact_assessment", name: "Change Impact Assessments", section: 6, cat: "Assessment, Analysis & Insight Generation", unit: "business unit", rateKey: "impact_assessment", qty: "units", core: true, geo: true, hours: 77 },
+    { id: "training_plan", name: "Training Plan", section: 7, cat: "Training", unit: "plan", rateKey: "training_strategy", qty: "one", core: false, geo: false, hours: 55 },
+    { id: "ilt_materials", name: "Instructor-Led Training Materials", section: 8, cat: "Training Collaterals", unit: "module", rateKey: "courseware", qty: "modules", core: false, geo: false, hours: 21 },
+    { id: "quizzes", name: "Training Materials and Quizzes", section: 8, cat: "Training Collaterals", unit: "quiz", rateKey: "courseware", qty: "modules", core: false, geo: false, hours: 8 },
+    { id: "user_guides", name: "User Guides", section: 8, cat: "Training Collaterals", unit: "guide", rateKey: "courseware", qty: "modules", core: false, geo: false, hours: 8 },
+    { id: "training_videos", name: "Training Videos", section: 8, cat: "Training Collaterals", unit: "video", rateKey: "courseware", qty: "modules_third", core: false, geo: false, hours: 20 },
+    { id: "demo_videos", name: "System Demo Videos", section: 8, cat: "Training Collaterals", unit: "video", rateKey: "courseware", qty: "modules_third", core: false, geo: false, hours: 20 },
+    { id: "microlearning", name: "Micro-Learning Materials", section: 8, cat: "Training Collaterals", unit: "asset", rateKey: "courseware", qty: "modules_half", core: false, geo: false, hours: 12 },
+    { id: "localised_materials", name: "Localized Training Materials", section: 8, cat: "Training Collaterals", unit: "language pack", rateKey: "courseware", qty: "extra_languages", core: false, geo: false, hours: 12 },
+    { id: "qrgs", name: "QRGs", section: 8, cat: "Training Collaterals", unit: "QRG", rateKey: "courseware", qty: "modules", core: false, geo: false, hours: 6 },
+    { id: "faqs", name: "FAQs", section: 8, cat: "Training Collaterals", unit: "FAQ set", rateKey: "courseware", qty: "one", core: false, geo: false, hours: 6 },
+    { id: "adoption_clinics", name: "User Adoption Clinics", section: 8, cat: "Training Collaterals", unit: "clinic", rateKey: "hypercare", qty: "hypercare_double", core: false, geo: true, hours: 12 },
+    { id: "helpdesk", name: "Helpdesk Support", section: 8, cat: "Training Collaterals", unit: "article", rateKey: "hypercare", qty: "modules_half", core: false, geo: false, hours: 8 },
+    { id: "expert_groups", name: "Expert User Groups", section: 8, cat: "Training Collaterals", unit: "group", rateKey: "hypercare", qty: "units", core: false, geo: false, hours: 7 },
+    { id: "peer_groups", name: "Peer Support Groups", section: 8, cat: "Training Collaterals", unit: "group", rateKey: "hypercare", qty: "units", core: false, geo: false, hours: 4 },
+    { id: "t3", name: "Train-the-Trainer Sessions", section: 9, cat: "Content Delivery", unit: "session", rateKey: "t3", qty: "trainer_sessions", core: false, geo: false, hours: 19 },
+    { id: "eu_training", name: "End User Training", section: 9, cat: "Content Delivery", unit: "session", rateKey: "eu_training", qty: "training_sessions", core: false, geo: true, hours: 13 },
+    { id: "local_training", name: "Local Process Training", section: 9, cat: "Content Delivery", unit: "market", rateKey: "eu_training", qty: "geos", core: false, geo: false, hours: 12 },
+    { id: "uat_training", name: "UAT Support Training", section: 9, cat: "Content Delivery", unit: "session", rateKey: "eu_training", qty: "waves", core: false, geo: false, hours: 12 },
+    { id: "training_admin", name: "Training Administration", section: 9, cat: "Content Delivery", unit: "cycle", rateKey: "eu_training", qty: "waves_double", core: false, geo: false, hours: 11 },
+    { id: "decks", name: "PowerPoint Decks", section: 10, cat: "Content Creation & Asset Production", unit: "deck", rateKey: "comms_collateral", qty: "months_third", core: false, geo: false, hours: 22 },
+    { id: "videos", name: "Videos", section: 10, cat: "Content Creation & Asset Production", unit: "video", rateKey: "comms_collateral", qty: "one", core: false, geo: false, hours: 20 },
+    { id: "infographics", name: "Infographics", section: 10, cat: "Content Creation & Asset Production", unit: "asset", rateKey: "comms_collateral", qty: "two", core: false, geo: false, hours: 10 },
+    { id: "posters", name: "Posters / Banners", section: 10, cat: "Content Creation & Asset Production", unit: "asset", rateKey: "comms_collateral", qty: "two", core: false, geo: false, hours: 6 },
+    { id: "sharepoint_content", name: "SharePoint Content", section: 10, cat: "Content Creation & Asset Production", unit: "page", rateKey: "comms_collateral", qty: "months", core: false, geo: false, hours: 4 },
+    { id: "evaluation_plan", name: "Global Evaluation and Success Measures Plan and Approach", section: 11, cat: "Evaluation & Reports", unit: "framework", rateKey: "adoption_measurement", qty: "one", core: false, geo: false, hours: 36 },
+    { id: "eval_global", name: "Post-Globalisation Evaluation Report", section: 11, cat: "Evaluation & Reports", unit: "report", rateKey: "adoption_measurement", qty: "one", core: false, geo: false, hours: 32 },
+    { id: "eval_local", name: "Post-Localisation Evaluation Report", section: 11, cat: "Evaluation & Reports", unit: "report", rateKey: "adoption_measurement", qty: "one", core: false, geo: false, hours: 32 },
+    { id: "eval_uat", name: "Post-UAT Evaluation Report", section: 11, cat: "Evaluation & Reports", unit: "report", rateKey: "adoption_measurement", qty: "waves", core: false, geo: false, hours: 20 },
+    { id: "eval_pir", name: "Post-Implementation Review Report", section: 11, cat: "Evaluation & Reports", unit: "report", rateKey: "adoption_measurement", qty: "waves", core: false, geo: false, hours: 32 },
+    { id: "adoption_reporting", name: "Adoption Reporting", section: 11, cat: "Evaluation & Reports", unit: "cycle", rateKey: "adoption_measurement", qty: "months_third", core: false, geo: false, hours: 16 },
+    { id: "handover_plan", name: "Handover Plan", section: 12, cat: "Handover & Transition", unit: "plan", rateKey: "business_readiness", qty: "one", core: false, geo: false, hours: 29 },
+    { id: "transition_plan", name: "Transition Plan", section: 12, cat: "Handover & Transition", unit: "plan", rateKey: "business_readiness", qty: "one", core: false, geo: false, hours: 31 },
+    { id: "sustenance_plan", name: "Change Sustenance Plan", section: 12, cat: "Handover & Transition", unit: "plan", rateKey: "adoption_measurement", qty: "one", core: false, geo: false, hours: 31 },
+    { id: "orientation", name: "Orientation Programme Plan", section: 13, cat: "Orientation Programme", unit: "programme", rateKey: "orientation", qty: "one", core: false, geo: false, hours: 28 },
+    { id: "status_reporting", name: "CM Status Reporting", section: 14, cat: "Governance & PMO Support", unit: "week", rateKey: "cm_lead", qty: "weeks", core: true, geo: false, hours: 3 },
+    { id: "steerco", name: "Steering Committee Support", section: 14, cat: "Governance & PMO Support", unit: "meeting", rateKey: "cm_lead", qty: "months", core: false, geo: false, hours: 10 },
+    { id: "working_group", name: "Working Group Support", section: 14, cat: "Governance & PMO Support", unit: "meeting", rateKey: "cm_lead", qty: "months_double", core: false, geo: false, hours: 7 },
+    { id: "raid", name: "RAID Management", section: 14, cat: "Governance & PMO Support", unit: "update", rateKey: "cm_lead", qty: "months_double", core: false, geo: false, hours: 1 },
+    { id: "deliverable_mgmt", name: "Deliverable Management", section: 14, cat: "Governance & PMO Support", unit: "cycle", rateKey: "cm_lead", qty: "months_double", core: false, geo: false, hours: 4 },
+  ];
+
+  const TASKS = [
+    { g: "cm_plan", t: "Develop CM strategy and approach", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "cm_plan", t: "Define CM roadmap and key milestones", u: "Per roadmap", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "cm_plan", t: "Define change governance approach", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "cm_plan", t: "Draft Change Management Plan", u: "Per draft", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "cm_plan", t: "Review and update CM Plan based on stakeholder feedback", u: "Per review cycle", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "cm_plan", t: "Prepare CM Plan presentation deck", u: "Per deck", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "cm_plan", t: "Facilitate CM strategy alignment workshop", u: "Per workshop (per day)", a: "Facilitation & Sessions", c: "Complex", h: 12 },
+    { g: "cm_team", t: "Define CM team structure", u: "Per structure", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "cm_team", t: "Define roles and responsibilities", u: "Per RACI", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "cm_team", t: "Develop CM governance and escalation model", u: "Per model", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "cm_team", t: "Validate CM team structure with client/project team", u: "Per review cycle", a: "Facilitation & Sessions", c: "Simple", h: 3 },
+    { g: "stakeholder_plan", t: "Identify stakeholder groups", u: "Per stakeholder group", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "stakeholder_plan", t: "Build stakeholder register", u: "Per register", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "stakeholder_plan", t: "Conduct stakeholder mapping", u: "Per stakeholder / group", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "stakeholder_plan", t: "Develop power-interest grid", u: "Per grid", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "stakeholder_plan", t: "Segment stakeholders by role, function, country, and impact level", u: "Per stakeholder group", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "stakeholder_plan", t: "Define stakeholder engagement approach", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "stakeholder_plan", t: "Draft Stakeholder Engagement Plan", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "stakeholder_sessions", t: "Prepare engagement session materials", u: "Per session", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "stakeholder_sessions", t: "Schedule stakeholder engagement sessions", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "stakeholder_sessions", t: "Facilitate stakeholder engagement sessions", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "stakeholder_sessions", t: "Capture meeting notes and actions", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "stakeholder_sessions", t: "Track stakeholder concerns and feedback", u: "Per feedback log", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "stakeholder_sessions", t: "Update stakeholder engagement tracker", u: "Per update cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "change_network", t: "Define change agent model", u: "Per model", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "change_network", t: "Define change agent roles and responsibilities", u: "Per role description", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "change_network", t: "Identify change agent candidates", u: "Per change agent", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "change_network", t: "Prepare change agent onboarding materials", u: "Per deck / pack", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "change_network", t: "Conduct change agent onboarding session", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "change_network", t: "Run change agent check-ins", u: "Per session", a: "Facilitation & Sessions", c: "Simple", h: 3 },
+    { g: "change_network", t: "Capture change agent feedback", u: "Per feedback cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "change_network", t: "Maintain change agent tracker", u: "Per update cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "comms_plan", t: "Define communications strategy", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "comms_plan", t: "Define communication audiences", u: "Per audience group", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "comms_plan", t: "Define communication channels", u: "Per channel", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "comms_plan", t: "Develop key messages", u: "Per message set", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "comms_plan", t: "Develop communication calendar", u: "Per calendar", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "comms_plan", t: "Draft Communications Plan", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "comms_plan", t: "Review and revise Communications Plan", u: "Per review cycle", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "sharepoint_site", t: "Design SharePoint structure", u: "Per site", a: "Video & Digital Assets", c: "Complex", h: 12 },
+    { g: "sharepoint_site", t: "Draft SharePoint page content", u: "Per page", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "sharepoint_site", t: "Upload and format content", u: "Per page", a: "Video & Digital Assets", c: "Simple", h: 4 },
+    { g: "sharepoint_site", t: "Maintain SharePoint updates", u: "Per update", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "email_comms", t: "Draft global email communication", u: "Per email", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "email_comms", t: "Localize email communication", u: "Per market / language", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "email_comms", t: "Route email for review and approval", u: "Per review cycle", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "email_comms", t: "Finalize and issue email communication", u: "Per email", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "orientation_comms", t: "Draft invitation and reminder communications", u: "Per communication", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "leader_video", t: "Draft leadership video script", u: "Per script", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "leader_video", t: "Develop video storyboard", u: "Per storyboard", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "leader_video", t: "Coordinate recording", u: "Per recording", a: "Recurring PMO / Admin", c: "Standard", h: 2 },
+    { g: "leader_video", t: "Edit leadership video", u: "Per video", a: "Video & Digital Assets", c: "Complex", h: 12 },
+    { g: "leader_video", t: "Manage video review cycles", u: "Per review cycle", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "briefings", t: "Develop briefing deck", u: "Per deck", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "briefings", t: "Prepare speaker notes", u: "Per deck", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "briefings", t: "Support briefing delivery", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "cra_comms", t: "Draft CRA launch communication", u: "Per communication", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "cra_comms", t: "Draft CRA reminder communication", u: "Per communication", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "cra_comms", t: "Draft CRA results summary communication", u: "Per communication", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "readiness_assess", t: "Define CRA approach", u: "Per approach", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "readiness_assess", t: "Develop CRA questionnaire", u: "Per survey", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "readiness_assess", t: "Configure CRA survey", u: "Per survey", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "readiness_assess", t: "Test CRA survey", u: "Per survey", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "readiness_assess", t: "Launch CRA survey", u: "Per survey", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "readiness_assess", t: "Send CRA reminders", u: "Per reminder", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "readiness_assess", t: "Monitor survey responses", u: "Per response cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "readiness_assess", t: "Analyze CRA results", u: "Per survey", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "readiness_assess", t: "Develop CRA report", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "readiness_assess", t: "Present CRA findings", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "impact_assessment", t: "Review process documentation", u: "Per process", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "impact_assessment", t: "Attend functional walkthroughs", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "impact_assessment", t: "Identify change impacts", u: "Per process / role", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "impact_assessment", t: "Map impacts by stakeholder group", u: "Per stakeholder group", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "impact_assessment", t: "Assess impact severity", u: "Per impact", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "impact_assessment", t: "Build impact heatmap", u: "Per heatmap", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "impact_assessment", t: "Develop change impact register", u: "Per register", a: "Trackers & Registers", c: "Complex", h: 6 },
+    { g: "impact_assessment", t: "Facilitate impact validation workshop", u: "Per workshop", a: "Facilitation & Sessions", c: "Complex", h: 12 },
+    { g: "impact_assessment", t: "Update impact assessment after validation", u: "Per update cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "impact_assessment", t: "Create CIA summary deck", u: "Per deck", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "training_plan", t: "Conduct training needs analysis", u: "Per role / group", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "training_plan", t: "Define training audience groups", u: "Per audience group", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "training_plan", t: "Develop training curriculum", u: "Per curriculum", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "training_plan", t: "Define training approach", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "training_plan", t: "Develop training schedule", u: "Per schedule", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "training_plan", t: "Draft Training Plan", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "training_plan", t: "Review and revise Training Plan", u: "Per review cycle", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "ilt_materials", t: "Storyboard ILT content", u: "Per module", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "ilt_materials", t: "Develop ILT deck", u: "Per deck", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "ilt_materials", t: "Format ILT deck", u: "Per deck", a: "Decks & Visual Assets", c: "Simple", h: 4 },
+    { g: "ilt_materials", t: "Manage ILT review cycles", u: "Per review cycle", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "quizzes", t: "Draft quiz questions", u: "Per quiz", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "quizzes", t: "Configure quiz", u: "Per quiz", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "user_guides", t: "Draft user guide", u: "Per guide", a: "Written Comms & Guides", c: "Complex", h: 6 },
+    { g: "user_guides", t: "Format user guide", u: "Per guide", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "training_videos", t: "Draft video script", u: "Per video", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "training_videos", t: "Record training video", u: "Per video", a: "Video & Digital Assets", c: "Standard", h: 8 },
+    { g: "training_videos", t: "Edit training video", u: "Per video", a: "Video & Digital Assets", c: "Standard", h: 8 },
+    { g: "demo_videos", t: "Draft demo script", u: "Per video", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "demo_videos", t: "Record system demo", u: "Per video", a: "Video & Digital Assets", c: "Standard", h: 8 },
+    { g: "demo_videos", t: "Edit system demo video", u: "Per video", a: "Video & Digital Assets", c: "Standard", h: 8 },
+    { g: "microlearning", t: "Design micro-learning asset", u: "Per asset", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "microlearning", t: "Draft micro-learning content", u: "Per asset", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "microlearning", t: "Review and finalize micro-learning content", u: "Per asset", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "localised_materials", t: "Localize training deck", u: "Per market / language", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "localised_materials", t: "Reformat translated materials", u: "Per deck", a: "Decks & Visual Assets", c: "Simple", h: 4 },
+    { g: "localised_materials", t: "Conduct translation quality check", u: "Per asset", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "qrgs", t: "Draft quick reference guide", u: "Per QRG", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "qrgs", t: "Format quick reference guide", u: "Per QRG", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "faqs", t: "Collect frequently asked questions", u: "Per FAQ set", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "faqs", t: "Draft FAQ responses", u: "Per FAQ set", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "adoption_clinics", t: "Prepare clinic materials", u: "Per clinic", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "adoption_clinics", t: "Facilitate user adoption clinic", u: "Per clinic", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "helpdesk", t: "Develop helpdesk knowledge articles", u: "Per article", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "helpdesk", t: "Prepare support scripts", u: "Per script", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "expert_groups", t: "Set up expert user group", u: "Per group", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "expert_groups", t: "Facilitate expert user group session", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "peer_groups", t: "Set up peer support group", u: "Per group", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "peer_groups", t: "Coordinate peer support activities", u: "Per activity", a: "Facilitation & Sessions", c: "Simple", h: 3 },
+    { g: "t3", t: "Prepare TTT materials", u: "Per session", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "t3", t: "Deliver TTT session", u: "Per session", a: "Facilitation & Sessions", c: "Complex", h: 12 },
+    { g: "t3", t: "Capture attendance and feedback", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "eu_training", t: "Prepare EUT session materials", u: "Per session", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "eu_training", t: "Deliver EUT session", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "eu_training", t: "Track EUT attendance", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "local_training", t: "Prepare local process training materials", u: "Per market", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "local_training", t: "Deliver local process training", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "uat_training", t: "Prepare UAT briefing materials", u: "Per session", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "uat_training", t: "Deliver UAT briefing or walkthrough", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "training_admin", t: "Schedule training sessions", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "training_admin", t: "Send invitations and reminders", u: "Per communication", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "training_admin", t: "Consolidate training completion data", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "decks", t: "Build presentation deck", u: "Per deck", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "decks", t: "Format presentation deck", u: "Per deck", a: "Decks & Visual Assets", c: "Simple", h: 4 },
+    { g: "decks", t: "Apply branding and visual clean-up", u: "Per deck", a: "Decks & Visual Assets", c: "Simple", h: 4 },
+    { g: "decks", t: "Update deck based on review comments", u: "Per review cycle", a: "Decks & Visual Assets", c: "Simple", h: 4 },
+    { g: "videos", t: "Edit functional system demo video", u: "Per video", a: "Video & Digital Assets", c: "Complex", h: 12 },
+    { g: "videos", t: "Add subtitles or captions", u: "Per video", a: "Video & Digital Assets", c: "Simple", h: 4 },
+    { g: "videos", t: "Cut video into shorter learning clips", u: "Per video", a: "Video & Digital Assets", c: "Simple", h: 4 },
+    { g: "infographics", t: "Design infographic", u: "Per asset", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "posters", t: "Draft and design visual collateral", u: "Per asset", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "sharepoint_content", t: "Draft and upload digital content", u: "Per page / update", a: "Video & Digital Assets", c: "Simple", h: 4 },
+    { g: "evaluation_plan", t: "Define evaluation approach", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "evaluation_plan", t: "Define success metrics and KPIs", u: "Per KPI set", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "evaluation_plan", t: "Define data collection approach", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "evaluation_plan", t: "Draft evaluation framework", u: "Per framework", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "eval_global", t: "Collect post-globalisation data", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "eval_global", t: "Analyze results", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "eval_global", t: "Draft report", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "eval_local", t: "Collect post-localisation data", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "eval_local", t: "Analyze results", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "eval_local", t: "Draft report", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "eval_uat", t: "Collect UAT feedback", u: "Per report", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "eval_uat", t: "Analyze UAT feedback", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "eval_uat", t: "Draft UAT evaluation report", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "eval_pir", t: "Collect PIR inputs", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "eval_pir", t: "Conduct lessons learned analysis", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "eval_pir", t: "Draft PIR report", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "adoption_reporting", t: "Prepare adoption dashboard", u: "Per dashboard", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "adoption_reporting", t: "Update adoption metrics", u: "Per reporting cycle", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "handover_plan", t: "Define handover scope", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "handover_plan", t: "Identify receiving teams", u: "Per team", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "handover_plan", t: "Prepare handover checklist", u: "Per checklist", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "handover_plan", t: "Compile handover documentation", u: "Per pack", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "handover_plan", t: "Conduct handover session", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "transition_plan", t: "Define transition activities", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "transition_plan", t: "Map transition ownership", u: "Per activity", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "transition_plan", t: "Define support model", u: "Per support model", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "transition_plan", t: "Track transition readiness", u: "Per checkpoint", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "sustenance_plan", t: "Define sustenance approach", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "sustenance_plan", t: "Define reinforcement activities", u: "Per activity", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "sustenance_plan", t: "Define BAU ownership", u: "Per owner group", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "sustenance_plan", t: "Develop sustainment tracker", u: "Per tracker", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "orientation", t: "Define orientation objectives", u: "Per plan", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "orientation", t: "Define audience and participant groups", u: "Per audience group", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "orientation", t: "Develop orientation agenda", u: "Per agenda", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "orientation", t: "Develop orientation materials", u: "Per deck / pack", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "orientation", t: "Coordinate orientation logistics", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "orientation", t: "Deliver orientation programme", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "orientation", t: "Capture orientation attendance and feedback", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "status_reporting", t: "Prepare weekly CM status update", u: "Per week", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "status_reporting", t: "Update CM workplan", u: "Per update", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "status_reporting", t: "Track CM deliverables", u: "Per update cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "steerco", t: "Prepare SteerCo CM slides", u: "Per meeting", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "working_group", t: "Prepare working group materials", u: "Per meeting", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "working_group", t: "Capture meeting minutes and actions", u: "Per meeting", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "raid", t: "Update CM risks, issues, actions, dependencies", u: "Per update", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "deliverable_mgmt", t: "Manage review tracker", u: "Per tracker", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "deliverable_mgmt", t: "Consolidate comments from reviewers", u: "Per review cycle", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "deliverable_mgmt", t: "Version control CM deliverables", u: "Per version", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+  ];
+
+  const TASKS_BY_GROUP = TASKS.reduce((acc, t, i) => { (acc[t.g] = acc[t.g] || []).push(i); return acc; }, {});
+
+  // Quantity rules — how many units of a deliverable the scope drivers imply.
+  const QTY_RULES = {
+    one: () => 1,
+    two: () => 2,
+    months: (d) => Math.max(1, d.months),
+    months_double: (d) => Math.max(2, d.months * 2),
+    months_third: (d) => Math.max(2, Math.round(d.months / 3)),
+    weeks: (d) => Math.max(4, Math.round(d.months * 4.33)),
+    waves: (d) => Math.max(1, d.waves),
+    waves_double: (d) => Math.max(2, d.waves * 2),
+    units: (d) => Math.max(1, d.units),
+    units_min2: (d) => Math.max(2, d.units),
+    geos: (d) => Math.max(1, d.geos),
+    modules: (d) => Math.max(1, d.modules),
+    modules_half: (d) => Math.max(2, Math.round(d.modules / 2)),
+    modules_third: (d) => Math.max(1, Math.round(d.modules / 3)),
+    extra_languages: (d) => Math.max(0, d.modules * Math.max(0, d.languages - 1)),
+    comms_cadence: (d) => Math.max(6, d.months * 2),
+    hypercare_double: (d) => Math.max(2, d.hypercareMonths * 2),
+    trainer_sessions: (d) => Math.max(1, Math.ceil(Math.ceil(d.headcount / 50) / 12)),
+    training_sessions: (d) => Math.max(1, Math.ceil(d.headcount / Math.max(1, d.sessionSize || 20)))
+  };
+
+  const CAT_BY_ID = Object.fromEntries(CATALOG.map((c) => [c.id, c]));
+
+  /* ---- Hours library: task hours resolve through the archetype matrix ---- */
+
+  function archetypeHours(archetype, complexity) {
+    const ov = (state.archetypes || {})[archetype] || {};
+    if (ov[complexity] > 0) return +ov[complexity];
+    const row = ARCHETYPE_HOURS[archetype] || {};
+    return row[complexity] > 0 ? row[complexity] : null;
+  }
+
+  function taskHours(i) {
+    const t = TASKS[i];
+    const ov = (state.taskHours || {})[i];
+    if (ov > 0) return +ov;
+    const fromMatrix = archetypeHours(t.a, t.c);
+    return fromMatrix != null ? fromMatrix : t.h;
+  }
+
+  function taskEnabled(i) { return !(state.taskOff || {})[i]; }
+
+  function libraryHours(groupId) {
+    const idx = TASKS_BY_GROUP[groupId] || [];
+    let hours = 0, n = 0;
+    idx.forEach((i) => { if (taskEnabled(i)) { hours += taskHours(i); n++; } });
+    return { hours, n, total: idx.length };
+  }
+
+  function libraryTaskNames(groupId) {
+    return (TASKS_BY_GROUP[groupId] || []).filter(taskEnabled).map((i) => TASKS[i].t);
+  }
+
   /* =====================================================================
      Scope drivers
      ===================================================================== */
@@ -810,13 +1175,17 @@ Anonymised extract of a public-sector requirement specification, used as the sam
     fileName: "",
     drivers: Object.fromEntries(DRIVERS.map((d) => [d.key, d.def])),
     detected: {},          // driverKey -> {value, evidence}
-    signals: {},           // deliverableId -> evidence snippet
+    signals: {},           // rate key -> evidence snippet
+    catSignals: {},        // catalogId -> evidence snippet where the RFP names the deliverable
     optionalSignals: {},   // deliverableId -> sentence asking for it to be priced as an option
     quotes: SAMPLE_QUOTES.map((q) => ({ ...q })),
-    overrides: {},         // deliverableId -> {days, rate}
+    overrides: {},         // catalogId -> {days, rate}
+    taskHours: {},         // task index -> hours, overriding the archetype matrix
+    taskOff: {},           // task index -> true when excluded from the library rollup
+    archetypes: {},        // archetype -> {Simple, Standard, Complex} hour overrides
     lines: [],
     settings: {
-      currency: "SGD", escalation: 3, fallbackRate: 1650,
+      currency: "SGD", escalation: 3, fallbackRate: 1650, hoursPerDay: 8,
       contingency: 0, discount: 0, expenses: 0, tax: 0, client: ""
     }
   });
@@ -1000,6 +1369,13 @@ Anonymised extract of a public-sector requirement specification, used as the sam
     return { compact, map };
   }
 
+  // "Orientation Programme Plan" -> "orientation programme"; but never down to a
+  // single generic word like "adoption", which matches half a tender.
+  function trimGeneric(name) {
+    const trimmed = name.replace(/\s+(plans?|sessions?|materials?|assessments?|support|reporting|activation)$/, "");
+    return trimmed !== name && trimmed.split(/\s+/).length >= 2 ? trimmed : null;
+  }
+
   function findPhrase(norm, ci, phrase) {
     const key = phrase.replace(/[^a-z0-9]/g, "");
     if (!key) return null;
@@ -1071,9 +1447,23 @@ Anonymised extract of a public-sector requirement specification, used as the sam
       }
     });
 
+    // A catalogue deliverable can also be named outright ("Change Sustenance
+    // Plan", "Orientation Programme"), which is stronger evidence than its
+    // category keywords.
+    state.catSignals = {};
+    CATALOG.forEach((entry) => {
+      const name = entry.name.toLowerCase();
+      const trimmed = trimGeneric(name);
+      for (const variant of [name, name.replace(/s\b/g, ""), trimmed].filter(Boolean)) {
+        const hit = findPhrase(text, ci, variant);
+        if (hit) { state.catSignals[entry.id] = snippet(text, hit.index, hit.length); break; }
+      }
+    });
+
     // Scope the tender wants quoted as an option: a sentence that says "option"
     // and names a deliverable in the same breath.
     state.optionalSignals = {};
+    state.optionalCat = {};
     text.split(/(?:[.;]\s+)/).forEach((sentence) => {
       if (!/\boption(al|s)?\b/i.test(sentence)) return;
       const sci = compactIndex(sentence);
@@ -1081,6 +1471,15 @@ Anonymised extract of a public-sector requirement specification, used as the sam
         if (state.optionalSignals[t.id]) return;
         for (const k of t.kw) {
           if (findPhrase(sentence, sci, k)) { state.optionalSignals[t.id] = sentence.trim(); break; }
+        }
+      });
+      // A named deliverable in the same sentence is far more precise than its
+      // category keyword, which would otherwise flag every sibling line.
+      CATALOG.forEach((entry) => {
+        if (state.optionalCat[entry.id]) return;
+        const name = entry.name.toLowerCase();
+        for (const variant of [name, trimGeneric(name)].filter(Boolean)) {
+          if (findPhrase(sentence, sci, variant)) { state.optionalCat[entry.id] = sentence.trim(); break; }
         }
       });
     });
@@ -1118,25 +1517,29 @@ Anonymised extract of a public-sector requirement specification, used as the sam
     return res;
   }
 
-  function resolveRate(id, bm) {
-    const ov = state.overrides[id] || {};
+  function resolveRate(entry, bm) {
+    const ov = state.overrides[entry.id] || {};
     if (ov.rate > 0) return { value: +ov.rate, basis: "override" };
-    if (bm[id] && bm[id].rate > 0) return { value: bm[id].rate, basis: "benchmark", n: bm[id].n };
+    const q = bm[entry.rateKey];
+    if (q && q.rate > 0) return { value: q.rate, basis: "benchmark", n: q.n };
     return { value: bm._blended, basis: bm._n ? "blended" : "default" };
   }
 
-  function resolveDays(id, bm) {
-    const ov = state.overrides[id] || {};
+  function resolveDays(entry, bm) {
+    const ov = state.overrides[entry.id] || {};
     if (ov.days > 0) return { value: +ov.days, basis: "override" };
-    if (bm[id] && bm[id].dpu > 0) return { value: bm[id].dpu, basis: "benchmark", n: bm[id].n };
-    return { value: BY_ID[id] ? BY_ID[id].base : 5, basis: "default" };
+    const lib = libraryHours(entry.id);
+    if (lib.hours > 0) return { value: lib.hours / (state.settings.hoursPerDay || 8), basis: "library", n: lib.n, hours: lib.hours };
+    const q = bm[entry.rateKey];
+    if (q && q.dpu > 0) return { value: q.dpu, basis: "benchmark", n: q.n };
+    return { value: 5, basis: "default" };
   }
 
   /* =====================================================================
      Estimate build
      ===================================================================== */
 
-  function multipliers(t) {
+  function multipliers(entry) {
     const d = state.drivers;
     const parts = [];
     let m = 1;
@@ -1144,41 +1547,54 @@ Anonymised extract of a public-sector requirement specification, used as the sam
     if (cx !== 1) { m *= cx; parts.push(`complexity ${d.complexity} ×${cx}`); }
     const mat = MATURITY_MULT[d.maturity] || 1;
     if (mat !== 1) { m *= mat; parts.push(`${d.maturity} maturity ×${mat}`); }
-    if (t.scales.geo && d.geos > 1) {
+    // Localisation and per-market delivery carry their own quantities, so only
+    // deliverables coordinated across sites take a location multiplier.
+    if (entry.geo && d.geos > 1) {
       const g = Math.min(1.5, 1 + 0.07 * (d.geos - 1));
       m *= g; parts.push(`${d.geos} locations ×${g.toFixed(2)}`);
     }
-    if (t.scales.lang && d.languages > 1) {
-      const l = Math.min(1.6, 1 + 0.12 * (d.languages - 1));
-      m *= l; parts.push(`${d.languages} languages ×${l.toFixed(2)}`);
-    }
     return { m, parts };
+  }
+
+  // Option flags: a deliverable named in an "option" sentence is flagged on its
+  // own; a category keyword flags the whole category only when nothing in that
+  // category was named specifically.
+  function isOptional(entry) {
+    const byName = (state.optionalCat || {})[entry.id];
+    if (byName) return true;
+    const groupNamed = CATALOG.some((c) => c.rateKey === entry.rateKey && (state.optionalCat || {})[c.id]);
+    if (groupNamed) return false;
+    return !!(state.optionalSignals || {})[entry.rateKey];
   }
 
   function buildLines(reset) {
     const bm = benchmarks();
     const previous = Object.fromEntries((state.lines || []).map((l) => [l.id, l]));
-    const analysed = Object.keys(state.signals).length > 0;
+    const analysed = Object.keys(state.signals).length > 0 || Object.keys(state.catSignals || {}).length > 0;
 
-    state.lines = TAXONOMY.map((t) => {
+    state.lines = CATALOG.map((entry) => {
       // A rebuild drops manual edits; every other recalculation preserves them.
-      const prev = reset ? null : previous[t.id];
-      const rate = resolveRate(t.id, bm);
-      const dpu = resolveDays(t.id, bm);
-      const { m, parts } = multipliers(t);
-      const autoQty = Math.max(0, Math.round(t.qty(state.drivers)));
+      const prev = reset ? null : previous[entry.id];
+      const rate = resolveRate(entry, bm);
+      const dpu = resolveDays(entry, bm);
+      const { m, parts } = multipliers(entry);
+      const rule = QTY_RULES[entry.qty] || QTY_RULES.one;
+      const autoQty = Math.max(0, Math.round(rule(state.drivers)));
       const autoDays = Math.round(dpu.value * m * 10) / 10;
-      const included = analysed ? (!!state.signals[t.id] || !!t.core) : !!t.core;
+      const signal = (state.catSignals || {})[entry.id] || state.signals[entry.rateKey];
+      const included = analysed ? (!!signal || !!entry.core) : !!entry.core;
+      const tasks = libraryTaskNames(entry.id);
 
       return {
-        id: t.id,
-        name: t.name,
-        desc: t.desc,
-        unit: t.unit,
-        cat: t.cat,
+        id: entry.id,
+        name: entry.name,
+        desc: tasks.length ? tasks.join(" · ") : "No tasks enabled in the hours library for this deliverable.",
+        unit: entry.unit,
+        cat: entry.cat,
+        rateKey: entry.rateKey,
         include: prev && prev.editedInclude ? prev.include : included,
         // Tenders routinely ask for parts of the scope to be priced as options.
-        optional: prev && prev.editedOptional ? prev.optional : !!(state.optionalSignals || {})[t.id],
+        optional: prev && prev.editedOptional ? prev.optional : isOptional(entry),
         editedOptional: prev ? !!prev.editedOptional : false,
         qty: prev && prev.editedQty ? prev.qty : autoQty,
         dpu: prev && prev.editedDpu ? prev.dpu : autoDays,
@@ -1187,9 +1603,10 @@ Anonymised extract of a public-sector requirement specification, used as the sam
         editedDpu: prev ? !!prev.editedDpu : false,
         editedRate: prev ? !!prev.editedRate : false,
         editedInclude: prev ? !!prev.editedInclude : false,
-        rateBasis: rate.basis, rateN: rate.n, daysBasis: dpu.basis, daysN: dpu.n,
+        rateBasis: rate.basis, rateN: rate.n,
+        daysBasis: dpu.basis, daysN: dpu.n, libHours: dpu.hours,
         multParts: parts, baseDpu: Math.round(dpu.value * 10) / 10,
-        detected: !!state.signals[t.id],
+        detected: !!signal,
         custom: false
       };
     }).concat((state.lines || []).filter((l) => l.custom));
@@ -1285,25 +1702,74 @@ Anonymised extract of a public-sector requirement specification, used as the sam
 
   function renderRates() {
     const bm = benchmarks();
-    $("rates-body").innerHTML = TAXONOMY.map((t) => {
-      const b = bm[t.id];
-      const ov = state.overrides[t.id] || {};
-      const rate = resolveRate(t.id, bm), dpu = resolveDays(t.id, bm);
+    const hpd = state.settings.hoursPerDay || 8;
+    let lastCat = null;
+    $("rates-body").innerHTML = CATALOG.map((entry) => {
+      const lib = libraryHours(entry.id);
+      const q = bm[entry.rateKey];
+      const ov = state.overrides[entry.id] || {};
+      const rate = resolveRate(entry, bm), dpu = resolveDays(entry, bm);
+      const head = entry.cat !== lastCat
+        ? `<tr><td colspan="9" style="background:var(--surface-2);padding-top:9px"><span class="eyebrow">${esc(entry.cat)}</span></td></tr>` : "";
+      lastCat = entry.cat;
       const basisChip = (r) => r.basis === "override" ? `<span class="chip">pinned</span>`
+        : r.basis === "library" ? `<span class="chip bench">hours library · ${r.n} tasks</span>`
         : r.basis === "benchmark" ? `<span class="chip bench">your quotes · n=${r.n}</span>`
         : r.basis === "blended" ? `<span class="chip assumed">blended median</span>`
         : `<span class="chip assumed">standard assumption</span>`;
-      return `<tr data-id="${t.id}">
-        <td><strong>${esc(t.name)}</strong><div class="note">${esc(t.cat)}</div></td>
-        <td>per ${esc(t.unit)}</td>
-        <td class="n">${b ? b.n : 0}</td>
-        <td class="n">${b ? days(b.dpu) : `<span style="color:var(--ink-3)">${days(t.base)} std</span>`}</td>
-        <td class="n">${b ? moneyShort(b.rate) : "—"}</td>
-        <td class="n" style="width:110px"><input type="number" data-ov="days" value="${ov.days || ""}" step="0.5" min="0" placeholder="—"></td>
-        <td class="n" style="width:120px"><input type="number" data-ov="rate" value="${ov.rate || ""}" step="50" min="0" placeholder="—"></td>
+      return head + `<tr data-id="${entry.id}">
+        <td><strong>${esc(entry.name)}</strong><div class="note">rate benchmarked as ${esc(entry.rateKey.replace(/_/g, " "))}</div></td>
+        <td>per ${esc(entry.unit)}</td>
+        <td class="n">${lib.hours ? days(lib.hours) + " h" : "—"}</td>
+        <td class="n">${lib.hours ? days(lib.hours / hpd) : "—"}</td>
+        <td class="n">${q && q.dpu ? days(q.dpu) : "—"}</td>
+        <td class="n">${q ? moneyShort(q.rate) : "—"}</td>
+        <td class="n" style="width:104px"><input type="number" data-ov="days" value="${ov.days || ""}" step="0.5" min="0" placeholder="—"></td>
+        <td class="n" style="width:112px"><input type="number" data-ov="rate" value="${ov.rate || ""}" step="50" min="0" placeholder="—"></td>
         <td>${basisChip(dpu)} ${basisChip(rate)}</td>
       </tr>`;
     }).join("");
+  }
+
+  function renderLibrary() {
+    const hpd = state.settings.hoursPerDay || 8;
+    const complexities = ["Simple", "Standard", "Complex"];
+    $("archetype-body").innerHTML = Object.keys(ARCHETYPE_HOURS).map((a) => {
+      const cells = complexities.map((c) => {
+        const src = ARCHETYPE_HOURS[a][c];
+        const ov = ((state.archetypes || {})[a] || {})[c];
+        if (src == null && !ov) return `<td class="n" style="color:var(--ink-3)">not used</td>`;
+        return `<td class="n" style="width:110px"><input type="number" data-arch="${esc(a)}" data-cx="${c}" value="${ov || src}" step="0.5" min="0"></td>`;
+      }).join("");
+      return `<tr><td><strong>${esc(a)}</strong></td>${cells}</tr>`;
+    }).join("");
+
+    let totalHours = 0, enabled = 0;
+    const rows = [];
+    CATALOG.forEach((entry) => {
+      const lib = libraryHours(entry.id);
+      totalHours += lib.hours; enabled += lib.n;
+      rows.push(`<tr><td colspan="6" style="background:var(--surface-2)">
+        <span class="eyebrow">${esc(entry.cat)}</span>
+        <strong style="margin-left:8px">${esc(entry.name)}</strong>
+        <span class="chip" style="margin-left:8px">per ${esc(entry.unit)}</span>
+        <span class="chip bench" style="margin-left:4px">${days(lib.hours)} h · ${days(lib.hours / hpd)} days</span>
+      </td></tr>`);
+      (TASKS_BY_GROUP[entry.id] || []).forEach((i) => {
+        const t = TASKS[i];
+        const pinned = (state.taskHours || {})[i] > 0;
+        rows.push(`<tr data-task="${i}" style="${taskEnabled(i) ? "" : "opacity:.45"}">
+          <td class="n"><input type="checkbox" data-lib="on" ${taskEnabled(i) ? "checked" : ""} aria-label="Include ${esc(t.t)}"></td>
+          <td>${esc(t.t)}</td>
+          <td class="note">${esc(t.u)}</td>
+          <td class="note">${esc(t.a)}</td>
+          <td>${esc(t.c)}</td>
+          <td class="n" style="width:96px"><input type="number" data-lib="hours" value="${days(taskHours(i))}" step="0.5" min="0" title="${pinned ? "Pinned for this pursuit" : "From the archetype matrix"}"></td>
+        </tr>`);
+      });
+    });
+    $("library-body").innerHTML = rows.join("");
+    $("library-meta").textContent = `${enabled} of ${TASKS.length} tasks · ${days(totalHours)} hours · ${days(totalHours / hpd)} days if every deliverable were built once`;
   }
 
   function renderLines() {
@@ -1315,11 +1781,15 @@ Anonymised extract of a public-sector requirement specification, used as the sam
       const head = l.cat !== lastCat ? `<tr><td colspan="10" style="background:var(--surface-2);padding-top:9px"><span class="eyebrow">${esc(l.cat || "Other")}</span></td></tr>` : "";
       lastCat = l.cat;
       if (l.include && !l.optional) n++;
+      const effortSource = l.daysBasis === "library"
+        ? `· ${days(l.libHours)} h from ${l.daysN} library task${l.daysN === 1 ? "" : "s"} ÷ ${state.settings.hoursPerDay || 8} h/day`
+        : l.daysBasis === "benchmark" ? `· effort benchmarked on ${l.daysN} past quote line${l.daysN === 1 ? "" : "s"}`
+        : l.daysBasis === "override" ? `· effort pinned on the rate card` : `· standard effort assumption`;
       const formula = [
         `${l.qty} ${l.unit}${l.qty === 1 ? "" : "s"} × ${days(l.dpu)} days`,
         l.multParts && l.multParts.length ? `(base ${days(l.baseDpu)} d/unit, ${l.multParts.join(", ")})` : "",
         `→ ${days(l.qty * l.dpu)} days × ${moneyShort(l.rate)}/day`,
-        l.daysBasis === "benchmark" ? `· effort benchmarked on ${l.daysN} past quote line${l.daysN === 1 ? "" : "s"}` : "· standard effort assumption",
+        effortSource,
         l.rateBasis === "benchmark" ? `· rate from your past quotes` : l.rateBasis === "blended" ? `· blended median rate` : l.rateBasis === "override" ? `· rate pinned on rate card` : `· fallback rate`
       ].filter(Boolean).join(" ");
       return head + `<tr data-i="${i}" style="${l.include ? "" : "opacity:.45"}">
@@ -1338,7 +1808,7 @@ Anonymised extract of a public-sector requirement specification, used as the sam
         <td class="n cell-effort">${days(l.qty * l.dpu)}</td>
         <td class="n" style="width:108px"><input type="number" data-l="rate" value="${esc(l.rate)}" step="50" min="0"></td>
         <td class="n cell-amount"><strong>${money(amount)}</strong></td>
-        <td class="n"><input type="checkbox" data-l="optional" ${l.optional ? "checked" : ""} aria-label="Price ${esc(l.name)} as an option" title="${esc((state.optionalSignals || {})[l.id] || "Price this line as an option, outside the headline total")}"></td>
+        <td class="n"><input type="checkbox" data-l="optional" ${l.optional ? "checked" : ""} aria-label="Price ${esc(l.name)} as an option" title="${esc((state.optionalCat || {})[l.id] || (state.optionalSignals || {})[l.rateKey] || "Price this line as an option, outside the headline total")}"></td>
         <td class="no-print">${l.custom ? `<button class="btn ghost small danger" data-delline="${i}">✕</button>` : ""}</td>
       </tr>`;
     }).join("");
@@ -1366,7 +1836,7 @@ Anonymised extract of a public-sector requirement specification, used as the sam
       `Pricing covers ${d.headcount.toLocaleString()} impacted people across ${d.units} business unit${d.units === 1 ? "" : "s"} and ${d.geos} location${d.geos === 1 ? "" : "s"}, in ${d.languages} language${d.languages === 1 ? "" : "s"}.`,
       `Programme duration of ${d.months} months with ${d.waves} deployment wave${d.waves === 1 ? "" : "s"}; effort is spread evenly at an average of ${t.fte.toFixed(1)} FTE.`,
       `Complexity rated ${d.complexity}/5 and client change maturity ${d.maturity} — effort multipliers are applied on this basis and should be revisited after scoping calls.`,
-      `Day rates are the median of your past quotes indexed at ${state.settings.escalation}% per year to ${THIS_YEAR}; deliverables with no comparable history use the blended median.`,
+      `Effort is built bottom-up from the itemised task library at ${state.settings.hoursPerDay || 8} hours per day; day rates are the median of your past quotes indexed at ${state.settings.escalation}% per year to ${THIS_YEAR}, with the blended median where a deliverable has no comparable history.`,
       `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately priced.`,
       state.settings.expenses > 0 ? `Travel and expenses budgeted at ${money(state.settings.expenses)}, billed at cost against approved receipts.` : `Travel and expenses are excluded and will be billed at cost.`,
       state.settings.contingency > 0 ? `A ${state.settings.contingency}% contingency is held against scope volatility and is drawn down only on agreed change requests.` : null,
@@ -1398,7 +1868,7 @@ Anonymised extract of a public-sector requirement specification, used as the sam
   }
 
   function renderAll() {
-    renderDrivers(); renderSignals(); renderQuotes(); renderRates(); renderLines(); renderAssumptions(); renderSummary();
+    renderDrivers(); renderSignals(); renderQuotes(); renderLibrary(); renderRates(); renderLines(); renderAssumptions(); renderSummary();
   }
 
   /* =====================================================================
@@ -1539,7 +2009,53 @@ Anonymised extract of a public-sector requirement specification, used as the sam
     return hit ? hit.id : "cm_strategy";
   }
 
-  // --- Step 3: rate card
+  // --- Step 3: hours library
+  $("archetype-body").addEventListener("input", (e) => {
+    const a = e.target.dataset.arch, c = e.target.dataset.cx;
+    if (!a) return;
+    state.archetypes[a] = state.archetypes[a] || {};
+    const v = parseFloat(e.target.value);
+    if (v > 0) state.archetypes[a][c] = v; else delete state.archetypes[a][c];
+    buildLines(false); renderLibrary(); renderRates(); renderLines(); renderSummary(); save();
+  });
+
+  $("library-body").addEventListener("input", (e) => {
+    const tr = e.target.closest("tr"); if (!tr || tr.dataset.task === undefined) return;
+    const i = +tr.dataset.task, f = e.target.dataset.lib;
+    if (f === "on") {
+      if (e.target.checked) delete state.taskOff[i]; else state.taskOff[i] = true;
+      tr.style.opacity = e.target.checked ? "" : ".45";
+    } else if (f === "hours") {
+      const v = parseFloat(e.target.value);
+      if (v > 0) state.taskHours[i] = v; else delete state.taskHours[i];
+    }
+    buildLines(false); renderRates(); renderLines(); renderAssumptions(); renderSummary(); save();
+    // Refresh only the rollup chips, so the row being typed into keeps focus.
+    const hpd = state.settings.hoursPerDay || 8;
+    let total = 0, n = 0;
+    CATALOG.forEach((entry) => { const lib = libraryHours(entry.id); total += lib.hours; n += lib.n; });
+    $("library-meta").textContent = `${n} of ${TASKS.length} tasks · ${days(total)} hours · ${days(total / hpd)} days if every deliverable were built once`;
+  });
+
+  $("btn-library-reset").addEventListener("click", () => {
+    if (!confirm("Reset the hours library — task hours, exclusions and the archetype matrix — back to the source workbook?")) return;
+    state.taskHours = {}; state.taskOff = {}; state.archetypes = {};
+    buildLines(false); renderLibrary(); renderRates(); renderLines(); renderSummary(); save();
+    toast("Hours library reset to source");
+  });
+
+  $("btn-library-export").addEventListener("click", () => {
+    const rows = [["Section", "Deliverable", "Task", "Unit", "Archetype", "Complexity", "Hours", "Included"]];
+    CATALOG.forEach((entry) => {
+      (TASKS_BY_GROUP[entry.id] || []).forEach((i) => {
+        const t = TASKS[i];
+        rows.push([entry.cat, entry.name, t.t, t.u, t.a, t.c, taskHours(i), taskEnabled(i) ? "yes" : "no"]);
+      });
+    });
+    download("cm-hours-library.csv", toCsv(rows));
+  });
+
+  // --- Step 4: rate card
   $("rates-body").addEventListener("input", (e) => {
     const id = e.target.closest("tr").dataset.id, f = e.target.dataset.ov;
     if (!f) return;
@@ -1548,10 +2064,12 @@ Anonymised extract of a public-sector requirement specification, used as the sam
     if (v > 0) state.overrides[id][f] = v; else delete state.overrides[id][f];
     buildLines(false); renderLines(); renderSummary(); save();
   });
-  ["escalation", "fallback-rate"].forEach((id) => {
+  const SETTING_INPUTS = { escalation: "escalation", "fallback-rate": "fallbackRate", "hours-per-day": "hoursPerDay" };
+  Object.entries(SETTING_INPUTS).forEach(([id, key]) => {
     $(id).addEventListener("input", (e) => {
-      state.settings[id === "escalation" ? "escalation" : "fallbackRate"] = parseFloat(e.target.value) || 0;
-      renderQuotes(); renderRates(); buildLines(false); renderLines(); renderSummary(); save();
+      const v = parseFloat(e.target.value) || 0;
+      state.settings[key] = key === "hoursPerDay" ? Math.max(1, v) : v;
+      renderQuotes(); renderLibrary(); renderRates(); buildLines(false); renderLines(); renderSummary(); save();
     });
   });
 
@@ -1713,6 +2231,7 @@ Anonymised extract of a public-sector requirement specification, used as the sam
     $("currency").value = state.settings.currency;
     $("escalation").value = state.settings.escalation;
     $("fallback-rate").value = state.settings.fallbackRate;
+    $("hours-per-day").value = state.settings.hoursPerDay;
     $("c-contingency").value = state.settings.contingency;
     $("c-discount").value = state.settings.discount;
     $("c-expenses").value = state.settings.expenses;

@@ -1,6 +1,6 @@
 ---
 name: cm-effort-estimation-v1.0
-description: Estimates change management effort and produces a priced schedule of deliverables from an RFP scope document (Word, PDF or pasted text) benchmarked against the firm's past project quotes. Reads scope drivers out of the RFP (impacted headcount, business units, countries, languages, waves, duration, training modules), maps the scope onto a standard CM deliverable taxonomy, derives day rates and effort-per-unit from an editable past-quotes table, applies complexity and scale multipliers, separates scope the tender wants quoted as options, and outputs an invoice-style table of deliverables with individual pricing plus totals and assumptions. Use whenever a pursuit lead, bid manager or CM consultant wants to size, cost, price or quote change management work — phrases like "estimate the CM effort for this RFP", "how much should we quote", "price this scope", "build a fee schedule", "what did we charge last time", "cost this change management scope". Also opens an interactive browser estimator when the user wants to tune numbers themselves.
+description: Estimates change management effort and produces a priced schedule of deliverables from an RFP scope document (Word, PDF or pasted text), costing effort from an itemised task-hours library and day rates from the firm's past project quotes. Reads scope drivers out of the RFP (impacted headcount, business units, countries, languages, waves, duration, training modules), maps the scope onto a standard CM deliverable taxonomy, derives day rates and effort-per-unit from an editable past-quotes table, applies complexity and scale multipliers, separates scope the tender wants quoted as options, and outputs an invoice-style table of deliverables with individual pricing plus totals and assumptions. Use whenever a pursuit lead, bid manager or CM consultant wants to size, cost, price or quote change management work — phrases like "estimate the CM effort for this RFP", "how much should we quote", "price this scope", "build a fee schedule", "what did we charge last time", "cost this change management scope". Also opens an interactive browser estimator when the user wants to tune numbers themselves.
 ---
 
 # CM Effort & Pricing Estimator
@@ -13,9 +13,11 @@ Turns an RFP scope into a defensible, priced schedule of CM deliverables, benchm
 
 PDF and Word parsing reads the document's text layer. A scanned PDF has none — the tool says so and asks for pasted text rather than silently estimating on nothing.
 
+**Hours library**: `assets/hours-library.csv` — 189 costed tasks across 53 deliverables, imported from the firm's itemised CM deliverables workbook and embedded in the tool. This is the current source of truth for **how long a deliverable takes**; past quotes remain the source of truth for **what a day costs**. Treat it as replaceable: it is one firm's working model, and the tool keeps it as a separate, editable layer for that reason.
+
 ## The estimating model
 
-Price per line = **quantity × effort per unit × day rate**, where quantity comes from scope drivers, effort per unit comes from past quotes (falling back to a standard assumption), and the day rate comes from past quotes indexed to today.
+Price per line = **quantity × effort per unit × day rate**. Quantity comes from the scope drivers, effort per unit is built bottom-up from the hours library, and the day rate is the median of past quotes indexed to today.
 
 ### Step 1 — Read the scope and pull the drivers
 
@@ -36,9 +38,26 @@ From the RFP, extract and state each of these. Where the document doesn't say, m
 
 Also note what the RFP explicitly asks for. Anything named in the scope is a line item; the four that are almost always in scope even when unnamed are CM strategy, change impact assessment, stakeholder engagement and CM workstream management.
 
-### Step 2 — Map to the deliverable taxonomy
+### Step 2 — Map to the deliverable catalogue
 
-| Deliverable | Unit | Standard effort/unit (days) |
+The catalogue is the hours library's own 53 deliverables, grouped in 14 workstream sections — CM Plan, CM Team Structure, Change Impact Assessments, Instructor-Led Training Materials, QRGs, End User Training, Steering Committee Support, and so on. Each carries its own unit and its own hours, summed from the tasks that make it up: a CM Plan is 59 hours across 7 tasks, an ILT module 21 hours across 4, an end-user training session 13 hours across 3.
+
+Every task is typed by **archetype × complexity** rather than estimated individually, and that matrix generates the hours:
+
+| Archetype | Simple | Standard | Complex |
+|---|---:|---:|---:|
+| Strategic Plans & Models | 6 | 8 | 12 |
+| Surveys, Reports & Analytics | 4 | 8 | 12 |
+| Facilitation & Sessions | 3 | 6 | 12 |
+| Video & Digital Assets | 4 | 8 | 12 |
+| Decks & Visual Assets | 4 | 6 | 10 |
+| Written Comms & Guides | 2 | 4 | 6 |
+| Trackers & Registers | 1 | 3 | 6 |
+| Recurring PMO / Admin | 1 | 2 | — |
+
+Convert to days at the firm's working day (8 hours by default). When a deliverable isn't in the library, fall back to the older coarse benchmarks below, and say that you did.
+
+| Legacy fallback deliverable | Unit | Effort/unit (days) |
 |---|---|---|
 | CM strategy & approach | document | 8 |
 | Change impact assessment | business unit | 6 |
@@ -59,20 +78,20 @@ Also note what the RFP explicitly asks for. Anything named in the scope is a lin
 | Organisation & role design | design | 10 |
 | CM lead & workstream management | month | 12 |
 
-Default quantities: impact assessment = business units; readiness and cutover = waves; workshops = max(2, business units); courseware = training modules; train-the-trainer = one session per 12 trainers, sizing trainers at one per 50 users; end-user training = headcount ÷ trainees per session; collateral ≈ 1.5 items per month; management = duration in months.
+Default quantities: impact assessment = business units; readiness, cutover and UAT support = waves; briefings = max(2, business units); courseware = training modules; localised materials = modules × extra languages; train-the-trainer = one session per 12 trainers, sizing trainers at one per 50 users; end-user training = headcount ÷ trainees per session; local process training = markets; emails ≈ 2 per month; status reporting = weeks; SteerCo = months.
 
 Two things are worth reading out of the document even when no figure is stated: **a cap on class size** ("no more than thirty (30) participants per session") sets the session divisor, and **an enumerated course list** ("the following types of training: (a)…(j)") is a module count. Both change the price materially and neither looks like a number until you go looking.
 
-**These standard effort figures are the fallback, not the answer.** Whenever the user has past quotes for a deliverable, the median of those quotes wins.
+**Effort precedence**: a pinned override wins, then the hours library, then the median of past quotes for that deliverable, then the coarse fallback. **Rate precedence** is separate: a pinned override, then the median day rate from past quotes for that category, then the blended median across all quotes. Keeping the two apart is the point — effort is what the firm knows about its own work, price is what the market has paid for it.
 
 ### Step 3 — Benchmark against past quotes
 
 Ask for the past-quotes table if it hasn't been provided — one row per priced line from a previous proposal: project, year, industry, deliverable, quantity, days quoted, fee quoted. A CSV, a pasted table or a few remembered lines all work. Then, per deliverable:
 
 - **Implied day rate** = fee ÷ days, indexed forward at ~3% per year from the quote year to the current year.
-- **Effort per unit** = days ÷ quantity.
+- **Effort per unit** = days ÷ quantity — a cross-check against the hours library rather than the primary source. A library figure far below what was actually quoted usually means the library is missing tasks, not that the past bid was padded.
 - Take the **median** across matching lines, not the mean — one outlier engagement shouldn't move the price.
-- Deliverables with no history use the **blended median day rate** across all lines, and the standard effort above.
+- Quotes are held at the coarser category level (18 rate keys) because that is how quotes arrive; several catalogue deliverables share one rate key.
 
 Always say which lines are benchmarked on real history and which are assumptions, with the sample count. A pursuit lead defending a number in a bid review needs to know which figures have evidence behind them.
 
@@ -105,6 +124,7 @@ Follow the table with the assumptions the price depends on: the drivers used, wh
 - **End-user training delivery dominates large estimates.** At one session per 20 users, a 4,000-user programme is 200 sessions. Ask whether the client expects the bidder to deliver end-user training or only to enable client trainers — the difference can be a third of the fee.
 - **A quote is not a cost model.** These figures are what was *charged*, so margin is already inside the day rate. Don't add margin on top unless the user says their history is cost-based.
 - **Watch the FTE reality check.** If the implied team size is under 0.5 or over 8 FTE, the duration or the scope is probably wrong — raise it before presenting the number.
+- **The library is a baseline, not a promise.** It assumes each deliverable is built once, cleanly. Multi-market coordination, extra review rounds and client-side delay are handled by the multipliers and contingency, not by the task hours.
 - **A scope with no numbers is the norm, not the exception.** Requirement specifications describe deliverables and stay silent on headcount, sites and duration, because the buyer expects the bidder to propose them. Say plainly which drivers you assumed, since those assumptions — not the rate card — are what a bid review will challenge.
 - **Currency and year mixing.** Past quotes in different currencies must be converted before they can be medianed; the tool assumes one currency throughout.
 
