@@ -704,7 +704,8 @@ pre {
         <div class="btnrow">
           <button class="primary" id="browse">Choose a file</button>
           <button id="paste-toggle">Paste text instead</button>
-          <button id="demo">Load the sample tender</button>
+          <button id="demo">Sample: public tender</button>
+          <button id="demo2">Sample: transport ERP</button>
         </div>
         <div class="formats">.TXT · .MD · .DOCX · .PPTX</div>
         <input type="file" id="file" class="sr" accept=".txt,.md,.docx,.pptx,.pdf">
@@ -827,6 +828,7 @@ pre {
 
 <script type="application/json" id="kb-seed">__KB_SEED__</script>
 <script type="application/json" id="sample-doc">__SAMPLE_DOC__</script>
+<script type="application/json" id="sample-doc-2">__SAMPLE_DOC_2__</script>
 
 <script>
 "use strict";
@@ -859,9 +861,15 @@ const OFF_TOPIC = ["warranty period","liquidated damages","indemnity","source co
   "bandwidth","firewall","database schema","encryption","api","uptime","disaster recovery",
   "backup","penetration test","hardware","server","bill of quantities","insurance","bond",
   "arbitration","jurisdiction"];
-const DELIVERABLE_CUES = ["shall provide","shall develop","shall submit","shall prepare",
-  "shall produce","shall deliver","shall propose","shall establish","shall conduct",
-  "shall define","must provide","must submit","is required to provide","shall include"];
+// A deliverable is named the same way whichever modal a tender favours — some say
+// "should" throughout and "shall" not once. The modal still decides priority; this list
+// is only about spotting that a deliverable is being named.
+const DELIVERABLE_VERBS = ["provide","develop","submit","prepare","produce","deliver",
+  "propose","establish","conduct","define","include","devise","outline","describe",
+  "identify","detail"];
+const DELIVERABLE_CUES = ["shall","must","should"]
+  .flatMap(m => DELIVERABLE_VERBS.map(v => `${m} ${v}`))
+  .concat(["is required to provide"]);
 
 const CROSS_REF = /\b(?:part|chapter|annex|appendix|schedule|section|volume)[ \t]+(?:[IVXLC]+|\d+(?:\.\d+)*)\b/gi;
 const PAGE_MARKER = /^=+\s*PAGE\s+(\d+)\s*=+\s*$/;
@@ -869,7 +877,8 @@ const TOC_LINE = /\.{4,}\s*\d+\s*$/;
 const TOC_PAGE = /table of contents|^[ \t]*contents[ \t]*$/im;
 const MODAL = /\b(shall|must|should|may|will)\b/i;
 const HEADINGS = [
-  /^\s{0,6}(\d{1,2}(?:\.\d{1,3}){0,4})\.?\s+(\S.{2,110})$/,
+  // Seven components: 2.3.2.2.2.4 is a real clause reference in real tenders.
+  /^\s{0,6}(\d{1,2}(?:\.\d{1,3}){0,6})\.?\s+(\S.{2,110})$/,
   /^\s{0,6}((?:PART|CHAPTER|ANNEX|APPENDIX|SCHEDULE|SECTION|VOLUME)\s+(?:[IVXLC]+|\d+))\b[\s,:.–-]*(.{0,110})$/i
 ];
 
@@ -888,6 +897,19 @@ const unmark = v => String(v)
   .trim();
 
 /* --- document splitting (port of split_sections) ----------------- */
+
+const GLUED = /(?<=[a-z])(?=(?:The|This|These|Tenderers?|A|An)\b)/;
+
+/* Word stores a heading and the sentence after it as one run often enough that a tender
+   arrives as "Change Management StrategyThe Tenderers should provide…". */
+function unglue(text) {
+  const at = text.search(GLUED);
+  if (at > 0) {
+    const head = text.slice(0, at).trim();
+    if (head.length >= 3 && head.length <= 70) return head;
+  }
+  return text;
+}
 
 function looksLikeHeading(text) {
   if (!text) return true;
@@ -940,7 +962,7 @@ function splitSections(text, minWords) {
       for (const pattern of HEADINGS) {
         const m = line.match(pattern);
         if (m) {
-          const tail = (m[2] || "").replace(/^[\s.:–-]+|[\s.:–-]+$/g, "");
+          const tail = unglue((m[2] || "").replace(/^[\s.:–-]+|[\s.:–-]+$/g, ""));
           marks.push({ offset, ref: m[1].replace(/\.$/, ""),
                        heading: looksLikeHeading(tail) ? tail : "" });
           break;
@@ -1863,10 +1885,12 @@ $("paste-run").addEventListener("click", () => {
   const text = $("paste-text").value;
   if (text.trim()) ingest("pasted text", text);
 });
-$("demo").addEventListener("click", () => {
-  const sample = JSON.parse($("sample-doc").textContent);
+const loadSample = id => () => {
+  const sample = JSON.parse($(id).textContent);
   ingest(sample.name, sample.text);
-});
+};
+$("demo").addEventListener("click", loadSample("sample-doc"));
+$("demo2").addEventListener("click", loadSample("sample-doc-2"));
 
 $("tag-form").addEventListener("submit", e => {
   e.preventDefault();

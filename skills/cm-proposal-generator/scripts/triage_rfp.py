@@ -79,11 +79,16 @@ OFF_TOPIC = [
     "bill of quantities", "insurance", "bond", "arbitration", "jurisdiction",
 ]
 
-DELIVERABLE_CUES = [
-    "shall provide", "shall develop", "shall submit", "shall prepare", "shall produce",
-    "shall deliver", "shall propose", "shall establish", "shall conduct", "shall define",
-    "must provide", "must submit", "is required to provide", "shall include",
-]
+# A deliverable is named the same way whichever modal a tender favours. Some use "shall"
+# throughout, some "must", and some — like the transport ERP sample — say "should" 85
+# times and "shall" not once. Detecting only "shall" found nothing in that document.
+# Note the modal still decides PRIORITY (shall/must mandatory, should desirable); this
+# list is only about spotting that a deliverable is being named at all.
+DELIVERABLE_VERBS = ("provide", "develop", "submit", "prepare", "produce", "deliver",
+                     "propose", "establish", "conduct", "define", "include", "devise",
+                     "outline", "describe", "identify", "detail")
+DELIVERABLE_CUES = [f"{modal} {verb}" for modal in ("shall", "must", "should")
+                    for verb in DELIVERABLE_VERBS] + ["is required to provide"]
 
 # Cross-references to parts of the tender we may not have been given.
 # Kept to a single line: across a line break "Commercial Schedule / 5.1." reads as a
@@ -100,7 +105,9 @@ PAGE_MARKER = re.compile(r"^=+\s*PAGE\s+(\d+)\s*=+\s*$", re.I | re.M)
 # Clause headings, in the shapes tenders actually use.
 HEADING_PATTERNS = [
     # 3.1.2  Change Management Plan   /   3.  CHANGE MANAGEMENT SCOPE
-    re.compile(r"^\s{0,6}(\d{1,2}(?:\.\d{1,3}){0,4})\.?\s+(\S[^\n]{2,110})$"),
+    # Up to seven components: real tenders nest further than feels reasonable —
+    # 2.3.2.2.2.4 is a genuine clause reference, and at {0,4} it matched nothing.
+    re.compile(r"^\s{0,6}(\d{1,2}(?:\.\d{1,3}){0,6})\.?\s+(\S[^\n]{2,110})$"),
     # PART 2, CHAPTER 8   /   ANNEX I — PRICING
     re.compile(r"^\s{0,6}((?:PART|CHAPTER|ANNEX|APPENDIX|SCHEDULE|SECTION|VOLUME)\s+"
                r"(?:[IVXLC]+|\d+))\b[\s,:.–-]*([^\n]{0,110})$", re.I),
@@ -150,6 +157,23 @@ def marker_index(text, pattern, cast=str):
 
 
 DANGLING = re.compile(r"\b(the|a|an|and|or|of|to|in|for|with|that|which|shall)$", re.I)
+
+
+GLUED = re.compile(r"(?<=[a-z])(?=(?:The|This|These|Tenderers?|A|An)\b)")
+
+
+def unglue(text):
+    """Split a run-in heading from the sentence welded to it.
+
+    Word stores a heading and the paragraph that follows it as one run often enough that
+    a real tender arrives as "Change Management StrategyThe Tenderers should provide…".
+    Split only where a lowercase letter runs straight into a capitalised sentence opener,
+    and only when what comes before it could be a title on its own.
+    """
+    parts = GLUED.split(text, maxsplit=1)
+    if len(parts) == 2 and 3 <= len(parts[0].strip()) <= 70:
+        return parts[0].strip()
+    return text
 
 
 def looks_like_heading(text):
@@ -207,7 +231,7 @@ def split_sections(text, min_words):
                 match = pattern.match(stripped)
                 if match:
                     ref = match.group(1).rstrip(".")
-                    tail = (match.group(2) or "").strip(" .:–-")
+                    tail = unglue((match.group(2) or "").strip(" .:–-"))
                     marks.append((offset, ref, tail if looks_like_heading(tail) else ""))
                     break
         offset += len(line)

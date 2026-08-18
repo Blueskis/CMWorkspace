@@ -41,6 +41,13 @@ desirable). Mandatory failures are usually disqualifying; desirables are scored.
 RFP uses its own terminology (M/D, Essential/Desirable, Pass-Fail), record that in
 `raw_priority` alongside the normalised value.
 
+**A tender written entirely in "should" is a trap, not a light touch.** The transport ERP
+sample says `should` 85 times, `must` 30, and `shall` never — so a faithful read produces a
+brief that is almost all `desirable`. Every one of those clauses is still scored. Record
+the document's own modal in `raw_priority`, and say plainly at the read-back that priority
+here reflects the tender's wording rather than how hard it will be marked; a team that
+reads "should" as optional under-answers the whole document.
+
 ### Requirement `kind` — what answering it actually means
 
 Priority says how badly we need to answer. `kind` says what answering *is*, and they are

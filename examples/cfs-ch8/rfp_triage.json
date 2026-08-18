@@ -235,7 +235,8 @@
       },
       "off_topic_signals": 0,
       "deliverable_cues": [
-        "shall provide"
+        "shall provide",
+        "shall detail"
       ],
       "excerpt": "2.2.3. Where subcontractors are engaged for change management activities, the Contractor shall detail how these subcontractors will be managed and trained to ensure obligations are met. 2.3. Roles and Responsibilities 2.3.1. The Change Mana"
     },
@@ -1184,7 +1185,9 @@
         "communication": 1
       },
       "off_topic_signals": 0,
-      "deliverable_cues": [],
+      "deliverable_cues": [
+        "should include"
+      ],
       "excerpt": "6.1.5. The orientation programme shall equip the Authority\u2019s personnel with the relevant capabilities for effective and efficient involvement in the development phase of the project. The programme should include the following: (a) Aligning "
     },
     {

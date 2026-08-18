@@ -1,0 +1,366 @@
+{
+  "sources": [
+    "examples/transport-erp/inputs/Transport-Company-RFP.txt"
+  ],
+  "section_count": 11,
+  "word_count": 4481,
+  "verdict_counts": {
+    "cm-core": 5,
+    "cm-adjacent": 6
+  },
+  "cross_references": [],
+  "note": "A shortlist and its reasons, not a decision. Read every cm-core and cm-adjacent section in full before writing requirements, and skim the not-cm list for anything whose heading suggests otherwise \u2014 a training obligation in a service-levels annex scores low and still belongs to us.",
+  "sections": [
+    {
+      "ref": "2.3.1",
+      "heading": "Change Management Strategy and Approach",
+      "parent_headings": [
+        "2.3 Change Management"
+      ],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-core",
+      "score": 115,
+      "cm_vocabulary_share": 0.1404,
+      "word_count": 419,
+      "strong_signals": {
+        "change management": 18,
+        "organisational change": 1,
+        "user adoption": 1,
+        "knowledge transfer": 1
+      },
+      "all_signals": {
+        "change management": 18,
+        "adoption": 5,
+        "user": 3,
+        "organisational change": 1,
+        "user adoption": 1,
+        "knowledge transfer": 1,
+        "communication": 1,
+        "readiness": 1,
+        "employee": 1,
+        "end user": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "should provide",
+        "should submit",
+        "should propose",
+        "should define",
+        "should devise",
+        "should describe"
+      ],
+      "excerpt": "2.3.1 Change Management Strategy and Approach 2.3.1.1 Change Management StrategyThe Tenderers should provide a clear change management strategy aligned with the ERP transformation objectives. The strategy must clearly outline:\u00b7 The expected"
+    },
+    {
+      "ref": "2.3.2",
+      "heading": "Stakeholder Analysis and Engagement",
+      "parent_headings": [],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-core",
+      "score": 99,
+      "cm_vocabulary_share": 0.1246,
+      "word_count": 394,
+      "strong_signals": {
+        "change impact": 1,
+        "change champion": 1,
+        "stakeholder analysis": 1
+      },
+      "all_signals": {
+        "stakeholder": 23,
+        "engagement": 2,
+        "readiness": 2,
+        "user": 2,
+        "change impact": 1,
+        "change champion": 1,
+        "stakeholder analysis": 1,
+        "resistance": 1,
+        "feedback": 1,
+        "staff": 1,
+        "end user": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "should provide",
+        "should conduct",
+        "should include",
+        "should identify"
+      ],
+      "excerpt": "2.3.2 Stakeholder Analysis and Engagement The Tenderers should identify key stakeholders who are critical to the success of the Project and involve them in activities that prepare and energise the organisation for the change. This includes "
+    },
+    {
+      "ref": "2.3.2.2",
+      "heading": "Stakeholder Impact Assessment",
+      "parent_headings": [],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-adjacent",
+      "score": 38,
+      "cm_vocabulary_share": 0.0753,
+      "word_count": 256,
+      "strong_signals": {},
+      "all_signals": {
+        "stakeholder": 8,
+        "resistance": 2,
+        "readiness": 2,
+        "engagement": 1,
+        "awareness": 1,
+        "adoption": 1
+      },
+      "off_topic_signals": 1,
+      "deliverable_cues": [
+        "should conduct"
+      ],
+      "excerpt": "2.3.2.2 Stakeholder Impact Assessment 2.3.2.2.1 Assessment and Engagement ApproachThe Tenderers should conduct a comprehensive Stakeholder Impact Assessment to evaluate how the ERP migration will affect all identified stakeholder groups acr"
+    },
+    {
+      "ref": "2.3.2.3",
+      "heading": "Stakeholder Engagement",
+      "parent_headings": [],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-core",
+      "score": 90,
+      "cm_vocabulary_share": 0.2441,
+      "word_count": 170,
+      "strong_signals": {
+        "stakeholder engagement": 3
+      },
+      "all_signals": {
+        "engagement": 14,
+        "stakeholder": 7,
+        "stakeholder engagement": 3,
+        "training": 2,
+        "communication": 2,
+        "feedback": 1,
+        "adoption": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "should propose",
+        "should define",
+        "should include"
+      ],
+      "excerpt": "2.3.2.3 Stakeholder Engagement 2.3.2.3.1 Stakeholder Engagement ApproachThe Tenderers should propose a customised engagement approach for each stakeholder group based on the results of the impact assessment. The engagement approach should i"
+    },
+    {
+      "ref": "2.3.2.4",
+      "heading": "Resistance Management",
+      "parent_headings": [],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-core",
+      "score": 179,
+      "cm_vocabulary_share": 0.1617,
+      "word_count": 540,
+      "strong_signals": {
+        "user adoption": 3,
+        "change impact": 2,
+        "change champion": 1,
+        "stakeholder engagement": 1
+      },
+      "all_signals": {
+        "feedback": 13,
+        "stakeholder": 10,
+        "resistance": 9,
+        "adoption": 6,
+        "user": 6,
+        "sponsor": 5,
+        "user adoption": 3,
+        "communication": 3,
+        "engagement": 3,
+        "change impact": 2,
+        "change champion": 1,
+        "stakeholder engagement": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "should provide",
+        "should submit",
+        "should establish",
+        "should define",
+        "should include",
+        "should outline",
+        "should describe"
+      ],
+      "excerpt": "2.3.2.4 Resistance Management 2.3.2.4.1 Resistance Management and User AdoptionThe Tenderers should define and implement structured measures to identify, assess, mitigate, and monitor stakeholder resistance throughout the ERP transformation"
+    },
+    {
+      "ref": "2.3.3.1",
+      "heading": "Business Readiness",
+      "parent_headings": [
+        "2.3.3 Change Impact Assessment"
+      ],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-adjacent",
+      "score": 25,
+      "cm_vocabulary_share": 0.0384,
+      "word_count": 289,
+      "strong_signals": {},
+      "all_signals": {
+        "user": 3,
+        "training": 2,
+        "readiness": 2,
+        "readiness assessment": 1,
+        "training plan": 1,
+        "adoption": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "must include",
+        "must identify",
+        "should provide",
+        "should submit",
+        "should include"
+      ],
+      "excerpt": "2.3.3.1 Business Readiness 2.3.3.1.1 Business Process and Role Change AnalysisThe Tenderers should provide a structured, comprehensive, and methodologically sound approach to analyse all business process changes and role impacts introduced "
+    },
+    {
+      "ref": "2.3.3.2",
+      "heading": "Organizational Readiness",
+      "parent_headings": [],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-adjacent",
+      "score": 66,
+      "cm_vocabulary_share": 0.1685,
+      "word_count": 211,
+      "strong_signals": {},
+      "all_signals": {
+        "readiness": 20,
+        "readiness assessment": 5,
+        "survey": 2,
+        "user": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "must include",
+        "should provide",
+        "should submit",
+        "should define"
+      ],
+      "excerpt": "2.3.3.2 Organizational Readiness 2.3.3.2.1 Organization Readiness Assessment FrameworkThe Tenderers should define a robust and comprehensive Organisational Readiness Assessment Framework to evaluate and confirm the organisation's preparedne"
+    },
+    {
+      "ref": "2.3.3.3",
+      "heading": "Readiness Checkpoints",
+      "parent_headings": [],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-adjacent",
+      "score": 39,
+      "cm_vocabulary_share": 0.1152,
+      "word_count": 183,
+      "strong_signals": {},
+      "all_signals": {
+        "readiness": 9,
+        "readiness assessment": 3,
+        "user acceptance": 1,
+        "stakeholder": 1,
+        "user": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "should submit",
+        "should conduct",
+        "should include"
+      ],
+      "excerpt": "2.3.3.3 Readiness Checkpoints 2.3.3.3.1 Readiness Checkpoints and Assessment Schedule Aligned to Project MilestonesThe Tenderers should conduct structured readiness assessments at predefined checkpoints aligned with major Project milestones"
+    },
+    {
+      "ref": "2.3.3.4",
+      "heading": "Address Readiness Gaps",
+      "parent_headings": [],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-core",
+      "score": 466,
+      "cm_vocabulary_share": 0.1571,
+      "word_count": 1757,
+      "strong_signals": {
+        "change management": 3,
+        "knowledge transfer": 3,
+        "user adoption": 2,
+        "change champion": 1,
+        "communications plan": 1
+      },
+      "all_signals": {
+        "user": 44,
+        "communication": 32,
+        "training": 31,
+        "readiness": 20,
+        "stakeholder": 19,
+        "power user": 14,
+        "end user": 13,
+        "feedback": 9,
+        "training strategy": 6,
+        "learning": 6,
+        "adoption": 5,
+        "training materials": 4
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "must define",
+        "must include",
+        "should provide",
+        "should develop",
+        "should submit",
+        "should define",
+        "should include",
+        "should describe"
+      ],
+      "excerpt": "2.3.3.4 Address Readiness Gaps 2.3.3.4.1 Actions to Address Readiness GapsThe Tenderers should define a structured, proactive, and monitored approach to identify, assess, and remediate organisational readiness gaps prior to ERP deployment. "
+    },
+    {
+      "ref": "2.3.5.4.1",
+      "heading": "Details of Delivery Plan",
+      "parent_headings": [],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-adjacent",
+      "score": 34,
+      "cm_vocabulary_share": 0.1718,
+      "word_count": 113,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 9,
+        "user": 8,
+        "end user": 2,
+        "super user": 1,
+        "user acceptance": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "should define"
+      ],
+      "excerpt": "2.3.5.4.1 Details of Delivery PlanThe training delivery plan should: Align training activities with major Project phases, including: Business process finalization System configuration completion User Acceptance Testing (UAT) End User Traini"
+    },
+    {
+      "ref": "2.3.5.5.1",
+      "heading": "Approach for Training Effectiveness",
+      "parent_headings": [],
+      "page": null,
+      "source": "examples/transport-erp/inputs/Transport-Company-RFP.txt",
+      "verdict": "cm-adjacent",
+      "score": 22,
+      "cm_vocabulary_share": 0.0543,
+      "word_count": 142,
+      "strong_signals": {},
+      "all_signals": {
+        "training": 5,
+        "user": 2,
+        "readiness": 1,
+        "survey": 1
+      },
+      "off_topic_signals": 0,
+      "deliverable_cues": [
+        "should provide",
+        "should include",
+        "should describe"
+      ],
+      "excerpt": "2.3.5.5.1 Approach for Training EffectivenessThe approach should include mechanisms to: Track training participation and completion Assess user understanding and knowledge retention Identify users or roles requiring additional support Deter"
+    }
+  ]
+}

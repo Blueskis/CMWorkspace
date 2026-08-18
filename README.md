@@ -73,8 +73,13 @@ python skills/cm-proposal-generator/scripts/qa_pptx.py /tmp/acme/proposal.pptx \
 The same plan renders to HTML with `render_html.py` and no edits. See that folder's README
 for what each part demonstrates.
 
-`examples/cfs-ch8/` is a real tender chapter (anonymised) for exercising triage and
-extraction against document structure nobody designed for this pipeline.
+Two real tender extracts ship as standing samples, both anonymised, and they fail in
+different ways on purpose:
+
+- `examples/cfs-ch8/` — a public-sector chapter written in "shall", page-marked, with a
+  table of contents and running headers to see past.
+- `examples/transport-erp/` — a commercial ERP tender written in **"should"**, nested six
+  clause levels deep, with headings welded to their body text by Word.
 
 ### Setup before real use
 
