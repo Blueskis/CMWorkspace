@@ -529,6 +529,31 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
 .mcp-state.bad { border-left: 3px solid var(--red); background: var(--red-soft); color: var(--ink); }
 .mcp-state.warn { border-left: 3px solid var(--amber); background: var(--amber-soft); color: var(--ink); }
 
+/* --- build ------------------------------------------------------ */
+
+.build-head {
+  display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: baseline;
+  padding: 18px 20px; border-bottom: 1px solid var(--rule);
+}
+.build-head .deckname { font-weight: 600; color: var(--ink); font-size: 15px; }
+.build-head .grow { flex: 1 1 auto; }
+.checks { display: grid; gap: 1px; background: var(--rule); }
+.check {
+  display: grid; grid-template-columns: 22px 190px minmax(0, 1fr);
+  gap: 12px; align-items: baseline;
+  padding: 12px 20px; background: var(--surface); font-size: 13.5px;
+}
+.check .mark { font-family: var(--mono); font-size: 13px; line-height: 1.3; }
+.check.pass .mark { color: var(--seal); }
+.check.warn .mark { color: var(--amber); }
+.check.fail .mark { color: var(--red); }
+.check .what { color: var(--ink); font-weight: 500; }
+.check .detail { color: var(--muted); }
+.check .detail ul { margin: 6px 0 0; padding-left: 18px; }
+.check .detail li { margin-bottom: 3px; }
+.build-foot { padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.build-foot .note { color: var(--muted); font-size: 13px; flex: 1 1 auto; }
+
 .entry {
   display: grid;
   grid-template-columns: 26px 46px minmax(0, 1fr);
@@ -814,12 +839,47 @@ pre {
   <section class="stage">
     <div class="stage-head">
       <span class="stage-num">03</span>
-      <h2>Hand off to the pipeline</h2>
+      <h2>Hand off for the plan</h2>
     </div>
     <div class="panel">
       <div class="handoff-body" id="handoff"></div>
     </div>
   </section>
+
+  <!-- Stage 4 ------------------------------------------------- -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-num">04</span>
+      <h2>Build the deck</h2>
+      <span class="aside" id="stage4-aside">Needs a proposal plan</span>
+    </div>
+    <div class="panel">
+      <div class="drop" id="plan-drop">
+        <h3>Drop the proposal plan</h3>
+        <p>The <code>proposal_plan.json</code> Claude wrote for this bid. Add the
+           <code>rfp_brief.json</code> as well and requirement coverage gets checked too.</p>
+        <div class="btnrow">
+          <button class="primary" id="plan-browse">Choose files</button>
+          <button id="plan-paste-toggle">Paste JSON instead</button>
+        </div>
+        <div class="formats">.JSON</div>
+        <input type="file" id="plan-file" class="sr" accept=".json,application/json" multiple>
+      </div>
+
+      <div id="plan-paste-area" hidden style="padding: 0 14px 14px;">
+        <textarea id="plan-text" placeholder="Paste proposal_plan.json here, then press Build."
+          aria-label="Proposal plan JSON"></textarea>
+        <div class="btnrow" style="justify-content: flex-start; margin-top: 10px;">
+          <button class="primary" id="plan-paste-run">Build it</button>
+          <button class="quiet" id="plan-paste-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div id="plan-notice"></div>
+      <div id="build-out" hidden></div>
+    </div>
+  </section>
+
 
   <p class="foot">
     Relevance is literal tag overlap, weighted exactly as <code>retrieve.py</code> weights
@@ -838,6 +898,12 @@ pre {
   </div>
 </div>
 
+<script>__PPTX_JS__</script>
+<script type="application/json" id="template-profile">__TEMPLATE_PROFILE__</script>
+<script>
+const TEMPLATE_B64 = "__TEMPLATE_B64__";
+const TEMPLATE_PROFILE = JSON.parse(document.getElementById("template-profile").textContent);
+</script>
 <script type="application/json" id="sample-doc">__SAMPLE_DOC__</script>
 <script type="application/json" id="sample-doc-2">__SAMPLE_DOC_2__</script>
 
@@ -1959,6 +2025,216 @@ python skills/cm-proposal-generator/scripts/qa_pptx.py proposals/<run>/proposal.
     : "entries selected";
   $("dock").classList.add("up");
 }
+
+/* =================================================================
+   Stage 04 — build the deck in the browser.
+
+   The plan is Claude's work; everything from here is mechanical, so it
+   runs here rather than in a terminal. PPTX.render is a port of
+   render_pptx.py and the Python remains the reference: if the two ever
+   disagree about a deck, the Python is right.
+   ================================================================= */
+
+const TEMPLATE_BYTES = (() => {
+  const raw = atob(TEMPLATE_B64);
+  const bytes = new Uint8Array(raw.length);
+  for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+  return bytes.buffer;
+})();
+
+const build = { plan: null, brief: null, result: null };
+
+function planNotice(html) { $("plan-notice").innerHTML = `<div class="notice">${html}</div>`; }
+
+function classifyJson(name, data) {
+  if (Array.isArray(data.sections)) return "plan";
+  if (Array.isArray(data.requirements)) return "brief";
+  throw new Error(`${name} is neither a proposal plan (needs "sections") nor an RFP brief `
+    + `(needs "requirements").`);
+}
+
+async function acceptJsonFiles(files) {
+  for (const file of files) {
+    let data;
+    try { data = JSON.parse(await file.text()); }
+    catch (err) { planNotice(`<b>${esc(file.name)} is not valid JSON.</b> ${esc(err.message)}`); return; }
+    try { build[classifyJson(file.name, data)] = data; }
+    catch (err) { planNotice(`<b>${esc(err.message)}</b>`); return; }
+  }
+  if (!build.plan) { planNotice("<b>No proposal plan yet.</b> That file was the brief — add the plan too."); return; }
+  await runBuild();
+}
+
+function checkRow(status, what, detail) {
+  const mark = { pass: "✓", warn: "!", fail: "✕" }[status];
+  return `<div class="check ${status}"><span class="mark">${mark}</span>` +
+    `<span class="what">${esc(what)}</span><span class="detail">${detail}</span></div>`;
+}
+
+const list = items => `<ul>${items.map(i => `<li>${esc(i)}</li>`).join("")}</ul>`;
+
+async function runBuild() {
+  $("plan-drop").hidden = true;
+  $("plan-paste-area").hidden = true;
+  planNotice("Building…");
+
+  let result;
+  try {
+    result = await PPTX.render(build.plan, TEMPLATE_PROFILE, TEMPLATE_BYTES.slice(0),
+      { sources: $("hide-sources") && $("hide-sources").checked ? "hidden" : "footer" });
+  } catch (err) {
+    planNotice(`<b>Could not build the deck.</b> ${esc(err.message)}`);
+    return;
+  }
+  if (result.errors.length) {
+    planNotice(`<b>The plan does not fit this template.</b> Fix the plan, not the renderer:`
+      + list(result.errors));
+    return;
+  }
+  build.result = result;
+  $("plan-notice").innerHTML = "";
+
+  const file = PPTX.audit(result);
+  const planAudit = PPTX.auditPlan(build.plan, build.brief);
+  const rows = [];
+
+  // Coverage — only meaningful with the brief, and honest about it when absent.
+  if (build.brief) {
+    const mapped = planAudit.needsSlide.filter(id => planAudit.covered.has(id)).length;
+    const ok = planAudit.uncovered.length === 0;
+    rows.push(checkRow(ok ? "pass" : "fail", "Requirement coverage",
+      ok ? `${mapped} of ${planAudit.needsSlide.length} requirements that need a slide are mapped`
+         + (planAudit.documentRules.length
+            ? `. ${planAudit.documentRules.length} govern the document itself — check the deck against them.` : ".")
+         : `${planAudit.uncovered.length} uncovered: `
+           + list(planAudit.uncovered.map(id =>
+               `${id} — ${(planAudit.reqs.get(id) || {}).text || ""}`))));
+  } else {
+    rows.push(checkRow("warn", "Requirement coverage",
+      "Not checked — add the rfp_brief.json to verify every requirement reached a slide."));
+  }
+
+  rows.push(checkRow(planAudit.unattributed.length ? "fail" : "pass", "Provenance",
+    planAudit.unattributed.length
+      ? "Blocks with neither sources nor a [GAP] marker — unattributed content cannot be "
+        + "told apart from fabrication once it is in a deck:" + list(planAudit.unattributed)
+      : "Every content block carries knowledge-bank sources or a [GAP] marker."));
+
+  rows.push(checkRow(planAudit.gaps.length ? "warn" : "pass",
+    `Open gaps (${planAudit.gaps.length})`,
+    planAudit.gaps.length
+      ? "Visible amber panels in the deck. Action items before submission:"
+        + list(planAudit.gaps.map(g => `${g.where} — ${g.note}`))
+      : "None. Every planned block drew on the knowledge bank."));
+
+  rows.push(checkRow(file.fidelity.length ? "fail" : "pass", "Template fidelity",
+    file.fidelity.length
+      ? "The deck has drifted off the template:" + list(file.fidelity)
+      : "Master, layouts and theme byte-identical to the template; no slide sets its own "
+        + "fonts or colours."));
+
+  rows.push(checkRow(file.overflow.length ? "warn" : "pass", "Text overflow",
+    file.overflow.length
+      ? "PowerPoint clips an overfull placeholder rather than spilling it, so these lose "
+        + "content silently. Autofit has been applied; cut the content if it is still over:"
+        + list(file.overflow)
+      : "Every text placeholder fits its box at the layout's own size."));
+
+  rows.push(checkRow(file.scaffolding.length ? "warn" : "pass", "Leftover scaffolding",
+    file.scaffolding.length ? list(file.scaffolding)
+      : "No prompt text, lorem, TODO or placeholder markers."));
+
+  const failed = rows.filter(r => r.includes('class="check fail"')).length;
+  const kb = Math.round(result.blob.size / 1024);
+  const name = `${(build.plan.run_id || "proposal").replace(/[^A-Za-z0-9._-]+/g, "-")}.pptx`;
+
+  $("build-out").hidden = false;
+  $("build-out").innerHTML = `
+    <div class="build-head">
+      <span class="deckname">${esc(name)}</span>
+      <span class="grow" style="color:var(--muted);font-size:13px">
+        ${result.steps.length} slides · ${kb} KB · ${result.notesCount} with speaker notes
+        ${result.gaps ? ` · ${result.gaps} [GAP] panel${result.gaps > 1 ? "s" : ""}` : ""}</span>
+      <button class="quiet" id="rebuild">Use a different plan</button>
+    </div>
+    <div class="checks">${rows.join("")}</div>
+    <div class="build-foot">
+      <button class="primary" id="save-deck">Download the deck</button>
+      <span class="note">${failed
+        ? "Fix the failed checks before this goes anywhere near a client."
+        : "A first draft for practitioner review — not a submission-ready document."}</span>
+      <label class="toggle" style="margin:0">
+        <input type="checkbox" id="hide-sources">
+        <span>Hide source IDs<span class="sub">for a reviewed client-facing copy</span></span>
+      </label>
+    </div>`;
+  $("stage4-aside").textContent = failed ? `${failed} check failed` : "built";
+
+  $("rebuild").addEventListener("click", () => {
+    build.plan = build.brief = build.result = null;
+    $("build-out").hidden = true;
+    $("plan-drop").hidden = false;
+    $("stage4-aside").textContent = "Needs a proposal plan";
+  });
+  $("hide-sources").addEventListener("change", runBuild);
+  $("save-deck").addEventListener("click", () => saveDeck(name));
+}
+
+async function saveDeck(name) {
+  const button = $("save-deck");
+  const downloads = await window.claude?.use?.("downloads").catch(() => null);
+  if (!downloads) {
+    planNotice("<b>Saving files is not available in this view.</b> The deck was built "
+      + "correctly; this viewer just cannot hand it over. Open the artifact in a browser "
+      + "tab, or build with <code>render_pptx.py</code>.");
+    return;
+  }
+  button.textContent = "Waiting for you to accept…";
+  try {
+    await downloads.save({ filename: name, data: build.result.blob });
+    button.textContent = "Saved";
+  } catch (err) {
+    const code = (err && err.code) || "unavailable";
+    const copy = {
+      declined: "Save cancelled. The deck is still built — press again when ready.",
+      extension_not_enabled: ".pptx downloads are not enabled for this view. Build with "
+        + "render_pptx.py in the repo instead; the deck is identical.",
+      rejected_extension: ".pptx is not an allowed download type here.",
+      too_large: "The deck is over the 16 MB download limit.",
+      rate_limited: "A save prompt is already open. Finish that one first.",
+      bad_request: "The deck could not be handed over — rebuild and try again."
+    }[code] || "Could not hand the file over. Try again, or build with render_pptx.py.";
+    planNotice(`<b>${esc(copy)}</b>`);
+    button.textContent = "Download the deck";
+  }
+  setTimeout(() => { button.textContent = "Download the deck"; }, 2500);
+}
+
+const planDrop = $("plan-drop");
+["dragenter", "dragover"].forEach(ev => planDrop.addEventListener(ev, e => {
+  e.preventDefault(); planDrop.classList.add("over");
+}));
+["dragleave", "drop"].forEach(ev => planDrop.addEventListener(ev, e => {
+  e.preventDefault(); planDrop.classList.remove("over");
+}));
+planDrop.addEventListener("drop", e => acceptJsonFiles([...e.dataTransfer.files]));
+$("plan-browse").addEventListener("click", () => $("plan-file").click());
+$("plan-file").addEventListener("change", e => acceptJsonFiles([...e.target.files]));
+$("plan-paste-toggle").addEventListener("click", () => {
+  const area = $("plan-paste-area");
+  area.hidden = !area.hidden;
+  if (!area.hidden) $("plan-text").focus();
+});
+$("plan-paste-cancel").addEventListener("click", () => { $("plan-paste-area").hidden = true; });
+$("plan-paste-run").addEventListener("click", async () => {
+  let data;
+  try { data = JSON.parse($("plan-text").value); }
+  catch (err) { planNotice(`<b>That is not valid JSON.</b> ${esc(err.message)}`); return; }
+  try { build[classifyJson("the pasted text", data)] = data; }
+  catch (err) { planNotice(`<b>${esc(err.message)}</b>`); return; }
+  if (!build.plan) { planNotice("<b>That was the brief, not the plan.</b> Paste the plan too."); return; }
+  await runBuild();
+});
 
 /* =================================================================
    Wiring
