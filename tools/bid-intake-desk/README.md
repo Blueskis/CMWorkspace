@@ -5,24 +5,42 @@ A browser front end for the whole pipeline except the one step that needs judgem
 ```
 01 Read the tender        triage — which clauses are CM's to answer
 02 Choose the evidence    both Airtable tables, ranked against the tender
-03 Hand off for the plan  selection.json → Claude writes proposal_plan.json
+03 Assemble the plan      rfp_brief + proposal_plan, built in the page
 04 Build the deck         .pptx + QA, in the browser, downloadable
 ```
 
-Only step 03 leaves the page. Writing the plan means extracting requirements verbatim,
-naming sections the client's way, and adapting bank prose to this client — judgement, not
-computation. Everything either side of it is mechanical and runs here.
+**Nothing leaves the page.** The only thing anyone types or uploads is the tender itself;
+picking entries in Stage 02 cascades through plan assembly and the build without a file
+changing hands.
 
-The handoff is two files, and confusing them is the easiest mistake the page can invite.
-`selection.json` records *which* evidence to draw on; `proposal_plan.json` says what each
-slide actually contains. Stage 03 emits a single prompt block with the selection already
-inside it — paste that whole block into Claude, and what comes back is the file Stage 04
-wants. Stage 04 recognises a `selection.json` pasted into it by name and says so rather
-than reporting a missing key.
+### What assembling a plan in a page can and cannot do
+
+A model *adapts*: it rewrites bank prose in the client's language, mirrors their section
+names, drafts the argument for why this bidder understands this programme. A page has no
+way to call one — the artifact runtime grants `artifact`, `downloads`, `mcp` and `self`,
+and none of those is a model. So Stage 03 does the part that is mechanical and refuses the
+part that isn't:
+
+- **Places** each selected entry's own prose onto slides, sourced to that entry's id.
+- **Derives** a requirement per CM-owned tender clause, and maps one to a section only on
+  literal tag overlap — the same blunt matching `retrieve.py` uses. A requirement nothing
+  matches stays uncovered and Stage 04 reports it, because claiming coverage that cannot
+  be shown is the worse failure.
+- **Refuses** to write "Our Understanding". That section is emitted as an explicit `[GAP]`,
+  since no knowledge-bank entry can know this client's situation.
+
+The result is a sourced first draft with a visible to-do list, not a finished bid. For
+prose actually adapted to the client, Stage 03 still keeps the old Claude prompt behind
+*The files this run produced* — paste it, and drop what comes back into Stage 04 to
+override the assembled plan.
+
+Content taken from the tender rather than the bank — cover text, the clause list — is
+attributed `tender:<filename>` rather than borrowing an unrelated entry id. It keeps the
+invariant that no block is unattributed while staying honest about where the words are from.
 
 Stage 04 also has **Load the worked example**, which runs `examples/acme-erp` through the
-renderer and the QA checks with no plan of your own. It is the fastest way to see what the
-second half does, and the fastest way to tell a broken plan from a broken page.
+renderer and the QA checks with no tender at all — the fastest way to tell a broken plan
+from a broken page.
 
 ## Exporting the bank for the pipeline
 

@@ -650,6 +650,24 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
   border-radius: 3px;
   color: var(--ink-2);
 }
+.handoff-more { margin-top: 16px; }
+.handoff-more > summary {
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--faint);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 4px 0;
+}
+.handoff-more > summary:hover { color: var(--ink-2); }
+.gapword {
+  font-family: var(--mono);
+  font-size: 12px;
+  background: var(--amber-soft);
+  border: 1px solid var(--amber);
+  border-radius: 2px;
+  padding: 0 4px;
+}
 .codeblock { margin-top: 16px; }
 .codeblock .cap {
   display: flex;
@@ -869,10 +887,11 @@ pre {
     </div>
     <div class="panel">
       <div class="drop" id="plan-drop">
-        <h3>Drop the proposal plan</h3>
-        <p>The <code>proposal_plan.json</code> Claude wrote back from the Stage 03 prompt —
-           not the <code>selection.json</code> above it. Add the <code>rfp_brief.json</code>
-           as well and requirement coverage gets checked too.</p>
+        <h3>Waiting on Stage 02</h3>
+        <p>Pick the entries this proposal should be written from and the deck builds itself —
+           nothing to copy, paste or download in between. Drop a
+           <code>proposal_plan.json</code> here only to override that with one written
+           elsewhere.</p>
         <div class="btnrow">
           <button class="primary" id="plan-browse">Choose files</button>
           <button id="plan-paste-toggle">Paste JSON instead</button>
@@ -2777,6 +2796,212 @@ function renderReadout() {
   });
 }
 
+/* =================================================================
+   The plan, assembled in the page.
+
+   Stage 03 used to hand a prompt to Claude and wait for a
+   proposal_plan.json to come back. This builds one here instead, so the
+   run never leaves the page.
+
+   What that costs is worth being clear about: a model *adapts* bank
+   prose to the client — rewrites it in their language, mirrors their
+   section names, drafts the "our understanding" argument. Nothing here
+   can do that, because a page has no way to call one. So this places
+   cleared prose and marks what it cannot cover, and never writes a
+   sentence of its own. Every block is either an entry's own words or a
+   visible [GAP]; the deck it produces is a sourced first draft, not a
+   finished bid.
+   ================================================================= */
+
+// A source that is the tender the practitioner uploaded rather than a bank entry. The
+// provenance rule is that no block is unattributed — content lifted from the client's own
+// document is attributed to it, not laundered through an unrelated entry id.
+const tenderSource = doc => `tender:${doc.name}`;
+
+const SECTION_PLAN = [
+  { id: "methodology",  title: "Our Approach",         kicker: "Approach" },
+  { id: "case-studies", title: "Relevant Experience",  kicker: "Experience" },
+  { id: "credentials",  title: "Why Us",               kicker: "Why us" },
+  { id: "team",         title: "Our Team",             kicker: "Team" },
+  { id: "commercials",  title: "Commercials",          kicker: "Commercials" },
+  { id: "boilerplate",  title: "Standard Terms",       kicker: "Terms" }
+];
+
+const MAX_BULLETS = 6;
+
+/* An entry's body as slide bullets. Paragraphs first — an author's own breaks beat
+   anything inferred — falling back to sentences when a body is one long block. */
+function bodyBullets(body) {
+  const text = String(body || "").trim();
+  if (!text) return [];
+  let parts = text.split(/\n{2,}|\n\s*[-*•]\s*/).map(p => p.replace(/\s+/g, " ").trim());
+  parts = parts.filter(p => p.length > 2 && !/^#{1,6}\s/.test(p));
+  if (parts.length < 2) {
+    parts = text.replace(/\s+/g, " ").split(/(?<=[.!?])\s+(?=[A-Z])/)
+      .map(s => s.trim()).filter(s => s.length > 2);
+  }
+  return parts;
+}
+
+function chunk(items, size) {
+  const out = [];
+  for (let i = 0; i < items.length; i += size) out.push(items.slice(i, i + size));
+  return out;
+}
+
+/* --- the brief ---------------------------------------------------- */
+
+/* Every CM-owned section of the tender becomes a requirement. Triage decided which those
+   are; this only gives them ids so coverage can be checked. Nothing is invented — a
+   requirement's text is the tender's own heading and reference. */
+function buildBrief(doc) {
+  const core = doc.triage.sections.filter(s => s.verdict === "cm-core");
+  return {
+    client: null,
+    engagement: doc.name,
+    generated_by: "bid-intake-desk",
+    requirements: core.map((s, i) => ({
+      id: `R${i + 1}`,
+      text: s.heading || `Section ${s.ref}`,
+      kind: "proposal-content",
+      priority: "stated",
+      confidence: "derived-from-triage",
+      origin: { document: doc.name, section: s.ref, page: s.page || null },
+      // Kept so plan assembly can match a requirement to the content that answers it.
+      terms: Object.keys(s.hits || {})
+    })),
+    sources: [{ document: doc.name, method: "triage_rfp lexicon scoring, in-page" }]
+  };
+}
+
+/* --- the plan ----------------------------------------------------- */
+
+/* Which requirements a section's entries plausibly answer: literal overlap between the
+   tender's own matched vocabulary and the entries' tags. The same literal matching
+   retrieval uses, and just as blunt — a requirement nothing matches stays uncovered, and
+   Stage 04 reports it. Claiming coverage we cannot show would be the worse failure. */
+function requirementsFor(entries, brief) {
+  const tags = new Set(entries.flatMap(e => e.tags));
+  return brief.requirements.filter(r => {
+    const words = new Set((r.text.toLowerCase().match(/[a-z]+/g) || [])
+      .concat(r.terms.flatMap(t => t.split(/\s+/))));
+    return [...tags].some(tag => tag.split("-").every(part => words.has(part)));
+  }).map(r => r.id);
+}
+
+function assemblePlan(doc, entries, brief) {
+  const sections = [];
+  let order = 1;
+
+  sections.push({
+    section_id: "cover",
+    title: "Cover",
+    order: order++,
+    requirement_ids: [],
+    evaluation_weight: null,
+    slides: [{
+      slide_id: "cover-1",
+      layout: "title-slide",
+      title: "Change Management",
+      blocks: [
+        { placeholder: "title", kind: "text", content: "Change Management",
+          sources: [tenderSource(doc)] },
+        { placeholder: "subtitle", kind: "text",
+          content: `Response to ${doc.name}`, sources: [tenderSource(doc)] },
+        { placeholder: "meta", kind: "text",
+          content: `Assembled ${new Date().toISOString().slice(0, 10)} · draft for review`,
+          sources: [tenderSource(doc)] }
+      ],
+      speaker_notes: "Cover text is taken from the tender's own filename. Replace the "
+        + "client name and engagement title before this goes anywhere."
+    }]
+  });
+
+  // The one section the bank structurally cannot answer: what we understand of *this*
+  // client's situation. Emitted as an explicit gap rather than filled with something
+  // generic, so it lands on Stage 04's action list instead of reading as though it were
+  // written.
+  const core = doc.triage.sections.filter(s => s.verdict === "cm-core");
+  sections.push({
+    section_id: "understanding",
+    title: "Our Understanding",
+    order: order++,
+    requirement_ids: [],
+    evaluation_weight: null,
+    slides: [{
+      slide_id: "understanding-1",
+      layout: "title-and-content",
+      title: "Our Understanding",
+      blocks: [
+        { placeholder: "kicker", kind: "text", content: "Understanding",
+          sources: [tenderSource(doc)] },
+        { placeholder: "body", kind: "bullets",
+          content: core.slice(0, MAX_BULLETS).map(s =>
+            `${s.ref}${s.heading ? " — " + s.heading : ""}`),
+          sources: [tenderSource(doc)] },
+        { placeholder: "footer", kind: "text", content: "", gap: true,
+          gap_note: "The tender's CM clauses are listed, but what we understand of this "
+            + "client's situation has to be written by the bid team — no knowledge-bank "
+            + "entry can supply it." }
+      ],
+      speaker_notes: "Placeholder structure only. The clauses are real; the argument is not "
+        + "written yet."
+    }]
+  });
+
+  for (const spec of SECTION_PLAN) {
+    const mine = entries.filter(e => e.section === spec.id);
+    if (!mine.length) continue;
+
+    const slides = [];
+    for (const entry of mine) {
+      const bullets = bodyBullets(entry.body);
+      const pages = bullets.length ? chunk(bullets, MAX_BULLETS) : [[]];
+      pages.forEach((page, i) => {
+        const suffix = pages.length > 1 ? ` (${i + 1}/${pages.length})` : "";
+        slides.push({
+          slide_id: `${spec.id}-${slides.length + 1}`,
+          layout: "title-and-content",
+          title: entry.title + suffix,
+          blocks: [
+            { placeholder: "kicker", kind: "text", content: spec.kicker,
+              sources: [entry.id] },
+            page.length
+              ? { placeholder: "body", kind: "bullets", content: page, sources: [entry.id] }
+              : { placeholder: "body", kind: "text", content: "", gap: true,
+                  gap_note: `${entry.id} has no body text in the bank — the row exists but `
+                    + `there is nothing to put on a slide.` },
+            { placeholder: "footer", kind: "text",
+              content: entry.clearance === "anonymised"
+                ? "Client anonymised" : "", sources: [entry.id] }
+          ],
+          speaker_notes: entry.metrics_verified ? "" :
+            "Metrics in this entry are unverified — check every figure before use."
+        });
+      });
+    }
+
+    sections.push({
+      section_id: spec.id,
+      title: spec.title,
+      order: order++,
+      requirement_ids: requirementsFor(mine, brief),
+      evaluation_weight: null,
+      slides
+    });
+  }
+
+  return {
+    run_id: `${(doc.name.replace(/\.[^.]+$/, "").replace(/[^A-Za-z0-9]+/g, "-")
+      .toLowerCase() || "proposal")}-${new Date().toISOString().slice(0, 10).replace(/-/g, "")}`,
+    brief_ref: "(generated in the intake page)",
+    template: { path: "proposal-assets/templates/pptx-generic/pptx-generic.potx" },
+    slide_budget: { limit: null, planned: sections.reduce((n, s) => n + s.slides.length, 0),
+                    cut_for_length: [] },
+    sections
+  };
+}
+
 function renderHandoff() {
   const chosen = state.bank.entries.filter(e => state.selected.has(e.id));
   const projects = state.airtable.projects.filter(p => state.selectedProjects.has(p.id));
@@ -2915,22 +3140,21 @@ ${JSON.stringify(selection, null, 2)}`;
       page and the projects will re-list with fresh ones.</li></ul>` : ""}
     ${warnings.length ? `<ul class="warnlist">${warnings.map(w =>
       `<li class="${w.risk ? "risk" : ""}">${w.text}</li>`).join("")}</ul>` : ""}
-    <p class="handoff-lead"><b>Stage 04 needs a different file.</b> What is below records
-      <i>which</i> evidence to draw on. A <code>proposal_plan.json</code> says what each
-      slide actually contains, and writing it is the one step here that takes judgement —
-      so it is Claude's. Copy the second block, paste it into Claude, and bring the
-      <code>proposal_plan.json</code> it returns back to Stage 04.</p>
-    <div class="codeblock">
-      <div class="cap">selection.json <span class="capnote">keep with the run</span>
-        <button data-copy="sel-json">Copy</button></div>
-      <pre id="sel-json">${esc(JSON.stringify(selection, null, 2))}</pre>
-    </div>
-    <div class="codeblock">
-      <div class="cap">ask Claude for the plan <span class="capnote">selection included —
-        paste the whole block</span>
-        <button data-copy="ask-block">Copy</button></div>
-      <pre id="ask-block">${esc(askClaude)}</pre>
-    </div>`;
+    <p class="handoff-lead" id="plan-state">Assembling the plan…</p>
+    <details class="handoff-more">
+      <summary>The files this run produced</summary>
+      <div class="codeblock">
+        <div class="cap">selection.json <span class="capnote">what was chosen</span>
+          <button data-copy="sel-json">Copy</button></div>
+        <pre id="sel-json">${esc(JSON.stringify(selection, null, 2))}</pre>
+      </div>
+      <div class="codeblock">
+        <div class="cap">ask Claude for a written plan
+          <span class="capnote">optional — for prose adapted to this client</span>
+          <button data-copy="ask-block">Copy</button></div>
+        <pre id="ask-block">${esc(askClaude)}</pre>
+      </div>
+    </details>`;
 
   host.querySelectorAll("button[data-copy]").forEach(btn => {
     btn.addEventListener("click", async () => {
@@ -2954,6 +3178,8 @@ ${JSON.stringify(selection, null, 2)}`;
     ? `selected · ${warnings.length} thing${warnings.length === 1 ? "" : "s"} to check first`
     : "entries selected";
   $("dock").classList.add("up");
+
+  handOffToBuild(chosen);
 }
 
 /* =================================================================
@@ -2973,6 +3199,48 @@ const TEMPLATE_BYTES = (() => {
 })();
 
 const build = { plan: null, brief: null, result: null };
+// The last plan Stage 03 assembled, kept so dropping in a hand-written one can be undone.
+let autoPlan = null;
+
+/* Stage 03 -> Stage 04, with nothing in between. The plan and brief are assembled from
+   what the page already holds and passed straight to the builder; the only thing the
+   practitioner supplied was the tender. A plan dropped in by hand still overrides this —
+   that is how a model-written plan gets back in. */
+async function handOffToBuild(chosen) {
+  const state03 = $("plan-state");
+  if (!state.doc) {
+    if (state03) state03.innerHTML = "<b>Read a tender first.</b> The plan is built from "
+      + "its CM-owned clauses, so Stage 01 has to run before this can.";
+    return;
+  }
+  if (!chosen.length) {
+    if (state03) state03.innerHTML = "<b>Nothing selected yet.</b> Choose the entries this "
+      + "proposal should be written from and the deck assembles itself from here.";
+    return;
+  }
+
+  let brief, plan;
+  try {
+    brief = buildBrief(state.doc);
+    plan = assemblePlan(state.doc, chosen, brief);
+  } catch (err) {
+    if (state03) state03.innerHTML = `<b>Could not assemble the plan.</b> ${esc(err.message)}`;
+    return;
+  }
+
+  build.brief = brief;
+  build.plan = plan;
+  autoPlan = plan;
+
+  const slides = plan.sections.reduce((n, s) => n + s.slides.length, 0);
+  if (state03) state03.innerHTML =
+    `<b>Plan assembled — ${slides} slides across ${plan.sections.length} sections.</b>
+     Stage 04 has it already; nothing to copy. The deck below is built from the entries
+     you picked, in their own words. Anything the bank could not cover is marked
+     <span class="gapword">[GAP]</span> rather than written for you.`;
+
+  await runBuild();
+}
 
 // examples/acme-erp — a plan that already answers a brief, gaps and all. Cloned on use
 // so a rebuild after "use a different plan" starts from the same bytes.
@@ -3132,7 +3400,8 @@ async function runBuild() {
     $("build-out").hidden = true;
     $("plan-notice").innerHTML = "";
     $("plan-drop").hidden = false;
-    $("stage4-aside").textContent = "Needs a proposal plan";
+    $("stage4-aside").textContent = autoPlan
+      ? "Drop a plan, or reselect in Stage 02" : "Needs a proposal plan";
   });
   $("hide-sources").addEventListener("change", runBuild);
   $("save-deck").addEventListener("click", () => saveDeck(name));
