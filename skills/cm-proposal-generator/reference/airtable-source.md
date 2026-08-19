@@ -107,8 +107,9 @@ credentials — and let `Source document` carry the original.
 
 ## Status
 
-Not wired up yet. Enabling the Airtable connector for the chat is what unblocks reading
-the real field names and response shape; until then nothing here is bound to code.
+Wired up. Both attachment fields are live on `Proposals and Tenders` and their field IDs
+match `tools/bid-intake-desk/index.src.html`'s `AIRTABLE.field` config exactly — confirmed
+against the table schema, not assumed. What that unblocks and what it doesn't is below.
 
 ---
 
@@ -138,10 +139,31 @@ section and matches tags literally, so a row without them cannot be found — wh
 exactly like a row that does not exist. The page counts them and labels each one rather
 than letting them disappear.
 
+### Pulling a document out of an attachment
+
+`RFP Document` and `Proposal (pptx) Deck` are attachments — a project row points at a
+file, it isn't the file's content, and `ingest_source.py` only reads a local path. The
+intake page bridges the two: Stage 03's `selection.json` lists each attachment as
+`{name, url}`, where `url` is Airtable's own attachment link. That link is only valid for
+a couple of hours from when the page read the record — download promptly, and if it has
+gone stale, reopen the page (or re-list the table through the connector) for a fresh one.
+
+```bash
+curl -sSL -o Transport-Company-RFP.docx "<the url from selection.json>"
+python skills/cm-proposal-generator/scripts/ingest_source.py Transport-Company-RFP.docx \
+    -o proposal-assets/knowledge-bank/methodology/transport-phasing.md --outcome won
+```
+
+From there it's the same draft-then-review path as any other ingest: split into
+single-idea entries, verify the numbers, set clearance, then `index_kb.py`. An attachment
+is never a `source` in a `proposal_plan.json` — only the entry id that comes out the other
+end of this is.
+
 ### Still to build
 
 The **pipeline** does not yet read Content Library — `index_kb.py` reads Markdown, and
 `index_kb.py --merge` accepts a synced file that nothing currently writes. Until a fetcher
 exists, the intake page and Stage 4 see different banks. The merge format is documented
 above and the loader is tested; what is missing is the script that calls Airtable and
-writes it.
+writes it. This is a separate problem from the attachment flow above — Content Library
+holds already-extracted prose, not raw documents.

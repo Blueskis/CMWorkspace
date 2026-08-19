@@ -85,6 +85,20 @@ python skills/cm-proposal-generator/scripts/ingest_source.py ~/Downloads/retail-
     -o proposal-assets/knowledge-bank/methodology/retail-phasing.md --outcome won
 ```
 
+If the document arrived via the intake page's Stage 03 handoff instead of a manual save,
+`selection.json` already carries a direct link for it (`source_material[].rfp_document` /
+`.proposal_deck`, each `{name, url}`) — pull it with `curl` before running
+`ingest_source.py`. The link is an Airtable attachment URL and is only valid for a couple
+of hours from when the page read the record:
+
+```bash
+curl -sSL -o retail-2025.pptx "<the url from selection.json>"
+python skills/cm-proposal-generator/scripts/ingest_source.py retail-2025.pptx \
+    -o proposal-assets/knowledge-bank/methodology/retail-phasing.md --outcome won
+```
+
+See `reference/airtable-source.md` for the full attachment flow.
+
 The destination folder is chosen by what the extracted content **is** — a phase model goes
 to `methodology/`, an outcome story to `case-studies/`, a proof point to `credentials/`.
 

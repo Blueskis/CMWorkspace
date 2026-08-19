@@ -1946,12 +1946,15 @@ function renderHandoff() {
     include_internal: state.internal,
     // Airtable rows are source documents, not retrievable content: an RFP PDF and a
     // deck cannot go on a slide. They are listed separately as material to extract from.
+    // The url travels with them — Airtable's own attachment links, valid for a couple of
+    // hours from when this page read the record — so whoever gets this file can pull the
+    // document straight away instead of re-querying Airtable to find it again.
     source_material: projects.map(p => ({
       record: p.url,
       project: p.name || null,
       location: p.location || null,
-      rfp_document: p.rfp.map(f => f.name),
-      proposal_deck: p.deck.map(f => f.name)
+      rfp_document: p.rfp.map(f => ({ name: f.name, url: f.url })),
+      proposal_deck: p.deck.map(f => ({ name: f.name, url: f.url }))
     })),
     selected_entries: chosen.map(e => ({
       id: e.id,
@@ -1974,6 +1977,8 @@ function renderHandoff() {
   // One block, and it contains the selection: paste this whole thing into Claude and the
   // reply is the file Stage 04 wants. Splitting the ask from its data is what made the
   // old version of this panel easy to get wrong.
+  const hasDocuments = projects.some(p => p.rfp.length || p.deck.length);
+
   const askClaude =
 `Write the proposal plan for this bid.
 
@@ -1992,7 +1997,18 @@ Rules, none of them negotiable:
 - No figure ships from an entry whose metrics are unverified. Where a number matters
   and nothing verifies it, that is a gap.
 - "layout" values must exist in proposal-assets/templates/pptx-generic/template_profile.json.
-
+${hasDocuments ? `
+source_material lists past-bid documents, not usable content — a PDF or deck cannot be
+cited directly. For any of them worth drawing on: download it with
+  curl -sSL -o <name> "<url>"
+(the link is an Airtable attachment URL, valid for a couple of hours from when this file
+was generated — if the curl fails, ask for the project's record again to get a fresh
+one), then run skills/cm-proposal-generator/scripts/ingest_source.py on the download.
+Split, review and clear the draft it writes per its own instructions — clearance,
+metrics_verified, bid outcome — before any of it is usable. Only the resulting
+knowledge-bank entry id may then appear in a "sources" array; never cite the document
+itself.
+` : ""}
 Every section under cm_scope.in_scope_sections is something the tender asks of change
 management, so each one needs an answer somewhere in the plan. Sections under
 reviewed_and_excluded were triaged as out of scope; leave them alone.
@@ -2011,7 +2027,10 @@ ${JSON.stringify(selection, null, 2)}`;
     ${projects.length ? `<ul class="warnlist"><li><b>Past projects are documents, not
       content.</b> An RFP PDF and a proposal deck cannot go on a slide — extract each into
       knowledge-bank entries first with <code>ingest_source.py</code>, then they become
-      retrievable. Download them from the Airtable records listed in the file below.</li></ul>` : ""}
+      retrievable. <code>selection.json</code> below carries a direct link to each one —
+      Airtable's own attachment link, good for a couple of hours from now — so the prompt
+      to Claude can fetch it straight away. If a link has gone stale by the time you use
+      it, reopen this page and the projects will re-list with fresh ones.</li></ul>` : ""}
     ${warnings.length ? `<ul class="warnlist">${warnings.map(w =>
       `<li class="${w.risk ? "risk" : ""}">${w.text}</li>`).join("")}</ul>` : ""}
     <p class="handoff-lead"><b>Stage 04 needs a different file.</b> What is below records
