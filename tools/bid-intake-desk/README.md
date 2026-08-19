@@ -24,6 +24,19 @@ Stage 04 also has **Load the worked example**, which runs `examples/acme-erp` th
 renderer and the QA checks with no plan of your own. It is the fastest way to see what the
 second half does, and the fastest way to tell a broken plan from a broken page.
 
+## Exporting the bank for the pipeline
+
+Stage 02's **Export for the pipeline** writes `airtable_entries.json`, the file
+`index_kb.py --merge` reads. It is the same output `sync_airtable.py` produces, built from
+the same Content Library rows — the difference is only how Airtable is reached: the script
+calls the REST API with a token, the page uses the reader's own connector. That matters
+when `api.airtable.com` is blocked by a sandbox's network policy, or when there is no token
+to hand.
+
+Same anti-drift rule as the renderer, and the same test: run identical records through
+`entryFrom()` + `libraryMergeFile()` and through `sync_airtable.py --from-file`, and every
+entry must match field for field. The Python is the reference.
+
 ## The renderer is a port, and the Python is the reference
 
 `pptx.js` is a port of `skills/cm-proposal-generator/scripts/render_pptx.py`. Two

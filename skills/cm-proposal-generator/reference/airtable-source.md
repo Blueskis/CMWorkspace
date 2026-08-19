@@ -209,3 +209,16 @@ is passed, for the reason above: an RFP is the client's document, not ours to mi
 
 `--from-file FILE` reads a saved API response instead of calling Airtable — for working
 offline, or checking a mapping without spending calls.
+
+### When the script cannot reach Airtable
+
+`api.airtable.com` is not reachable from every environment — a sandbox may deny the host
+outright, and a session without a token cannot authenticate anyway. The intake page is the
+fallback, because it reads the table through the *reader's own* connector rather than over
+the network: open it, let Content Library load, and press **Export for the pipeline** in
+Stage 02. That writes `airtable_entries.json` — the same file `sync_airtable.py` produces,
+from the same rows — and `index_kb.py --merge` takes it unchanged.
+
+The two implementations are held together the way the renderer is: run the same records
+through both and the entries must match field for field. `sync_airtable.py` is the
+reference if they ever disagree.

@@ -839,6 +839,9 @@ pre {
               <span id="bank-caption"></span></span></span>
           <button class="quiet" id="select-top">Select top 5</button>
           <button class="quiet" id="clear-sel">Clear</button>
+          <button class="quiet" id="export-bank" disabled
+            title="Write airtable_entries.json — the file index_kb.py --merge reads">
+            Export for the pipeline</button>
         </div>
         <div id="bank"></div>
       </div>
@@ -2238,6 +2241,10 @@ function entryFrom(record) {
       : false,
     owner: cellText(get("owner")) || null,
     bid: { outcome: cellText(get("outcome")) || null },
+    // The excerpt is what the row renders; the body is what the pipeline indexes from —
+    // index_kb.py derives excerpt and word_count itself, so a truncated one would index
+    // every entry as empty. Kept whole for the export below.
+    body,
     excerpt: body.replace(/\s+/g, " ").trim().slice(0, 300),
     record_url: recordUrl(LIBRARY.tableId, record.id),
     path: null,
@@ -2529,6 +2536,74 @@ function flagsFor(entry) {
   return out.join("");
 }
 
+/* =================================================================
+   Export the bank for the pipeline.
+
+   sync_airtable.py writes this same file from the REST API, but a
+   container that cannot reach api.airtable.com — or a viewer with no
+   token — still has one working Airtable connection: this page, through
+   the reader's own connector. So the page can produce the merge file
+   itself. The shape is a mirror of sync_airtable.py's output; if the two
+   ever disagree, the Python is the reference, exactly as with the
+   renderer.
+   ================================================================= */
+
+function libraryMergeFile() {
+  return {
+    source: "airtable:content-library",
+    base: LIBRARY.baseId,
+    table: LIBRARY.tableId,
+    fetched: new Date().toISOString().replace(/\.\d+Z$/, "+00:00"),
+    // Every row, not the selection: this syncs the bank, it does not choose from it.
+    // Rows missing a section or tags go too — index_kb.py is the one validator, and it
+    // names what it rejects rather than letting a row vanish silently.
+    entries: state.bank.entries.map(e => {
+      const entry = {
+        id: e.id,
+        title: e.title,
+        section: e.section,
+        tags: e.tags,
+        clearance: e.clearance,
+        metrics_verified: e.metrics_verified,
+        last_reviewed: e.last_reviewed,
+        owner: e.owner,
+        body: e.body,
+        record_url: e.record_url
+      };
+      // Only when there is an outcome to carry, matching sync_airtable.py: build_record()
+      // warns about a bid block with no outcome, and most entries never came from a bid.
+      if (e.bid && e.bid.outcome) entry.bid = { outcome: e.bid.outcome };
+      return entry;
+    })
+  };
+}
+
+async function exportBank() {
+  const button = $("export-bank");
+  const text = JSON.stringify(libraryMergeFile(), null, 2);
+  const say = label => { button.textContent = label;
+    setTimeout(() => { button.textContent = "Export for the pipeline"; }, 3200); };
+
+  const downloads = await window.claude?.use?.("downloads").catch(() => null);
+  if (downloads) {
+    try {
+      await downloads.save({ filename: "airtable_entries.json",
+        data: new Blob([text], { type: "application/json" }) });
+      say("Saved");
+      return;
+    } catch (err) {
+      // A declined save is a decision, not a failure — don't paper over it with a copy.
+      if (err && err.code === "declined") { say("Save cancelled"); return; }
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(text);
+    say("Copied instead — paste it into a file");
+  } catch {
+    say("Could not export here");
+  }
+}
+
 function renderBank() {
   const host = $("bank");
   if (state.library.phase !== "ready") {
@@ -2541,8 +2616,10 @@ function renderBank() {
     $("bank-caption").textContent = state.library.phase === "loading"
       ? "reading…" : "unavailable";
     $("stage2-aside").textContent = `${state.selected.size} selected`;
+    $("export-bank").disabled = true;
     return;
   }
+  $("export-bank").disabled = state.bank.entries.length === 0;
 
   const entries = visibleEntries();
   const ranking = state.tags.size > 0;
@@ -3222,6 +3299,7 @@ $("select-top").addEventListener("click", () => {
 $("clear-sel").addEventListener("click", () => {
   state.selected.clear(); renderBank(); renderHandoff();
 });
+$("export-bank").addEventListener("click", exportBank);
 $("dock-jump").addEventListener("click", () =>
   $("handoff").scrollIntoView({ behavior: "smooth", block: "center" }));
 
