@@ -775,20 +775,17 @@ pre {
         </div>
 
         <div class="rail-block">
-          <h3>Bank</h3>
+          <h3>Content Library</h3>
           <p class="hint" id="bank-stats"></p>
-          <div class="btnrow" style="justify-content: flex-start; margin-top: 12px;">
-            <button id="load-index">Load a different bank</button>
-          </div>
-          <input type="file" id="index-file" class="sr" accept=".json">
         </div>
       </aside>
 
       <div class="stack">
-      <p class="joiner">Airtable holds the <b>documents</b>; the bank below holds the
-        <b>prose</b> extracted from them. Stage 4 adapts prose to this client, so every
-        slide is sourced from the lower panel — the upper one is where that material comes
-        from in the first place, via <code>ingest_source.py</code>.</p>
+      <p class="joiner">Two tables in one base. <b>Proposals and Tenders</b> holds the
+        documents; <b>Content Library</b> holds the prose extracted from them. Stage 4
+        adapts prose to this client, so every slide is sourced from the lower panel —
+        the upper one is where that material comes from, via
+        <code>ingest_source.py</code>.</p>
       <div class="panel" id="airtable-panel">
         <div class="bank-top">
           <span class="grow"><b class="src-title">Past bids — source documents</b>
@@ -802,7 +799,8 @@ pre {
       <div class="panel">
         <div class="bank-top">
           <span class="grow"><b class="src-title">Reusable content — what the deck is written from</b>
-            <span class="src-sub" id="bank-caption"></span></span>
+            <span class="src-sub">Airtable · CM Knowledge Bank → Content Library.
+              <span id="bank-caption"></span></span></span>
           <button class="quiet" id="select-top">Select top 5</button>
           <button class="quiet" id="clear-sel">Clear</button>
         </div>
@@ -840,7 +838,6 @@ pre {
   </div>
 </div>
 
-<script type="application/json" id="kb-seed">__KB_SEED__</script>
 <script type="application/json" id="sample-doc">__SAMPLE_DOC__</script>
 <script type="application/json" id="sample-doc-2">__SAMPLE_DOC_2__</script>
 
@@ -1223,8 +1220,8 @@ async function readDocument(file) {
 const state = {
   doc: null,          // { name, text, triage }
   tags: new Set(),
-  bank: JSON.parse(document.getElementById("kb-seed").textContent),
-  bankName: "the repository's bank",
+  bank: { entries: [] },
+  library: { phase: "loading", failure: null },
   selected: new Set(),
   selectedProjects: new Set(),
   airtable: { phase: "loading", projects: [], failure: null },
@@ -1281,8 +1278,28 @@ const AIRTABLE = {
   }
 };
 
-const recordUrl = id =>
-  `https://airtable.com/${AIRTABLE.baseId}/${AIRTABLE.tableId}/${id}`;
+// The reusable prose the deck is written from. A row here is one idea, not one document.
+const LIBRARY = {
+  server: "Airtable",
+  tool: "list_records_for_table",
+  baseId: "appAi9h5mT0hPz5o2",
+  tableId: "tblf1nFLP3p30Fg3S",
+  where: "CM Knowledge Bank → Content Library",
+  field: {
+    title:     "fldcEZJuXYRIFIqNv",
+    entryId:   "fld2m3EQm558160ke",
+    section:   "fldbSZfbXGqpslVJT",
+    content:   "fldcYvk92SVj2PBAj",
+    tags:      "fldL5nPnkyJnwORhJ",
+    clearance: "fldqNYERgJLcny0DO",
+    reviewed:  "fldXwxfBJ9rOiWZsg",
+    verified:  "fldbX9JRc3DDKUfYN",
+    owner:     "fldvFL7gfs6SfdF0m",
+    outcome:   "fldTo1GfrCgUuBUbG"
+  }
+};
+
+const recordUrl = (table, id) => `https://airtable.com/${AIRTABLE.baseId}/${table}/${id}`;
 
 /* Airtable encodes a cell differently per field type — a select is an object, a
    collaborator is an object, plain text is a string. Read the shapes tolerantly rather
@@ -1303,12 +1320,58 @@ function cellFiles(value) {
     .map(a => ({ name: a.filename || a.name || "attachment", url: a.url || null }));
 }
 
+/* A multipleSelects cell reads back as [{id, name, color}], a singleSelect as one such
+   object, and an unticked checkbox is omitted from the payload entirely. Observed, not
+   assumed — the write path returns plain strings for the same fields. */
+function cellNames(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map(v => (v && typeof v === "object" ? v.name : v))
+              .filter(Boolean).map(String);
+}
+
+const STALE_AFTER_DAYS = 730;
+
+function entryFrom(record) {
+  const cells = record.cellValuesByFieldId || record.fields || {};
+  const get = key => cells[LIBRARY.field[key]];
+  const reviewed = cellText(get("reviewed"));
+  const body = cellText(get("content"));
+  const tags = cellNames(get("tags")).map(t => t.toLowerCase());
+  const section = cellText(get("section"));
+
+  return {
+    id: cellText(get("entryId")) || record.id,
+    title: cellText(get("title")) || "Untitled entry",
+    section,
+    tags,
+    // Airtable cannot set a single-select default through the API, so a blank Clearance
+    // is read as the most restrictive value rather than the most permissive. A row
+    // somebody has not finished must not be the row that reaches a client.
+    clearance: cellText(get("clearance")) || "internal-only",
+    metrics_verified: get("verified") === true,
+    last_reviewed: reviewed || null,
+    stale: reviewed
+      ? (Date.now() - Date.parse(reviewed)) / 86400000 > STALE_AFTER_DAYS
+      : false,
+    owner: cellText(get("owner")) || null,
+    bid: { outcome: cellText(get("outcome")) || null },
+    excerpt: body.replace(/\s+/g, " ").trim().slice(0, 300),
+    record_url: recordUrl(LIBRARY.tableId, record.id),
+    path: null,
+    superseded: false,
+    // Retrieval scopes by section and matches on tags. A row missing either cannot be
+    // found at all, which looks identical to a row that does not exist.
+    incomplete: [!section && "Section", !tags.length && "Tags", !body && "Content"]
+      .filter(Boolean)
+  };
+}
+
 function projectFrom(record) {
   const cells = record.cellValuesByFieldId || record.fields || {};
   const get = key => cells[AIRTABLE.field[key]];
   return {
     id: record.id,
-    url: recordUrl(record.id),
+    url: recordUrl(AIRTABLE.tableId, record.id),
     name: cellText(get("name")),
     location: cellText(get("location")),
     price: cellText(get("price")),
@@ -1428,11 +1491,13 @@ function renderAirtable() {
 async function initAirtable() {
   const mcp = await window.claude?.use?.("mcp").catch(() => null);
   if (!mcp) {
-    state.airtable = { phase: "unavailable", projects: [], failure: {
+    const failure = {
       title: "Live Airtable data is not available in this view",
-      detail: "Past projects are read through your own Airtable connector. Everything "
-            + "else on this page works without it.", code: "", hard: false } };
-    renderAirtable();
+      detail: "Both panels read from your own Airtable connector. Reading a tender and "
+            + "its triage still works without it.", code: "", hard: false };
+    state.airtable = { phase: "unavailable", projects: [], failure };
+    state.library = { phase: "unavailable", failure };
+    renderAirtable(); renderBank();
     return;
   }
 
@@ -1443,6 +1508,10 @@ async function initAirtable() {
     const server = servers.find(s => s.server === AIRTABLE.server);
     if (!server) {
       const names = servers.map(s => s.server).filter(Boolean);
+      state.library = { phase: "error", failure: { title: "No Airtable connector for this viewer",
+        detail: "Add Airtable in claude.ai Settings → Connectors, then reload.",
+        code: "server_not_connected", hard: true } };
+      renderBank();
       state.airtable = { phase: "error", projects: [], failure: {
         title: "No Airtable connector for this viewer",
         detail: names.length
@@ -1465,12 +1534,40 @@ async function initAirtable() {
     }
   } catch (err) {
     state.airtable = { phase: "error", projects: [], failure: mcpFailure(err) };
-    renderAirtable();
+    state.library = { phase: "error", failure: mcpFailure(err) };
+    renderAirtable(); renderBank();
     return;
   }
 
   state.airtable.phase = "loading";
+  state.library.phase = "loading";
   renderAirtable();
+  renderBank();
+
+  state.libraryStop = mcp.watchTool(
+    LIBRARY.server, LIBRARY.tool,
+    { baseId: LIBRARY.baseId, tableId: LIBRARY.tableId, pageSize: 200 },
+    ev => {
+      if (ev.type === "error") {
+        const failure = mcpFailure(ev.error);
+        if (!failure.hard && state.bank.entries.length) return;  // keep last good
+        state.library = { phase: "error", failure };
+        state.bank = { entries: [] };
+        state.selected.clear();
+        fillSections(); renderBank(); renderTags(); renderHandoff();
+        return;
+      }
+      const records = (ev.result?.payload?.records) || [];
+      state.bank = { entries: records.map(entryFrom) };
+      state.library = { phase: "ready", failure: null };
+      // Seeding runs once the vocabulary exists: before the table loads there are no
+      // tags to match a tender against.
+      if (state.doc && !state.tags.size)
+        bankTagsIn(state.doc.text, state.bank).forEach(t => state.tags.add(t));
+      fillSections(); renderTags(); renderBank(); renderHandoff();
+    },
+    { refetchInterval: 60000 }
+  );
 
   state.airtableStop = mcp.watchTool(
     AIRTABLE.server, AIRTABLE.tool,
@@ -1550,12 +1647,25 @@ function flagsFor(entry) {
 }
 
 function renderBank() {
+  const host = $("bank");
+  if (state.library.phase !== "ready") {
+    const f = state.library.failure;
+    host.innerHTML = state.library.phase === "loading"
+      ? `<div class="mcp-state">Reading ${esc(LIBRARY.where)}…</div>`
+      : `<div class="mcp-state ${f && f.hard ? "bad" : "warn"}">
+           <b>${esc((f && f.title) || "Content Library unavailable")}</b>
+           ${esc((f && f.detail) || "")}</div>`;
+    $("bank-caption").textContent = state.library.phase === "loading"
+      ? "reading…" : "unavailable";
+    $("stage2-aside").textContent = `${state.selected.size} selected`;
+    return;
+  }
+
   const entries = visibleEntries();
   const ranking = state.tags.size > 0;
   const scored = ranking ? entries.filter(e => e.score > 0) : entries;
   const unscored = ranking ? entries.filter(e => e.score <= 0) : [];
   const top = Math.max(1, ...scored.map(e => e.score));
-  const host = $("bank");
 
   const rowFor = e => {
     const pct = ranking && e.score > 0 ? Math.round((e.score / top) * 100) : 0;
@@ -1574,7 +1684,12 @@ function renderBank() {
         </span>
         <span class="what">
           <span class="title">${esc(e.title)}</span>
-          <span class="idline">${esc(e.id)} · ${esc(e.path)}</span>
+          <span class="idline">${esc(e.id)}
+            <a class="open" href="${esc(e.record_url)}" target="_blank"
+               rel="noopener noreferrer">open in Airtable →</a></span>
+          ${e.incomplete && e.incomplete.length ? `<span class="row">
+            <span class="flag warn">retrieval cannot reach this: no
+              ${esc(e.incomplete.join(", no "))}</span></span>` : ""}
           <span class="excerpt">${esc(unmark(e.excerpt))}</span>
           <span class="row">${flagsFor(e)}</span>
           <span class="row">${matched}${others}</span>
@@ -1585,9 +1700,10 @@ function renderBank() {
   let html = "";
   if (!entries.length) {
     html = `<div class="empty">
-      <p>Nothing in this bank matches those filters.</p>
-      <p style="margin-top:8px">Section entries are created by
-        <code>ingest_source.py</code> and indexed by <code>index_kb.py</code>.</p></div>`;
+      <p>Content Library is empty.</p>
+      <p style="margin-top:8px">Rows here are the prose a slide is built from. Extract
+         them from the decks above with <code>ingest_source.py</code>, then paste each
+         idea in as its own row.</p></div>`;
   } else {
     html = scored.map(rowFor).join("");
     if (!scored.length) {
@@ -1615,16 +1731,21 @@ function renderBank() {
   });
 
   const hidden = state.bank.entries.length - entries.length;
+  const broken = state.bank.entries.filter(e => e.incomplete.length).length;
   $("bank-caption").textContent = ranking
     ? `${scored.length} of ${entries.length} share a tag with this tender`
       + (hidden ? ` · ${hidden} hidden by filters` : "")
-    : `${entries.length} entries · methodology, credentials, team, commercials, case studies, boilerplate`
-      + (hidden ? ` · ${hidden} hidden by filters` : "");
+    : `${entries.length} row${entries.length === 1 ? "" : "s"} · read a tender to rank them`
+      + (hidden ? ` · ${hidden} hidden by filters` : "")
+      + (broken ? ` · ${broken} incomplete` : "");
 
   const sections = {};
   for (const e of state.bank.entries) sections[e.section] = (sections[e.section] || 0) + 1;
-  $("bank-stats").innerHTML = `${state.bank.entries.length} entries from ${esc(state.bankName)}.<br>`
-    + Object.keys(sections).sort().map(s => `${esc(s)} ${sections[s]}`).join(" · ");
+  $("bank-stats").innerHTML =
+    `${state.bank.entries.length} row(s) in Airtable.<br>`
+    + (Object.keys(sections).length
+        ? Object.keys(sections).sort().map(s => `${esc(s)} ${sections[s]}`).join(" · ")
+        : "Add rows in Airtable and they appear here within a minute.");
   $("stage2-aside").textContent = `${state.selected.size} selected`;
 }
 
@@ -1938,23 +2059,6 @@ $("clear-sel").addEventListener("click", () => {
 });
 $("dock-jump").addEventListener("click", () =>
   $("handoff").scrollIntoView({ behavior: "smooth", block: "center" }));
-
-$("load-index").addEventListener("click", () => $("index-file").click());
-$("index-file").addEventListener("change", async e => {
-  const file = e.target.files[0];
-  if (!file) return;
-  try {
-    const parsed = JSON.parse(await file.text());
-    if (!Array.isArray(parsed.entries)) throw new Error("no entries array");
-    state.bank = parsed;
-    state.bankName = file.name;
-    state.selected.clear();
-    fillSections();
-    renderBank(); renderHandoff();
-  } catch (err) {
-    alert(`That is not a kb_index.json. Generate one with index_kb.py.\n\n${err.message}`);
-  }
-});
 
 function fillSections() {
   const select = $("section-select");

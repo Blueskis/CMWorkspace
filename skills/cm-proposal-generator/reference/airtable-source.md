@@ -109,3 +109,39 @@ credentials — and let `Source document` carry the original.
 
 Not wired up yet. Enabling the Airtable connector for the chat is what unblocks reading
 the real field names and response shape; until then nothing here is bound to code.
+
+---
+
+## The two tables, as built
+
+`CM Knowledge Bank` now holds both halves, and the split is what makes the generator work.
+
+| Table | Id | One row is | Feeds |
+|---|---|---|---|
+| Proposals and Tenders | `tblxQyGlAV81vz3ES` | A past bid: tender PDF, proposal deck, location, price | Source material to mine |
+| Content Library | `tblf1nFLP3p30Fg3S` | One reusable idea, in prose | The slides themselves |
+
+**Content Library fields.** Title (primary), Entry ID, Section, Content, Tags, Clearance,
+Last reviewed, Metrics verified, Owner, Source project (linked to Proposals and Tenders),
+Bid outcome.
+
+### Two behaviours worth knowing
+
+**A blank Clearance is read as `internal-only`.** Airtable's API cannot set a default on a
+single-select, so the intake page treats an empty cell as the most restrictive value
+rather than the most permissive. A row somebody started and did not finish is excluded
+from retrieval instead of being offered to a client. Set the field default to
+`internal-only` in the Airtable UI as well, so the grid shows what the pipeline assumes.
+
+**A row missing Section, Tags or Content is flagged, not dropped.** Retrieval scopes by
+section and matches tags literally, so a row without them cannot be found — which looks
+exactly like a row that does not exist. The page counts them and labels each one rather
+than letting them disappear.
+
+### Still to build
+
+The **pipeline** does not yet read Content Library — `index_kb.py` reads Markdown, and
+`index_kb.py --merge` accepts a synced file that nothing currently writes. Until a fetcher
+exists, the intake page and Stage 4 see different banks. The merge format is documented
+above and the loader is tested; what is missing is the script that calls Airtable and
+writes it.
