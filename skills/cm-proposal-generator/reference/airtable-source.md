@@ -141,17 +141,26 @@ than letting them disappear.
 
 ### Pulling a document out of an attachment
 
-`RFP Document` and `Proposal (pptx) Deck` are attachments — a project row points at a
-file, it isn't the file's content, and `ingest_source.py` only reads a local path. The
-intake page bridges the two: Stage 03's `selection.json` lists each attachment as
-`{name, url}`, where `url` is Airtable's own attachment link. That link is only valid for
-a couple of hours from when the page read the record — download promptly, and if it has
-gone stale, reopen the page (or re-list the table through the connector) for a fresh one.
+`RFP Document` and `Proposal (pptx) Deck` are both attachments, but only one of them is
+ours to mine. The **deck** is our own past response — extractable, reviewable, eventually
+retrievable. The **RFP** is the client's own tender: useful for judging how closely that
+past bid resembles the current one, but never a source to draft an entry from. Running
+it through `ingest_source.py` would file a client's confidential requirements into the
+bank mislabeled as our own methodology — a mistake worth naming plainly rather than
+leaving to be discovered.
+
+A project row points at a file, not the file's content, and `ingest_source.py` only
+reads a local path. The intake page bridges the two for the deck: Stage 03's
+`selection.json` lists each attachment as `{name, url}` under `proposal_deck` (and,
+separately, `rfp_document` for context), where `url` is Airtable's own attachment link.
+That link is only valid for a couple of hours from when the page read the record —
+download promptly, and if it has gone stale, reopen the page (or re-list the table
+through the connector) for a fresh one.
 
 ```bash
-curl -sSL -o Transport-Company-RFP.docx "<the url from selection.json>"
-python skills/cm-proposal-generator/scripts/ingest_source.py Transport-Company-RFP.docx \
-    -o proposal-assets/knowledge-bank/methodology/transport-phasing.md --outcome won
+curl -sSL -o retail-2025-response.pptx "<the url from selection.json's proposal_deck>"
+python skills/cm-proposal-generator/scripts/ingest_source.py retail-2025-response.pptx \
+    -o proposal-assets/knowledge-bank/methodology/retail-phasing.md --outcome won
 ```
 
 From there it's the same draft-then-review path as any other ingest: split into

@@ -1998,16 +1998,18 @@ Rules, none of them negotiable:
   and nothing verifies it, that is a gap.
 - "layout" values must exist in proposal-assets/templates/pptx-generic/template_profile.json.
 ${hasDocuments ? `
-source_material lists past-bid documents, not usable content — a PDF or deck cannot be
-cited directly. For any of them worth drawing on: download it with
+source_material lists past-bid documents. Only the proposal deck is ours to mine — a
+past response we wrote, not the client's. To use one: download it with
   curl -sSL -o <name> "<url>"
 (the link is an Airtable attachment URL, valid for a couple of hours from when this file
 was generated — if the curl fails, ask for the project's record again to get a fresh
 one), then run skills/cm-proposal-generator/scripts/ingest_source.py on the download.
 Split, review and clear the draft it writes per its own instructions — clearance,
 metrics_verified, bid outcome — before any of it is usable. Only the resulting
-knowledge-bank entry id may then appear in a "sources" array; never cite the document
-itself.
+knowledge-bank entry id may then appear in a "sources" array.
+The rfp_document is the client's own tender, not ours. Read it only to judge how closely
+that past bid resembles the current one; never run it through ingest_source.py and never
+cite it as a source — its text belongs to that client, not to us.
 ` : ""}
 Every section under cm_scope.in_scope_sections is something the tender asks of change
 management, so each one needs an answer somewhere in the plan. Sections under
@@ -2025,12 +2027,13 @@ ${JSON.stringify(selection, null, 2)}`;
   host.innerHTML = `
     <p class="summary-line">${summary}.</p>
     ${projects.length ? `<ul class="warnlist"><li><b>Past projects are documents, not
-      content.</b> An RFP PDF and a proposal deck cannot go on a slide — extract each into
-      knowledge-bank entries first with <code>ingest_source.py</code>, then they become
-      retrievable. <code>selection.json</code> below carries a direct link to each one —
-      Airtable's own attachment link, good for a couple of hours from now — so the prompt
-      to Claude can fetch it straight away. If a link has gone stale by the time you use
-      it, reopen this page and the projects will re-list with fresh ones.</li></ul>` : ""}
+      content.</b> The proposal deck is worth mining — extract it into a knowledge-bank
+      entry first with <code>ingest_source.py</code>, then it becomes retrievable. The
+      RFP is the client's own tender, not ours to reuse — useful only as context for how
+      closely a past bid resembles this one. <code>selection.json</code> below carries a
+      direct link to each attachment — Airtable's own attachment link, good for a couple
+      of hours from now. If a link has gone stale by the time you use it, reopen this
+      page and the projects will re-list with fresh ones.</li></ul>` : ""}
     ${warnings.length ? `<ul class="warnlist">${warnings.map(w =>
       `<li class="${w.risk ? "risk" : ""}">${w.text}</li>`).join("")}</ul>` : ""}
     <p class="handoff-lead"><b>Stage 04 needs a different file.</b> What is below records
