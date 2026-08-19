@@ -640,6 +640,16 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
 }
 .warnlist li.risk { border-left-color: var(--red); background: var(--red-soft); }
 
+.handoff-lead {
+  margin: 13px 0 0;
+  font-size: 13px;
+  line-height: 1.6;
+  padding: 10px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  border-radius: 3px;
+  color: var(--ink-2);
+}
 .codeblock { margin-top: 16px; }
 .codeblock .cap {
   display: flex;
@@ -652,6 +662,7 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
   margin-bottom: 7px;
 }
 .codeblock .cap button { margin-left: auto; font-size: 12px; padding: 4px 10px; }
+.codeblock .cap .capnote { text-transform: none; letter-spacing: 0; font-size: 12px; }
 pre {
   margin: 0;
   padding: 14px 15px;
@@ -856,11 +867,13 @@ pre {
     <div class="panel">
       <div class="drop" id="plan-drop">
         <h3>Drop the proposal plan</h3>
-        <p>The <code>proposal_plan.json</code> Claude wrote for this bid. Add the
-           <code>rfp_brief.json</code> as well and requirement coverage gets checked too.</p>
+        <p>The <code>proposal_plan.json</code> Claude wrote back from the Stage 03 prompt —
+           not the <code>selection.json</code> above it. Add the <code>rfp_brief.json</code>
+           as well and requirement coverage gets checked too.</p>
         <div class="btnrow">
           <button class="primary" id="plan-browse">Choose files</button>
           <button id="plan-paste-toggle">Paste JSON instead</button>
+          <button class="quiet" id="plan-example">Load the worked example</button>
         </div>
         <div class="formats">.JSON</div>
         <input type="file" id="plan-file" class="sr" accept=".json,application/json" multiple>
@@ -904,6 +917,8 @@ pre {
 const TEMPLATE_B64 = "__TEMPLATE_B64__";
 const TEMPLATE_PROFILE = JSON.parse(document.getElementById("template-profile").textContent);
 </script>
+<script type="application/json" id="example-plan">__EXAMPLE_PLAN__</script>
+<script type="application/json" id="example-brief">__EXAMPLE_BRIEF__</script>
 <script type="application/json" id="sample-doc">__SAMPLE_DOC__</script>
 <script type="application/json" id="sample-doc-2">__SAMPLE_DOC_2__</script>
 
@@ -1891,7 +1906,7 @@ function renderHandoff() {
   if (!chosen.length && !projects.length) {
     host.innerHTML = `<p class="summary-line" style="color:var(--muted)">
       Pick the past projects worth mining and the entries this proposal should be written
-      from. The selection file and the commands appear here.</p>`;
+      from. The selection file, and the prompt that turns it into a plan, appear here.</p>`;
     $("dock").classList.remove("up");
     return;
   }
@@ -1956,25 +1971,33 @@ function renderHandoff() {
     } : null
   };
 
-  const flags = [
-    state.tags.size ? `--tags ${[...state.tags].sort().join(",")}` : "",
-    state.section ? `--section ${state.section}` : "",
-    state.strict ? "--strict-section" : "",
-    state.internal ? "--include-internal" : ""
-  ].filter(Boolean).join(" ");
+  // One block, and it contains the selection: paste this whole thing into Claude and the
+  // reply is the file Stage 04 wants. Splitting the ask from its data is what made the
+  // old version of this panel easy to get wrong.
+  const askClaude =
+`Write the proposal plan for this bid.
 
-  const commands =
-`# Confirm this shortlist against the bank itself
-python skills/cm-proposal-generator/scripts/retrieve.py kb_index.json \\
-    ${flags || "--tags <add tags>"} --top 10
+Follow Stages 3 and 4 of the cm-proposal-generator skill and return one file,
+proposal_plan.json, valid against skills/cm-proposal-generator/schemas/proposal_plan.schema.json.
 
-# Then Stages 3-6 in the repo: plan, retrieve, build, QA
-python skills/cm-proposal-generator/scripts/render_pptx.py proposals/<run>/proposal_plan.json \\
-    proposal-assets/templates/pptx-generic/pptx-generic.potx -o proposals/<run>/proposal.pptx
-python skills/cm-proposal-generator/scripts/qa_deck.py proposals/<run>/rfp_brief.json \\
-    proposals/<run>/proposal_plan.json -o proposals/<run>/qa_report.md
-python skills/cm-proposal-generator/scripts/qa_pptx.py proposals/<run>/proposal.pptx \\
-    --original proposal-assets/templates/pptx-generic/pptx-generic.potx -o proposals/<run>/qa_pptx.md`;
+Rules, none of them negotiable:
+- Every block carries a non-empty "sources" array of knowledge-bank entry ids, OR
+  "gap": true with a "gap_note". There is no third state, and filler is never an
+  alternative to a gap.
+- Draw only on the entry ids listed under selected_entries. Nothing else has been
+  cleared for this bid.
+- ${state.internal
+    ? "Internal-only entries are in the list. They may inform the plan, but nothing from\n  them may be quoted onto a client-facing slide."
+    : "Internal-only entries were excluded and must not be reintroduced."}
+- No figure ships from an entry whose metrics are unverified. Where a number matters
+  and nothing verifies it, that is a gap.
+- "layout" values must exist in proposal-assets/templates/pptx-generic/template_profile.json.
+
+Every section under cm_scope.in_scope_sections is something the tender asks of change
+management, so each one needs an answer somewhere in the plan. Sections under
+reviewed_and_excluded were triaged as out of scope; leave them alone.
+
+${JSON.stringify(selection, null, 2)}`;
 
   const summary = [
     chosen.length ? `<b>${chosen.length}</b> retrievable entr${chosen.length === 1 ? "y" : "ies"}`
@@ -1991,26 +2014,32 @@ python skills/cm-proposal-generator/scripts/qa_pptx.py proposals/<run>/proposal.
       retrievable. Download them from the Airtable records listed in the file below.</li></ul>` : ""}
     ${warnings.length ? `<ul class="warnlist">${warnings.map(w =>
       `<li class="${w.risk ? "risk" : ""}">${w.text}</li>`).join("")}</ul>` : ""}
+    <p class="handoff-lead"><b>Stage 04 needs a different file.</b> What is below records
+      <i>which</i> evidence to draw on. A <code>proposal_plan.json</code> says what each
+      slide actually contains, and writing it is the one step here that takes judgement —
+      so it is Claude's. Copy the second block, paste it into Claude, and bring the
+      <code>proposal_plan.json</code> it returns back to Stage 04.</p>
     <div class="codeblock">
-      <div class="cap">selection.json
-        <button data-copy="sel">Copy</button></div>
+      <div class="cap">selection.json <span class="capnote">keep with the run</span>
+        <button data-copy="sel-json">Copy</button></div>
       <pre id="sel-json">${esc(JSON.stringify(selection, null, 2))}</pre>
     </div>
     <div class="codeblock">
-      <div class="cap">next commands
-        <button data-copy="cmd">Copy</button></div>
-      <pre id="cmd-block">${esc(commands)}</pre>
+      <div class="cap">ask Claude for the plan <span class="capnote">selection included —
+        paste the whole block</span>
+        <button data-copy="ask-block">Copy</button></div>
+      <pre id="ask-block">${esc(askClaude)}</pre>
     </div>`;
 
   host.querySelectorAll("button[data-copy]").forEach(btn => {
     btn.addEventListener("click", async () => {
-      const text = $(btn.dataset.copy === "sel" ? "sel-json" : "cmd-block").textContent;
+      const text = $(btn.dataset.copy).textContent;
       try {
         await navigator.clipboard.writeText(text);
         btn.textContent = "Copied";
       } catch {
         const range = document.createRange();
-        range.selectNodeContents($(btn.dataset.copy === "sel" ? "sel-json" : "cmd-block"));
+        range.selectNodeContents($(btn.dataset.copy));
         const sel = window.getSelection();
         sel.removeAllRanges(); sel.addRange(range);
         btn.textContent = "Selected — press ⌘C";
@@ -2044,13 +2073,40 @@ const TEMPLATE_BYTES = (() => {
 
 const build = { plan: null, brief: null, result: null };
 
+// examples/acme-erp — a plan that already answers a brief, gaps and all. Cloned on use
+// so a rebuild after "use a different plan" starts from the same bytes.
+const EXAMPLE_PLAN = JSON.parse($("example-plan").textContent);
+const EXAMPLE_BRIEF = JSON.parse($("example-brief").textContent);
+
 function planNotice(html) { $("plan-notice").innerHTML = `<div class="notice">${html}</div>`; }
+
+/* An error whose message is already HTML, so a diagnosis can point at a button. */
+class Misfiled extends Error {
+  constructor(html) { super(html.replace(/<[^>]*>/g, "")); this.html = html; }
+}
 
 function classifyJson(name, data) {
   if (Array.isArray(data.sections)) return "plan";
   if (Array.isArray(data.requirements)) return "brief";
-  throw new Error(`${name} is neither a proposal plan (needs "sections") nor an RFP brief `
-    + `(needs "requirements").`);
+
+  // The two files most likely to arrive here by mistake are the ones this page itself
+  // produced upstream. Saying which one it is beats listing the keys it lacks.
+  if (Array.isArray(data.selected_entries) || data.cm_scope !== undefined)
+    throw new Misfiled(`<b>That is the selection file from Stage 03, not the plan.</b>
+      They are two different files: <code>selection.json</code> records <i>which</i>
+      evidence to draw on, and <code>proposal_plan.json</code> says what each slide
+      actually contains. Copy the <b>ask Claude for the plan</b> block from Stage 03 —
+      it already carries the selection — paste it to Claude, and bring back the
+      <code>proposal_plan.json</code> it writes. To see this stage run right now, press
+      <b>Load the worked example</b>.`);
+  if (Array.isArray(data.crossRefs) || Array.isArray(data.counts) || data.verdicts)
+    throw new Misfiled(`<b>That looks like a triage file, not the plan.</b> Triage says
+      which parts of the tender concern change management; the plan says what the slides
+      answering them contain. Ask Claude for it with the Stage 03 block.`);
+
+  throw new Misfiled(`<b>${esc(name)} is neither a proposal plan nor an RFP brief.</b>
+    A plan has a <code>sections</code> array; a brief has a <code>requirements</code>
+    array. This has neither.`);
 }
 
 async function acceptJsonFiles(files) {
@@ -2059,7 +2115,7 @@ async function acceptJsonFiles(files) {
     try { data = JSON.parse(await file.text()); }
     catch (err) { planNotice(`<b>${esc(file.name)} is not valid JSON.</b> ${esc(err.message)}`); return; }
     try { build[classifyJson(file.name, data)] = data; }
-    catch (err) { planNotice(`<b>${esc(err.message)}</b>`); return; }
+    catch (err) { planNotice(err.html || `<b>${esc(err.message)}</b>`); return; }
   }
   if (!build.plan) { planNotice("<b>No proposal plan yet.</b> That file was the brief — add the plan too."); return; }
   await runBuild();
@@ -2173,6 +2229,7 @@ async function runBuild() {
   $("rebuild").addEventListener("click", () => {
     build.plan = build.brief = build.result = null;
     $("build-out").hidden = true;
+    $("plan-notice").innerHTML = "";
     $("plan-drop").hidden = false;
     $("stage4-aside").textContent = "Needs a proposal plan";
   });
@@ -2230,9 +2287,17 @@ $("plan-paste-run").addEventListener("click", async () => {
   let data;
   try { data = JSON.parse($("plan-text").value); }
   catch (err) { planNotice(`<b>That is not valid JSON.</b> ${esc(err.message)}`); return; }
-  try { build[classifyJson("the pasted text", data)] = data; }
-  catch (err) { planNotice(`<b>${esc(err.message)}</b>`); return; }
+  try { build[classifyJson("The pasted text", data)] = data; }
+  catch (err) { planNotice(err.html || `<b>${esc(err.message)}</b>`); return; }
   if (!build.plan) { planNotice("<b>That was the brief, not the plan.</b> Paste the plan too."); return; }
+  await runBuild();
+});
+
+// A plan and brief from the worked example, so the whole second half can be watched
+// working before there is a real plan to feed it.
+$("plan-example").addEventListener("click", async () => {
+  build.plan = JSON.parse(JSON.stringify(EXAMPLE_PLAN));
+  build.brief = JSON.parse(JSON.stringify(EXAMPLE_BRIEF));
   await runBuild();
 });
 

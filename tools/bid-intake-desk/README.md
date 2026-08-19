@@ -13,6 +13,17 @@ Only step 03 leaves the page. Writing the plan means extracting requirements ver
 naming sections the client's way, and adapting bank prose to this client — judgement, not
 computation. Everything either side of it is mechanical and runs here.
 
+The handoff is two files, and confusing them is the easiest mistake the page can invite.
+`selection.json` records *which* evidence to draw on; `proposal_plan.json` says what each
+slide actually contains. Stage 03 emits a single prompt block with the selection already
+inside it — paste that whole block into Claude, and what comes back is the file Stage 04
+wants. Stage 04 recognises a `selection.json` pasted into it by name and says so rather
+than reporting a missing key.
+
+Stage 04 also has **Load the worked example**, which runs `examples/acme-erp` through the
+renderer and the QA checks with no plan of your own. It is the fastest way to see what the
+second half does, and the fastest way to tell a broken plan from a broken page.
+
 ## The renderer is a port, and the Python is the reference
 
 `pptx.js` is a port of `skills/cm-proposal-generator/scripts/render_pptx.py`. Two
@@ -59,9 +70,9 @@ cannot be handed over there.
 python tools/bid-intake-desk/build.py
 ```
 
-Inlines the two sample tenders, `pptx.js`, the generic template as base64, and that
-template's profile — a strict CSP blocks every external host, so anything the page needs
-has to be in the page. Both Airtable tables are read live, so the knowledge bank is never
+Inlines the two sample tenders, the worked example's plan and brief, `pptx.js`, the
+generic template as base64, and that template's profile — a strict CSP blocks every
+external host, so anything the page needs has to be in the page. Both Airtable tables are read live, so the knowledge bank is never
 frozen into it.
 
 `index.src.html` is the source; `index.html` is the built artifact. Never edit

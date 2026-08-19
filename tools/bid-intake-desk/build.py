@@ -3,10 +3,11 @@
 
     python tools/bid-intake-desk/build.py
 
-Inlines four things the published page cannot fetch (a strict CSP blocks every external
-host): the two sample tenders, the in-browser .pptx renderer, the generic template as
-base64, and that template's profile. Both Airtable tables are read live through the
-viewer's own connector, so nothing about the knowledge bank is frozen into the page.
+Inlines five things the published page cannot fetch (a strict CSP blocks every external
+host): the two sample tenders, the worked example's plan and brief, the in-browser .pptx
+renderer, the generic template as base64, and that template's profile. Both Airtable
+tables are read live through the viewer's own connector, so nothing about the knowledge
+bank is frozen into the page.
 
 Re-run after editing index.src.html or pptx.js, then republish index.html.
 """
@@ -35,12 +36,18 @@ out = src
 for token, name, path in samples:
     out = out.replace(token, embed({"name": name, "text": path.read_text(encoding="utf-8")}))
 
+# The worked example, so Stage 04 can be watched running before a real plan exists.
+for token, path in (("__EXAMPLE_PLAN__", ROOT / "examples/acme-erp/proposal_plan.json"),
+                    ("__EXAMPLE_BRIEF__", ROOT / "examples/acme-erp/rfp_brief.json")):
+    out = out.replace(token, embed(json.loads(path.read_text(encoding="utf-8"))))
+
 out = out.replace("__PPTX_JS__", (HERE / "pptx.js").read_text(encoding="utf-8"))
 out = out.replace("__TEMPLATE_PROFILE__", embed(json.loads(PROFILE.read_text(encoding="utf-8"))))
 out = out.replace("__TEMPLATE_B64__", base64.b64encode(TEMPLATE.read_bytes()).decode("ascii"))
 
-left = [t for t in ("__SAMPLE_DOC__", "__SAMPLE_DOC_2__", "__PPTX_JS__",
-                    "__TEMPLATE_PROFILE__", "__TEMPLATE_B64__") if t in out]
+left = [t for t in ("__SAMPLE_DOC__", "__SAMPLE_DOC_2__", "__EXAMPLE_PLAN__",
+                    "__EXAMPLE_BRIEF__", "__PPTX_JS__", "__TEMPLATE_PROFILE__",
+                    "__TEMPLATE_B64__") if t in out]
 assert not left, f"unfilled placeholders: {left}"
 
 (HERE / "index.html").write_text(out, encoding="utf-8")
