@@ -193,23 +193,33 @@ Two rules regardless of where a method comes from:
 
 ## Stage 4 — Knowledge-bank retrieval
 
-The knowledge bank lives at `proposal-assets/knowledge-bank/` (or a path the practitioner
-gives). Build or refresh its index, then retrieve per section:
+The knowledge bank has two stores: Markdown under `proposal-assets/knowledge-bank/` (or a
+path the practitioner gives), and `CM Knowledge Bank → Content Library` in Airtable. Both
+fold into one index, and retrieval cannot tell them apart. Refresh, then retrieve per
+section:
 
 ```bash
-python scripts/index_kb.py proposal-assets/knowledge-bank -o proposals/<run>/kb_index.json
+export AIRTABLE_TOKEN=pat...    # read-only PAT; see reference/airtable-source.md
+python scripts/sync_airtable.py -o proposals/<run>/airtable_entries.json
+python scripts/index_kb.py proposal-assets/knowledge-bank \
+    --merge proposals/<run>/airtable_entries.json -o proposals/<run>/kb_index.json
 python scripts/retrieve.py proposals/<run>/kb_index.json --section methodology --tags erp,workday --top 5
 ```
+
+Without the sync, Stage 4 sees only the Markdown half — drop the first two lines and the
+`--merge` flag only when there is deliberately nothing in Content Library to read.
 
 Six sections are available: `methodology`, `case-studies`, `credentials`, `team`,
 `commercials`, `boilerplate`.
 
 **Past tenders and past decks are not among them — they are documents, and they live in
 Airtable** (`CM Knowledge Bank → Proposals and Tenders`). Nothing on a slide can cite a
-PDF. When a tender resembles one we have bid before, open that record, download what it
-holds, and run `ingest_source.py` to extract entries into the six sections above; carry
-`bid.outcome` across as you go, because language from a losing bid reads exactly as well
-as language from a winning one.
+PDF. When a tender resembles one we have bid before, pull that bid's deck down with
+`sync_airtable.py --fetch-attachments proposals/<run>/sources/` and run `ingest_source.py`
+on it to extract entries into the six sections above; carry `bid.outcome` across as you go,
+because language from a losing bid reads exactly as well as language from a winning one.
+The tenders themselves are skipped unless `--include-rfp` is passed — an RFP is the
+client's document, not ours to reuse.
 
 For each planned slide, pull candidate entries, choose what actually fits, and write the
 slide into `proposal_plan.json` with its `sources` — the KB entry IDs the content came

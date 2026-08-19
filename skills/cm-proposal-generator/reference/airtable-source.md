@@ -8,6 +8,8 @@ as Markdown in this folder.
 Whichever store an entry comes from, it has to arrive at retrieval as the same record —
 `kb_index.json` stays the one interchange format, and `retrieve.py` never learns where an
 entry came from. Anything else and the pipeline and the intake page rank different banks.
+`sync_airtable.py` is what keeps that true; see
+[Syncing Content Library into the pipeline](#syncing-content-library-into-the-pipeline).
 
 ## What the table actually holds
 
@@ -168,11 +170,42 @@ single-idea entries, verify the numbers, set clearance, then `index_kb.py`. An a
 is never a `source` in a `proposal_plan.json` — only the entry id that comes out the other
 end of this is.
 
-### Still to build
+### Syncing Content Library into the pipeline
 
-The **pipeline** does not yet read Content Library — `index_kb.py` reads Markdown, and
-`index_kb.py --merge` accepts a synced file that nothing currently writes. Until a fetcher
-exists, the intake page and Stage 4 see different banks. The merge format is documented
-above and the loader is tested; what is missing is the script that calls Airtable and
-writes it. This is a separate problem from the attachment flow above — Content Library
-holds already-extracted prose, not raw documents.
+`sync_airtable.py` is the fetcher `index_kb.py --merge` was written for. Without it the
+pipeline reads only Markdown, so `retrieve.py` cannot see a single Content Library row and
+Stage 4 ranks a different bank from the one the intake page shows.
+
+```bash
+export AIRTABLE_TOKEN=pat...
+python skills/cm-proposal-generator/scripts/sync_airtable.py -o airtable_entries.json
+python skills/cm-proposal-generator/scripts/index_kb.py proposal-assets/knowledge-bank \
+    --merge airtable_entries.json -o proposals/<run>/kb_index.json
+```
+
+The token is a read-only [personal access token](https://airtable.com/create/tokens) with
+`data.records:read` and `schema.bases:read`, granted to this base. It is read from the
+environment and never accepted as a flag, so it stays out of shell history.
+
+Both stores land in `kb_index.json` as the same kind of record — retrieval cannot tell
+them apart, which is the point. An Airtable-sourced entry shows its `record_url` where a
+Markdown one shows its path, so a shortlisted entry is one click from the row it came from.
+
+Three behaviours worth knowing:
+
+- **A blank Clearance is sent as `internal-only`, explicitly.** `build_record()` defaults an
+  *absent* clearance to `anonymised`; leaving the field off would make the pipeline quietly
+  more permissive than the page for exactly the rows nobody finished. The fetcher never
+  relies on that default.
+- **Rows are sent even when unusable.** A row with no Section is written to the merge file
+  and rejected by `index_kb.py`, which names it on stderr. The fetcher prints a count as a
+  courtesy but does not filter: two validators drift, so there is one.
+- **Field ids, not field names.** Renaming a column in the Airtable UI keeps its id, so the
+  bank survives a rename rather than silently emptying.
+
+`--fetch-attachments DIR` additionally downloads past-bid **decks** from Proposals and
+Tenders into `DIR`, ready for `ingest_source.py`. Tenders are skipped unless `--include-rfp`
+is passed, for the reason above: an RFP is the client's document, not ours to mine.
+
+`--from-file FILE` reads a saved API response instead of calling Airtable — for working
+offline, or checking a mapping without spending calls.
