@@ -664,6 +664,15 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
   padding: 4px 0;
 }
 .handoff-more > summary:hover { color: var(--ink-2); }
+.enhance-option { margin-top: 12px; }
+.enhance-option > summary {
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--seal);
+  font-weight: 500;
+  padding: 6px 0;
+}
+.enhance-option > summary:hover { color: var(--seal-ink); }
 .gapword {
   font-family: var(--mono);
   font-size: 12px;
@@ -3179,11 +3188,76 @@ async function handOffToBuild(chosen) {
   autoPlan = plan;
 
   const slides = plan.sections.reduce((n, s) => n + s.slides.length, 0);
+
+  // Prompt for enhancing the mechanical plan using PowerPoint building skills
+  const enhanceWithSkills =
+`Strengthen this proposal plan using slide-building skills.
+
+Start with this proposal_plan.json (assembled mechanically from the bank):
+
+${JSON.stringify(plan, null, 2)}
+
+Use these skills in sequence to enhance it:
+
+1. /outline-builder — Build a narrative arc across the proposal sections. Ensure the
+   sequence moves logically: situation → approach → outcomes → engagement. Each section's
+   slides should build on what came before, not stand alone. Return the refined structure.
+
+2. /hook-maker — Strengthen openings. For each major section, craft an opening slide that
+   hooks the client: reframe the tender's language, establish stakes, show why this matters.
+   Update section descriptions and opening slide copy accordingly.
+
+3. /visual-simplifier — Cut content ruthlessly. Every slide carrying body text should say
+   one idea clearly. If a point takes two slides, merge them or split to one-per-idea.
+   Remove jargon, specifics beat generics, numbers beat prose. Update slides and bullets.
+
+4. /slide-writer — Rewrite for the medium. Bullet points should be 60–80 characters.
+   Four bullets per slide maximum. Every number gets a unit and context. Every claim
+   cites its source_id from the original plan. Maintain the sources array of each block.
+
+Return the final proposal_plan.json, valid against skills/cm-proposal-generator/schemas/proposal_plan.schema.json.
+Rules:
+- Every block keeps its sources array (or gap: true with gap_note).
+- No internal-only entry text appears in blocks meant for client view.
+- Only knowledge-bank entries already listed above; no new ones.`;
+
   if (state03) state03.innerHTML =
     `<b>Plan assembled — ${slides} slides across ${plan.sections.length} sections.</b>
      Stage 04 has it already; nothing to copy. The deck below is built from the entries
      you picked, in their own words. Anything the bank could not cover is marked
-     <span class="gapword">[GAP]</span> rather than written for you.`;
+     <span class="gapword">[GAP]</span> rather than written for you.
+     <details class="enhance-option" style="margin-top: 12px;">
+       <summary>Strengthen with slide-building skills</summary>
+       <p style="margin: 12px 0 8px; font-size: 13px; color: var(--muted);">
+         Optional: Use /outline-builder, /hook-maker, /visual-simplifier, and /slide-writer
+         to enhance the assembled plan before building the deck.
+       </p>
+       <div class="codeblock">
+         <div class="cap">enhance with skills
+           <span class="capnote">optional — for narrative and slide discipline</span>
+           <button data-copy="enhance-block">Copy</button></div>
+         <pre id="enhance-block">${esc(enhanceWithSkills)}</pre>
+       </div>
+     </details>`;
+
+  // Add event listener for the copy button
+  const enhanceBtn = state03?.querySelector('[data-copy="enhance-block"]');
+  if (enhanceBtn) {
+    enhanceBtn.addEventListener("click", async () => {
+      const text = state03.querySelector("#enhance-block").textContent;
+      try {
+        await navigator.clipboard.writeText(text);
+        enhanceBtn.textContent = "Copied";
+      } catch {
+        const range = document.createRange();
+        range.selectNodeContents(state03.querySelector("#enhance-block"));
+        const sel = window.getSelection();
+        sel.removeAllRanges(); sel.addRange(range);
+        enhanceBtn.textContent = "Selected — press ⌘C";
+      }
+      setTimeout(() => { enhanceBtn.textContent = "Copy"; }, 2200);
+    });
+  }
 
   await runBuild();
 }

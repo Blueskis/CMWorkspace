@@ -54,9 +54,17 @@ part that isn't:
   since no knowledge-bank entry can know this client's situation.
 
 The result is a sourced first draft with a visible to-do list, not a finished bid. For
-prose actually adapted to the client, Stage 03 still keeps the old Claude prompt behind
-*The files this run produced* — paste it, and drop what comes back into Stage 04 to
-override the assembled plan.
+prose actually adapted to the client, Stage 03 provides two optional workflows:
+
+1. **Ask Claude for a written plan** — the original workflow, for full model-driven adaptation.
+2. **Strengthen with slide-building skills** — an optional multi-step enhancement:
+   - `/outline-builder` constructs narrative flow across sections
+   - `/hook-maker` opens each major section with client-facing stakes and relevance
+   - `/visual-simplifier` cuts ruthlessly: one idea per slide, short bullets, specifics over prose
+   - `/slide-writer` disciplines the wording: bullet constraints, unit clarity, source citations
+   
+   Paste the prompt, run the skills in sequence, and drop the enhanced plan back into Stage 04
+   to override the assembled version. The plan's sources array is preserved throughout.
 
 Content taken from the tender rather than the bank — cover text, the clause list — is
 attributed `tender:<filename>` rather than borrowing an unrelated entry id. It keeps the
