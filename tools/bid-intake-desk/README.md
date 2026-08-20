@@ -9,6 +9,26 @@ A browser front end for the whole pipeline except the one step that needs judgem
 04 Build the deck         .pptx + QA, in the browser, downloadable
 ```
 
+### Drafting entries from a past deck
+
+Stage 02 takes a `.pptx` or `.docx` and turns each slide into a candidate Content Library
+entry, so the bank can be filled by reviewing rather than typing.
+
+It cannot reach a deck that is *in* Airtable: attachments live on a host the artifact's CSP
+blocks, and the connector returns a URL, never bytes. Hand it the file and the same
+`unzip()` the tender reader uses handles it.
+
+What it will not do is decide, and that is deliberate — the same line `ingest_source.py`
+draws, for the same reasons. Candidates arrive `internal-only`, metrics unverified, with no
+section, and are refused entry to the bank until they have a section and at least one tag,
+because retrieval scopes by section and matches tags literally. Tags are suggested from the
+bank's own vocabulary, falling back to the CM lexicon when the bank is still empty. A
+draft's id follows its title until it is kept; after that it is the durable key a plan's
+`sources` cites.
+
+One slide is one candidate, which is a starting point rather than an answer — a case study
+spanning three slides wants merging, and the guide's one-idea-per-entry rule still applies.
+
 **Nothing leaves the page.** The only thing anyone types or uploads is the tender itself;
 picking entries in Stage 02 cascades through plan assembly and the build without a file
 changing hands.
