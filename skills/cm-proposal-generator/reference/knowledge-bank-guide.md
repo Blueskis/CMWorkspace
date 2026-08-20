@@ -21,12 +21,16 @@ hold the prose extracted from them, which is what Stage 4 actually writes slides
 `ingest_source.py` is the bridge, and it files entries by what the content **is** rather
 than which bid it came from. See `reference/airtable-source.md`.
 
-**How a past bid becomes entries.** A colleague adds the bid to Airtable and attaches its
-deck — that is the whole of what they do. Extraction is somebody else's job, and a
-deliberate one: `ingest_source.py` pulls the deck's text, the draft is split into
-single-idea entries, the three judgement fields are set, and the result is committed here.
-The intake page bakes this folder in at build time, so entries reach a deck only after that
-review, and only after a republish.
+**Where these entries come from.** Chiefly one curated deck — the best slides we have
+used, chosen by the people who used them, each tagged in its speaker notes. One slide
+becomes one entry, because the curator has already done the splitting that extraction
+cannot. See `reference/golden-deck.md`; `ingest_source.py --golden-deck` does the
+conversion.
+
+Individual past bids can still be mined one at a time with plain `ingest_source.py`, which
+drafts rather than files — a whole deck is a dozen ideas and its draft is a source to
+split. Either way the intake page bakes this folder in at build time, so entries reach a
+generated deck only after a rebuild and republish.
 
 One entry per Markdown file. The folder is the entry's `section`, which is how Stage 4
 retrieval scopes a query. Nested subfolders are allowed and don't affect the section.

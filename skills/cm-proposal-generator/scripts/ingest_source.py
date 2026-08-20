@@ -55,6 +55,9 @@ R_NS = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}"
 SECTIONS = ("methodology", "case-studies", "credentials", "team", "commercials",
             "boilerplate")
 
+# Placeholder types that hold slide furniture rather than anything worth reusing.
+FURNITURE = {"ftr", "sldNum", "dt"}
+
 
 def slug(value):
     return re.sub(r"-+", "-", re.sub(r"[^a-z0-9]+", "-", str(value).lower())).strip("-")
@@ -103,6 +106,11 @@ def read_pptx(path):
             title, lines = None, []
             for shape in root.iter(f"{P_NS}sp"):
                 ph = shape.find(f".//{P_NS}nvSpPr/{P_NS}nvPr/{P_NS}ph")
+                # Footers, slide numbers and dates are furniture, not content. Every slide
+                # carries them, so extracting them puts "Commercial in confidence · 7" in
+                # the body of every entry a deck produces.
+                if ph is not None and (ph.get("type") or "") in FURNITURE:
+                    continue
                 text = shape_lines(shape)
                 if not text:
                     continue
@@ -123,8 +131,10 @@ def read_pptx(path):
             notes_part = re.sub(r"notesSlideslide", "notesSlide", notes_part)
             notes = ""
             if notes_part in names:
-                notes = " ".join(
-                    t.text or "" for t in ET.fromstring(zf.read(notes_part)).iter(f"{A_NS}t")
+                # Per paragraph, not per run: the author's line breaks are the structure a
+                # tag block is written in, and joining runs with spaces destroys them.
+                notes = "\n".join(
+                    line for line in shape_lines(ET.fromstring(zf.read(notes_part)))
                 ).strip()
             slides.append((i, title, lines, notes))
     return slides
@@ -213,6 +223,141 @@ def frontmatter(entry_id, title, tags, section, source, args):
     return "---\n" + "\n".join(fields) + "\n---\n"
 
 
+# --- golden deck -----------------------------------------------------------
+
+NOTE_KEYS = "section|tags|clearance|metrics|outcome|client|title"
+TAG_LINE = re.compile(rf"^\s*({NOTE_KEYS})\s*:\s*(.+)$", re.I)
+NEXT_KEY = re.compile(rf"\s+(?:{NOTE_KEYS})\s*:", re.I)
+VERIFIED = {"verified", "true", "yes", "checked"}
+
+
+def parse_note_tags(notes):
+    """The `key: value` block a curator leaves in a slide's speaker notes.
+
+    Notes are the right place for this: invisible when presenting, per-slide, and already
+    extracted. Lines that are not recognised keys are left alone, so a curator can keep
+    writing ordinary speaker notes around the block.
+    """
+    found = {}
+    for line in str(notes or "").replace("\r", "\n").split("\n"):
+        match = TAG_LINE.match(line)
+        if not match:
+            continue
+        value = match.group(2)
+        cut = NEXT_KEY.search(value)
+        found[match.group(1).lower()] = value[:cut.start()].strip() if cut else value.strip()
+    return found
+
+
+def slide_entry(number, title, lines, notes, args):
+    """One curated slide as one entry, or a reason it cannot be.
+
+    The curator supplies what extraction cannot know. Where they said nothing, the
+    restrictive default stands rather than a guess — an entry that reaches a client deck
+    because a field was left blank is the failure these defaults exist to prevent.
+    """
+    meta = parse_note_tags(notes)
+    body = "\n\n".join(lines).strip()
+    title = meta.get("title") or title or f"Slide {number}"
+
+    section = (meta.get("section") or "").strip().lower()
+    if section not in SECTIONS:
+        return None, (f"slide {number} ({title[:40]}): "
+                      + (f"section '{section}' is not one of {', '.join(SECTIONS)}"
+                         if section else "no `section:` in its speaker notes"))
+    if not body:
+        return None, f"slide {number} ({title[:40]}): no body text to put on a slide"
+
+    tags = [t.strip().lower() for t in (meta.get("tags") or "").replace(";", ",").split(",")
+            if t.strip()]
+    if not tags:
+        tags = suggest_tags(f"{title} {body}")
+    clearance = (meta.get("clearance") or "").strip().lower()
+    outcome = (meta.get("outcome") or "").strip().lower()
+
+    return {
+        "id": slug(title)[:48] or f"slide-{number}",
+        "title": title,
+        "section": section,
+        "tags": tags,
+        "clearance": clearance if clearance in ("named", "anonymised", "internal-only")
+                     else args.clearance,
+        "metrics_verified": (meta.get("metrics") or "").strip().lower() in VERIFIED,
+        "outcome": outcome if outcome in ("won", "lost", "no-bid", "withdrawn", "pending",
+                                          "unknown") else args.outcome,
+        "client_ref": meta.get("client") or args.client_ref,
+        "body": body,
+    }, None
+
+
+def write_slide_entry(entry, bank_root, source, owner):
+    lines = [
+        f"id: {entry['id']}",
+        f"title: {entry['title']}",
+        f"tags: [{', '.join(entry['tags']) if entry['tags'] else 'REVIEW-add-tags'}]",
+        f"clearance: {entry['clearance']}",
+        f"last_reviewed: {date.today().isoformat()}",
+        f"metrics_verified: {'true' if entry['metrics_verified'] else 'false'}",
+        f"source_document: {source}",
+    ]
+    if owner:
+        lines.append(f"owner: {owner}")
+    if entry["outcome"] != "unknown" or entry["client_ref"]:
+        lines += ["bid:",
+                  f"  client_ref: {entry['client_ref'] or 'REVIEW-set-client-or-anonymised-handle'}",
+                  f"  outcome: {entry['outcome']}"]
+
+    out = bank_root / entry["section"] / f"{entry['id']}.md"
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text("---\n" + "\n".join(lines) + "\n---\n\n" + entry["body"] + "\n",
+                   encoding="utf-8")
+    return out
+
+
+def ingest_golden_deck(args):
+    """A curated deck, one entry per slide.
+
+    Splitting is the part extraction cannot do — a case study spanning three slides needs
+    merging and nothing mechanical can tell. A deck whose slides were chosen one by one has
+    already had that done by the person who chose them, so here one slide really is one
+    entry.
+    """
+    slides = read_pptx(args.source)
+    if not slides:
+        sys.exit(f"no slides found in {args.source}")
+
+    written, skipped, seen = [], [], set()
+    for number, title, lines, notes in slides:
+        entry, problem = slide_entry(number, title, lines, notes, args)
+        if problem:
+            skipped.append(problem)
+            continue
+        while entry["id"] in seen:
+            entry["id"] += "-2"
+        seen.add(entry["id"])
+        written.append((entry, write_slide_entry(entry, args.out, args.source, args.owner)))
+
+    print(f"{len(written)} entr{'y' if len(written) == 1 else 'ies'} written from "
+          f"{len(slides)} slide(s) in {args.source.name}")
+    for entry, path in written:
+        flags = [] if entry["clearance"] != "internal-only" else ["internal-only"]
+        if not entry["metrics_verified"]:
+            flags.append("metrics unverified")
+        print(f"  {entry['section']:<12} {path.name}"
+              + (f"   [{', '.join(flags)}]" if flags else ""))
+    for problem in skipped:
+        print(f"  SKIPPED {problem}", file=sys.stderr)
+
+    restricted = sum(1 for e, _ in written if e["clearance"] == "internal-only")
+    if restricted:
+        print(f"\n{restricted} of {len(written)} are internal-only and excluded from "
+              f"retrieval.\nAdd `clearance:` to those slides' notes, or set it in the "
+              f"frontmatter once someone has decided.")
+    print("Then: python index_kb.py proposal-assets/knowledge-bank -o kb_index.json, "
+          "and rebuild\nthe intake page so the entries reach a deck.")
+    return 1 if skipped else 0
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -236,7 +381,17 @@ def main():
                          "Airtable record rather than losing it in extraction")
     ap.add_argument("--client-ref", help="client name or anonymised handle")
     ap.add_argument("--owner", help="who maintains this entry")
+    ap.add_argument("--golden-deck", action="store_true",
+                    help="a curated deck: write one entry per slide into the bank, taking "
+                         "section, tags, clearance, metrics and outcome from each slide's "
+                         "speaker notes. -o is the bank root, not a file.")
     args = ap.parse_args()
+
+    if args.golden_deck:
+        if args.source.suffix.lower() != ".pptx":
+            sys.exit("--golden-deck reads a .pptx")
+        args.out = args.out or Path("proposal-assets/knowledge-bank")
+        return ingest_golden_deck(args)
 
     if not args.source.is_file():
         sys.exit(f"source not found: {args.source}")
