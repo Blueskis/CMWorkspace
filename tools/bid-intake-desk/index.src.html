@@ -903,13 +903,10 @@ pre {
       <div class="panel">
         <div class="bank-top">
           <span class="grow"><b class="src-title">Reusable content — what the deck is written from</b>
-            <span class="src-sub">Airtable · CM Knowledge Bank → Content Library.
+            <span class="src-sub">proposal-assets/knowledge-bank, built into this page.
               <span id="bank-caption"></span></span></span>
           <button class="quiet" id="select-top">Select top 5</button>
           <button class="quiet" id="clear-sel">Clear</button>
-          <button class="quiet" id="export-bank" disabled
-            title="Write airtable_entries.json — the file index_kb.py --merge reads">
-            Export for the pipeline</button>
         </div>
         <div id="bank"></div>
 
@@ -1006,6 +1003,7 @@ pre {
 const TEMPLATE_B64 = "__TEMPLATE_B64__";
 const TEMPLATE_PROFILE = JSON.parse(document.getElementById("template-profile").textContent);
 </script>
+<script type="application/json" id="repo-bank">__REPO_BANK__</script>
 <script type="application/json" id="example-plan">__EXAMPLE_PLAN__</script>
 <script type="application/json" id="example-brief">__EXAMPLE_BRIEF__</script>
 <script type="application/json" id="sample-doc">__SAMPLE_DOC__</script>
@@ -1390,9 +1388,8 @@ async function readDocument(file) {
 const state = {
   doc: null,          // { name, text, triage }
   tags: new Set(),
-  bank: { entries: [] },
+  bank: { entries: [] },   // seeded from REPO_BANK once that const exists, below
   drafts: [],         // candidates extracted from a dropped deck, not yet kept
-  library: { phase: "loading", failure: null },
   selected: new Set(),
   selectedProjects: new Set(),
   airtable: { phase: "loading", projects: [], failure: null },
@@ -1451,26 +1448,6 @@ const AIRTABLE = {
 };
 
 // The reusable prose the deck is written from. A row here is one idea, not one document.
-const LIBRARY = {
-  server: "Airtable",
-  tool: "list_records_for_table",
-  baseId: "appAi9h5mT0hPz5o2",
-  tableId: "tblf1nFLP3p30Fg3S",
-  where: "CM Knowledge Bank → Content Library",
-  field: {
-    title:     "fldcEZJuXYRIFIqNv",
-    entryId:   "fld2m3EQm558160ke",
-    section:   "fldbSZfbXGqpslVJT",
-    content:   "fldcYvk92SVj2PBAj",
-    tags:      "fldL5nPnkyJnwORhJ",
-    clearance: "fldqNYERgJLcny0DO",
-    reviewed:  "fldXwxfBJ9rOiWZsg",
-    verified:  "fldbX9JRc3DDKUfYN",
-    owner:     "fldvFL7gfs6SfdF0m",
-    outcome:   "fldTo1GfrCgUuBUbG"
-  }
-};
-
 const recordUrl = (table, id) => `https://airtable.com/${AIRTABLE.baseId}/${table}/${id}`;
 
 /* Airtable encodes a cell differently per field type — a select is an object, a
@@ -1503,55 +1480,38 @@ function cellNames(value) {
 
 const STALE_AFTER_DAYS = 730;
 
-function entryFrom(record) {
-  const cells = record.cellValuesByFieldId || record.fields || {};
-  const get = key => cells[LIBRARY.field[key]];
-  const reviewed = cellText(get("reviewed"));
-  const body = cellText(get("content"));
-  const tags = cellNames(get("tags")).map(t => t.toLowerCase());
-  const section = cellText(get("section"));
-
+/* The knowledge bank, baked in by build.py. A browser cannot read a git repository, and
+   the CSP blocks every host that might serve one — so entries are compiled into the page
+   and are fixed until the next publish. index_kb.py built and validated these records;
+   this only adds what the page needs on top, so a baked entry and one drafted from a deck
+   are indistinguishable to scoreEntry. */
+function repoEntryFrom(record) {
   return {
-    id: cellText(get("entryId")) || record.id,
-    title: cellText(get("title")) || "Untitled entry",
-    section,
-    tags,
-    // Airtable cannot set a single-select default through the API, so a blank Clearance
-    // is read as the most restrictive value rather than the most permissive. A row
-    // somebody has not finished must not be the row that reaches a client.
-    clearance: cellText(get("clearance")) || "internal-only",
-    metrics_verified: get("verified") === true,
-    last_reviewed: reviewed || null,
-    stale: reviewed
-      ? (Date.now() - Date.parse(reviewed)) / 86400000 > STALE_AFTER_DAYS
-      : false,
-    owner: cellText(get("owner")) || null,
-    bid: { outcome: cellText(get("outcome")) || null },
-    // The excerpt is what the row renders; the body is what the pipeline indexes from —
-    // index_kb.py derives excerpt and word_count itself, so a truncated one would index
-    // every entry as empty. Kept whole for the export below.
-    body,
-    excerpt: body.replace(/\s+/g, " ").trim().slice(0, 300),
-    record_url: recordUrl(LIBRARY.tableId, record.id),
-    path: null,
-    superseded: false,
-    // Retrieval scopes by section and matches on tags. A row missing either cannot be
-    // found at all, which looks identical to a row that does not exist.
-    incomplete: [!section && "Section", !tags.length && "Tags", !body && "Content"]
-      .filter(Boolean)
+    ...record,
+    bid: record.bid || { outcome: null },
+    body: record.body || "",
+    incomplete: [!record.section && "Section", !(record.tags || []).length && "Tags",
+                 !record.body && "Content"].filter(Boolean)
   };
 }
+
+const REPO_BANK = (JSON.parse(document.getElementById("repo-bank").textContent).entries || [])
+  .map(repoEntryFrom);
+
+// Copied, not shared: drafting adds entries to the bank for a run, and the baked records
+// are the one thing on the page that must read the same on every reload.
+state.bank.entries = REPO_BANK.map(entry => ({ ...entry }));
 
 const OUTCOMES = new Set(["won", "lost", "no-bid", "withdrawn", "pending", "unknown"]);
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 
-/* Tags, Outcome and Submitted were added to this table after its field ids were last
+/* Tags, Outcome and Submitted were added to the register after its field ids were last
    read here, so unlike the five columns above they cannot be matched by id — guessing an
    id would be worse than not reading the column at all. They are recognised by the shape
    of the value instead: a multipleSelects cell is an array of {name}, an Outcome is a
    single choice whose name is one of the six outcomes, and Submitted is the only ISO
    date. Inference only ever looks at columns no known id has claimed, so it cannot shadow
-   a field the page already reads, and every column it cannot place is simply left alone. */
+   a field the page already reads, and every column it cannot place is left alone. */
 function inferProjectFields(cells) {
   const claimed = new Set(Object.values(AIRTABLE.field));
   let tags = [], outcome = "", submitted = "";
@@ -1745,8 +1705,7 @@ async function initAirtable() {
       detail: "Both panels read from your own Airtable connector. Reading a tender and "
             + "its triage still works without it.", code: "", hard: false };
     state.airtable = { phase: "unavailable", projects: [], failure };
-    state.library = { phase: "unavailable", failure };
-    renderAirtable(); renderBank();
+    renderAirtable();
     return;
   }
 
@@ -1757,10 +1716,6 @@ async function initAirtable() {
     const server = servers.find(s => s.server === AIRTABLE.server);
     if (!server) {
       const names = servers.map(s => s.server).filter(Boolean);
-      state.library = { phase: "error", failure: { title: "No Airtable connector for this viewer",
-        detail: "Add Airtable in claude.ai Settings → Connectors, then reload.",
-        code: "server_not_connected", hard: true } };
-      renderBank();
       state.airtable = { phase: "error", projects: [], failure: {
         title: "No Airtable connector for this viewer",
         detail: names.length
@@ -1783,40 +1738,12 @@ async function initAirtable() {
     }
   } catch (err) {
     state.airtable = { phase: "error", projects: [], failure: mcpFailure(err) };
-    state.library = { phase: "error", failure: mcpFailure(err) };
-    renderAirtable(); renderBank();
+    renderAirtable();
     return;
   }
 
   state.airtable.phase = "loading";
-  state.library.phase = "loading";
   renderAirtable();
-  renderBank();
-
-  state.libraryStop = mcp.watchTool(
-    LIBRARY.server, LIBRARY.tool,
-    { baseId: LIBRARY.baseId, tableId: LIBRARY.tableId, pageSize: 200 },
-    ev => {
-      if (ev.type === "error") {
-        const failure = mcpFailure(ev.error);
-        if (!failure.hard && state.bank.entries.length) return;  // keep last good
-        state.library = { phase: "error", failure };
-        state.bank = { entries: [] };
-        state.selected.clear();
-        fillSections(); renderBank(); renderTags(); renderHandoff();
-        return;
-      }
-      const records = (ev.result?.payload?.records) || [];
-      state.bank = { entries: records.map(entryFrom) };
-      state.library = { phase: "ready", failure: null };
-      // Seeding runs once the vocabulary exists: before the table loads there are no
-      // tags to match a tender against.
-      if (state.doc && !state.tags.size)
-        bankTagsIn(state.doc.text, state.bank).forEach(t => state.tags.add(t));
-      fillSections(); renderTags(); renderBank(); renderHandoff();
-    },
-    { refetchInterval: 60000 }
-  );
 
   state.airtableStop = mcp.watchTool(
     AIRTABLE.server, AIRTABLE.tool,
@@ -2123,90 +2050,16 @@ async function acceptDraftFile(file) {
   renderDrafts();
 }
 
-/* =================================================================
-   Export the bank for the pipeline.
-
-   sync_airtable.py writes this same file from the REST API, but a
-   container that cannot reach api.airtable.com — or a viewer with no
-   token — still has one working Airtable connection: this page, through
-   the reader's own connector. So the page can produce the merge file
-   itself. The shape is a mirror of sync_airtable.py's output; if the two
-   ever disagree, the Python is the reference, exactly as with the
-   renderer.
-   ================================================================= */
-
-function libraryMergeFile() {
-  return {
-    source: "airtable:content-library",
-    base: LIBRARY.baseId,
-    table: LIBRARY.tableId,
-    fetched: new Date().toISOString().replace(/\.\d+Z$/, "+00:00"),
-    // Every row, not the selection: this syncs the bank, it does not choose from it.
-    // Rows missing a section or tags go too — index_kb.py is the one validator, and it
-    // names what it rejects rather than letting a row vanish silently.
-    entries: state.bank.entries.map(e => {
-      const entry = {
-        id: e.id,
-        title: e.title,
-        section: e.section,
-        tags: e.tags,
-        clearance: e.clearance,
-        metrics_verified: e.metrics_verified,
-        last_reviewed: e.last_reviewed,
-        owner: e.owner,
-        body: e.body,
-        record_url: e.record_url
-      };
-      // Only when there is an outcome to carry, matching sync_airtable.py: build_record()
-      // warns about a bid block with no outcome, and most entries never came from a bid.
-      if (e.bid && e.bid.outcome) entry.bid = { outcome: e.bid.outcome };
-      return entry;
-    })
-  };
-}
-
-async function exportBank() {
-  const button = $("export-bank");
-  const text = JSON.stringify(libraryMergeFile(), null, 2);
-  const say = label => { button.textContent = label;
-    setTimeout(() => { button.textContent = "Export for the pipeline"; }, 3200); };
-
-  const downloads = await window.claude?.use?.("downloads").catch(() => null);
-  if (downloads) {
-    try {
-      await downloads.save({ filename: "airtable_entries.json",
-        data: new Blob([text], { type: "application/json" }) });
-      say("Saved");
-      return;
-    } catch (err) {
-      // A declined save is a decision, not a failure — don't paper over it with a copy.
-      if (err && err.code === "declined") { say("Save cancelled"); return; }
-    }
-  }
-  try {
-    await navigator.clipboard.writeText(text);
-    say("Copied instead — paste it into a file");
-  } catch {
-    say("Could not export here");
-  }
-}
-
 function renderBank() {
   const host = $("bank");
-  if (state.library.phase !== "ready") {
-    const f = state.library.failure;
-    host.innerHTML = state.library.phase === "loading"
-      ? `<div class="mcp-state">Reading ${esc(LIBRARY.where)}…</div>`
-      : `<div class="mcp-state ${f && f.hard ? "bad" : "warn"}">
-           <b>${esc((f && f.title) || "Content Library unavailable")}</b>
-           ${esc((f && f.detail) || "")}</div>`;
-    $("bank-caption").textContent = state.library.phase === "loading"
-      ? "reading…" : "unavailable";
+  if (!state.bank.entries.length) {
+    host.innerHTML = `<div class="mcp-state warn"><b>The knowledge bank is empty</b>
+      Add entries under <code>proposal-assets/knowledge-bank/</code> and rebuild, or draft
+      some from a past deck below.</div>`;
+    $("bank-caption").textContent = "empty";
     $("stage2-aside").textContent = `${state.selected.size} selected`;
-    $("export-bank").disabled = true;
     return;
   }
-  $("export-bank").disabled = state.bank.entries.length === 0;
 
   const entries = visibleEntries();
   const ranking = state.tags.size > 0;
@@ -3162,7 +3015,6 @@ $("select-top").addEventListener("click", () => {
 $("clear-sel").addEventListener("click", () => {
   state.selected.clear(); renderBank(); renderHandoff();
 });
-$("export-bank").addEventListener("click", exportBank);
 
 const draftDrop = $("draft-drop");
 ["dragenter", "dragover"].forEach(ev => draftDrop.addEventListener(ev, e => {

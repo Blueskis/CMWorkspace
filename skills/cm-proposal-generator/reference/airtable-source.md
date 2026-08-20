@@ -7,9 +7,7 @@ as Markdown in this folder.
 
 Whichever store an entry comes from, it has to arrive at retrieval as the same record —
 `kb_index.json` stays the one interchange format, and `retrieve.py` never learns where an
-entry came from. Anything else and the pipeline and the intake page rank different banks.
-`sync_airtable.py` is what keeps that true; see
-[Syncing Content Library into the pipeline](#syncing-content-library-into-the-pipeline).
+entry came from.
 
 ## What the table actually holds
 
@@ -32,20 +30,22 @@ are needed — the register tells you which past bid resembles this one, and
 
 ## What the register is for
 
-One question, which Content Library structurally cannot answer: **have we bid something
+One question the prose bank structurally cannot answer: **have we bid something
 like this before, and how did it go?** An entry is an idea; only the register knows about
 bids. Stage 02 ranks past projects against the tender and orders them most-similar-first,
 so the answer points at a specific deck worth mining.
 
-Everything after that is manual by necessity: the page cannot read an attachment out of
-Airtable — the files live on a host the artifact's CSP blocks — so the deck is downloaded
-from the record and dropped into *Draft entries from a past deck*, which does read it.
+Neither the page nor the pipeline can read an attachment straight out of Airtable — the
+files live on a host the artifact's CSP blocks, and this environment's network policy
+blocks the same hosts. Closing that gap is what `sync_airtable.py --fetch-attachments`
+does once those hosts are allowlisted; until then the deck is downloaded by hand and
+dropped into *Draft entries from a past deck*, which does read it.
 
 Three columns carry the ranking:
 
 | Field | Type | What it does |
 |---|---|---|
-| Tags | Multiple select | +3 per tag shared with the tender. The only thing matched on; without it rows can only be ordered by name. Use the same vocabulary as Content Library — matching is literal. |
+| Tags | Multiple select | +3 per tag shared with the tender. The only thing matched on; without it rows can only be ordered by name. Use the same vocabulary as the knowledge bank — matching is literal. |
 | Outcome | Single select — `won`, `lost`, `no-bid`, `withdrawn`, `pending`, `unknown` | ±2. A won bid is worth mining ahead of a lost one, but only just: a lost bid on the same subject still outranks a won one on a different subject. |
 | Submitted | Date | −2 beyond 24 months, so an old bid is surfaced as old rather than quietly reused. |
 
@@ -55,46 +55,6 @@ here, and guessing an id would be worse than not reading the column. So Tags is 
 as the multiple-select, Outcome as the single choice whose name is one of the six, and
 Submitted as the only ISO date — looking only at columns no known id has claimed. Rename
 them freely; retype them and the page stops seeing them.
-
-## Fields for entries extracted from those documents
-
-If extracted entries are kept in Airtable too rather than as Markdown, this is the shape
-they need. The first five are required — an entry missing any of them cannot be indexed.
-
-| Airtable field | Type | Maps to | Required |
-|---|---|---|---|
-| Entry ID | Single line text | `id` | ✓ |
-| Title | Single line text | `title` | ✓ |
-| Section | Single select — `past-rfps`, `presentations` | `section` | ✓ |
-| Content | Long text | the retrievable body | ✓ |
-| Tags | Multiple select | `tags` | ✓ |
-| Last reviewed | Date | `last_reviewed` | ✓ |
-| Clearance | Single select — `internal-only`, `anonymised`, `named` | `clearance` | |
-| Metrics verified | Checkbox | `metrics_verified` | |
-| Owner | Collaborator or single line text | `owner` | |
-| Supersedes | Link to another record (same table) | `supersedes` | |
-| Source document | Attachment | `source_document` | |
-| Client | Single line text | `bid.client_ref` | |
-| Sector | Single line text | `bid.sector` | |
-| Submitted | Date | `bid.submitted` | |
-| Outcome | Single select — `won`, `lost`, `no-bid`, `withdrawn`, `pending`, `unknown` | `bid.outcome` | |
-| Outcome notes | Long text | `bid.outcome_notes` | |
-| Sections that scored | Long text | `bid.sections_that_scored` | |
-
-## Three field defaults that carry the safety properties
-
-These are not cosmetic. Each one is a guard that exists because the alternative has a
-specific, expensive failure mode.
-
-- **Clearance defaults to `internal-only`.** Retrieval excludes internal-only entries, so
-  a record added in a hurry cannot reach a client deck before somebody has checked whether
-  the last client agreed to be named. Set the default in Airtable, not by convention.
-- **Metrics verified defaults to off.** A number in a past proposal was true of *that*
-  engagement on the day it was written. Carrying it into a new bid is a fresh claim, made
-  by a person.
-- **Outcome defaults to `unknown`, never `won`.** Language from a losing bid reads exactly
-  as well as language from a winning one. `unknown` is a usable value; a wrong `won` is
-  the reason this column exists.
 
 ## Tags must match the rest of the bank
 
@@ -134,27 +94,15 @@ against the table schema, not assumed. What that unblocks and what it doesn't is
 
 `CM Knowledge Bank` now holds both halves, and the split is what makes the generator work.
 
-| Table | Id | One row is | Feeds |
+| Store | Where | One record is | Who maintains it |
 |---|---|---|---|
-| Proposals and Tenders | `tblxQyGlAV81vz3ES` | A past bid: tender PDF, proposal deck, location, price | Source material to mine |
-| Content Library | `tblf1nFLP3p30Fg3S` | One reusable idea, in prose | The slides themselves |
+| Proposals and Tenders | Airtable `tblxQyGlAV81vz3ES` | A past bid: tender, deck, outcome, price | Anyone — drop a file in |
+| Knowledge bank | `proposal-assets/knowledge-bank/` | One reusable idea, in prose | Extracted from those bids, then reviewed |
 
-**Content Library fields.** Title (primary), Entry ID, Section, Content, Tags, Clearance,
-Last reviewed, Metrics verified, Owner, Source project (linked to Proposals and Tenders),
-Bid outcome.
-
-### Two behaviours worth knowing
-
-**A blank Clearance is read as `internal-only`.** Airtable's API cannot set a default on a
-single-select, so the intake page treats an empty cell as the most restrictive value
-rather than the most permissive. A row somebody started and did not finish is excluded
-from retrieval instead of being offered to a client. Set the field default to
-`internal-only` in the Airtable UI as well, so the grid shows what the pipeline assumes.
-
-**A row missing Section, Tags or Content is flagged, not dropped.** Retrieval scopes by
-section and matches tags literally, so a row without them cannot be found — which looks
-exactly like a row that does not exist. The page counts them and labels each one rather
-than letting them disappear.
+**Content Library has been removed.** Asking colleagues to type prose into a spreadsheet is
+the effort this pipeline exists to avoid; contributing a past bid should be dropping a file
+into a record and nothing more. The prose now lives in the repo as Markdown, extracted from
+those documents rather than retyped, version-controlled and reviewable.
 
 ### Pulling a document out of an attachment
 
@@ -185,55 +133,3 @@ single-idea entries, verify the numbers, set clearance, then `index_kb.py`. An a
 is never a `source` in a `proposal_plan.json` — only the entry id that comes out the other
 end of this is.
 
-### Syncing Content Library into the pipeline
-
-`sync_airtable.py` is the fetcher `index_kb.py --merge` was written for. Without it the
-pipeline reads only Markdown, so `retrieve.py` cannot see a single Content Library row and
-Stage 4 ranks a different bank from the one the intake page shows.
-
-```bash
-export AIRTABLE_TOKEN=pat...
-python skills/cm-proposal-generator/scripts/sync_airtable.py -o airtable_entries.json
-python skills/cm-proposal-generator/scripts/index_kb.py proposal-assets/knowledge-bank \
-    --merge airtable_entries.json -o proposals/<run>/kb_index.json
-```
-
-The token is a read-only [personal access token](https://airtable.com/create/tokens) with
-`data.records:read` and `schema.bases:read`, granted to this base. It is read from the
-environment and never accepted as a flag, so it stays out of shell history.
-
-Both stores land in `kb_index.json` as the same kind of record — retrieval cannot tell
-them apart, which is the point. An Airtable-sourced entry shows its `record_url` where a
-Markdown one shows its path, so a shortlisted entry is one click from the row it came from.
-
-Three behaviours worth knowing:
-
-- **A blank Clearance is sent as `internal-only`, explicitly.** `build_record()` defaults an
-  *absent* clearance to `anonymised`; leaving the field off would make the pipeline quietly
-  more permissive than the page for exactly the rows nobody finished. The fetcher never
-  relies on that default.
-- **Rows are sent even when unusable.** A row with no Section is written to the merge file
-  and rejected by `index_kb.py`, which names it on stderr. The fetcher prints a count as a
-  courtesy but does not filter: two validators drift, so there is one.
-- **Field ids, not field names.** Renaming a column in the Airtable UI keeps its id, so the
-  bank survives a rename rather than silently emptying.
-
-`--fetch-attachments DIR` additionally downloads past-bid **decks** from Proposals and
-Tenders into `DIR`, ready for `ingest_source.py`. Tenders are skipped unless `--include-rfp`
-is passed, for the reason above: an RFP is the client's document, not ours to mine.
-
-`--from-file FILE` reads a saved API response instead of calling Airtable — for working
-offline, or checking a mapping without spending calls.
-
-### When the script cannot reach Airtable
-
-`api.airtable.com` is not reachable from every environment — a sandbox may deny the host
-outright, and a session without a token cannot authenticate anyway. The intake page is the
-fallback, because it reads the table through the *reader's own* connector rather than over
-the network: open it, let Content Library load, and press **Export for the pipeline** in
-Stage 02. That writes `airtable_entries.json` — the same file `sync_airtable.py` produces,
-from the same rows — and `index_kb.py --merge` takes it unchanged.
-
-The two implementations are held together the way the renderer is: run the same records
-through both and the entries must match field for field. `sync_airtable.py` is the
-reference if they ever disagree.

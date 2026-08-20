@@ -21,9 +21,12 @@ hold the prose extracted from them, which is what Stage 4 actually writes slides
 `ingest_source.py` is the bridge, and it files entries by what the content **is** rather
 than which bid it came from. See `reference/airtable-source.md`.
 
-Prose entries can also live in Airtable, in `CM Knowledge Bank → Content Library`.
-`sync_airtable.py` folds those into the same index, so an entry ranks the same whichever
-store it came from — see [Refreshing the index](#refreshing-the-index) below.
+**How a past bid becomes entries.** A colleague adds the bid to Airtable and attaches its
+deck — that is the whole of what they do. Extraction is somebody else's job, and a
+deliberate one: `ingest_source.py` pulls the deck's text, the draft is split into
+single-idea entries, the three judgement fields are set, and the result is committed here.
+The intake page bakes this folder in at build time, so entries reach a deck only after that
+review, and only after a republish.
 
 One entry per Markdown file. The folder is the entry's `section`, which is how Stage 4
 retrieval scopes a query. Nested subfolders are allowed and don't affect the section.
@@ -142,18 +145,16 @@ content produces generic slides, which is the failure mode evaluators punish har
 
 ## Refreshing the index
 
-Retrieval reads `kb_index.json`, never the files or the table. Rebuild it whenever either
-store changes — the Airtable step first, so both halves land in one index:
+Retrieval reads `kb_index.json`, never the files. Rebuild it whenever the bank changes:
 
 ```bash
-export AIRTABLE_TOKEN=pat...    # read-only PAT; see reference/airtable-source.md
-python skills/cm-proposal-generator/scripts/sync_airtable.py -o airtable_entries.json
 python skills/cm-proposal-generator/scripts/index_kb.py proposal-assets/knowledge-bank \
-    --merge airtable_entries.json -o proposals/<run>/kb_index.json
+    -o proposals/<run>/kb_index.json
 ```
 
-Drop the first command and the `--merge` flag to index the Markdown bank alone — useful,
-but Stage 4 will then be blind to everything in Content Library. `index_kb.py` exits
+The intake page needs the same records with their bodies, which `build.py` produces via
+`--with-body` — an excerpt is enough to rank an entry but not to put its prose on a slide.
+`index_kb.py` exits
 non-zero when any entry fails to index; that is a report to read, not a failure to ignore,
 because an entry that does not index is invisible to retrieval and surfaces later as an
 unexplained `[GAP]`.

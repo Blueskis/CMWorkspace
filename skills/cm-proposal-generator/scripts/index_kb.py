@@ -90,7 +90,7 @@ def _as_date(value):
     return datetime.strptime(str(value), "%Y-%m-%d").date()
 
 
-def build_record(fm, body, *, section, location, source, record_url=None):
+def build_record(fm, body, *, section, location, source, record_url=None, with_body=False):
     """One index record, from a Markdown entry's frontmatter or an Airtable row alike.
 
     Both stores answer to the same required fields and the same warnings, because
@@ -126,7 +126,7 @@ def build_record(fm, body, *, section, location, source, record_url=None):
     if section in AIRTABLE_SECTIONS and not bid:
         warnings.append(f"{section} entry has no bid block — outcome unknown to retrieval")
 
-    return {
+    record = {
         "id": str(fm["id"]),
         "title": str(fm["title"]),
         "section": section,
@@ -146,17 +146,24 @@ def build_record(fm, body, *, section, location, source, record_url=None):
         "excerpt": " ".join(body.split())[:300],
         "warnings": warnings,
     }
+    # Retrieval only ever needs the excerpt — it ranks entries and the practitioner reads
+    # the file. A renderer does not have the file: it puts the entry's own prose on a
+    # slide, so it needs the whole body or it puts nothing there at all.
+    if with_body:
+        record["body"] = body
+    return record
 
 
-def index_entry(path, bank_root):
+def index_entry(path, bank_root, *, with_body=False):
     """Build one index record from a Markdown file."""
     fm, body = parse_frontmatter(path.read_text(encoding="utf-8"))
     rel = path.relative_to(bank_root)
     section = fm.get("section") or (rel.parts[0] if len(rel.parts) > 1 else "uncategorised")
-    return build_record(fm, body, section=section, location=str(rel), source="markdown")
+    return build_record(fm, body, section=section, location=str(rel), source="markdown",
+                        with_body=with_body)
 
 
-def load_merge(path):
+def load_merge(path, *, with_body=False):
     """Read a synced store into index records.
 
     The file is a list of entries already in this pipeline's own field names — mapping
@@ -177,7 +184,7 @@ def load_merge(path):
         try:
             records.append(build_record(
                 raw, body, section=section, location=where, source=source,
-                record_url=raw.get("record_url")))
+                record_url=raw.get("record_url"), with_body=with_body))
         except (ValueError, KeyError) as exc:
             errors.append({"path": where, "error": str(exc)})
     return records, errors, data
@@ -187,6 +194,10 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("bank_root", type=Path)
     ap.add_argument("-o", "--out", type=Path, default=Path("kb_index.json"))
+    ap.add_argument("--with-body", action="store_true",
+                    help="include each entry's full body. Off by default: retrieval only "
+                         "needs the excerpt, but a renderer that puts entry prose on a "
+                         "slide needs the whole thing.")
     ap.add_argument("--merge", type=Path, action="append", default=[],
                     metavar="FILE",
                     help="a synced store of entries to fold in, in this pipeline's own "
@@ -201,7 +212,7 @@ def main():
         if path.name.upper() in ("README.MD",):
             continue
         try:
-            entry = index_entry(path, args.bank_root)
+            entry = index_entry(path, args.bank_root, with_body=args.with_body)
         except (ValueError, KeyError) as exc:
             errors.append({"path": str(path), "error": str(exc)})
             continue
@@ -217,7 +228,7 @@ def main():
     for merge_path in args.merge:
         if not merge_path.is_file():
             sys.exit(f"merge file not found: {merge_path}")
-        records, merge_errors, meta = load_merge(merge_path)
+        records, merge_errors, meta = load_merge(merge_path, with_body=args.with_body)
         errors.extend(merge_errors)
         merged_from.append({k: meta.get(k) for k in ("source", "base", "table", "fetched")
                             if meta.get(k)})

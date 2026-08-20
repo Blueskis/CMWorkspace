@@ -1,22 +1,22 @@
 #!/usr/bin/env python3
-"""Pull the Airtable half of the knowledge bank into a file index_kb.py can merge.
+"""Download past-bid decks from Airtable, so they can be turned into bank entries.
 
     export AIRTABLE_TOKEN=pat...
-    python sync_airtable.py -o airtable_entries.json
-    python index_kb.py proposal-assets/knowledge-bank \\
-        --merge airtable_entries.json -o proposals/<run>/kb_index.json
+    python sync_airtable.py --out-dir proposals/sources
+    python ingest_source.py proposals/sources/<deck>.pptx \\
+        -o proposal-assets/knowledge-bank/methodology/<entry>.md --outcome won
 
-`CM Knowledge Bank -> Content Library` holds reusable prose; the Markdown folders hold the
-rest. Retrieval must not be able to tell them apart, so this writes the same field names
-`build_record()` reads and lets `index_kb.py` do the validating. Two validators drift.
+This is the one manual link in an otherwise hands-off contribution path. A colleague adds
+a bid to `CM Knowledge Bank -> Proposals and Tenders` and attaches its deck — that is all
+they do. Neither the intake page nor the pipeline can read that attachment on its own: the
+files sit on a host the artifact's CSP blocks, and a sandboxed environment usually blocks
+the same hosts at the proxy. Given network access and a token, this closes that gap.
 
-Without this, `retrieve.py` cannot see a single Airtable row: the intake page reads the
-table live through the viewer's connector, the pipeline reads Markdown, and the two rank
-different banks. That gap is what this closes.
+Decks only by default. An RFP is the client's own tender: useful for judging how closely a
+past bid resembles the current one, never a source to draft our content from.
 
-`--fetch-attachments` additionally downloads past-bid **decks** from
-`Proposals and Tenders`, so `ingest_source.py` has something local to extract. Tenders are
-skipped unless asked for: an RFP is the client's document, not ours to mine.
+What comes out is drafting material, not entries. `ingest_source.py` extracts, a person
+splits and clears, and only then does `index_kb.py` see it.
 
 Stdlib only, like every other script here. Airtable's REST API is plain JSON over HTTPS.
 """
@@ -29,33 +29,16 @@ import sys
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timezone
 from pathlib import Path
 
 API_ROOT = "https://api.airtable.com/v0"
 TOKEN_ENV = "AIRTABLE_TOKEN"
 
 BASE_ID = "appAi9h5mT0hPz5o2"
-CONTENT_LIBRARY = "tblf1nFLP3p30Fg3S"
 PROPOSALS_AND_TENDERS = "tblxQyGlAV81vz3ES"
 
-# Field ids, not field names. A column renamed in the Airtable UI keeps its id, so the
-# bank survives a rename; matching on names would empty it silently instead.
-# Mirrors LIBRARY.field in tools/bid-intake-desk/index.src.html.
-LIBRARY_FIELD = {
-    "title":     "fldcEZJuXYRIFIqNv",
-    "entry_id":  "fld2m3EQm558160ke",
-    "section":   "fldbSZfbXGqpslVJT",
-    "content":   "fldcYvk92SVj2PBAj",
-    "tags":      "fldL5nPnkyJnwORhJ",
-    "clearance": "fldqNYERgJLcny0DO",
-    "reviewed":  "fldXwxfBJ9rOiWZsg",
-    "verified":  "fldbX9JRc3DDKUfYN",
-    "owner":     "fldvFL7gfs6SfdF0m",
-    "outcome":   "fldTo1GfrCgUuBUbG",
-}
-
-# Mirrors AIRTABLE.field in the same file.
+# Field ids, not field names: a column renamed in the Airtable UI keeps its id, so the
+# register survives a rename. Mirrors AIRTABLE.field in tools/bid-intake-desk/index.src.html.
 REGISTER_FIELD = {
     "name":     "fld2pcQSSx8pxXaGi",
     "location": "fldAICNuwryB6il5R",
@@ -131,7 +114,7 @@ def token_or_exit():
 def fetch_records(base, table, token):
     """Every record in a table, following Airtable's offset pagination.
 
-    returnFieldsByFieldId keeps the response keyed the way LIBRARY_FIELD expects.
+    returnFieldsByFieldId keeps the response keyed the way REGISTER_FIELD expects.
     """
     records, offset = [], None
     while True:
@@ -181,62 +164,6 @@ def load_saved(path):
     sys.exit(f"{path} is not an Airtable response or a list of records")
 
 
-# --- mapping ---------------------------------------------------------------
-
-
-def entry_from(record):
-    """One Content Library row in the field names build_record() reads.
-
-    A port of entryFrom() in the intake page, with three deliberate differences the
-    merge contract requires — see the module notes and the comments below.
-    """
-    cells = record.get("fields") or record.get("cellValuesByFieldId") or {}
-    get = lambda key: cells.get(LIBRARY_FIELD[key])  # noqa: E731
-
-    reviewed = cell_text(get("reviewed"))
-    # The full Content cell, not a truncated excerpt: build_record() derives both excerpt
-    # and word_count from `body`, so sending the page's 300-char excerpt would index every
-    # entry as empty and nought words long.
-    body = cell_text(get("content"))
-
-    entry = {
-        "id": cell_text(get("entry_id")) or record.get("id"),
-        "title": cell_text(get("title")) or "Untitled entry",
-        "section": cell_text(get("section")),
-        "tags": [t.lower() for t in cell_names(get("tags"))],
-        # Airtable's API cannot set a default on a single select, so a blank Clearance is
-        # read as the most restrictive value. Always sent explicitly: build_record()
-        # defaults an absent clearance to "anonymised", which would leave the pipeline
-        # quietly more permissive than the page for exactly the rows nobody finished.
-        "clearance": cell_text(get("clearance")) or "internal-only",
-        "metrics_verified": get("verified") is True,
-        "last_reviewed": reviewed or None,
-        "owner": cell_text(get("owner")) or None,
-        "body": body,
-        "record_url": f"https://airtable.com/{BASE_ID}/{CONTENT_LIBRARY}/{record.get('id')}",
-    }
-
-    # Only when there is an outcome to carry. build_record() warns about a bid block with
-    # no outcome, and most entries — boilerplate, team bios — never came from a bid at all.
-    outcome = cell_text(get("outcome"))
-    if outcome:
-        entry["bid"] = {"outcome": outcome}
-    return entry
-
-
-def incomplete_reasons(entry):
-    """What would stop this row being retrievable, in the page's own words.
-
-    index_kb.py remains the validator; this only lets the operator see it coming.
-    """
-    return [label for missing, label in (
-        (not entry["section"], "Section"),
-        (not entry["tags"], "Tags"),
-        (not entry["body"], "Content"),
-        (not entry["last_reviewed"], "Last reviewed"),
-    ) if missing]
-
-
 # --- attachments -----------------------------------------------------------
 
 
@@ -281,83 +208,45 @@ def download_attachments(records, out_dir, token, include_rfp):
 def main():
     ap = argparse.ArgumentParser(
         description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("-o", "--out", type=Path, default=Path("airtable_entries.json"),
-                    help="merge file to write (default: airtable_entries.json)")
+    ap.add_argument("--out-dir", type=Path, default=Path("proposals/sources"),
+                    help="where to put the downloads (default: proposals/sources)")
     ap.add_argument("--base", default=BASE_ID, help=f"base id (default: {BASE_ID})")
-    ap.add_argument("--table", default=CONTENT_LIBRARY,
-                    help=f"Content Library table id (default: {CONTENT_LIBRARY})")
-    ap.add_argument("--from-file", type=Path, metavar="FILE",
-                    help="read a saved API response instead of calling Airtable — for "
-                         "working offline, or debugging a mapping without spending calls")
-    ap.add_argument("--fetch-attachments", type=Path, metavar="DIR",
-                    help="also download past-bid decks from Proposals and Tenders into "
-                         "DIR, ready for ingest_source.py")
+    ap.add_argument("--table", default=PROPOSALS_AND_TENDERS,
+                    help=f"register table id (default: {PROPOSALS_AND_TENDERS})")
     ap.add_argument("--include-rfp", action="store_true",
-                    help="with --fetch-attachments, also download the tenders. Off by "
-                         "default: an RFP is the client's document, not ours to mine")
-    ap.add_argument("--register-table", default=PROPOSALS_AND_TENDERS,
-                    help=f"Proposals and Tenders table id (default: {PROPOSALS_AND_TENDERS})")
+                    help="also download the tenders. Off by default: an RFP is the "
+                         "client's document, not ours to mine")
+    ap.add_argument("--from-file", type=Path, metavar="FILE",
+                    help="read a saved API response instead of listing the table — the "
+                         "attachment urls in it must still be live")
     args = ap.parse_args()
-
-    if args.include_rfp and not args.fetch_attachments:
-        ap.error("--include-rfp only means something with --fetch-attachments")
 
     token = None
     if args.from_file:
         records = load_saved(args.from_file)
-        source_note = str(args.from_file)
     else:
         token = token_or_exit()
         records = fetch_records(args.base, args.table, token)
-        source_note = None
+    print(f"{len(records)} record(s) in the register")
 
-    entries = [entry_from(r) for r in records]
+    saved, failed = download_attachments(records, args.out_dir, token, args.include_rfp)
+    kinds = ", ".join(sorted({k for k, _ in saved})) or "nothing"
+    print(f"Downloaded {len(saved)} attachment(s) ({kinds}) -> {args.out_dir}")
+    for kind, path in saved:
+        print(f"    {kind}: {path.name}")
+    for problem in failed:
+        print(f"  COULD NOT DOWNLOAD {problem}", file=sys.stderr)
 
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps({
-        "source": "airtable:content-library",
-        "base": args.base,
-        "table": args.table,
-        "fetched": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "entries": entries,
-    }, indent=2), encoding="utf-8")
-
-    where = f" (from {source_note})" if source_note else ""
-    print(f"Fetched {len(entries)} Content Library row(s){where} -> {args.out}")
-
-    # A courtesy, not a gate: index_kb.py decides what is usable, and says so loudly.
-    flagged = [(e, incomplete_reasons(e)) for e in entries]
-    flagged = [(e, why) for e, why in flagged if why]
-    if flagged:
-        print(f"  {len(flagged)} row(s) are missing fields retrieval needs — "
-              f"index_kb.py will report them:")
-        for entry, why in flagged:
-            print(f"    {entry['id']}: no {', '.join(why)}")
-
-    restricted = sum(1 for e in entries if e["clearance"] == "internal-only")
-    if restricted:
-        print(f"  {restricted} row(s) are internal-only (a blank Clearance reads as "
-              f"internal-only) and are excluded from retrieval by default")
-
-    if args.fetch_attachments:
-        if token is None:
-            token = token_or_exit()
-        register = fetch_records(args.base, args.register_table, token)
-        saved, failed = download_attachments(
-            register, args.fetch_attachments, token, args.include_rfp)
-        kinds = ", ".join(sorted({k for k, _ in saved})) or "nothing"
-        print(f"Downloaded {len(saved)} attachment(s) ({kinds}) -> {args.fetch_attachments}")
-        for kind, path in saved:
-            print(f"    {kind}: {path.name}")
-        for problem in failed:
-            print(f"  COULD NOT DOWNLOAD {problem}", file=sys.stderr)
-        if saved:
-            print("  Decks are drafting material, not entries. Run ingest_source.py on "
-                  "one, then split, verify and clear what it drafts.")
-
-    print(f"Next: python index_kb.py proposal-assets/knowledge-bank "
-          f"--merge {args.out} -o kb_index.json")
-    return 0
+    if saved:
+        print("\nThese are drafting material, not entries. For each one worth using:")
+        print("  python ingest_source.py <file> -o "
+              "proposal-assets/knowledge-bank/<section>/<entry>.md --outcome <won|lost|...>")
+        print("then split it into single-idea entries, check every number, set clearance, "
+              "and rebuild\nthe intake page so the entries reach a deck.")
+    elif not failed:
+        print("Nothing to download — no decks are attached to any record yet."
+              + ("" if args.include_rfp else " (Tenders are skipped; --include-rfp to add them.)"))
+    return 1 if failed else 0
 
 
 if __name__ == "__main__":

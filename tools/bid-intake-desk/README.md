@@ -4,15 +4,15 @@ A browser front end for the whole pipeline except the one step that needs judgem
 
 ```
 01 Read the tender        triage — which clauses are CM's to answer
-02 Choose the evidence    both Airtable tables, ranked against the tender
+02 Choose the evidence    the baked-in bank, plus past bids ranked from Airtable
 03 Assemble the plan      rfp_brief + proposal_plan, built in the page
 04 Build the deck         .pptx + QA, in the browser, downloadable
 ```
 
 ### Drafting entries from a past deck
 
-Stage 02 takes a `.pptx` or `.docx` and turns each slide into a candidate Content Library
-entry, so the bank can be filled by reviewing rather than typing.
+Stage 02 takes a `.pptx` or `.docx` and turns each slide into a candidate bank entry, so
+the bank can be filled by reviewing rather than typing.
 
 It cannot reach a deck that is *in* Airtable: attachments live on a host the artifact's CSP
 blocks, and the connector returns a URL, never bytes. Hand it the file and the same
@@ -32,6 +32,22 @@ spanning three slides wants merging, and the guide's one-idea-per-entry rule sti
 **Nothing leaves the page.** The only thing anyone types or uploads is the tender itself;
 picking entries in Stage 02 cascades through plan assembly and the build without a file
 changing hands.
+
+### Where the two halves of Stage 02 come from
+
+The **reusable content** is `proposal-assets/knowledge-bank/`, compiled into the page by
+`build.py` with `index_kb.py --with-body` — an excerpt ranks an entry, but putting its
+prose on a slide needs the whole body. A browser cannot read a git repository and the CSP
+blocks every host that might serve one, so entries are fixed until the next publish.
+Adding one means editing Markdown, rebuilding and republishing.
+
+The upside is that Stage 02 has content with **no connector at all**: the bank, the
+ranking, plan assembly and the build all work with `window.claude` entirely absent.
+
+The **past bids** are still read live from Airtable, because that is where colleagues
+contribute — a bid is added and its deck attached, and nothing more is asked of them.
+Turning those decks into entries is a separate, reviewed step: see
+`reference/airtable-source.md`.
 
 ### What assembling a plan in a page can and cannot do
 
@@ -61,19 +77,6 @@ invariant that no block is unattributed while staying honest about where the wor
 Stage 04 also has **Load the worked example**, which runs `examples/acme-erp` through the
 renderer and the QA checks with no tender at all — the fastest way to tell a broken plan
 from a broken page.
-
-## Exporting the bank for the pipeline
-
-Stage 02's **Export for the pipeline** writes `airtable_entries.json`, the file
-`index_kb.py --merge` reads. It is the same output `sync_airtable.py` produces, built from
-the same Content Library rows — the difference is only how Airtable is reached: the script
-calls the REST API with a token, the page uses the reader's own connector. That matters
-when `api.airtable.com` is blocked by a sandbox's network policy, or when there is no token
-to hand.
-
-Same anti-drift rule as the renderer, and the same test: run identical records through
-`entryFrom()` + `libraryMergeFile()` and through `sync_airtable.py --from-file`, and every
-entry must match field for field. The Python is the reference.
 
 ## The renderer is a port, and the Python is the reference
 
@@ -130,9 +133,10 @@ python tools/bid-intake-desk/build.py
 ```
 
 Inlines the two sample tenders, the worked example's plan and brief, `pptx.js`, the
-generic template as base64, and that template's profile — a strict CSP blocks every
-external host, so anything the page needs has to be in the page. Both Airtable tables are read live, so the knowledge bank is never
-frozen into it.
+generic template as base64, that template's profile, and the knowledge bank itself — a
+strict CSP blocks every external host, so anything the page needs has to be in the page.
+A bank entry that fails to index fails the build rather than shipping. Only the register
+of past bids is read live.
 
 `index.src.html` is the source; `index.html` is the built artifact. Never edit
 `index.html` — the next build overwrites it.
