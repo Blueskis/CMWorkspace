@@ -30,16 +30,31 @@ client, and an attached PDF is a file, not prose. The two jobs are different and
 are needed — the register tells you which past bid resembles this one, and
 `ingest_source.py` turns that bid's documents into entries the generator can write from.
 
-## Fields worth adding to the register
+## What the register is for
 
-Three columns would let the intake page rank past projects against a tender instead of
-just listing them. Everything else it can already do.
+One question, which Content Library structurally cannot answer: **have we bid something
+like this before, and how did it go?** An entry is an idea; only the register knows about
+bids. Stage 02 ranks past projects against the tender and orders them most-similar-first,
+so the answer points at a specific deck worth mining.
 
-| Add | Type | Why |
+Everything after that is manual by necessity: the page cannot read an attachment out of
+Airtable — the files live on a host the artifact's CSP blocks — so the deck is downloaded
+from the record and dropped into *Draft entries from a past deck*, which does read it.
+
+Three columns carry the ranking:
+
+| Field | Type | What it does |
 |---|---|---|
-| Tags | Multiple select | The only thing retrieval matches on. Without it, ranking has nothing to work with but Location. |
-| Outcome | Single select — `won`, `lost`, `no-bid`, `withdrawn`, `pending`, `unknown` | Language from a losing bid reads exactly as well as language from a winning one. |
-| Submitted | Date | Lets old bids be marked stale rather than quietly reused. |
+| Tags | Multiple select | +3 per tag shared with the tender. The only thing matched on; without it rows can only be ordered by name. Use the same vocabulary as Content Library — matching is literal. |
+| Outcome | Single select — `won`, `lost`, `no-bid`, `withdrawn`, `pending`, `unknown` | ±2. A won bid is worth mining ahead of a lost one, but only just: a lost bid on the same subject still outranks a won one on a different subject. |
+| Submitted | Date | −2 beyond 24 months, so an old bid is surfaced as old rather than quietly reused. |
+
+**These three are matched by value shape, not field id.** The other five columns are read
+by id, so a rename cannot empty them; these were added after their ids were last observed
+here, and guessing an id would be worse than not reading the column. So Tags is recognised
+as the multiple-select, Outcome as the single choice whose name is one of the six, and
+Submitted as the only ISO date — looking only at columns no known id has claimed. Rename
+them freely; retype them and the page stops seeing them.
 
 ## Fields for entries extracted from those documents
 

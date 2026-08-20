@@ -621,6 +621,10 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
 .flag.risk { background: var(--red-soft); color: var(--red); }
 .flag.warn { background: var(--amber-soft); color: var(--amber); }
 .flag.won  { background: var(--seal-soft); color: var(--seal-ink); }
+.flag.lost { background: var(--red-soft); color: var(--red); }
+.flag.score { background: var(--ink); color: var(--surface); font-variant-numeric: tabular-nums; }
+.project .row.why { gap: 5px; margin-top: 6px; }
+.project .row.hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
 
 .empty { padding: 34px 20px; text-align: center; color: var(--muted); font-size: 13.5px; }
 .empty code { font-size: 12px; }
@@ -2243,7 +2247,8 @@ const AIRTABLE = {
     location: "fldAICNuwryB6il5R",
     rfp:      "fld9cmwu4nuBkQnuS",
     deck:     "fldXrhDwayxbGplBC",
-    price:    "fldW3eQtJ67m8wt56"
+    price:    "fldW3eQtJ67m8wt56",
+    library:  "fldfxmnkfVO5Bpn9u"
   }
 };
 
@@ -2339,9 +2344,43 @@ function entryFrom(record) {
   };
 }
 
+const OUTCOMES = new Set(["won", "lost", "no-bid", "withdrawn", "pending", "unknown"]);
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/* Tags, Outcome and Submitted were added to this table after its field ids were last
+   read here, so unlike the five columns above they cannot be matched by id — guessing an
+   id would be worse than not reading the column at all. They are recognised by the shape
+   of the value instead: a multipleSelects cell is an array of {name}, an Outcome is a
+   single choice whose name is one of the six outcomes, and Submitted is the only ISO
+   date. Inference only ever looks at columns no known id has claimed, so it cannot shadow
+   a field the page already reads, and every column it cannot place is simply left alone. */
+function inferProjectFields(cells) {
+  const claimed = new Set(Object.values(AIRTABLE.field));
+  let tags = [], outcome = "", submitted = "";
+
+  for (const [fieldId, value] of Object.entries(cells)) {
+    if (claimed.has(fieldId)) continue;
+    const choice = value && typeof value === "object" && !Array.isArray(value)
+      ? String(value.name || "").toLowerCase() : "";
+
+    if (Array.isArray(value) && value.some(v => v && typeof v === "object" && v.name)) {
+      const names = cellNames(value).map(t => t.toLowerCase());
+      if (names.length > tags.length) tags = names;
+    } else if (OUTCOMES.has(choice)) {
+      outcome = choice;
+    } else if (typeof value === "string" && OUTCOMES.has(value.toLowerCase())) {
+      outcome = value.toLowerCase();
+    } else if (typeof value === "string" && ISO_DATE.test(value)) {
+      submitted = value;
+    }
+  }
+  return { tags, outcome, submitted };
+}
+
 function projectFrom(record) {
   const cells = record.cellValuesByFieldId || record.fields || {};
   const get = key => cells[AIRTABLE.field[key]];
+  const extra = inferProjectFields(cells);
   return {
     id: record.id,
     url: recordUrl(AIRTABLE.tableId, record.id),
@@ -2350,8 +2389,28 @@ function projectFrom(record) {
     price: cellText(get("price")),
     rfp: cellFiles(get("rfp")),
     deck: cellFiles(get("deck")),
+    tags: extra.tags,
+    outcome: extra.outcome,
+    submitted: extra.submitted,
+    stale: extra.submitted
+      ? (Date.now() - Date.parse(extra.submitted)) / 86400000 > STALE_AFTER_DAYS
+      : false,
     empty: !Object.keys(cells).length
   };
+}
+
+/* Weighted exactly as scoreEntry weights an entry, so the two panels rank on the same
+   scale: +3 a shared tag. A won bid is worth mining ahead of a lost one and a recent one
+   ahead of an old one — but only ±2, because a lost bid on the same subject still beats a
+   won one on a different subject, and that ordering is the whole point. */
+function scoreProject(project) {
+  const matched = project.tags.filter(t => state.tags.has(t));
+  let score = 3 * matched.length;
+  const why = matched.map(t => "tag:" + t);
+  if (project.outcome === "won") { score += 2; why.push("won"); }
+  if (project.outcome === "lost") { score -= 2; why.push("lost"); }
+  if (project.stale) { score -= 2; why.push("over two years old"); }
+  return { score, matched, why };
 }
 
 /* Every error code the contract defines has a different correct fix. Collapsing them
@@ -2428,24 +2487,43 @@ function renderAirtable() {
          rel="noopener noreferrer">${esc(label)}: ${esc(file.name)}</a>`
     : `<span class="doclink none">no ${esc(label.toLowerCase())}</span>`;
 
+  const ranking = state.tags.size > 0;
+  const scored = projects.map(p => ({ ...p, ...scoreProject(p) }))
+    .sort((a, b) => ranking
+      ? (b.score - a.score || (a.name || "").localeCompare(b.name || ""))
+      : (a.name || "").localeCompare(b.name || ""));
+  const taggable = projects.filter(p => p.tags.length).length;
+
   host.innerHTML =
     (filled === 0 ? `<div class="mcp-state warn"><b>${projects.length} rows, all blank</b>
        The rows exist but no fields are filled in, so there is nothing to match a tender
        against yet.</div>` : "")
-    + projects.map(p => `
+    + (filled && !taggable ? `<div class="mcp-state warn"><b>No tags on any row</b>
+       These can only be ordered by name. Tag each past bid with the same vocabulary the
+       Content Library uses and the ones resembling this tender rise to the top.</div>` : "")
+    + scored.map(p => `
       <label class="project${state.selectedProjects.has(p.id) ? " on" : ""}">
         <input type="checkbox" data-project="${esc(p.id)}"
           aria-label="Select ${esc(p.name || "untitled row")}">
         <span>
           <span class="name${p.name ? "" : " blank"}">${esc(p.name || "Untitled row")}</span>
           <span class="row">
+            ${ranking && p.tags.length
+              ? `<span class="flag score">${p.score > 0 ? "+" + p.score : p.score}</span>` : ""}
+            ${p.outcome ? `<span class="flag ${p.outcome === "won" ? "won"
+              : p.outcome === "lost" ? "lost" : ""}">${esc(p.outcome)}</span>` : ""}
             ${p.location ? `<span class="flag sec">${esc(p.location)}</span>` : ""}
+            ${p.submitted ? `<span class="flag${p.stale ? " sec" : ""}">${esc(p.submitted)}</span>` : ""}
             ${p.price ? `<span class="flag">${esc(p.price)}</span>` : ""}
           </span>
+          ${p.why.length ? `<span class="row why">${p.why.map(w =>
+            `<span class="chip">${esc(w)}</span>`).join("")}</span>` : ""}
           <span class="row">
             ${docLink(p.rfp[0], "RFP")}
             ${docLink(p.deck[0], "Deck")}
           </span>
+          ${p.deck.length ? `<span class="row hint">Worth mining? Download the deck from
+            this record, then drop it into <i>Draft entries from a past deck</i> below.</span>` : ""}
         </span>
         <a class="open" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
           open in Airtable →</a>
@@ -3349,6 +3427,9 @@ function renderHandoff() {
       record: p.url,
       project: p.name || null,
       location: p.location || null,
+      tags: p.tags,
+      outcome: p.outcome || null,
+      submitted: p.submitted || null,
       rfp_document: p.rfp.map(f => ({ name: f.name, url: f.url })),
       proposal_deck: p.deck.map(f => ({ name: f.name, url: f.url }))
     })),
