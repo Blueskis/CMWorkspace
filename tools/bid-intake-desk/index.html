@@ -3407,15 +3407,20 @@ async function runBuild() {
   $("save-deck").addEventListener("click", () => saveDeck(name));
 }
 
+/* Why a failed save is never a failed build: the deck is finished OOXML in memory by the
+   time this runs — rendered, audited, and identical to what render_pptx.py would produce.
+   Only the handover can fail here, so every message below says so and offers a retry
+   rather than sending anyone to a terminal. The copy is authored here, never viewer
+   input, so it carries markup and goes to planNotice unescaped. */
+const SAVE_UNAVAILABLE =
+  "<b>This view cannot save files.</b> The deck built correctly and is still here — "
+  + "opening the artifact in its own browser tab is the thing most likely to help.";
+
 async function saveDeck(name) {
   const button = $("save-deck");
   const downloads = await window.claude?.use?.("downloads").catch(() => null);
-  if (!downloads) {
-    planNotice("<b>Saving files is not available in this view.</b> The deck was built "
-      + "correctly; this viewer just cannot hand it over. Open the artifact in a browser "
-      + "tab, or build with <code>render_pptx.py</code>.");
-    return;
-  }
+  if (!downloads) { planNotice(SAVE_UNAVAILABLE); return; }
+
   button.textContent = "Waiting for you to accept…";
   try {
     await downloads.save({ filename: name, data: build.result.blob });
@@ -3423,15 +3428,33 @@ async function saveDeck(name) {
   } catch (err) {
     const code = (err && err.code) || "unavailable";
     const copy = {
-      declined: "Save cancelled. The deck is still built — press again when ready.",
-      extension_not_enabled: ".pptx downloads are not enabled for this view. Build with "
-        + "render_pptx.py in the repo instead; the deck is identical.",
-      rejected_extension: ".pptx is not an allowed download type here.",
-      too_large: "The deck is over the 16 MB download limit.",
-      rate_limited: "A save prompt is already open. Finish that one first.",
-      bad_request: "The deck could not be handed over — rebuild and try again."
-    }[code] || "Could not hand the file over. Try again, or build with render_pptx.py.";
-    planNotice(`<b>${esc(copy)}</b>`);
+      declined: "<b>Save cancelled.</b> The deck is still built — press the button again "
+        + "when you are ready.",
+      // The one failure worth explaining properly, because it looks like the tool is
+      // broken and is neither the tool's fault nor fixable from inside the page.
+      extension_not_enabled:
+        "<b>The deck is built — this view just will not hand over a <code>.pptx</code>.</b> "
+        + "Downloads are split into a set always allowed (images, video, "
+        + "<code>.txt</code>, <code>.json</code>, <code>.md</code>) and an extended set "
+        + "that has to be switched on for the viewer — <code>.pptx</code>, "
+        + "<code>.pdf</code>, <code>.docx</code> and friends. Nothing the page declares "
+        + "can enable them. Turn extended download types on for this view, then press the "
+        + "button again; the deck is still in memory and nothing needs rebuilding.",
+      rejected_extension: "<b><code>.pptx</code> is not an allowed download type here.</b> "
+        + "The deck is built; this viewer will not accept the file type.",
+      too_large: "<b>The deck is over the 16 MiB download limit.</b> Cut some content and "
+        + "rebuild.",
+      rate_limited: "<b>A save prompt is already open.</b> Finish that one, then press "
+        + "again.",
+      bad_request: "<b>The deck could not be handed over.</b> Rebuild and try again.",
+      transform_error: "<b>The deck could not be handed over.</b> Rebuild and try again.",
+      // Runtime lifecycle codes the contract says to treat as unavailable.
+      unavailable: SAVE_UNAVAILABLE,
+      not_granted: SAVE_UNAVAILABLE,
+      capability_disabled: SAVE_UNAVAILABLE,
+      capability_removed: SAVE_UNAVAILABLE
+    }[code] || SAVE_UNAVAILABLE;
+    planNotice(copy);
     button.textContent = "Download the deck";
   }
   setTimeout(() => { button.textContent = "Download the deck"; }, 2500);

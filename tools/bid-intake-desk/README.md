@@ -90,10 +90,18 @@ different bytes, so `pptx.js` matches Python's entity set deliberately.
 using `kind: "image"` still builds, but those blocks render as a visible marker telling
 you to use `render_pptx.py`, which does embed them. Nothing is dropped silently.
 
-**Saving may be refused.** `.pptx` is in the artifact runtime's extended download set. If
-extended types are not enabled for a viewer, `downloads.save` rejects with
-`extension_not_enabled` and the page says so plainly — the deck built correctly, it just
-cannot be handed over there.
+**Saving may be refused.** The runtime allows one set of download types always — `gif png
+jpg jpeg webp mp4 webm txt json md` — and gates a second behind a per-view setting:
+`docx pptx epub csv ttf html svg pdf`. `.pptx` is in that second set, so where extended
+types are not enabled for a viewer, `downloads.save` rejects with `extension_not_enabled`.
+
+**The page cannot lift this itself.** `capabilities: {downloads: true}` is the whole
+declaration — the contract has no field that requests extended types. The remedy is to
+enable extended download types for the view; the deck is already built and still in memory,
+so pressing the button again after enabling is enough, with no rebuild.
+
+Every save failure leaves the deck intact. The messages say so and offer a retry rather
+than pointing at `render_pptx.py` — a terminal is the thing this tool exists to avoid.
 
 ## Build
 
