@@ -654,52 +654,6 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
   border-radius: 3px;
   color: var(--ink-2);
 }
-/* --- drafting from a deck -------------------------------------- */
-
-.draft-zone { border-top: 1px solid var(--rule); }
-.drop.compact { padding: 16px 18px; text-align: left; border: 0; }
-.drop.compact h3 { margin: 0 0 5px; font-size: 14px; }
-.drop.compact p { margin: 0 0 10px; font-size: 12.5px; color: var(--muted); max-width: 62ch; }
-.drop.compact.over { background: var(--surface-2); }
-.draft-lead {
-  margin: 0 0 12px;
-  font-size: 13px;
-  line-height: 1.6;
-  color: var(--ink-2);
-}
-#drafts { padding: 0 18px 18px; }
-.draft {
-  border: 1px solid var(--rule);
-  border-radius: 3px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
-  background: var(--surface-2);
-}
-.draft-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  margin-bottom: 8px;
-  flex-wrap: wrap;
-}
-.draft-row input, .draft-row select { font-size: 12.5px; padding: 5px 7px; }
-.draft-title { flex: 1 1 260px; }
-.draft-tags { flex: 1 1 240px; }
-.draft-verified {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--muted);
-  white-space: nowrap;
-}
-.draft-body {
-  width: 100%;
-  font-size: 12.5px;
-  line-height: 1.55;
-  padding: 8px 9px;
-  resize: vertical;
-}
 .handoff-more { margin-top: 16px; }
 .handoff-more > summary {
   cursor: pointer;
@@ -879,17 +833,16 @@ pre {
         </div>
 
         <div class="rail-block">
-          <h3>Content Library</h3>
+          <h3>Reusable content</h3>
           <p class="hint" id="bank-stats"></p>
         </div>
       </aside>
 
       <div class="stack">
-      <p class="joiner">Two tables in one base. <b>Proposals and Tenders</b> holds the
-        documents; <b>Content Library</b> holds the prose extracted from them. Stage 4
-        adapts prose to this client, so every slide is sourced from the lower panel —
-        the upper one is where that material comes from, via
-        <code>ingest_source.py</code>.</p>
+      <p class="joiner">Two stores, one job each. <b>Past bids</b> are documents in
+        Airtable — they say which past bid resembled this tender, not what any slide says.
+        <b>Reusable content</b> is the curated slides, extracted into entries, and every
+        slide in the generated deck is sourced from there.</p>
       <div class="panel" id="airtable-panel">
         <div class="bank-top">
           <span class="grow"><b class="src-title">Past bids — source documents</b>
@@ -910,23 +863,6 @@ pre {
         </div>
         <div id="bank"></div>
 
-        <div class="draft-zone">
-          <div class="drop compact" id="draft-drop">
-            <h3>Draft entries from a past deck</h3>
-            <p>A deck in Airtable cannot be read from here — its file lives on a host this
-               page is not allowed to fetch. Drop the <code>.pptx</code> or
-               <code>.docx</code> itself and each slide becomes a candidate entry to review.</p>
-            <div class="btnrow">
-              <button class="quiet" id="draft-browse">Choose a deck</button>
-            </div>
-            <div class="formats">.PPTX .DOCX .TXT</div>
-            <input type="file" id="draft-file" class="sr"
-              accept=".pptx,.docx,.txt,.md">
-          </div>
-          <div id="draft-notice"></div>
-          <div id="drafts" hidden></div>
-        </div>
-      </div>
       </div>
     </div>
   </section>
@@ -1389,8 +1325,10 @@ const state = {
   doc: null,          // { name, text, triage }
   tags: new Set(),
   bank: { entries: [] },   // seeded from REPO_BANK once that const exists, below
-  drafts: [],         // candidates extracted from a dropped deck, not yet kept
   selected: new Set(),
+  // Until somebody picks for themselves, ranking picks for them. Once they have, their
+  // choice stands and is never quietly overwritten by a re-rank.
+  selectionTouched: false,
   selectedProjects: new Set(),
   airtable: { phase: "loading", projects: [], failure: null },
   airtableStop: null,
@@ -1658,7 +1596,7 @@ function renderAirtable() {
        against yet.</div>` : "")
     + (filled && !taggable ? `<div class="mcp-state warn"><b>No tags on any row</b>
        These can only be ordered by name. Tag each past bid with the same vocabulary the
-       Content Library uses and the ones resembling this tender rise to the top.</div>` : "")
+       knowledge bank uses and the ones resembling this tender rise to the top.</div>` : "")
     + scored.map(p => `
       <label class="project${state.selectedProjects.has(p.id) ? " on" : ""}">
         <input type="checkbox" data-project="${esc(p.id)}"
@@ -1822,232 +1760,13 @@ function flagsFor(entry) {
   return out.join("");
 }
 
-/* =================================================================
-   Drafting entries from a past deck.
-
-   The page cannot reach a deck sitting in Airtable — attachments live on
-   a host the artifact's CSP blocks, and the connector hands back a URL,
-   never bytes. Handed the file directly it manages fine, using the same
-   unzip the tender reader uses.
-
-   What it will not do is decide. ingest_source.py calls itself "an
-   extractor and a scaffold, not an author", and this is the same thing
-   in a browser: it splits a deck into candidates and fills in what can
-   be read off the file. Section, clearance, whether a number still
-   holds, whether the bid was won — those are judgements, and they stay
-   with the practitioner. A deck is a dozen ideas and an entry is one, so
-   the split is a starting point to edit, not an answer.
-   ================================================================= */
-
-const DRAFT_SECTIONS = ["methodology", "case-studies", "credentials", "team",
-                        "commercials", "boilerplate"];
-
-const slugId = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-")
-  .replace(/^-|-$/g, "").slice(0, 48);
-
-/* A port of ingest_source.py's suggest_tags: the CM terms weighted 3 or 4 that actually
-   appear in the source. A suggestion, never a decision — the practitioner still has to
-   align them with whatever vocabulary the rest of the bank uses. */
-function lexiconTags(text, limit = 8) {
-  const lowered = text.toLowerCase();
-  const found = [];
-  for (const weight of [4, 3]) {
-    for (const term of LEXICON[weight]) {
-      if (lowered.includes(term)) found.push(slugId(term));
-    }
-  }
-  return [...new Set(found)].sort().slice(0, limit);
-}
-
-/* One candidate per slide, or per heading in a document. Structured, unlike
-   readDocument(), which flattens a whole file to one string for triage. */
-async function readDraftCandidates(file) {
-  const name = file.name.toLowerCase();
-  if (name.endsWith(".pdf")) throw new PdfNotice();
-
-  if (name.endsWith(".pptx")) {
-    const parts = await unzip(await file.arrayBuffer(),
-      n => /^ppt\/slides\/slide\d+\.xml$/.test(n));
-    if (!parts.size) throw new Error("No slides found inside that .pptx.");
-    return [...parts.keys()]
-      .sort((a, b) => Number(a.match(/(\d+)/)[1]) - Number(b.match(/(\d+)/)[1]))
-      .map(k => xmlToText(parts.get(k), ["</a:p>"]).split("\n")
-        .map(l => l.replace(/\s+/g, " ").trim()).filter(Boolean))
-      .filter(lines => lines.length)
-      // The first line of a slide is its title far more often than not. Getting this
-      // wrong costs an edit, not a mistake in the deck.
-      .map(lines => ({ title: lines[0], body: lines.slice(1).join("\n\n") }));
-  }
-
-  let text;
-  if (name.endsWith(".docx")) {
-    const parts = await unzip(await file.arrayBuffer(), n => n === "word/document.xml");
-    const doc = parts.get("word/document.xml");
-    if (!doc) throw new Error("No document body found inside that .docx.");
-    text = xmlToText(doc, ["</w:p>"]);
-  } else {
-    text = await file.text();
-  }
-
-  const groups = [];
-  for (const line of text.split("\n").map(l => l.replace(/\s+/g, " ").trim()).filter(Boolean)) {
-    if (!groups.length || looksLikeHeading(line)) groups.push({ title: line, lines: [] });
-    else groups[groups.length - 1].lines.push(line);
-  }
-  return groups.filter(g => g.lines.length)
-    .map(g => ({ title: g.title, body: g.lines.join("\n\n") }));
-}
-
-/* The three fields ingest_source.py deliberately gets wrong on purpose, for the same
-   reasons: an entry arrives excluded from retrieval, with its numbers unverified and its
-   bid outcome unknown, until somebody decides otherwise. */
-function draftEntryFrom(candidate, index, taken) {
-  let id = slugId(candidate.title) || `draft-${index + 1}`;
-  let n = 2;
-  while (taken.has(id)) id = `${slugId(candidate.title) || "draft"}-${n++}`;
-  taken.add(id);
-
-  const body = candidate.body || "";
-  return {
-    id,
-    title: candidate.title.slice(0, 120),
-    section: "",
-    // Bank vocabulary first, because retrieval matches literally and a tag nothing else
-    // uses matches nothing. With an empty bank there is no vocabulary to match, so fall
-    // back to the CM lexicon the way ingest_source.py's suggest_tags does — otherwise the
-    // very first deck anyone drafts from comes back with no tags at all.
-    tags: (t => t.length ? t : lexiconTags(`${candidate.title} ${body}`))
-      (bankTagsIn(`${candidate.title} ${body}`, state.bank)),
-    clearance: "internal-only",
-    metrics_verified: false,
-    last_reviewed: new Date().toISOString().slice(0, 10),
-    stale: false,
-    owner: null,
-    bid: { outcome: null },
-    body,
-    excerpt: body.replace(/\s+/g, " ").trim().slice(0, 300),
-    record_url: null,
-    path: null,
-    superseded: false,
-    incomplete: [],
-    drafted: true
-  };
-}
-
-function renderDrafts() {
-  const host = $("drafts");
-  const drafts = state.drafts;
-  if (!drafts.length) { host.innerHTML = ""; host.hidden = true; return; }
-  host.hidden = false;
-
-  host.innerHTML = `
-    <p class="draft-lead"><b>${drafts.length} candidate${drafts.length === 1 ? "" : "s"}
-      from that file.</b> Each is one slide's words, extracted — not written, not
-      summarised. Give it a section, check the tags, and keep the ones worth keeping.
-      Clearance starts at <code>internal-only</code>, which means an entry is excluded from
-      retrieval until you say otherwise.</p>
-    ${drafts.map((d, i) => `
-      <div class="draft" data-i="${i}">
-        <div class="draft-row">
-          <input class="draft-title" data-i="${i}" value="${esc(d.title)}"
-            aria-label="Entry title">
-          <select class="draft-section" data-i="${i}" aria-label="Section">
-            <option value="">section…</option>
-            ${DRAFT_SECTIONS.map(s => `<option value="${s}"${d.section === s ? " selected" : ""}>${s}</option>`).join("")}
-          </select>
-          <select class="draft-clearance" data-i="${i}" aria-label="Clearance">
-            ${["internal-only", "anonymised", "named"].map(c =>
-              `<option value="${c}"${d.clearance === c ? " selected" : ""}>${c}</option>`).join("")}
-          </select>
-        </div>
-        <div class="draft-row">
-          <input class="draft-tags" data-i="${i}" value="${esc(d.tags.join(", "))}"
-            placeholder="tags, comma separated" aria-label="Tags">
-          <label class="draft-verified"><input type="checkbox" class="draft-mv"
-            data-i="${i}"${d.metrics_verified ? " checked" : ""}> metrics checked</label>
-          <button class="quiet draft-keep" data-i="${i}">Keep</button>
-          <button class="quiet draft-drop" data-i="${i}">Discard</button>
-        </div>
-        <textarea class="draft-body" data-i="${i}" rows="4"
-          aria-label="Entry content">${esc(d.body)}</textarea>
-      </div>`).join("")}`;
-
-  const bind = (sel, event, apply) => host.querySelectorAll(sel).forEach(el =>
-    el.addEventListener(event, () => apply(drafts[Number(el.dataset.i)], el)));
-  // The id follows the title while the entry is still a draft. An id is immutable once a
-  // run has cited it — but nothing has cited this yet, and a slide called "Section 1 of 4"
-  // should not leave a permanent `section-1-of-4` in every future plan's sources.
-  bind(".draft-title", "input", (d, el) => {
-    d.title = el.value;
-    const taken = new Set(state.bank.entries.map(e => e.id)
-      .concat(state.drafts.filter(o => o !== d).map(o => o.id)));
-    let id = slugId(el.value) || d.id;
-    let n = 2;
-    while (taken.has(id)) id = `${slugId(el.value) || "draft"}-${n++}`;
-    d.id = id;
-  });
-  bind(".draft-section", "change", (d, el) => { d.section = el.value; });
-  bind(".draft-clearance", "change", (d, el) => { d.clearance = el.value; });
-  bind(".draft-mv", "change", (d, el) => { d.metrics_verified = el.checked; });
-  bind(".draft-body", "input", (d, el) => {
-    d.body = el.value;
-    d.excerpt = el.value.replace(/\s+/g, " ").trim().slice(0, 300);
-  });
-  bind(".draft-tags", "input", (d, el) => {
-    d.tags = el.value.split(",").map(t => t.trim().toLowerCase()).filter(Boolean);
-  });
-
-  host.querySelectorAll(".draft-drop").forEach(btn => btn.addEventListener("click", () => {
-    state.drafts.splice(Number(btn.dataset.i), 1);
-    renderDrafts();
-  }));
-  host.querySelectorAll(".draft-keep").forEach(btn => btn.addEventListener("click", () => {
-    const draft = state.drafts[Number(btn.dataset.i)];
-    // Retrieval scopes by section and matches tags literally, so an entry without either
-    // cannot be found at all — which looks exactly like an entry that was never kept.
-    const missing = [!draft.section && "a section", !draft.tags.length && "at least one tag"]
-      .filter(Boolean);
-    if (missing.length) {
-      draftNotice(`<b>${esc(draft.title)} needs ${missing.join(" and ")}.</b> Retrieval
-        scopes by section and matches tags literally; without them the entry can never be
-        found.`);
-      return;
-    }
-    draft.incomplete = [];
-    state.bank.entries.push({ ...draft });
-    state.drafts.splice(Number(btn.dataset.i), 1);
-    draftNotice(`<b>Kept <code>${esc(draft.id)}</code>.</b> It is in the bank for this run.
-      ${draft.clearance === "internal-only"
-        ? "It is internal-only, so it stays out of retrieval until you clear it — turn on "
-          + "<i>include internal-only</i> to see it listed."
-        : "Select it above to write it into the deck."}`);
-    renderDrafts(); renderBank(); renderTags(); renderHandoff();
-  }));
-}
-
-function draftNotice(html) { $("draft-notice").innerHTML = `<div class="notice">${html}</div>`; }
-
-async function acceptDraftFile(file) {
-  draftNotice(`Reading <b>${esc(file.name)}</b>…`);
-  let candidates;
-  try {
-    candidates = await readDraftCandidates(file);
-  } catch (err) {
-    draftNotice(err instanceof PdfNotice
-      ? "<b>PDFs cannot be read in the browser.</b> Extract the text first and drop the "
-        + "<code>.txt</code>, or use the <code>.pptx</code> the deck was built from."
-      : `<b>Could not read ${esc(file.name)}.</b> ${esc(err.message)}`);
-    return;
-  }
-  if (!candidates.length) {
-    draftNotice(`<b>No text found in ${esc(file.name)}.</b> A deck of images has nothing `
-      + "to extract — its words would have to be typed.");
-    return;
-  }
-  const taken = new Set(state.bank.entries.map(e => e.id));
-  state.drafts = candidates.map((c, i) => draftEntryFrom(c, i, taken));
-  $("draft-notice").innerHTML = "";
-  renderDrafts();
+/* Everything sharing a tag with the tender, selected without being asked. The panel stays
+   because a curated bank still holds far more than any one tender needs — but choosing
+   from it should be a correction, not a chore. Abandoned the moment anyone selects by
+   hand, so a re-rank never overwrites a deliberate choice. */
+function autoSelect() {
+  if (state.selectionTouched || !state.tags.size) return;
+  state.selected = new Set(visibleEntries().filter(e => e.score > 0).map(e => e.id));
 }
 
 function renderBank() {
@@ -2100,10 +1819,10 @@ function renderBank() {
   let html = "";
   if (!entries.length) {
     html = `<div class="empty">
-      <p>Content Library is empty.</p>
-      <p style="margin-top:8px">Rows here are the prose a slide is built from. Extract
-         them from the decks above with <code>ingest_source.py</code>, then paste each
-         idea in as its own row.</p></div>`;
+      <p>No reusable content yet.</p>
+      <p style="margin-top:8px">Entries here are the prose a slide is built from. They come
+         from the curated deck of good slides — run it through
+         <code>ingest_source.py --golden-deck</code>, then rebuild this page.</p></div>`;
   } else {
     html = scored.map(rowFor).join("");
     if (!scored.length) {
@@ -2124,6 +1843,7 @@ function renderBank() {
 
   host.querySelectorAll('input[type="checkbox"]').forEach(box => {
     box.addEventListener("change", () => {
+      state.selectionTouched = true;
       if (box.checked) state.selected.add(box.dataset.id);
       else state.selected.delete(box.dataset.id);
       renderBank(); renderHandoff();
@@ -2926,6 +2646,7 @@ function ingest(name, text) {
   if (!text.trim()) { showNotice("That file came through empty. Try pasting the text instead."); return; }
   state.doc = { name, text, triage: triage(text), topics: topicProfile(text) };
   bankTagsIn(text, state.bank).forEach(t => state.tags.add(t));
+  autoSelect();
   $("drop").hidden = true;
   $("paste-area").hidden = true;
   $("intake-notice").innerHTML = "";
@@ -3009,28 +2730,15 @@ $("internal").addEventListener("change", e => {
 });
 
 $("select-top").addEventListener("click", () => {
+  state.selectionTouched = true;
   visibleEntries().filter(e => e.score > 0).slice(0, 5).forEach(e => state.selected.add(e.id));
   renderBank(); renderHandoff();
 });
 $("clear-sel").addEventListener("click", () => {
+  state.selectionTouched = true;
   state.selected.clear(); renderBank(); renderHandoff();
 });
 
-const draftDrop = $("draft-drop");
-["dragenter", "dragover"].forEach(ev => draftDrop.addEventListener(ev, e => {
-  e.preventDefault(); draftDrop.classList.add("over");
-}));
-["dragleave", "drop"].forEach(ev => draftDrop.addEventListener(ev, e => {
-  e.preventDefault(); draftDrop.classList.remove("over");
-}));
-draftDrop.addEventListener("drop", e => {
-  const file = e.dataTransfer.files[0];
-  if (file) acceptDraftFile(file);
-});
-$("draft-browse").addEventListener("click", () => $("draft-file").click());
-$("draft-file").addEventListener("change", e => {
-  if (e.target.files[0]) acceptDraftFile(e.target.files[0]);
-});
 $("dock-jump").addEventListener("click", () =>
   $("handoff").scrollIntoView({ behavior: "smooth", block: "center" }));
 
