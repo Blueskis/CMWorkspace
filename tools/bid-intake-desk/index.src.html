@@ -1628,7 +1628,9 @@ function renderAirtable() {
             ${docLink(p.deck[0], "Deck")}
           </span>
           ${p.deck.length ? `<span class="row hint">Worth mining? Download the deck from
-            this record, then drop it into <i>Draft entries from a past deck</i> below.</span>` : ""}
+            this record and run <code>ingest_source.py</code> on it, per
+            <code>reference/knowledge-bank-guide.md</code> — the page itself no longer
+            drafts entries.</span>` : ""}
         </span>
         <a class="open" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
           open in Airtable →</a>
@@ -2397,9 +2399,10 @@ ${JSON.stringify(plan, null, 2)}
 
 Use these skills in sequence to enhance it:
 
-1. /outline-builder — Build a narrative arc across the proposal sections. Ensure the
-   sequence moves logically: situation → approach → outcomes → engagement. Each section's
-   slides should build on what came before, not stand alone. Return the refined structure.
+1. /presentation-outline-builder — Build a narrative arc across the proposal sections.
+   Ensure the sequence moves logically: situation → approach → outcomes → engagement. Each
+   section's slides should build on what came before, not stand alone. Return the refined
+   structure.
 
 2. /hook-maker — Strengthen openings. For each major section, craft an opening slide that
    hooks the client: reframe the tender's language, establish stakes, show why this matters.
@@ -2427,8 +2430,8 @@ Rules:
      <details class="enhance-option" style="margin-top: 12px;">
        <summary>Strengthen with slide-building skills</summary>
        <p style="margin: 12px 0 8px; font-size: 13px; color: var(--muted);">
-         Optional: Use /outline-builder, /hook-maker, /visual-simplifier, and /slide-writer
-         to enhance the assembled plan before building the deck.
+         Optional: Use /presentation-outline-builder, /hook-maker, /visual-simplifier, and
+         /slide-writer to enhance the assembled plan before building the deck.
        </p>
        <div class="codeblock">
          <div class="cap">enhance with skills

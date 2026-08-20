@@ -37,9 +37,10 @@ so the answer points at a specific deck worth mining.
 
 Neither the page nor the pipeline can read an attachment straight out of Airtable — the
 files live on a host the artifact's CSP blocks, and this environment's network policy
-blocks the same hosts. Closing that gap is what `sync_airtable.py --fetch-attachments`
-does once those hosts are allowlisted; until then the deck is downloaded by hand and
-dropped into *Draft entries from a past deck*, which does read it.
+blocks the same hosts by default. `sync_airtable.py` closes that gap once those hosts are
+allowlisted and `AIRTABLE_TOKEN` is set; until then the deck is downloaded by hand from
+the record's own Airtable page and run through `ingest_source.py` directly — the page
+itself has no drafting step of its own.
 
 Three columns carry the ranking:
 

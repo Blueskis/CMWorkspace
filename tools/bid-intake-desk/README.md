@@ -58,7 +58,7 @@ prose actually adapted to the client, Stage 03 provides two optional workflows:
 
 1. **Ask Claude for a written plan** — the original workflow, for full model-driven adaptation.
 2. **Strengthen with slide-building skills** — an optional multi-step enhancement:
-   - `/outline-builder` constructs narrative flow across sections
+   - `/presentation-outline-builder` constructs narrative flow across sections
    - `/hook-maker` opens each major section with client-facing stakes and relevance
    - `/visual-simplifier` cuts ruthlessly: one idea per slide, short bullets, specifics over prose
    - `/slide-writer` disciplines the wording: bullet constraints, unit clarity, source citations
