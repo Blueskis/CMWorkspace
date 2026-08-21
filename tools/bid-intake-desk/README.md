@@ -4,10 +4,14 @@ A browser front end for the whole pipeline except the one step that needs judgem
 
 ```
 01 Read the tender        triage — which clauses are CM's to answer
-02 Choose the evidence    the baked-in bank, plus past bids ranked from Airtable
-03 Assemble the plan      rfp_brief + proposal_plan, built in the page
-04 Build the deck         .pptx + QA, in the browser, downloadable
+02 Check what got picked  the baked-in bank, plus past bids ranked from Airtable
+03 Review the plan        rfp_brief + proposal_plan, built in the page
+04 Download your deck     .pptx + QA, in the browser, downloadable
 ```
+
+These are the page's own headings. This doc otherwise calls the four stages by number —
+Stage 01 through Stage 04 — since the on-page wording is deliberately plainer than what's
+useful in a technical doc.
 
 **Nothing leaves the page, and nothing needs clicking.** Upload a tender and the deck
 builds itself: triage sets the retrieval tags, everything sharing a tag is selected, the
@@ -22,6 +26,10 @@ notes and converted by `ingest_source.py --golden-deck` — see
 reach the page on a rebuild.
 
 ### Where the two halves of Stage 02 come from
+
+The page itself calls this the **slide library** — plainer wording for a non-technical
+user than "knowledge bank." Same thing; this doc uses the latter since it's the actual
+folder and schema name.
 
 The **reusable content** is `proposal-assets/knowledge-bank/`, compiled into the page by
 `build.py` with `index_kb.py --with-body` — an excerpt ranks an entry, but putting its
@@ -70,9 +78,9 @@ Content taken from the tender rather than the bank — cover text, the clause li
 attributed `tender:<filename>` rather than borrowing an unrelated entry id. It keeps the
 invariant that no block is unattributed while staying honest about where the words are from.
 
-Stage 04 also has **Load the worked example**, which runs `examples/acme-erp` through the
-renderer and the QA checks with no tender at all — the fastest way to tell a broken plan
-from a broken page.
+Stage 04 also has **See how this works** (formerly "Load the worked example"), which runs
+`examples/acme-erp` through the renderer and the QA checks with no tender at all — the
+fastest way to tell a broken plan from a broken page.
 
 ## The renderer is a port, and the Python is the reference
 

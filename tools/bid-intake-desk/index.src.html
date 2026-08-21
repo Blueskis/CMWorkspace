@@ -750,15 +750,15 @@ pre {
 <header class="masthead">
   <div class="wrap">
     <div class="brand">
-      <div class="stamp">cm-proposal-generator · v0.2</div>
+      <div class="stamp">Change Management Proposal Builder</div>
       <h1>Bid Intake Desk</h1>
-      <p>Read a tender, see which clauses are change management's to answer, and choose
-         the knowledge-bank entries the proposal should be written from.</p>
+      <p>Upload a tender, see which parts are change management's to answer, and build
+         a first-draft slide deck sourced from our best past work — start to finish,
+         right here.</p>
     </div>
     <div class="scope">
-      <b>This is the intake half.</b> It runs the triage and retrieval stages and hands
-      you a selection. Building the <code>.pptx</code> still happens in the repo — the
-      commands are at the bottom.
+      <b>Four steps, no downloads in between.</b> Upload the tender, check what got
+      picked for you, and the deck builds itself below — ready to download when you are.
     </div>
   </div>
 </header>
@@ -805,23 +805,23 @@ pre {
   <section class="stage">
     <div class="stage-head">
       <span class="stage-num">02</span>
-      <h2>Choose the evidence</h2>
+      <h2>Check what got picked</h2>
       <span class="aside" id="stage2-aside"></span>
     </div>
 
     <div class="workspace">
       <aside class="panel rail">
         <div class="rail-block">
-          <h3>Retrieval tags</h3>
+          <h3>Keywords</h3>
           <div class="chips" id="tag-chips"></div>
           <form id="tag-form" style="margin-top: 10px;">
-            <label class="sr" for="tag-input">Add a tag</label>
-            <input type="text" id="tag-input" placeholder="add a tag, e.g. erp" autocomplete="off">
+            <label class="sr" for="tag-input">Add a keyword</label>
+            <input type="text" id="tag-input" placeholder="add a keyword, e.g. erp" autocomplete="off">
           </form>
           <div class="chips suggest" id="tag-suggest"></div>
-          <p class="hint" id="tag-hint">Reading a tender fills these with the bank tags it
-             actually mentions. Retrieval matches tags literally, so only tags the bank
-             already uses can match — add sector, system or region from the list above.</p>
+          <p class="hint" id="tag-hint">Reading the tender picked these out automatically —
+             they decide which slides get selected below. Matching is exact, so add a word
+             only if it already appears in the suggestions above.</p>
         </div>
 
         <div class="rail-block">
@@ -831,32 +831,33 @@ pre {
           <label class="toggle">
             <input type="checkbox" id="strict">
             <span>Only this section
-              <span class="sub">Otherwise it is a ranking boost, not a filter</span></span>
+              <span class="sub">Otherwise it just gets priority, not an exclusive filter</span></span>
           </label>
           <label class="toggle warn">
             <input type="checkbox" id="internal">
-            <span>Include internal-only
-              <span class="sub">Excluded by default. These have not been cleared for
-                client-facing material.</span></span>
+            <span>Include internal-only material
+              <span class="sub">Off by default. This content hasn't been cleared to show
+                a client.</span></span>
           </label>
         </div>
 
         <div class="rail-block">
-          <h3>Reusable content</h3>
+          <h3>Slide library</h3>
           <p class="hint" id="bank-stats"></p>
         </div>
       </aside>
 
       <div class="stack">
-      <p class="joiner">Two stores, one job each. <b>Past bids</b> are documents in
-        Airtable — they say which past bid resembled this tender, not what any slide says.
-        <b>Reusable content</b> is the curated slides, extracted into entries, and every
-        slide in the generated deck is sourced from there.</p>
+      <p class="joiner">Two different things live below. <b>Past bids</b> are records of
+        work we've submitted before — useful for judging how close a past bid is to this
+        one, but nothing on this list goes straight onto a slide. <b>Slide library</b> is
+        our curated best material — every slide in the deck below is built from something
+        selected here.</p>
       <div class="panel" id="airtable-panel">
         <div class="bank-top">
-          <span class="grow"><b class="src-title">Past bids — source documents</b>
-            <span class="src-sub">Airtable · CM Knowledge Bank → Proposals and Tenders.
-              Tenders and decks to mine; a slide cannot cite one directly.</span></span>
+          <span class="grow"><b class="src-title">Past bids we've submitted before</b>
+            <span class="src-sub">For reference only — helps you judge how similar a past
+              bid is to this tender.</span></span>
           <span id="airtable-status" class="src-status">connecting…</span>
         </div>
         <div id="airtable-body"></div>
@@ -864,8 +865,8 @@ pre {
 
       <div class="panel">
         <div class="bank-top">
-          <span class="grow"><b class="src-title">Reusable content — what the deck is written from</b>
-            <span class="src-sub">proposal-assets/knowledge-bank, built into this page.
+          <span class="grow"><b class="src-title">Slide library — what the deck is built from</b>
+            <span class="src-sub">Our curated best slides, tagged and ready to reuse.
               <span id="bank-caption"></span></span></span>
           <button class="quiet" id="select-top">Select top 5</button>
           <button class="quiet" id="clear-sel">Clear</button>
@@ -880,7 +881,7 @@ pre {
   <section class="stage">
     <div class="stage-head">
       <span class="stage-num">03</span>
-      <h2>Assemble the plan</h2>
+      <h2>Review the plan</h2>
     </div>
     <div class="panel">
       <div class="handoff-body" id="handoff"></div>
@@ -891,27 +892,26 @@ pre {
   <section class="stage">
     <div class="stage-head">
       <span class="stage-num">04</span>
-      <h2>Build the deck</h2>
-      <span class="aside" id="stage4-aside">Needs a proposal plan</span>
+      <h2>Download your deck</h2>
+      <span class="aside" id="stage4-aside">Waiting on Step 02</span>
     </div>
     <div class="panel">
       <div class="drop" id="plan-drop">
-        <h3>Waiting on Stage 02</h3>
-        <p>Pick the entries this proposal should be written from and the deck builds itself —
-           nothing to copy, paste or download in between. Drop a
-           <code>proposal_plan.json</code> here only to override that with one written
-           elsewhere.</p>
+        <h3>Your deck will appear here automatically</h3>
+        <p>Once you've selected slides in Step 02, the deck builds itself — nothing to
+           copy, paste or download in between. Only use the options below if you've
+           written or polished a plan somewhere else and want to use that instead.</p>
         <div class="btnrow">
-          <button class="primary" id="plan-browse">Choose files</button>
-          <button id="plan-paste-toggle">Paste JSON instead</button>
-          <button class="quiet" id="plan-example">Load the worked example</button>
+          <button class="primary" id="plan-browse">Upload a plan instead</button>
+          <button id="plan-paste-toggle">Paste one instead</button>
+          <button class="quiet" id="plan-example">See how this works</button>
         </div>
         <div class="formats">.JSON</div>
         <input type="file" id="plan-file" class="sr" accept=".json,application/json" multiple>
       </div>
 
       <div id="plan-paste-area" hidden style="padding: 0 14px 14px;">
-        <textarea id="plan-text" placeholder="Paste proposal_plan.json here, then press Build."
+        <textarea id="plan-text" placeholder="Paste your plan here, then press Build."
           aria-label="Proposal plan JSON"></textarea>
         <div class="btnrow" style="justify-content: flex-start; margin-top: 10px;">
           <button class="primary" id="plan-paste-run">Build it</button>
@@ -926,11 +926,11 @@ pre {
 
 
   <p class="foot">
-    Relevance is literal tag overlap, weighted exactly as <code>retrieve.py</code> weights
-    it: +3 a matching tag, +2 the focused section, −2 stale, −3 superseded. It is a
-    shortlist and its reasons, not a judgement — open anything whose title looks right
-    even when it scores nothing. Triage scoring is the same lexicon
-    <code>triage_rfp.py</code> uses.
+    The scores above are a starting shortlist, not a verdict — a slide can be exactly
+    right for this bid even if it scored nothing, so it's always worth a look if the
+    title fits. Matching is based on keywords shared between the tender and each slide,
+    with a boost for slides in your chosen section and a penalty for anything old or
+    superseded.
   </p>
 </main>
 
@@ -1535,8 +1535,8 @@ function mcpFailure(error) {
       "An administrator has blocked this Airtable tool. The rest of the page still works."],
     approval_required: ["Needs per-call approval",
       "Your organisation requires approval for this tool, which artifacts cannot request yet."],
-    not_in_manifest: ["This page is not cleared to read that table",
-      "It was published without Airtable in its manifest. Republish it with the connector declared."],
+    not_in_manifest: ["This page is not set up to read that table",
+      "That's a setup issue with the page itself, not something to fix here — report it to whoever maintains this tool."],
     tool_error: ["Airtable rejected the request",
       (error && error.message) || "The table may have been renamed, moved, or deleted."],
     server_unavailable: ["Airtable is not answering",
@@ -1604,8 +1604,8 @@ function renderAirtable() {
        The rows exist but no fields are filled in, so there is nothing to match a tender
        against yet.</div>` : "")
     + (filled && !taggable ? `<div class="mcp-state warn"><b>No tags on any row</b>
-       These can only be ordered by name. Tag each past bid with the same vocabulary the
-       knowledge bank uses and the ones resembling this tender rise to the top.</div>` : "")
+       Without tags these can only be sorted by name. Tag each past bid with the same
+       keywords used in the slide library below and the closest matches rise to the top.</div>` : "")
     + scored.map(p => `
       <label class="project${state.selectedProjects.has(p.id) ? " on" : ""}">
         <input type="checkbox" data-project="${esc(p.id)}"
@@ -1627,10 +1627,9 @@ function renderAirtable() {
             ${docLink(p.rfp[0], "RFP")}
             ${docLink(p.deck[0], "Deck")}
           </span>
-          ${p.deck.length ? `<span class="row hint">Worth mining? Download the deck from
-            this record and run <code>ingest_source.py</code> on it, per
-            <code>reference/knowledge-bank-guide.md</code> — the page itself no longer
-            drafts entries.</span>` : ""}
+          ${p.deck.length ? `<span class="row hint">Worth reusing? Flag it to whoever
+            maintains the slide library — good slides from this deck can be added for
+            future bids.</span>` : ""}
         </span>
         <a class="open" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
           open in Airtable →</a>
@@ -1783,9 +1782,9 @@ function autoSelect() {
 function renderBank() {
   const host = $("bank");
   if (!state.bank.entries.length) {
-    host.innerHTML = `<div class="mcp-state warn"><b>The knowledge bank is empty</b>
-      Add entries under <code>proposal-assets/knowledge-bank/</code> and rebuild, or draft
-      some from a past deck below.</div>`;
+    host.innerHTML = `<div class="mcp-state warn"><b>The slide library is empty</b>
+      This is a setup issue, not something to fix here — ask whoever maintains the
+      slide library to check it has been published with content.</div>`;
     $("bank-caption").textContent = "empty";
     $("stage2-aside").textContent = `${state.selected.size} selected`;
     return;
@@ -1818,8 +1817,8 @@ function renderBank() {
             <a class="open" href="${esc(e.record_url)}" target="_blank"
                rel="noopener noreferrer">open in Airtable →</a></span>
           ${e.incomplete && e.incomplete.length ? `<span class="row">
-            <span class="flag warn">retrieval cannot reach this: no
-              ${esc(e.incomplete.join(", no "))}</span></span>` : ""}
+            <span class="flag warn">can't be found or used yet — missing
+              ${esc(e.incomplete.join(", "))}</span></span>` : ""}
           <span class="excerpt">${esc(unmark(e.excerpt))}</span>
           <span class="row">${flagsFor(e)}</span>
           <span class="row">${matched}${others}</span>
@@ -1830,23 +1829,21 @@ function renderBank() {
   let html = "";
   if (!entries.length) {
     html = `<div class="empty">
-      <p>No reusable content yet.</p>
-      <p style="margin-top:8px">Entries here are the prose a slide is built from. They come
-         from the curated deck of good slides — run it through
-         <code>ingest_source.py --golden-deck</code>, then rebuild this page.</p></div>`;
+      <p>Nothing matches your current filters.</p>
+      <p style="margin-top:8px">Try turning off "Only this section," or ticking
+         "Include internal-only material" on the left.</p></div>`;
   } else {
     html = scored.map(rowFor).join("");
     if (!scored.length) {
       html = `<div class="empty">
-        <p>No entry shares a tag with this tender.</p>
-        <p style="margin-top:8px">Add tags on the left from the bank's own vocabulary —
-           only tags the bank already uses can match.</p></div>`;
+        <p>Nothing in the slide library matches this tender's keywords.</p>
+        <p style="margin-top:8px">Add a keyword on the left from the suggested list —
+           only keywords already used in the library can match something.</p></div>`;
     }
     if (unscored.length) {
       html += `<details class="setaside">
-        <summary>${unscored.length} entr${unscored.length === 1 ? "y" : "ies"} with no
-          tag overlap — <code>retrieve.py</code> would drop these, but a low score is not
-          a verdict</summary>
+        <summary>${unscored.length} more slide${unscored.length === 1 ? "" : "s"} with no
+          keyword match — worth a look if the title fits, even unranked</summary>
         <div>${unscored.map(rowFor).join("")}</div></details>`;
     }
   }
@@ -1889,17 +1886,18 @@ function renderReadout() {
     .sort((a, b) => b.score - a.score);
   const aside = t.sections.filter(s => s.verdict === "not-cm");
 
+  const VERDICT_LABEL = { "cm-core": "Core to us", "cm-adjacent": "Related", "not-cm": "Not ours" };
   const clauseRow = s => `
     <div class="clause">
       <span class="ref">${esc(s.ref)}${s.page ? `<span class="pg">page ${s.page}</span>` : ""}</span>
       <span class="what">
         ${s.heading ? `<span class="head">${esc(s.heading)}</span>` : ""}
         <span class="quote">${esc(s.excerpt)}</span>
-        ${s.cues.length ? `<span class="sig"><span class="flag">names deliverables:
+        ${s.cues.length ? `<span class="sig"><span class="flag">asks us to deliver:
           ${esc(s.cues.slice(0, 3).join(", "))}</span></span>` : ""}
       </span>
       <span class="sig">
-        <span class="verdict ${s.verdict === "cm-core" ? "core" : "adj"}">${esc(s.verdict)}</span>
+        <span class="verdict ${s.verdict === "cm-core" ? "core" : "adj"}">${esc(VERDICT_LABEL[s.verdict] || s.verdict)}</span>
       </span>
     </div>`;
 
@@ -1912,29 +1910,29 @@ function renderReadout() {
     </div>
     <div class="tallies">
       <span class="tally"><span class="n core">${t.counts["cm-core"]}</span>
-        <span class="k">CM core</span></span>
+        <span class="k">Ours to answer</span></span>
       <span class="tally"><span class="n">${t.counts["cm-adjacent"]}</span>
-        <span class="k">CM adjacent</span></span>
+        <span class="k">Related</span></span>
       <span class="tally"><span class="n">${t.counts["not-cm"]}</span>
-        <span class="k">Set aside</span></span>
+        <span class="k">Not ours</span></span>
       <span class="tally"><span class="n">${t.crossRefs.length}</span>
-        <span class="k">Cross-references</span></span>
+        <span class="k">Other parts referenced</span></span>
     </div>
     ${t.crossRefs.length ? `<div class="notice">
-      <b>Confirm you have every part this tender points at.</b>
-      ${esc(t.crossRefs.slice(0, 12).join(" · "))}. A requirement you cannot answer because
-      an annex was never sent is a clarification question, and that deadline comes first.
+      <b>Make sure you have every part this tender points to.</b>
+      ${esc(t.crossRefs.slice(0, 12).join(" · "))}. If one of these was never sent to you,
+      that's a question worth asking before you go further — and that deadline comes first.
     </div>` : ""}
     ${doc.topics.length ? `<div class="topics">
-      <span class="topics-k">Its change vocabulary</span>
+      <span class="topics-k">Terms that came up often</span>
       ${doc.topics.slice(0, 12).map(t =>
         `<span class="chip plain">${esc(t.term)} <b>${t.n}</b></span>`).join("")}
     </div>` : ""}
     <div class="clauses">${relevant.slice(0, 12).map(clauseRow).join("")
-      || '<div class="empty">Nothing in this document scored as CM-relevant.</div>'}</div>
+      || '<div class="empty">Nothing in this document looks like it\'s ours to answer.</div>'}</div>
     ${aside.length ? `<details class="setaside">
-      <summary>${aside.length} section${aside.length === 1 ? "" : "s"} set aside — read the
-        headings, do not assume</summary>
+      <summary>${aside.length} section${aside.length === 1 ? "" : "s"} set aside — worth a
+        quick skim of the headings before you trust it</summary>
       <div class="setaside-body clauses">${aside.map(clauseRow).join("")}</div>
     </details>` : ""}`;
   panel.hidden = false;
@@ -2092,9 +2090,9 @@ function assemblePlan(doc, entries, brief) {
             `${s.ref}${s.heading ? " — " + s.heading : ""}`),
           sources: [tenderSource(doc)] },
         { placeholder: "footer", kind: "text", content: "", gap: true,
-          gap_note: "The tender's CM clauses are listed, but what we understand of this "
-            + "client's situation has to be written by the bid team — no knowledge-bank "
-            + "entry can supply it." }
+          gap_note: "The tender's requirements are listed, but what we understand of this "
+            + "client's situation has to be written by the bid team — nothing in the "
+            + "slide library can supply it." }
       ],
       speaker_notes: "Placeholder structure only. The clauses are real; the argument is not "
         + "written yet."
@@ -2121,8 +2119,8 @@ function assemblePlan(doc, entries, brief) {
             page.length
               ? { placeholder: "body", kind: "bullets", content: page, sources: [entry.id] }
               : { placeholder: "body", kind: "text", content: "", gap: true,
-                  gap_note: `${entry.id} has no body text in the bank — the row exists but `
-                    + `there is nothing to put on a slide.` },
+                  gap_note: `${entry.id} has no text in the slide library — it exists but `
+                    + `there's nothing to put on a slide.` },
             { placeholder: "footer", kind: "text",
               content: entry.clearance === "anonymised"
                 ? "Client anonymised" : "", sources: [entry.id] }
@@ -2161,8 +2159,7 @@ function renderHandoff() {
 
   if (!chosen.length && !projects.length) {
     host.innerHTML = `<p class="summary-line" style="color:var(--muted)">
-      Pick the past projects worth mining and the entries this proposal should be written
-      from. The selection file, and the prompt that turns it into a plan, appear here.</p>`;
+      Once slides are selected above, your plan and deck will appear here automatically.</p>`;
     $("dock").classList.remove("up");
     return;
   }
@@ -2175,23 +2172,26 @@ function renderHandoff() {
   const stale = chosen.filter(e => e.stale);
 
   if (internal.length) warnings.push({ risk: true, text:
-    `<b>${internal.length} selected ${internal.length === 1 ? "entry is" : "entries are"}
-     internal-only.</b> Retrieval excludes these from client-facing material by default.
-     Clear them, or drop them: ${internal.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
+    `<b>${internal.length} selected ${internal.length === 1 ? "slide is" : "slides are"}
+     internal-only.</b> These are hidden from clients by default because they haven't been
+     cleared to show. Clear them for this bid, or remove them:
+     ${internal.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
   if (lost.length) warnings.push({ risk: true, text:
-    `<b>${lost.length} came from a bid that lost.</b> Language from a losing bid reads
-     exactly as well as language from a winning one. Check the debrief notes before
-     reusing it: ${lost.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
+    `<b>${lost.length} came from a bid that lost.</b> That doesn't make the slide unusable —
+     a losing bid can still have great content — but check the debrief notes first:
+     ${lost.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
   if (unverified.length) warnings.push({ text:
-    `<b>${unverified.length} ${unverified.length === 1 ? "entry states" : "entries state"}
-     numbers that are not verified.</b> No figure from these can ship until somebody checks
-     it: ${unverified.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
+    `<b>${unverified.length} ${unverified.length === 1 ? "slide states" : "slides state"}
+     numbers that haven't been verified.</b> Don't let a figure from these reach a client
+     until someone checks it: ${unverified.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
   if (anon.length) warnings.push({ text:
-    `<b>${anon.length} ${anon.length === 1 ? "is" : "are"} anonymised.</b> Describe the
-     client generically — never name them: ${anon.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
+    `<b>${anon.length} ${anon.length === 1 ? "slide names" : "slides name"} a client
+     anonymously.</b> Keep it generic — never name that client:
+     ${anon.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
   if (stale.length) warnings.push({ text:
-    `<b>${stale.length} ${stale.length === 1 ? "was" : "were"} last reviewed over two years
-     ago.</b> Confirm before shipping: ${stale.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
+    `<b>${stale.length} ${stale.length === 1 ? "hasn't" : "haven't"} been reviewed in over
+     two years.</b> Worth a quick check before this goes out:
+     ${stale.map(e => `<code>${esc(e.id)}</code>`).join(" ")}` });
 
   const selection = {
     generated: new Date().toISOString().slice(0, 10),
@@ -2277,34 +2277,33 @@ reviewed_and_excluded were triaged as out of scope; leave them alone.
 ${JSON.stringify(selection, null, 2)}`;
 
   const summary = [
-    chosen.length ? `<b>${chosen.length}</b> retrievable entr${chosen.length === 1 ? "y" : "ies"}`
+    chosen.length ? `<b>${chosen.length}</b> slide${chosen.length === 1 ? "" : "s"} selected`
                   : "",
-    projects.length ? `<b>${projects.length}</b> past project${projects.length === 1 ? "" : "s"} to mine`
+    projects.length ? `<b>${projects.length}</b> past project${projects.length === 1 ? "" : "s"} for reference`
                     : ""
   ].filter(Boolean).join(" · ");
 
   host.innerHTML = `
     <p class="summary-line">${summary}.</p>
-    ${projects.length ? `<ul class="warnlist"><li><b>Past projects are documents, not
-      content.</b> The proposal deck is worth mining — extract it into a knowledge-bank
-      entry first with <code>ingest_source.py</code>, then it becomes retrievable. The
-      RFP is the client's own tender, not ours to reuse — useful only as context for how
-      closely a past bid resembles this one. <code>selection.json</code> below carries a
-      direct link to each attachment — Airtable's own attachment link, good for a couple
-      of hours from now. If a link has gone stale by the time you use it, reopen this
-      page and the projects will re-list with fresh ones.</li></ul>` : ""}
+    ${projects.length ? `<ul class="warnlist"><li><b>Past projects are for reference,
+      not content.</b> They help you judge how close a past bid is to this tender — but
+      nothing from a past project's own documents goes onto a slide automatically. If one
+      has a deck worth reusing, flag it to whoever maintains the slide library.</li></ul>` : ""}
     ${warnings.length ? `<ul class="warnlist">${warnings.map(w =>
       `<li class="${w.risk ? "risk" : ""}">${w.text}</li>`).join("")}</ul>` : ""}
     <p class="handoff-lead" id="plan-state">Assembling the plan…</p>
     <details class="handoff-more">
-      <summary>The files this run produced</summary>
+      <summary>Advanced: the technical files behind this run (optional)</summary>
+      <p style="margin: 10px 0; font-size: 13px; color: var(--muted);">You don't need
+        this to build the deck below — it's here for anyone who wants to hand this off
+        to an AI assistant for extra polish.</p>
       <div class="codeblock">
-        <div class="cap">selection.json <span class="capnote">what was chosen</span>
+        <div class="cap">What was chosen <span class="capnote">selection.json</span>
           <button data-copy="sel-json">Copy</button></div>
         <pre id="sel-json">${esc(JSON.stringify(selection, null, 2))}</pre>
       </div>
       <div class="codeblock">
-        <div class="cap">ask Claude for a written plan
+        <div class="cap">Ask an AI assistant to write the plan
           <span class="capnote">optional — for prose adapted to this client</span>
           <button data-copy="ask-block">Copy</button></div>
         <pre id="ask-block">${esc(askClaude)}</pre>
@@ -2364,13 +2363,13 @@ let autoPlan = null;
 async function handOffToBuild(chosen) {
   const state03 = $("plan-state");
   if (!state.doc) {
-    if (state03) state03.innerHTML = "<b>Read a tender first.</b> The plan is built from "
-      + "its CM-owned clauses, so Stage 01 has to run before this can.";
+    if (state03) state03.innerHTML = "<b>Upload a tender first.</b> The plan is built from "
+      + "what it asks of change management, so Step 01 has to run before this can.";
     return;
   }
   if (!chosen.length) {
-    if (state03) state03.innerHTML = "<b>Nothing selected yet.</b> Choose the entries this "
-      + "proposal should be written from and the deck assembles itself from here.";
+    if (state03) state03.innerHTML = "<b>Nothing selected yet.</b> Pick the slides this "
+      + "proposal should be built from above and the deck assembles itself from here.";
     return;
   }
 
@@ -2379,7 +2378,7 @@ async function handOffToBuild(chosen) {
     brief = buildBrief(state.doc);
     plan = assemblePlan(state.doc, chosen, brief);
   } catch (err) {
-    if (state03) state03.innerHTML = `<b>Could not assemble the plan.</b> ${esc(err.message)}`;
+    if (state03) state03.innerHTML = `<b>Could not build a plan from this.</b> ${esc(err.message)}`;
     return;
   }
 
@@ -2423,19 +2422,20 @@ Rules:
 - Only knowledge-bank entries already listed above; no new ones.`;
 
   if (state03) state03.innerHTML =
-    `<b>Plan assembled — ${slides} slides across ${plan.sections.length} sections.</b>
-     Stage 04 has it already; nothing to copy. The deck below is built from the entries
-     you picked, in their own words. Anything the bank could not cover is marked
-     <span class="gapword">[GAP]</span> rather than written for you.
+    `<b>Plan ready — ${slides} slides across ${plan.sections.length} sections.</b>
+     Nothing more to do here; the deck below is already building itself from the slides
+     you picked, in their own words. Anything the library couldn't cover is marked
+     <span class="gapword">[GAP]</span> instead of being made up.
      <details class="enhance-option" style="margin-top: 12px;">
-       <summary>Strengthen with slide-building skills</summary>
+       <summary>Want it polished by an AI assistant? (optional)</summary>
        <p style="margin: 12px 0 8px; font-size: 13px; color: var(--muted);">
-         Optional: Use /presentation-outline-builder, /hook-maker, /visual-simplifier, and
-         /slide-writer to enhance the assembled plan before building the deck.
+         This is entirely optional — the deck below already works. This gives you a prompt
+         to hand to an AI assistant that will tighten the narrative, sharpen the openings,
+         and trim each slide down to one clear idea, before you build the final deck.
        </p>
        <div class="codeblock">
-         <div class="cap">enhance with skills
-           <span class="capnote">optional — for narrative and slide discipline</span>
+         <div class="cap">Ask an AI assistant to polish the plan
+           <span class="capnote">optional — for a tighter narrative</span>
            <button data-copy="enhance-block">Copy</button></div>
          <pre id="enhance-block">${esc(enhanceWithSkills)}</pre>
        </div>
@@ -2482,21 +2482,18 @@ function classifyJson(name, data) {
   // The two files most likely to arrive here by mistake are the ones this page itself
   // produced upstream. Saying which one it is beats listing the keys it lacks.
   if (Array.isArray(data.selected_entries) || data.cm_scope !== undefined)
-    throw new Misfiled(`<b>That is the selection file from Stage 03, not the plan.</b>
-      They are two different files: <code>selection.json</code> records <i>which</i>
-      evidence to draw on, and <code>proposal_plan.json</code> says what each slide
-      actually contains. Copy the <b>ask Claude for the plan</b> block from Stage 03 —
-      it already carries the selection — paste it to Claude, and bring back the
-      <code>proposal_plan.json</code> it writes. To see this stage run right now, press
-      <b>Load the worked example</b>.`);
+    throw new Misfiled(`<b>That's your selections from Step 02, not a finished plan.</b>
+      It records <i>which</i> slides you picked; the plan says what each slide actually
+      says. You don't need to build this yourself — it happens automatically once slides
+      are selected. Press <b>See how this works</b> to watch it happen with sample data.`);
   if (Array.isArray(data.crossRefs) || Array.isArray(data.counts) || data.verdicts)
-    throw new Misfiled(`<b>That looks like a triage file, not the plan.</b> Triage says
-      which parts of the tender concern change management; the plan says what the slides
-      answering them contain. Ask Claude for it with the Stage 03 block.`);
+    throw new Misfiled(`<b>That looks like the tender read-out from Step 01, not a plan.</b>
+      It says which parts of the tender concern change management; the plan says what the
+      slides answering them contain.`);
 
-  throw new Misfiled(`<b>${esc(name)} is neither a proposal plan nor an RFP brief.</b>
-    A plan has a <code>sections</code> array; a brief has a <code>requirements</code>
-    array. This has neither.`);
+  throw new Misfiled(`<b>${esc(name)} isn't a plan this tool recognizes.</b>
+    Try building the deck the normal way — select slides in Step 02 and it appears
+    here automatically.`);
 }
 
 async function acceptJsonFiles(files) {
@@ -2548,47 +2545,46 @@ async function runBuild() {
   if (build.brief) {
     const mapped = planAudit.needsSlide.filter(id => planAudit.covered.has(id)).length;
     const ok = planAudit.uncovered.length === 0;
-    rows.push(checkRow(ok ? "pass" : "fail", "Requirement coverage",
-      ok ? `${mapped} of ${planAudit.needsSlide.length} requirements that need a slide are mapped`
+    rows.push(checkRow(ok ? "pass" : "fail", "Every requirement answered",
+      ok ? `${mapped} of ${planAudit.needsSlide.length} things the tender asked for have a slide`
          + (planAudit.documentRules.length
-            ? `. ${planAudit.documentRules.length} govern the document itself — check the deck against them.` : ".")
-         : `${planAudit.uncovered.length} uncovered: `
+            ? `. ${planAudit.documentRules.length} more are about the document itself — check the deck against them.` : ".")
+         : `${planAudit.uncovered.length} still unanswered: `
            + list(planAudit.uncovered.map(id =>
                `${id} — ${(planAudit.reqs.get(id) || {}).text || ""}`))));
   } else {
-    rows.push(checkRow("warn", "Requirement coverage",
-      "Not checked — add the rfp_brief.json to verify every requirement reached a slide."));
+    rows.push(checkRow("warn", "Every requirement answered",
+      "Not checked — this needs the tender read-out from Step 01 to verify."));
   }
 
-  rows.push(checkRow(planAudit.unattributed.length ? "fail" : "pass", "Provenance",
+  rows.push(checkRow(planAudit.unattributed.length ? "fail" : "pass", "Every claim has a source",
     planAudit.unattributed.length
-      ? "Blocks with neither sources nor a [GAP] marker — unattributed content cannot be "
-        + "told apart from fabrication once it is in a deck:" + list(planAudit.unattributed)
-      : "Every content block carries knowledge-bank sources or a [GAP] marker."));
+      ? "Content with no source and no [GAP] marker — this can't be told apart from "
+        + "something made up, once it's in a deck:" + list(planAudit.unattributed)
+      : "Everything on every slide either traces back to the slide library or is marked [GAP]."));
 
   rows.push(checkRow(planAudit.gaps.length ? "warn" : "pass",
-    `Open gaps (${planAudit.gaps.length})`,
+    `Gaps still to fill in (${planAudit.gaps.length})`,
     planAudit.gaps.length
-      ? "Visible amber panels in the deck. Action items before submission:"
+      ? "These show as visible amber panels in the deck. Fill these in before it goes out:"
         + list(planAudit.gaps.map(g => `${g.where} — ${g.note}`))
-      : "None. Every planned block drew on the knowledge bank."));
+      : "None. Every slide drew on the slide library."));
 
-  rows.push(checkRow(file.fidelity.length ? "fail" : "pass", "Template fidelity",
+  rows.push(checkRow(file.fidelity.length ? "fail" : "pass", "Matches your template",
     file.fidelity.length
-      ? "The deck has drifted off the template:" + list(file.fidelity)
-      : "Master, layouts and theme byte-identical to the template; no slide sets its own "
-        + "fonts or colours."));
+      ? "Some slides have drifted from the template:" + list(file.fidelity)
+      : "Every slide matches the template's fonts, colours and layout exactly."));
 
-  rows.push(checkRow(file.overflow.length ? "warn" : "pass", "Text overflow",
+  rows.push(checkRow(file.overflow.length ? "warn" : "pass", "Text fits on the slide",
     file.overflow.length
-      ? "PowerPoint clips an overfull placeholder rather than spilling it, so these lose "
-        + "content silently. Autofit has been applied; cut the content if it is still over:"
+      ? "PowerPoint hides text that doesn't fit, instead of showing it spilling over — so "
+        + "these slides are silently losing content. Shorten them if this is still showing:"
         + list(file.overflow)
-      : "Every text placeholder fits its box at the layout's own size."));
+      : "Every piece of text fits comfortably in its slide."));
 
-  rows.push(checkRow(file.scaffolding.length ? "warn" : "pass", "Leftover scaffolding",
+  rows.push(checkRow(file.scaffolding.length ? "warn" : "pass", "No placeholder text left behind",
     file.scaffolding.length ? list(file.scaffolding)
-      : "No prompt text, lorem, TODO or placeholder markers."));
+      : "Nothing that looks like unfinished draft text or a placeholder was found."));
 
   const failed = rows.filter(r => r.includes('class="check fail"')).length;
   const kb = Math.round(result.blob.size / 1024);
@@ -2607,11 +2603,11 @@ async function runBuild() {
     <div class="build-foot">
       <button class="primary" id="save-deck">Download the deck</button>
       <span class="note">${failed
-        ? "Fix the failed checks before this goes anywhere near a client."
-        : "A first draft for practitioner review — not a submission-ready document."}</span>
+        ? "Fix the checks above before this goes anywhere near a client."
+        : "This is a first draft for your team to review — not ready to send as-is."}</span>
       <label class="toggle" style="margin:0">
         <input type="checkbox" id="hide-sources">
-        <span>Hide source IDs<span class="sub">for a reviewed client-facing copy</span></span>
+        <span>Hide the source notes<span class="sub">once you're ready for a clean, client-facing copy</span></span>
       </label>
     </div>`;
   $("stage4-aside").textContent = failed ? `${failed} check failed` : "built";
@@ -2622,7 +2618,7 @@ async function runBuild() {
     $("plan-notice").innerHTML = "";
     $("plan-drop").hidden = false;
     $("stage4-aside").textContent = autoPlan
-      ? "Drop a plan, or reselect in Stage 02" : "Needs a proposal plan";
+      ? "Upload a plan, or reselect slides in Step 02" : "Waiting on Step 02";
   });
   $("hide-sources").addEventListener("change", runBuild);
   $("save-deck").addEventListener("click", () => saveDeck(name));
@@ -2634,8 +2630,8 @@ async function runBuild() {
    rather than sending anyone to a terminal. The copy is authored here, never viewer
    input, so it carries markup and goes to planNotice unescaped. */
 const SAVE_UNAVAILABLE =
-  "<b>This view cannot save files.</b> The deck built correctly and is still here — "
-  + "opening the artifact in its own browser tab is the thing most likely to help.";
+  "<b>Downloading isn't available in this view.</b> The deck is built and still here — "
+  + "opening this page in its own browser tab is the thing most likely to fix it.";
 
 async function saveDeck(name) {
   const button = $("save-deck");
@@ -2649,26 +2645,23 @@ async function saveDeck(name) {
   } catch (err) {
     const code = (err && err.code) || "unavailable";
     const copy = {
-      declined: "<b>Save cancelled.</b> The deck is still built — press the button again "
-        + "when you are ready.",
+      declined: "<b>Download cancelled.</b> The deck is still ready — press the button "
+        + "again when you're ready.",
       // The one failure worth explaining properly, because it looks like the tool is
       // broken and is neither the tool's fault nor fixable from inside the page.
       extension_not_enabled:
-        "<b>The deck is built — this view just will not hand over a <code>.pptx</code>.</b> "
-        + "Downloads are split into a set always allowed (images, video, "
-        + "<code>.txt</code>, <code>.json</code>, <code>.md</code>) and an extended set "
-        + "that has to be switched on for the viewer — <code>.pptx</code>, "
-        + "<code>.pdf</code>, <code>.docx</code> and friends. Nothing the page declares "
-        + "can enable them. Turn extended download types on for this view, then press the "
-        + "button again; the deck is still in memory and nothing needs rebuilding.",
-      rejected_extension: "<b><code>.pptx</code> is not an allowed download type here.</b> "
-        + "The deck is built; this viewer will not accept the file type.",
-      too_large: "<b>The deck is over the 16 MiB download limit.</b> Cut some content and "
-        + "rebuild.",
-      rate_limited: "<b>A save prompt is already open.</b> Finish that one, then press "
+        "<b>The deck is ready — this view just needs permission to hand over a "
+        + "PowerPoint file.</b> Some file types need to be turned on for this view before "
+        + "they can be downloaded. Turn on PowerPoint (.pptx) downloads for this view, "
+        + "then press the button again — the deck is already built, so nothing needs redoing.",
+      rejected_extension: "<b>This view won't accept a PowerPoint file.</b> "
+        + "The deck is built and ready — it's just this particular view that won't take it.",
+      too_large: "<b>The deck is too large to download (over 16 MB).</b> Trim some content "
+        + "and rebuild it.",
+      rate_limited: "<b>A download is already in progress.</b> Finish that one, then press "
         + "again.",
-      bad_request: "<b>The deck could not be handed over.</b> Rebuild and try again.",
-      transform_error: "<b>The deck could not be handed over.</b> Rebuild and try again.",
+      bad_request: "<b>The download didn't go through.</b> Rebuild the deck and try again.",
+      transform_error: "<b>The download didn't go through.</b> Rebuild the deck and try again.",
       // Runtime lifecycle codes the contract says to treat as unavailable.
       unavailable: SAVE_UNAVAILABLE,
       not_granted: SAVE_UNAVAILABLE,
@@ -2728,7 +2721,7 @@ function ingest(name, text) {
   $("paste-area").hidden = true;
   $("intake-notice").innerHTML = "";
   $("stage1-aside").textContent =
-    `${state.doc.triage.counts["cm-core"]} CM-core section(s)`;
+    `${state.doc.triage.counts["cm-core"]} section(s) ours to answer`;
   renderReadout(); renderTags(); renderBank(); renderHandoff();
   $("readout").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
