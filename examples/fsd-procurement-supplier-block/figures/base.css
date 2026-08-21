@@ -1,0 +1,43 @@
+* { box-sizing: border-box; margin:0; padding:0; }
+body { font-family: "Liberation Sans","Arial",sans-serif; background:#fff; width:1160px; }
+.win { border:1px solid #b6bec7; background:#f7f7f7; }
+/* --- SAP GUI classic --- */
+.gui-title { background:linear-gradient(#4a6c8f,#37536e); color:#fff; font-size:13px; padding:5px 10px; font-weight:bold; }
+.gui-menu { background:#e8eef4; border-bottom:1px solid #c3ced9; font-size:12px; padding:4px 10px; color:#1a3a55;}
+.gui-menu span { margin-right:16px; }
+.gui-toolbar { background:#dfe7ee; border-bottom:1px solid #c3ced9; padding:4px 8px; display:flex; gap:6px; align-items:center;}
+.btn { background:linear-gradient(#fdfdfd,#e4e9ee); border:1px solid #a9b4bf; border-radius:3px; font-size:12px; padding:3px 10px; color:#123; }
+.btn.pri { background:linear-gradient(#3f8ad8,#2a6cb5); border-color:#215a99; color:#fff; }
+.gui-body { background:#f2f5f8; padding:14px 16px; }
+label.f { display:inline-block; width:210px; font-size:12px; color:#20364a; vertical-align:middle;}
+input.f { border:1px solid #9aa7b4; background:#fff; font-size:12px; padding:3px 5px; height:23px; vertical-align:middle;}
+.row { margin-bottom:7px; }
+fieldset { border:1px solid #c3ced9; background:#fbfcfd; padding:12px 14px 8px; margin-bottom:12px;}
+legend { font-size:12px; font-weight:bold; color:#2a6cb5; padding:0 6px;}
+.tabs { display:flex; border-bottom:2px solid #2a6cb5; margin-bottom:12px;}
+.tab { font-size:12px; padding:6px 14px; border:1px solid #c3ced9; border-bottom:none; background:#e8eef4; color:#33506b; margin-right:2px;}
+.tab.on { background:#fff; font-weight:bold; color:#0a3d6e; }
+/* --- Fiori --- */
+.fio-bar { background:#354a5f; color:#fff; padding:9px 14px; font-size:14px; display:flex; justify-content:space-between; align-items:center;}
+.fio-sub { background:#fff; border-bottom:1px solid #d9d9d9; padding:12px 14px; }
+.fio-title { font-size:17px; color:#32363a; font-weight:bold;}
+.fio-body { background:#f7f7f7; padding:14px; }
+.card { background:#fff; border:1px solid #e5e5e5; border-radius:4px; padding:12px 14px; margin-bottom:12px;}
+.tile { display:inline-block; width:170px; height:110px; background:#fff; border:1px solid #e5e5e5; border-radius:4px; margin:0 12px 12px 0; padding:10px; vertical-align:top;}
+.tile b { font-size:13px; color:#32363a; display:block; }
+.tile .num { font-size:30px; color:#0a6ed1; margin-top:14px; display:block;}
+.tile .sub { font-size:11px; color:#6a6d70; }
+table.g { border-collapse:collapse; width:100%; font-size:12px; }
+table.g th { background:#eff4f9; text-align:left; padding:7px 8px; border-bottom:1px solid #c3ced9; color:#32363a;}
+table.g td { padding:6px 8px; border-bottom:1px solid #ececec; color:#32363a;}
+table.g tr:nth-child(even) td { background:#fafbfc; }
+.pill { font-size:11px; padding:2px 8px; border-radius:10px; }
+.red { background:#ffebeb; color:#b00; border:1px solid #f3c2c2;}
+.grn { background:#e8f6ea; color:#1a7a2e; border:1px solid #bfe3c6;}
+.amb { background:#fff4e0; color:#8a5a00; border:1px solid #f0d9a8;}
+.msg { font-size:12px; padding:8px 10px; border-radius:3px; margin-bottom:8px;}
+.msg.e { background:#ffebeb; border-left:4px solid #bb0000; color:#5e0000;}
+.msg.s { background:#e8f6ea; border-left:4px solid #107e3e; color:#0a4d26;}
+.msg.w { background:#fff4e0; border-left:4px solid #e9730c; color:#6b3d00;}
+.sbar { background:#e8eef4; border-top:1px solid #c3ced9; font-size:11px; padding:4px 10px; color:#33506b;}
+select.f { border:1px solid #9aa7b4; font-size:12px; padding:3px; height:23px;}

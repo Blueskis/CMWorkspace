@@ -1,0 +1,28 @@
+<meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<body><div class="win">
+<div class="fio-bar"><span><b>SAP</b> &nbsp; Create Block Request &#9662;</span><span style="font-size:12px">&#9906; &nbsp; JSMITH &#9673;</span></div>
+<div class="fio-sub"><div class="fio-title">Block Request &#8212; Validation Result</div></div>
+<div class="fio-body">
+<div class="msg e"><b>ZSUPBLK 022E</b> &nbsp; Supplier 0000104829 is flagged for deletion. A deletion-flagged supplier cannot be blocked. Remove the deletion flag in transaction BP or cancel the request.</div>
+<div class="msg e"><b>ZSUPBLK 031E</b> &nbsp; Reason code BX99 does not exist in view V_ZSUPBLK_RSN. Choose a valid reason code from the value help.</div>
+<div class="msg e"><b>ZSUPBLK 034E</b> &nbsp; Valid-to date 01.07.2026 is earlier than valid-from date 12.08.2026.</div>
+<div class="msg e"><b>ZSUPBLK 041E</b> &nbsp; You are not authorized to block suppliers in purchasing organization 2000 (authorization object Z_SUPBLK, field EKORG).</div>
+<div class="msg w"><b>ZSUPBLK 011W</b> &nbsp; Supplier has 4 open purchase orders with a total value of EUR 216,430. Confirm that the block should still be applied.</div>
+<div class="msg w"><b>ZSUPBLK 016W</b> &nbsp; Supplier is the sole source for 6 source list entries. Alternative sources must be arranged before the block takes effect.</div>
+<div class="msg s"><b>ZSUPBLK 001S</b> &nbsp; Block request 1000004512 created and submitted for approval.</div>
+<div class="card"><b style="font-size:13px;color:#32363a">Message Class ZSUPBLK &#8212; Extract</b>
+<table class="g" style="margin-top:10px">
+<tr><th style="width:70px">No.</th><th style="width:60px">Type</th><th>Message Text</th><th style="width:170px">Raised By</th></tr>
+<tr><td>001</td><td>S</td><td>Block request &amp;1 created and submitted for approval</td><td>CREATE_REQUEST</td></tr>
+<tr><td>011</td><td>W</td><td>Supplier has &amp;1 open purchase orders with value &amp;2 &amp;3</td><td>CHECK_OPEN_DOCS</td></tr>
+<tr><td>013</td><td>W</td><td>Supplier already blocked in &amp;1 &amp;2 since &amp;3; scope extended</td><td>CHECK_EXISTING</td></tr>
+<tr><td>016</td><td>W</td><td>Supplier is sole source for &amp;1 source list entries</td><td>CHECK_SOURCING</td></tr>
+<tr><td>022</td><td>E</td><td>Supplier &amp;1 is flagged for deletion; block not permitted</td><td>CHECK_MASTER_DATA</td></tr>
+<tr><td>031</td><td>E</td><td>Reason code &amp;1 does not exist</td><td>CHECK_REASON_CODE</td></tr>
+<tr><td>034</td><td>E</td><td>Valid-to date &amp;1 is earlier than valid-from date &amp;2</td><td>CHECK_VALIDITY</td></tr>
+<tr><td>041</td><td>E</td><td>No authorization to block in purchasing organization &amp;1</td><td>CHECK_AUTHORITY</td></tr>
+<tr><td>052</td><td>A</td><td>Update of supplier &amp;1 failed; transaction rolled back</td><td>UPDATE_BLOCK_FLAGS</td></tr>
+</table></div>
+</div>
+<div class="sbar">Messages are collected in BAL and displayed via CL_SALV_MSG / message manager &nbsp;|&nbsp; Message class ZSUPBLK</div>
+</div></body>

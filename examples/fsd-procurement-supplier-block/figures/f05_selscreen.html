@@ -1,0 +1,28 @@
+<meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<body><div class="win">
+<div class="gui-title">Mass Block / Unblock of Registered Suppliers</div>
+<div class="gui-menu"><span>Program</span><span>Edit</span><span>Goto</span><span>System</span><span>Help</span></div>
+<div class="gui-toolbar"><button class="btn">&#9664;</button><button class="btn pri">&#9654; Execute (F8)</button><button class="btn">Save Variant</button><button class="btn">Get Variant</button><span style="font-size:12px;margin-left:14px;color:#33506b">Report: ZMM_SUPBLK_MASS</span></div>
+<div class="gui-body">
+<fieldset><legend>Supplier Selection</legend>
+<div class="row"><label class="f">Supplier (LIFNR)</label><input class="f" style="width:130px" value="0000104773"><span style="font-size:12px;margin:0 6px">to</span><input class="f" style="width:130px" value="0000104999"><button class="btn" style="margin-left:6px">&#9654;</button></div>
+<div class="row"><label class="f">Company Code</label><input class="f" style="width:130px" value="1000"><span style="font-size:12px;margin:0 6px">to</span><input class="f" style="width:130px"><button class="btn" style="margin-left:6px">&#9654;</button></div>
+<div class="row"><label class="f">Purchasing Organization</label><input class="f" style="width:130px" value="1000"><span style="font-size:12px;margin:0 6px">to</span><input class="f" style="width:130px"><button class="btn" style="margin-left:6px">&#9654;</button></div>
+<div class="row"><label class="f">Supplier Account Group</label><input class="f" style="width:130px" value="ZVEN"><span style="font-size:12px;margin:0 6px">to</span><input class="f" style="width:130px"><button class="btn" style="margin-left:6px">&#9654;</button></div>
+</fieldset>
+<fieldset><legend>Processing Mode</legend>
+<div class="row"><input type="radio" checked> <span style="font-size:12px;margin-right:24px">Block supplier</span><input type="radio"> <span style="font-size:12px">Unblock supplier</span></div>
+<div class="row"><label class="f">Block Scope</label><select class="f" style="width:280px"><option>C &#8212; Central (all company codes / purch. orgs)</option></select></div>
+<div class="row"><label class="f">Reason Code</label><input class="f" style="width:80px" value="BQ03"><span style="font-size:12px;margin-left:10px">Repeated quality non-conformance</span></div>
+<div class="row"><label class="f">Valid From / Valid To</label><input class="f" style="width:110px" value="12.08.2026"><input class="f" style="width:110px;margin-left:6px" value="31.12.2026"></div>
+<div class="row"><label class="f">Approval Reference</label><input class="f" style="width:230px" value="CMP-2026-0817 / M.OKAFOR"></div>
+</fieldset>
+<fieldset><legend>Control Parameters</legend>
+<div class="row"><input type="checkbox" checked> <span style="font-size:12px;margin-right:24px">Test run (no database update)</span><input type="checkbox" checked> <span style="font-size:12px;margin-right:24px">Check open purchasing documents</span></div>
+<div class="row"><input type="checkbox"> <span style="font-size:12px;margin-right:24px">Ignore warnings and continue</span><input type="checkbox" checked> <span style="font-size:12px">Write application log (SLG1)</span></div>
+<div class="row"><label class="f">Package Size (COMMIT)</label><input class="f" style="width:80px" value="500"></div>
+<div class="row"><label class="f">E-mail Recipient for Log</label><input class="f" style="width:280px" value="procurement.ops@company.com"></div>
+</fieldset>
+</div>
+<div class="sbar">Variant: Z_QUALITY_BLOCK &nbsp;|&nbsp; Authorization object: Z_SUPBLK (ACTVT 02) &nbsp;|&nbsp; S4D(100)</div>
+</div></body>

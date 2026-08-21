@@ -1,0 +1,23 @@
+<meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<body><div class="win">
+<div class="gui-title">Mass Block / Unblock of Registered Suppliers &#8212; Result Log</div>
+<div class="gui-menu"><span>List</span><span>Edit</span><span>Goto</span><span>Views</span><span>Settings</span><span>System</span><span>Help</span></div>
+<div class="gui-toolbar"><button class="btn">&#9664;</button><button class="btn">&#128190; Export</button><button class="btn">&#9660; Sort</button><button class="btn">&#931; Total</button><button class="btn">Filter</button><button class="btn">Layout &#9662;</button><button class="btn">Display Application Log</button></div>
+<div class="gui-body">
+<div class="msg s">Test run completed. 24 suppliers selected, 21 can be blocked, 2 warnings, 1 error. No database updates were performed.</div>
+<table class="g">
+<tr><th style="width:40px">Icon</th><th>Supplier</th><th>Name</th><th>CoCd</th><th>POrg</th><th>Action</th><th>Reason</th><th>Msg No.</th><th>Message Text</th></tr>
+<tr><td>&#128994;</td><td>0000104773</td><td>Nordwind Components GmbH</td><td>1000</td><td>1000</td><td>Block</td><td>BQ03</td><td>ZSUPBLK 001</td><td>Supplier 0000104773 blocked centrally (test run)</td></tr>
+<tr><td>&#128994;</td><td>0000104780</td><td>Weser Kunststoff KG</td><td>1000</td><td>1000</td><td>Block</td><td>BQ03</td><td>ZSUPBLK 001</td><td>Supplier 0000104780 blocked centrally (test run)</td></tr>
+<tr><td>&#128993;</td><td>0000104791</td><td>Rhein Guss AG</td><td>1000</td><td>1000</td><td>Block</td><td>BQ03</td><td>ZSUPBLK 011</td><td>Supplier has 4 open purchase orders; block will prevent invoice release</td></tr>
+<tr><td>&#128994;</td><td>0000104802</td><td>Elbe Fasteners BV</td><td>1000</td><td>1000</td><td>Block</td><td>BQ03</td><td>ZSUPBLK 001</td><td>Supplier 0000104802 blocked centrally (test run)</td></tr>
+<tr><td>&#128993;</td><td>0000104815</td><td>Saar Coatings SARL</td><td>2000</td><td>1000</td><td>Block</td><td>BQ03</td><td>ZSUPBLK 013</td><td>Supplier already blocked in company code 2000 since 04.06.2026; scope extended</td></tr>
+<tr><td>&#128308;</td><td>0000104829</td><td>Isar Elektronik GmbH</td><td>1000</td><td>1000</td><td>Block</td><td>BQ03</td><td>ZSUPBLK 022</td><td>Supplier is flagged for deletion (LFA1-LOEVM); block not permitted</td></tr>
+<tr><td>&#128994;</td><td>0000104833</td><td>Donau Machining s.r.o.</td><td>1000</td><td>1000</td><td>Block</td><td>BQ03</td><td>ZSUPBLK 001</td><td>Supplier 0000104833 blocked centrally (test run)</td></tr>
+<tr><td>&#128994;</td><td>0000104847</td><td>Main Hydraulik GmbH</td><td>1000</td><td>1000</td><td>Block</td><td>BQ03</td><td>ZSUPBLK 001</td><td>Supplier 0000104847 blocked centrally (test run)</td></tr>
+</table>
+<div style="margin-top:12px;font-size:12px;color:#33506b">
+<b>Summary:</b> &nbsp; &#128994; Success 21 &nbsp;&nbsp; &#128993; Warning 2 &nbsp;&nbsp; &#128308; Error 1 &nbsp;&nbsp; Runtime 6.4 s &nbsp;&nbsp; Application log: object ZSUPBLK / sub-object BLOCK / external ID MASS-20260812-0001</div>
+</div>
+<div class="sbar">ALV grid CL_SALV_TABLE &nbsp;|&nbsp; Layout /ZSUPBLK_STD &nbsp;|&nbsp; Report ZMM_SUPBLK_MASS &nbsp;|&nbsp; User JSMITH &nbsp;|&nbsp; S4D(100)</div>
+</div></body>

@@ -1,0 +1,36 @@
+<meta charset="utf-8"><link rel="stylesheet" href="base.css">
+<body><div class="win">
+<div class="fio-bar"><span><b>SAP</b> &nbsp; Create Block Request &#9662;</span><span style="font-size:12px">&#9906; &nbsp; JSMITH &#9673;</span></div>
+<div class="fio-sub"><div class="fio-title">Block Request 1000004512 &nbsp;<span class="pill amb">In Approval</span></div>
+<div style="font-size:12px;color:#6a6d70;margin-top:4px">Supplier 0000104773 &#183; Nordwind Components GmbH &#183; Hamburg, DE &#183; Account group ZVEN</div></div>
+<div class="fio-body">
+<div class="msg w">Supplier has 3 open purchase orders and 1 open scheduling agreement. Blocking prevents new documents; existing documents remain but cannot be released for invoicing.</div>
+<div class="card"><b style="font-size:13px;color:#32363a">Block Details</b>
+<div style="margin-top:12px">
+<div class="row"><label class="f">Action *</label><select class="f" style="width:200px"><option>Block</option></select></div>
+<div class="row"><label class="f">Block Scope *</label><select class="f" style="width:320px"><option>Central &#8212; all company codes and purchasing orgs</option></select></div>
+<div class="row"><label class="f">Blocked Functions *</label><select class="f" style="width:320px"><option>A &#8212; All purchasing and posting functions</option></select></div>
+<div class="row"><label class="f">Reason Code *</label><input class="f" style="width:80px" value="BQ03"><span style="font-size:12px;margin-left:10px">Repeated quality non-conformance</span></div>
+<div class="row"><label class="f">Valid From *</label><input class="f" style="width:120px" value="12.08.2026"><label class="f" style="width:110px;margin-left:20px">Valid To</label><input class="f" style="width:120px" value="31.12.2026"></div>
+<div class="row"><label class="f">Justification *</label><textarea class="f" style="width:520px;height:56px;vertical-align:top">Third consecutive lot rejected at incoming inspection (NCR-2026-0714, 0733, 0791). Supplier CAPA overdue by 21 days. Block pending re-qualification audit.</textarea></div>
+<div class="row"><label class="f">Attachment</label><span style="font-size:12px">&#128206; NCR_Summary_Nordwind_2026.pdf (412 KB) &nbsp; <a href="#" style="color:#0a6ed1">Remove</a></span></div>
+</div></div>
+<div class="card"><b style="font-size:13px;color:#32363a">Impact Preview</b>
+<table class="g" style="margin-top:10px">
+<tr><th>Object</th><th>Count</th><th>Effect of Block</th></tr>
+<tr><td>Open purchase requisitions</td><td>2</td><td>Cannot be converted to PO</td></tr>
+<tr><td>Open purchase orders</td><td>3</td><td>Blocked for goods receipt and invoice release</td></tr>
+<tr><td>Open scheduling agreements</td><td>1</td><td>No new schedule lines released</td></tr>
+<tr><td>Open invoices (MIRO)</td><td>4</td><td>Payment block R set on posting</td></tr>
+<tr><td>Source list / quota entries</td><td>6</td><td>Excluded from source determination</td></tr>
+</table></div>
+<div class="card"><b style="font-size:13px;color:#32363a">Approval</b>
+<table class="g" style="margin-top:10px">
+<tr><th>Step</th><th>Role</th><th>Agent</th><th>Status</th><th>Processed On</th></tr>
+<tr><td>1</td><td>Category Manager</td><td>M. Okafor</td><td><span class="pill grn">Approved</span></td><td>12.08.2026 09:41</td></tr>
+<tr><td>2</td><td>Compliance Officer</td><td>A. Pereira</td><td><span class="pill amb">Pending</span></td><td>&#8212;</td></tr>
+</table></div>
+<div style="text-align:right"><button class="btn">Cancel</button> <button class="btn">Save as Draft</button> <button class="btn pri">Submit for Approval</button></div>
+</div>
+<div class="sbar">Fields marked * are mandatory &nbsp;|&nbsp; Workflow WS_ZSUPBLK &nbsp;|&nbsp; Request created 12.08.2026 09:22 by JSMITH</div>
+</div></body>
