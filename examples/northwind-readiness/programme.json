@@ -1,0 +1,23 @@
+{
+  "programme": {
+    "name": "Northwind Logistics - Orbit field service platform",
+    "as_of": "2026-08-14",
+    "methodology": "Waterfall with three stage gates; single big-bang cutover for Field Ops and Depot Admin, phased for back office",
+    "go_live": "2026-10-05"
+  },
+  "milestones": [
+    { "milestone_id": "M1", "name": "Training wave 3 (Field Ops)", "date": "2026-09-07", "type": "training_wave", "segments": ["Field Ops"], "owner": "Capability lead", "note": "Last scheduled classroom wave before cutover" },
+    { "milestone_id": "M2", "name": "Go/no-go stage gate", "date": "2026-09-18", "type": "decision_gate", "owner": "Programme board", "note": "Readiness evidence pack due one week prior" },
+    { "milestone_id": "M3", "name": "Cutover comms drop", "date": "2026-09-25", "type": "comms", "owner": "Comms lead" },
+    { "milestone_id": "M4", "name": "Orbit go-live", "date": "2026-10-05", "type": "go_live", "segments": ["Field Ops", "Depot Admin", "Customer Care", "Finance"], "owner": "Programme director" },
+    { "milestone_id": "M5", "name": "Hypercare exit review", "date": "2026-11-16", "type": "decision_gate", "owner": "Service owner" },
+    { "milestone_id": "M6", "name": "Superuser network stand-up", "date": "2026-08-29", "type": "deliverable", "owner": "Change lead", "note": "Named superusers confirmed with released time" }
+  ],
+  "segments": [
+    { "segment_id": "SEG1", "name": "Field Ops", "population": 620, "impact_level": "high", "note": "Van-based engineers, no desk time, scanner-dependent" },
+    { "segment_id": "SEG2", "name": "Depot Admin", "population": 140, "impact_level": "high" },
+    { "segment_id": "SEG3", "name": "Customer Care", "population": 210, "impact_level": "medium" },
+    { "segment_id": "SEG4", "name": "Finance", "population": 85, "impact_level": "medium" },
+    { "segment_id": "SEG5", "name": "Subcontractor network", "population": 310, "impact_level": "high", "note": "Third-party engineers on the same scheduling flow - not on any distribution list" }
+  ]
+}

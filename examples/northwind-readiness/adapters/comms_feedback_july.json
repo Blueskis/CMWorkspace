@@ -1,0 +1,22 @@
+{
+  "source_id": "S3",
+  "label": "Comms channel feedback form - July",
+  "instrument": "comms_feedback",
+  "document": "../inputs/comms_feedback_july.csv",
+  "wave": "W2",
+  "collected_from": "2026-07-25",
+  "collected_to": "2026-08-01",
+  "population": 410,
+  "date_column": "date",
+  "respondent_column": "id",
+  "segment_columns": { "group": "team", "site": "site" },
+  "default_scale": { "min": 1, "max": 5 },
+  "quant": [
+    { "column": "q_kept_informed", "dimension": "awareness", "question": "I am kept informed about the programme" },
+    { "column": "q_know_what_changes_for_me", "dimension": "understanding", "question": "I know what will change for me specifically" },
+    { "column": "q_leaders_visible", "dimension": "leadership_support", "question": "My leaders are visible and behind this change" }
+  ],
+  "verbatim": [
+    { "column": "comment", "dimension": "awareness", "question": "Anything else about how we are communicating?" }
+  ]
+}

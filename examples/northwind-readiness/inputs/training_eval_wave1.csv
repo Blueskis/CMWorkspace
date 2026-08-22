@@ -1,0 +1,59 @@
+response_id,submitted,department,location,role,q_content_clear,q_can_apply,q_confident_golive,q_time_to_prepare,c_what_was_missing,c_barriers
+tr100,2026-06-12,Depot Admin,Bristol,Analyst,2,3,3,3,,
+tr101,2026-06-12,Field Ops,Bristol,Coordinator,3,3,3,1,,
+tr102,2026-06-12,Depot Admin,Leeds,Engineer,3,2,4,3,,
+tr103,2026-06-12,Customer Care,Bristol,Supervisor,2,3,2,2,,Manager cancelled our slot twice because of resourcing.
+tr104,2026-06-12,Field Ops,Bristol,Coordinator,3,1,3,2,Trainer was good but we went through 40 screens in 90 minutes.,
+tr105,2026-06-12,Depot Admin,Leeds,Engineer,3,3,3,4,,
+tr106,2026-06-12,Depot Admin,Bristol,Engineer,2,3,2,2,The exercises used demo data that looks nothing like a real job sheet.,
+tr107,2026-06-12,Field Ops,Leeds,Supervisor,3,2,1,2,,Manager cancelled our slot twice because of resourcing.
+tr108,2026-06-12,Finance,Leeds,Analyst,3,3,3,3,"Ran out of time before the exceptions module, which is the bit I need.",
+tr109,2026-06-12,Field Ops,Leeds,Supervisor,1,3,2,1,,"We're doing this on top of the depot consolidation, something has to give."
+tr110,2026-06-12,Field Ops,Bristol,Coordinator,2,2,2,3,"Fine for the standard path, nothing on what to do when the van scanner drops out.",
+tr111,2026-06-12,Depot Admin,Leeds,Analyst,3,2,2,3,Useful. The quick reference card is the only bit I've actually reused.,
+tr112,2026-06-12,Finance,Leeds,Supervisor,4,2,4,5,,
+tr113,2026-06-12,Depot Admin,Leeds,Engineer,4,3,3,4,"Good session, clear trainer, but no practice environment afterwards to try it in.",
+tr114,2026-06-12,Depot Admin,Bristol,Supervisor,5,2,3,3,,
+tr115,2026-06-12,Field Ops,Bristol,Supervisor,3,2,3,2,The exercises used demo data that looks nothing like a real job sheet.,"We're doing this on top of the depot consolidation, something has to give."
+tr116,2026-06-12,Customer Care,Bristol,Engineer,2,4,4,2,,
+tr117,2026-06-12,Finance,Leeds,Engineer,3,4,4,3,,There is no cover for us to attend training and run the route at the same time.
+tr118,2026-06-12,Customer Care,Bristol,Supervisor,4,3,2,2,,
+tr119,2026-06-12,Finance,Leeds,Coordinator,5,4,5,4,,"Fitted it in around shift, was shattered, took nothing in."
+tr120,2026-06-12,Field Ops,Bristol,Analyst,2,2,3,2,,
+tr121,2026-06-12,Customer Care,Bristol,Analyst,2,4,4,3,Trainer was good but we went through 40 screens in 90 minutes.,
+tr122,2026-06-12,Finance,Leeds,Analyst,4,2,2,3,I still don't know how to raise a credit on a part-delivered order.,
+tr123,2026-06-12,Finance,Leeds,Coordinator,3,3,4,2,,"Fitted it in around shift, was shattered, took nothing in."
+tr124,2026-06-12,Finance,Leeds,Analyst,4,5,4,3,The exercises used demo data that looks nothing like a real job sheet.,
+tr125,2026-06-12,Customer Care,Bristol,Engineer,3,3,3,3,,
+tr126,2026-06-12,Customer Care,Bristol,Coordinator,3,3,3,2,,
+tr127,2026-06-12,Customer Care,Bristol,Supervisor,3,3,3,2,,
+tr128,2026-06-12,Field Ops,Bristol,Engineer,2,1,3,1,,"Fitted it in around shift, was shattered, took nothing in."
+tr129,2026-06-12,Customer Care,Bristol,Engineer,3,2,4,3,,
+tr130,2026-06-12,Finance,Leeds,Supervisor,5,5,4,3,,
+tr131,2026-06-12,Field Ops,Bristol,Coordinator,1,2,2,3,,
+tr132,2026-06-12,Field Ops,Leeds,Supervisor,4,1,3,2,,
+tr133,2026-06-12,Field Ops,Bristol,Engineer,3,2,1,2,,There is no cover for us to attend training and run the route at the same time.
+tr134,2026-06-12,Depot Admin,Leeds,Supervisor,2,2,4,2,,
+tr135,2026-06-12,Depot Admin,Bristol,Engineer,3,2,1,2,,Manager cancelled our slot twice because of resourcing.
+tr136,2026-06-12,Customer Care,Bristol,Analyst,5,3,2,2,"Ran out of time before the exceptions module, which is the bit I need.",
+tr137,2026-06-12,Finance,Leeds,Engineer,3,4,5,3,,
+tr138,2026-06-12,Field Ops,Bristol,Engineer,2,2,1,1,,
+tr139,2026-06-12,Customer Care,Bristol,Analyst,2,3,5,1,,
+tr140,2026-06-12,Field Ops,Leeds,Analyst,1,1,3,3,Useful. The quick reference card is the only bit I've actually reused.,There is no cover for us to attend training and run the route at the same time.
+tr141,2026-06-12,Customer Care,Bristol,Coordinator,3,4,2,2,,
+tr142,2026-06-12,Finance,Leeds,Engineer,3,4,3,3,Useful. The quick reference card is the only bit I've actually reused.,
+tr143,2026-06-12,Finance,Leeds,Coordinator,4,3,3,5,Useful. The quick reference card is the only bit I've actually reused.,
+tr144,2026-06-12,Finance,Leeds,Supervisor,4,3,5,4,I still don't know how to raise a credit on a part-delivered order.,There is no cover for us to attend training and run the route at the same time.
+tr145,2026-06-12,Field Ops,Leeds,Coordinator,4,1,3,2,,
+tr146,2026-06-12,Finance,Leeds,Analyst,4,4,3,3,,Two hours out of the day is two hours of jobs someone else picks up.
+tr147,2026-06-12,Field Ops,Leeds,Supervisor,4,1,2,1,Second time I've sat this and the system had changed since the first one.,There is no cover for us to attend training and run the route at the same time.
+tr148,2026-06-12,Customer Care,Bristol,Analyst,3,3,3,3,,Two hours out of the day is two hours of jobs someone else picks up.
+tr149,2026-06-12,Finance,Leeds,Analyst,3,4,5,2,The exercises used demo data that looks nothing like a real job sheet.,
+tr150,2026-06-12,Field Ops,Bristol,Supervisor,1,2,2,1,,
+tr151,2026-06-12,Finance,Leeds,Supervisor,5,2,3,2,,
+tr152,2026-06-12,Finance,Leeds,Coordinator,4,4,5,1,,"We're doing this on top of the depot consolidation, something has to give."
+tr153,2026-06-12,Customer Care,Bristol,Supervisor,3,2,2,2,,
+tr154,2026-06-12,Field Ops,Bristol,Engineer,3,2,2,3,,
+tr155,2026-06-12,Depot Admin,Leeds,Engineer,3,3,2,3,Trainer was good but we went through 40 screens in 90 minutes.,
+tr156,2026-06-12,Field Ops,Leeds,Analyst,3,2,2,2,,
+tr157,2026-06-12,Field Ops,Bristol,Analyst,2,3,1,1,"Ran out of time before the exceptions module, which is the bit I need.",

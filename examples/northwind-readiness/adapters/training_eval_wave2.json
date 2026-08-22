@@ -1,0 +1,24 @@
+{
+  "source_id": "S2",
+  "label": "Training evaluation - wave 2",
+  "instrument": "training_evaluation",
+  "document": "../inputs/training_eval_wave2.csv",
+  "wave": "W2",
+  "collected_from": "2026-07-20",
+  "collected_to": "2026-07-31",
+  "population": 210,
+  "date_column": "submitted",
+  "respondent_column": "response_id",
+  "segment_columns": { "group": "department", "site": "location", "role": "role" },
+  "default_scale": { "min": 1, "max": 5 },
+  "quant": [
+    { "column": "q_content_clear", "dimension": "understanding", "question": "The content was clear and relevant to my role" },
+    { "column": "q_can_apply", "dimension": "skills", "question": "I can apply what I learned in my job" },
+    { "column": "q_confident_golive", "dimension": "confidence", "question": "I feel confident about go-live" },
+    { "column": "q_time_to_prepare", "dimension": "capacity", "question": "I have enough time to prepare for the change" }
+  ],
+  "verbatim": [
+    { "column": "c_what_was_missing", "dimension": "skills", "question": "What was missing from the session?" },
+    { "column": "c_barriers", "dimension": "capacity", "question": "What is getting in the way of preparing?" }
+  ]
+}

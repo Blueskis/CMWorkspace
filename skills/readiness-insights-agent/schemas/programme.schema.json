@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "programme.schema.json",
+  "title": "Programme Context",
+  "description": "The timeline the feedback has to be read against. Stage 2 output. Without this the agent produces observations, not insights - a 58% confidence score means one thing eleven weeks out and another thing nine days out.",
+  "type": "object",
+  "required": ["programme", "milestones", "segments"],
+  "properties": {
+    "programme": {
+      "type": "object",
+      "required": ["name", "as_of"],
+      "properties": {
+        "name": { "type": "string" },
+        "as_of": { "type": "string", "format": "date", "description": "The date the brief speaks as of. All countdowns are measured from here." },
+        "methodology": { "type": "string", "description": "e.g. 'waterfall, 3 stage gates' or 'agile, fortnightly releases' - changes what a readiness gap costs" },
+        "go_live": { "type": "string", "format": "date" }
+      }
+    },
+    "milestones": {
+      "type": "array",
+      "description": "Anything with a date that readiness feedback could change the plan for: go-lives, training waves, comms drops, decision gates, deliverable due dates.",
+      "items": {
+        "type": "object",
+        "required": ["milestone_id", "name", "date", "type"],
+        "properties": {
+          "milestone_id": { "type": "string", "pattern": "^M[0-9]+$" },
+          "name": { "type": "string" },
+          "date": { "type": "string", "format": "date" },
+          "type": { "enum": ["go_live", "training_wave", "comms", "decision_gate", "deliverable", "cutover", "other"] },
+          "segments": { "type": "array", "items": { "type": "string" }, "description": "Which segments this milestone lands on. Empty = all." },
+          "owner": { "type": "string" },
+          "note": { "type": "string" }
+        }
+      }
+    },
+    "segments": {
+      "type": "array",
+      "description": "The impacted population, named the way the programme names it. Drives the coverage matrix - a segment listed here with no feedback is a reported blind spot, not an absence.",
+      "items": {
+        "type": "object",
+        "required": ["segment_id", "name"],
+        "properties": {
+          "segment_id": { "type": "string" },
+          "name": { "type": "string", "description": "Must match the 'group' value the source adapters emit" },
+          "population": { "type": "integer" },
+          "impact_level": { "enum": ["high", "medium", "low"] },
+          "note": { "type": "string" }
+        }
+      }
+    }
+  }
+}

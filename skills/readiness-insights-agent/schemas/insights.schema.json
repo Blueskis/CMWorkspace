@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "insights.schema.json",
+  "title": "Insight Set",
+  "description": "Stage 4 output - the analysed read, written by the model against Stage 3's analysis and verbatim worksheet. Everything here is checked mechanically in Stage 5: evidence must resolve, blind spots must be declared, insights must be anchored to the timeline.",
+  "type": "object",
+  "required": ["programme", "insights", "themes", "blind_spots"],
+  "properties": {
+    "programme": {
+      "type": "object",
+      "required": ["name", "as_of"],
+      "properties": {
+        "name": { "type": "string" },
+        "as_of": { "type": "string", "format": "date" },
+        "headline": { "type": "string", "description": "One sentence a sponsor could repeat verbatim in a steerco" }
+      }
+    },
+    "themes": {
+      "type": "array",
+      "description": "Qualitative codes over the verbatims. A theme is a claim about what people said, so it needs the quotes that make it true.",
+      "items": {
+        "type": "object",
+        "required": ["theme_id", "label", "dimension", "signal_ids"],
+        "properties": {
+          "theme_id": { "type": "string", "pattern": "^T[0-9]+$" },
+          "label": { "type": "string", "description": "In the respondents' language where possible, not consultant register" },
+          "dimension": { "type": "string" },
+          "signal_ids": { "type": "array", "minItems": 2, "items": { "type": "string" }, "description": "At least two - one person's complaint is an anecdote, not a theme" },
+          "segments": { "type": "array", "items": { "type": "string" } },
+          "prevalence": { "type": "string", "description": "e.g. '14 of 62 verbatims (23%)' - counted, not estimated" },
+          "illustrative_quote": { "type": "string", "description": "Verbatim, from one of the cited signal_ids" },
+          "counter_signal": { "type": "string", "description": "What in the data cuts against this theme. Write it or say 'none found'." }
+        }
+      }
+    },
+    "insights": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["insight_id", "headline", "dimension", "segments", "so_what", "evidence", "confidence", "recommended_action"],
+        "properties": {
+          "insight_id": { "type": "string", "pattern": "^I[0-9]+$" },
+          "headline": { "type": "string", "description": "The finding, stated as a claim with its number in it" },
+          "dimension": { "type": "string" },
+          "segments": { "type": "array", "items": { "type": "string" } },
+          "so_what": { "type": "string", "description": "The consequence for the programme, not a restatement of the finding" },
+          "evidence": {
+            "type": "object",
+            "properties": {
+              "signal_ids": { "type": "array", "items": { "type": "string" } },
+              "analysis_cells": { "type": "array", "items": { "type": "string" }, "description": "Cell IDs from analysis.json, e.g. 'A:confidence:Field Ops'" },
+              "theme_ids": { "type": "array", "items": { "type": "string" } }
+            }
+          },
+          "confidence": { "enum": ["high", "medium", "low"], "description": "Low is the honest answer for a thin base or a single low-response-rate source. Stage 5 forces it in those cases." },
+          "confidence_note": { "type": "string" },
+          "milestone_id": { "type": "string", "description": "The dated thing this bears on. Required unless not_time_bound." },
+          "not_time_bound": { "type": "boolean", "description": "Set only for findings with no deadline consequence at all. Stage 5 requires one or the other." },
+          "remediation_lead_time_days": { "type": "integer", "description": "Working days the recommended action realistically needs. Compared against days to the milestone." },
+          "recommended_action": { "type": "string", "description": "Something a named person could start on Monday" },
+          "owner_hint": { "type": "string" },
+          "gap": { "type": "boolean", "description": "true when the programme needs this answered and the feedback cannot answer it" },
+          "gap_note": { "type": "string", "description": "Required when gap is true - what is missing and what would close it" }
+        }
+      }
+    },
+    "blind_spots": {
+      "type": "array",
+      "description": "Every segment x dimension cell with no data or a base too thin to read. Generated from Stage 3's coverage matrix and kept - silence must never render as green.",
+      "items": {
+        "type": "object",
+        "required": ["segment", "dimension", "status"],
+        "properties": {
+          "segment": { "type": "string" },
+          "dimension": { "type": "string" },
+          "status": { "enum": ["no_data", "thin"] },
+          "n": { "type": "integer" },
+          "why_it_matters": { "type": "string" },
+          "how_to_close": { "type": "string" }
+        }
+      }
+    }
+  }
+}

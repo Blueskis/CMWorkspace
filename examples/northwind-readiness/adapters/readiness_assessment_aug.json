@@ -1,0 +1,23 @@
+{
+  "source_id": "S4",
+  "label": "Line-manager readiness assessment - August",
+  "instrument": "readiness_assessment",
+  "document": "../inputs/readiness_assessment_aug.csv",
+  "wave": "W3",
+  "collected_from": "2026-08-04",
+  "collected_to": "2026-08-08",
+  "population": 26,
+  "date_column": "assessed",
+  "respondent_column": "ref",
+  "segment_columns": { "group": "business_area", "site": "site" },
+  "default_scale": { "min": 1, "max": 5 },
+  "quant": [
+    { "column": "sponsorship", "dimension": "leadership_support", "question": "Sponsorship for the change is active and visible in my area" },
+    { "column": "process_ready", "dimension": "understanding", "question": "New processes are defined and understood in my area" },
+    { "column": "system_ready", "dimension": "system_readiness", "question": "My team can do their work in the new system today" },
+    { "column": "team_has_capacity", "dimension": "capacity", "question": "My team has the capacity to absorb this change" }
+  ],
+  "verbatim": [
+    { "column": "risk_note", "dimension": "system_readiness", "question": "What is your biggest readiness risk?" }
+  ]
+}

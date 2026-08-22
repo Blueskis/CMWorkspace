@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "signals.schema.json",
+  "title": "Signal Set",
+  "description": "Every piece of feedback from every source, normalised to one record shape. Stage 1 output. Signal IDs are the evidence spine of the run - Stage 4 cites them and Stage 5 checks they exist.",
+  "type": "object",
+  "required": ["sources", "signals"],
+  "properties": {
+    "generated": { "type": "string", "description": "ISO timestamp of the ingest run" },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["source_id", "label", "instrument", "document"],
+        "properties": {
+          "source_id": { "type": "string", "pattern": "^S[0-9]+$" },
+          "label": { "type": "string", "description": "How the practitioner refers to it, e.g. 'Training eval - wave 2'" },
+          "instrument": {
+            "enum": ["training_evaluation", "comms_feedback", "readiness_assessment", "pulse_survey", "workshop_notes", "support_tickets", "other"]
+          },
+          "document": { "type": "string", "description": "Path of the file it was ingested from" },
+          "collected_from": { "type": "string", "format": "date" },
+          "collected_to": { "type": "string", "format": "date" },
+          "population": { "type": "integer", "description": "People invited/eligible. Needed to state a response rate honestly." },
+          "responses": { "type": "integer" },
+          "wave": { "type": "string", "description": "Label for trend comparison, e.g. 'W1', 'W2'. Same wave label = same measurement round." }
+        }
+      }
+    },
+    "signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["signal_id", "source_id", "type", "dimension"],
+        "properties": {
+          "signal_id": { "type": "string", "pattern": "^S[0-9]+-[0-9]+$", "description": "<source_id>-<row-scoped counter>" },
+          "source_id": { "type": "string" },
+          "type": { "enum": ["quant", "verbatim"] },
+          "dimension": {
+            "enum": ["awareness", "understanding", "buy_in", "skills", "system_readiness", "capacity", "leadership_support", "confidence"],
+            "description": "Readiness dimension. See reference/readiness-dimensions.md - the mapping is set in the source adapter, never guessed per row."
+          },
+          "question": { "type": "string", "description": "The instrument's own wording, not a paraphrase" },
+          "value": { "type": "number", "description": "quant only - raw response on the stated scale" },
+          "normalised": { "type": "number", "description": "quant only - 0-100, reverse-coding already applied" },
+          "scale": {
+            "type": "object",
+            "required": ["min", "max"],
+            "properties": {
+              "min": { "type": "number" },
+              "max": { "type": "number" },
+              "reverse": { "type": "boolean", "description": "true when a high raw score is bad news" }
+            }
+          },
+          "text": { "type": "string", "description": "verbatim only - the respondent's own words, unedited" },
+          "segment": {
+            "type": "object",
+            "description": "Free-form segment attributes from the source, e.g. {group, site, role}. 'group' is the default rollup key.",
+            "additionalProperties": { "type": "string" }
+          },
+          "date": { "type": "string", "format": "date" },
+          "respondent_ref": { "type": "string", "description": "Source-local respondent identifier. Never a name or an email." }
+        }
+      }
+    }
+  }
+}

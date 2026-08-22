@@ -1,0 +1,436 @@
+{
+  "programme": {
+    "name": "Northwind Logistics - Orbit field service platform",
+    "as_of": "2026-08-14",
+    "headline": "Readiness is not one number: Finance and Customer Care are tracking, Field Ops is red on every dimension that matters for a 5 October big-bang, and 310 subcontracted engineers have never been asked."
+  },
+  "themes": [
+    {
+      "theme_id": "T1",
+      "label": "No cover to attend training and run the route",
+      "dimension": "capacity",
+      "signal_ids": [
+        "S1-017",
+        "S1-036",
+        "S1-046",
+        "S1-075",
+        "S1-084",
+        "S1-093",
+        "S1-112",
+        "S1-134",
+        "S1-155",
+        "S1-164",
+        "S1-187",
+        "S1-207",
+        "S1-222",
+        "S1-245"
+      ],
+      "segments": [
+        "Field Ops",
+        "Depot Admin"
+      ],
+      "prevalence": "30 of 34 capacity verbatims",
+      "illustrative_quote": "There is no cover for us to attend training and run the route at the same time.",
+      "counter_signal": "Finance verbatims raise no cover problem; their capacity score (48.0) is low for other reasons, so this theme is an operational-rota problem, not a programme-wide one."
+    },
+    {
+      "theme_id": "T2",
+      "label": "Training covered the standard path, not the exceptions people actually hit",
+      "dimension": "skills",
+      "signal_ids": [
+        "S1-031",
+        "S1-041",
+        "S1-051",
+        "S1-074",
+        "S1-107",
+        "S1-117",
+        "S1-169",
+        "S1-206",
+        "S1-232",
+        "S1-267",
+        "S2-035",
+        "S2-076",
+        "S2-086",
+        "S2-104"
+      ],
+      "segments": [
+        "Field Ops",
+        "Depot Admin",
+        "Customer Care"
+      ],
+      "prevalence": "26 of 46 skills verbatims name exception handling, unrealistic demo data, or a specific unhandled scenario",
+      "illustrative_quote": "Fine for the standard path, nothing on what to do when the van scanner drops out.",
+      "counter_signal": "Wave 2 skills scores rose in every segment (+19.2 Field Ops, +8.8 Customer Care), so the redesign between waves worked on something - just not on exceptions."
+    },
+    {
+      "theme_id": "T3",
+      "label": "No practice environment after the session",
+      "dimension": "skills",
+      "signal_ids": [
+        "S1-022",
+        "S1-065",
+        "S1-102",
+        "S1-258",
+        "S2-015",
+        "S2-041",
+        "S2-050",
+        "S2-099",
+        "S2-193"
+      ],
+      "segments": [
+        "Field Ops",
+        "Depot Admin",
+        "Customer Care",
+        "Finance"
+      ],
+      "prevalence": "9 of 46 skills verbatims",
+      "illustrative_quote": "Good session, clear trainer, but no practice environment afterwards to try it in.",
+      "counter_signal": "none found - no verbatim reports having had usable practice access"
+    },
+    {
+      "theme_id": "T4",
+      "label": "Comms tell people about milestones, not about their Monday",
+      "dimension": "awareness",
+      "signal_ids": [
+        "S3-011",
+        "S3-033",
+        "S3-037",
+        "S3-056",
+        "S3-063",
+        "S3-077",
+        "S3-081",
+        "S3-127",
+        "S3-139",
+        "S3-154",
+        "S3-185",
+        "S3-196",
+        "S3-210"
+      ],
+      "segments": [
+        "Field Ops",
+        "Depot Admin",
+        "Customer Care"
+      ],
+      "prevalence": "17 of 41 comms verbatims",
+      "illustrative_quote": "The Friday bulletin is fine but nothing in it tells me what changes for my day.",
+      "counter_signal": "Awareness scores are the healthiest row in the matrix (61-86). People are reached; the content is the problem, not the channel."
+    },
+    {
+      "theme_id": "T5",
+      "label": "Supervisors are the channel people use and the one that cannot answer",
+      "dimension": "awareness",
+      "signal_ids": [
+        "S3-015",
+        "S3-019",
+        "S3-041",
+        "S3-088",
+        "S3-108",
+        "S3-116",
+        "S3-120",
+        "S3-131",
+        "S3-135",
+        "S3-150",
+        "S3-181",
+        "S3-214",
+        "S3-233"
+      ],
+      "segments": [
+        "Field Ops",
+        "Customer Care",
+        "Depot Admin"
+      ],
+      "prevalence": "13 of 41 comms verbatims",
+      "illustrative_quote": "My supervisor couldn't answer basic questions when I asked, so who do I ask?",
+      "counter_signal": "Finance rates leadership support at 71.1, so this is specific to the operational line, not to leaders generally."
+    },
+    {
+      "theme_id": "T6",
+      "label": "Superusers named but never released to do the role",
+      "dimension": "system_readiness",
+      "signal_ids": [
+        "S4-005",
+        "S4-010",
+        "S4-015",
+        "S4-038",
+        "S4-064",
+        "S4-086"
+      ],
+      "segments": [
+        "Field Ops",
+        "Depot Admin",
+        "Finance"
+      ],
+      "prevalence": "6 of 10 line-manager risk notes",
+      "illustrative_quote": "Superusers were named but never given time to do the role.",
+      "counter_signal": "none found"
+    }
+  ],
+  "insights": [
+    {
+      "insight_id": "I1",
+      "headline": "Field Ops confidence in going live is flat at 30/100 even though their training scores jumped 19 points between waves",
+      "dimension": "confidence",
+      "segments": [
+        "Field Ops"
+      ],
+      "so_what": "The wave 2 redesign fixed comprehension without moving readiness, so a wave 3 built on the same design will not close the gap either. Confidence, not content, is the constraint - and confidence is what the go/no-go gate is actually asking about.",
+      "evidence": {
+        "analysis_cells": [
+          "A:confidence:Field Ops",
+          "A:skills:Field Ops",
+          "A:understanding:Field Ops"
+        ],
+        "theme_ids": [
+          "T2",
+          "T3"
+        ],
+        "signal_ids": [
+          "S2-086",
+          "S2-125"
+        ]
+      },
+      "confidence": "high",
+      "confidence_note": "n=37 across two waves, and the qualitative reading agrees with the flat score",
+      "milestone_id": "M1",
+      "remediation_lead_time_days": 15,
+      "recommended_action": "Rebuild wave 3 around the five exception scenarios named in T2 (part-delivered credits, scanner dropout) and run it in a sandbox with live-shaped data rather than demo data.",
+      "owner_hint": "Capability lead"
+    },
+    {
+      "insight_id": "I2",
+      "headline": "Field Ops capacity is the worst cell in the matrix at 25/100 and fell 9.8 points between waves - people are attending training at the cost of preparing, not on top of it",
+      "dimension": "capacity",
+      "segments": [
+        "Field Ops",
+        "Depot Admin"
+      ],
+      "so_what": "Wave 3 is scheduled into the same unresourced rota that produced these scores, so it will produce the same result. This is a resourcing decision for operations, not a training-design problem, and it is already past the point where redesigning the session helps.",
+      "evidence": {
+        "analysis_cells": [
+          "A:capacity:Field Ops",
+          "A:capacity:Depot Admin"
+        ],
+        "theme_ids": [
+          "T1"
+        ],
+        "signal_ids": [
+          "S1-155",
+          "S1-134",
+          "S1-036"
+        ]
+      },
+      "confidence": "high",
+      "milestone_id": "M1",
+      "remediation_lead_time_days": 30,
+      "recommended_action": "Put a costed rota-cover option to the operations director: backfill for wave 3 attendance, or accept a shorter, route-side format. A four-week cover negotiation does not fit before 7 September, so this goes to the board as a descope-or-delay decision on wave 3.",
+      "owner_hint": "Change lead with Ops director"
+    },
+    {
+      "insight_id": "I3",
+      "headline": "Superusers are named on the plan but not released: line managers rate system readiness 20.8/100 in Field Ops, the lowest score anywhere in the set",
+      "dimension": "system_readiness",
+      "segments": [
+        "Field Ops",
+        "Depot Admin",
+        "Finance"
+      ],
+      "so_what": "The support model at go-live assumes a working superuser network. If the stand-up on 29 August confirms names without released time, the programme will carry a support gap into cutover it currently believes is closed.",
+      "evidence": {
+        "analysis_cells": [
+          "A:system_readiness:Field Ops"
+        ],
+        "theme_ids": [
+          "T6"
+        ],
+        "signal_ids": [
+          "S4-010",
+          "S4-038",
+          "S4-086"
+        ]
+      },
+      "confidence": "medium",
+      "confidence_note": "n=6 on the quantitative cell; the line-manager sample is small but is 73% of the eligible population, and the verbatims are consistent",
+      "milestone_id": "M6",
+      "remediation_lead_time_days": 10,
+      "recommended_action": "Before the 29 August stand-up, get each superuser's released hours confirmed in writing by their line manager, and report the count of confirmed-with-time against the target rather than the count of names.",
+      "owner_hint": "Change lead"
+    },
+    {
+      "insight_id": "I4",
+      "headline": "The 310-person subcontractor network appears in no feedback source at all",
+      "dimension": "awareness",
+      "segments": [
+        "Subcontractor network"
+      ],
+      "so_what": "They run the same scheduling flow as employed engineers and go live on the same day, but they are on no distribution list, so every readiness number in this brief describes a population that excludes them. The go/no-go pack would otherwise present readiness for 1,055 people as readiness for all of them.",
+      "evidence": {},
+      "gap": true,
+      "gap_note": "No instrument has ever reached this group. Nothing in the current data can be extrapolated to them - engagement through the subcontracting firms' own channels is the only way to close it.",
+      "confidence": "low",
+      "milestone_id": "M2",
+      "remediation_lead_time_days": 21,
+      "recommended_action": "Run a short readiness pulse through the three subcontracting firms' operations managers by 5 September so the go/no-go pack states a position on this group rather than omitting it.",
+      "owner_hint": "Programme director"
+    },
+    {
+      "insight_id": "I5",
+      "headline": "People are reached but not told what changes for them: awareness sits at 61-86 while 'I know what will change for me' runs 15-20 points below it in every operational segment",
+      "dimension": "awareness",
+      "segments": [
+        "Field Ops",
+        "Depot Admin",
+        "Customer Care"
+      ],
+      "so_what": "The comms plan is being measured on reach, which is healthy, and is failing on the thing that actually drives adoption. The cutover drop on 25 September is currently built to the same milestone-announcement pattern.",
+      "evidence": {
+        "analysis_cells": [
+          "A:awareness:Field Ops",
+          "A:awareness:Depot Admin",
+          "A:awareness:Customer Care"
+        ],
+        "theme_ids": [
+          "T4",
+          "T5"
+        ],
+        "signal_ids": [
+          "S3-037",
+          "S3-015"
+        ]
+      },
+      "confidence": "low",
+      "confidence_note": "Rests on the July comms form alone, which returned 15.6% - directionally consistent with the verbatims, but not a number to quote at the board without a better base",
+      "milestone_id": "M3",
+      "remediation_lead_time_days": 14,
+      "recommended_action": "Rewrite the cutover drop as a per-segment 'what changes on your first shift' brief, delivered by supervisors with a one-page answer sheet, and re-run the comms pulse with a rota-time slot to get the base above 30%.",
+      "owner_hint": "Comms lead"
+    },
+    {
+      "insight_id": "I6",
+      "headline": "Perceived leadership support in Field Ops fell 15 points to 35.7/100 across the two waves - the sharpest decline of any leadership cell",
+      "dimension": "leadership_support",
+      "segments": [
+        "Field Ops"
+      ],
+      "so_what": "Supervisors are the channel this group actually uses (T5) and they are visibly unequipped, so every unanswered question reads as leadership disengagement. This is the readiness signal most likely to be raised at the go/no-go gate as 'the front line is not behind it'.",
+      "evidence": {
+        "analysis_cells": [
+          "A:leadership_support:Field Ops"
+        ],
+        "theme_ids": [
+          "T5"
+        ],
+        "signal_ids": [
+          "S3-015",
+          "S3-041"
+        ]
+      },
+      "confidence": "medium",
+      "milestone_id": "M2",
+      "remediation_lead_time_days": 20,
+      "recommended_action": "Equip the 34 Field Ops supervisors before the gate: a fortnightly two-page answer sheet and a standing escalation route, then re-measure this cell in the pre-gate pulse.",
+      "owner_hint": "Ops director with Change lead"
+    },
+    {
+      "insight_id": "I7",
+      "headline": "The wave 2 training redesign worked on comprehension: skills scores rose in all four segments, by 19.2 points in Field Ops",
+      "dimension": "skills",
+      "segments": [
+        "Field Ops",
+        "Depot Admin",
+        "Customer Care",
+        "Finance"
+      ],
+      "so_what": "Whatever changed between waves is worth protecting under time pressure - the risk now is that wave 3 gets shortened to fit the rota and loses it. Keep the redesign, change the scenarios and the environment.",
+      "evidence": {
+        "analysis_cells": [
+          "A:skills:Field Ops",
+          "A:skills:Depot Admin",
+          "A:skills:Customer Care",
+          "A:skills:Finance"
+        ],
+        "theme_ids": [
+          "T2"
+        ]
+      },
+      "confidence": "high",
+      "milestone_id": "M1",
+      "remediation_lead_time_days": 3,
+      "recommended_action": "Document what changed between wave 1 and wave 2 design before the wave 3 build starts, and hold it as a floor rather than a starting point for cuts.",
+      "owner_hint": "Capability lead"
+    }
+  ],
+  "blind_spots": [
+    {
+      "segment": "Subcontractor network",
+      "dimension": "awareness",
+      "status": "no_data",
+      "n": 0,
+      "why_it_matters": "310 people who go live on 5 October with the same scheduling flow, invisible to every instrument",
+      "how_to_close": "Pulse through the three subcontracting firms' ops managers - see I4"
+    },
+    {
+      "segment": "Subcontractor network",
+      "dimension": "understanding",
+      "status": "no_data",
+      "n": 0,
+      "why_it_matters": "Same absence as every other cell for this segment - no instrument reaches them",
+      "how_to_close": "Covered by the subcontractor pulse in I4"
+    },
+    {
+      "segment": "Subcontractor network",
+      "dimension": "skills",
+      "status": "no_data",
+      "n": 0,
+      "why_it_matters": "Same absence as every other cell for this segment - no instrument reaches them",
+      "how_to_close": "Covered by the subcontractor pulse in I4"
+    },
+    {
+      "segment": "Depot Admin",
+      "dimension": "system_readiness",
+      "status": "thin",
+      "n": 4,
+      "why_it_matters": "Only 4 line managers responded; Depot Admin cuts over big-bang alongside Field Ops",
+      "how_to_close": "Chase the 4 outstanding readiness assessments before the pre-gate pack"
+    },
+    {
+      "segment": "Customer Care",
+      "dimension": "system_readiness",
+      "status": "thin",
+      "n": 4,
+      "why_it_matters": "Only 4 line managers responded; the phased back-office cutover depends on this call",
+      "how_to_close": "Chase the 4 outstanding readiness assessments before the pre-gate pack"
+    },
+    {
+      "segment": "Subcontractor network",
+      "dimension": "system_readiness",
+      "status": "no_data",
+      "n": 0,
+      "why_it_matters": "Same absence as every other cell for this segment - no instrument reaches them",
+      "how_to_close": "Covered by the subcontractor pulse in I4"
+    },
+    {
+      "segment": "Subcontractor network",
+      "dimension": "capacity",
+      "status": "no_data",
+      "n": 0,
+      "why_it_matters": "Same absence as every other cell for this segment - no instrument reaches them",
+      "how_to_close": "Covered by the subcontractor pulse in I4"
+    },
+    {
+      "segment": "Subcontractor network",
+      "dimension": "leadership_support",
+      "status": "no_data",
+      "n": 0,
+      "why_it_matters": "Same absence as every other cell for this segment - no instrument reaches them",
+      "how_to_close": "Covered by the subcontractor pulse in I4"
+    },
+    {
+      "segment": "Subcontractor network",
+      "dimension": "confidence",
+      "status": "no_data",
+      "n": 0,
+      "why_it_matters": "Same absence as every other cell for this segment - no instrument reaches them",
+      "how_to_close": "Covered by the subcontractor pulse in I4"
+    }
+  ]
+}
