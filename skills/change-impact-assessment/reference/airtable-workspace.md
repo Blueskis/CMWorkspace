@@ -68,6 +68,14 @@ Two linked tables, not one flat sheet:
 | **Sources** | One record per source document — ref, type, title, date, participants |
 | **Change Impacts** | The register. 42 fields, one record per process change × stakeholder group, with a link field to Sources |
 
+A third table, **Standard Change Library**, is optional and not part of the sync — it is built
+and maintained by hand (or asked for explicitly), holds reusable change patterns from past
+engagements, and is read from rather than written to by `push_to_airtable.py`. See
+`reference/standard-change-library.md`. If it exists in the base, `Change Impacts` also carries
+a `Pattern Ref` link field to it and a `Source Type` field (`Project Evidence` /
+`Standard Change Pattern (Unvalidated)` / `Standard Change Pattern (Validated)`) so a
+pattern-drafted row stays visibly distinct from an evidence-drafted one.
+
 **The link is the point.** In the workbook, the Traceability sheet counted impacts per
 document — one direction only. In Airtable, opening a source record shows every impact
 derived from it, and opening an impact shows the documents behind it. When a business owner

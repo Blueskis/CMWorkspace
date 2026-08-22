@@ -48,6 +48,7 @@ lose credibility.
 | `scripts/generate_cia.py` | Validates the JSON and renders the workbook. |
 | `scripts/push_to_airtable.py` | Publishes the same assessment to Airtable as a live, relational workspace. |
 | `reference/airtable-workspace.md` | Airtable route — setup, the linked-table design, views, and which copy is master. |
+| `reference/standard-change-library.md` | Reusing change patterns from past assessments — schema, how to reference them during Extract/Score without letting them override this engagement's evidence, and how to seed the library. **Read before Step 3 if a Standard Change Library table exists in the target base.** |
 | `examples/` | A complete worked example — six source documents and the 20-row `sample_cia_input.json` they produce. |
 
 ## Process
@@ -127,6 +128,13 @@ Then, before reading anything:
 Read `reference/extraction-guide.md` and follow its five passes: build the L1–L4 process spine
 from the design models, attach the to-be, attach the as-is and human signal from interviews,
 split and merge to one row per **process change × stakeholder group**, then score.
+
+**If the Airtable base already has a `Standard Change Library` table**, filter it against the
+L1–L4 spine as a checklist before scoring — read `reference/standard-change-library.md`. It
+prompts "processes like this one usually hit these groups" so nothing gets missed; it never
+supplies a score. A row drafted from a pattern rather than this engagement's own evidence gets
+`Source Type = Standard Change Pattern (Unvalidated)` and `Confidence` capped at Low, same as
+any other unconfirmed inference.
 
 L4 is where the register earns its keep — it is the level at which one process splits into the
 different things it means for different people. If every L4 just restates its L3, the rows have
