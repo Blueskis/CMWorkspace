@@ -79,8 +79,20 @@ Five stages, each writing an inspectable artifact:
 
 ```
 week N-1 + week N docs ─▶ snapshots ─▶ changes ─▶ change_brief ─▶ status_update.md ─▶ qa_report.md
-       EXTRACT              DIFF       MERGE          WRITE               QA
+       INTAKE               DIFF       MERGE          WRITE               QA
 ```
+
+Documents are **uploaded by the consultant** — there's no connection to SharePoint, OneDrive
+or any live source. That's deliberate: it keeps the skill working across clients whose
+tenants nobody has admin rights in. Intake pairs the two periods' files by name with the
+client's version noise stripped (`CM Plan v4 (for review).docx` ↔ `CM Plan v5 FINAL.docx`),
+and reports what paired, what's new, what's missing and what it skipped — nothing pairs
+silently.
+
+After the first run, only the current period gets uploaded: intake keeps each document's
+snapshot in an archive and diffs against that. A document in the archive that wasn't
+uploaded is flagged, because an absent document and an unchanged one look identical
+downstream and mean completely different things.
 
 Every format normalises into one snapshot shape, so the diff never branches on document
 type. Matching is by item key first — an activity ID, a learner, a RICEFWA object — then by
@@ -117,7 +129,7 @@ waived. That folder's README has the full pipeline and what each part demonstrat
 
 ### What v0.1 does not do
 
-PDFs and legacy `.doc`/`.xls`/`.ppt`, live sources (Jira, Smartsheet, Google), trends across
+PDFs and legacy `.doc`/`.xls`/`.ppt`, live/connected sources of any kind, trends across
 more than two periods, and anything carried by formatting rather than text — cell colour as
 RAG, charts, tracked changes, speaker notes. Output is always a **draft for the consultant
 to review before the meeting**, never a client-ready readout.
@@ -140,7 +152,7 @@ skills/status-update-agent/
 ├── SKILL.md              # the five-stage process
 ├── reference/            # extraction/keying guide, materiality rules, narrative patterns
 ├── schemas/              # snapshot, changes, change_brief contracts
-└── scripts/              # extract, diff_snapshots, write_update, qa_update
+└── scripts/              # intake, extract, diff_snapshots, write_update, qa_update
 examples/acme-erp/        # worked example — fictional client
 examples/weekly-status/   # worked example — fictional programme, three documents, two weeks
 ```

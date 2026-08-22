@@ -24,7 +24,8 @@ This is v0.1.
 | In scope | Out of scope (v0.1) |
 |---|---|
 | Two periods of the same document, compared | Trend across many periods, burn-up charts, forecasting |
-| `.xlsx` `.xlsm` `.docx` `.pptx` `.csv` | `.pdf`, legacy `.doc`/`.xls`/`.ppt`, Google/Smartsheet/Jira live sources |
+| Documents the consultant uploads or points at | Reading from SharePoint, OneDrive, Google Drive, Jira or any live source |
+| `.xlsx` `.xlsm` `.docx` `.pptx` `.csv` | `.pdf`, legacy `.doc`/`.xls`/`.ppt` |
 | Text, table and cell **values** | Cell colour, charts, images, tracked changes, comments, speaker notes |
 | Rule-based materiality with a per-programme override file | Learning which changes this client cares about |
 | A markdown update, ready to speak from or paste into a deck | A built .pptx status slide (hand the output to the `pptx` skill) |
@@ -36,7 +37,7 @@ an edge case. Say so at Stage 1 rather than inferring RAG from the numbers.
 ## Pipeline
 
 ```
-  Stage 1  EXTRACT   each document, both periods ──▶ snapshots/*.json
+  Stage 1  INTAKE    uploaded documents, both periods ──▶ snapshots/*.json
   Stage 2  DIFF      snapshot pair, per document  ──▶ changes/*.json
   Stage 3  MERGE     all changes, one ID space    ──▶ change_brief.json + .md
   Stage 4  WRITE     the brief, read by you       ──▶ status_update.md
@@ -57,8 +58,9 @@ Create `status-updates/<programme-slug>-<period-slug>/` in the user's working di
 ```
 status-updates/meridian-wk12/
 ├── inputs/
-│   ├── week-11/          # last period's documents, as received
+│   ├── week-11/          # last period's documents, as uploaded
 │   └── week-12/          # this period's
+├── .snapshot-archive/    # snapshots kept between runs, so next week needs one upload
 ├── snapshots/            # Stage 1, one per document per period
 ├── changes/              # Stage 2, one per document
 ├── change_brief.json     # Stage 3
@@ -67,30 +69,80 @@ status-updates/meridian-wk12/
 └── qa_report.md          # Stage 5
 ```
 
-## Stage 1 — Extract
+## Stage 1 — Intake
 
-Locate both periods' documents and pair them up by what they are, not by filename —
-`CM Plan v4.docx` and `CM Plan v5 FINAL.docx` are the same document. Pass a stable
-`--name` for each pair so the pairing survives the client's file naming.
+**Documents come from the consultant, as uploads or local files.** There is no connection
+to SharePoint, OneDrive or any live source, and this is a deliberate constraint rather than
+a missing feature — it keeps the skill working across clients whose tenants a consultant
+has no admin rights in. What it costs is that somebody has to put the files somewhere the
+skill can read them, and the archive below is what stops that cost repeating every week.
 
-```bash
-python scripts/extract.py inputs/week-11/cm-plan.docx --period "Week 11" \
-    --name cm-plan -o snapshots/cm-plan-11.json
+Ask for, or locate, the files. Put them in the run workspace:
+
+```
+inputs/week-11/    last period's documents, as received
+inputs/week-12/    this period's
 ```
 
-Ask for whatever isn't obvious: which documents are in scope this week, what the period is
-called in the meeting, and — if a document is new this period — whether there is a prior
-version at all. A document with no previous version cannot be diffed; report it as new and
-summarise it separately rather than diffing it against nothing.
+Then run intake, which pairs them and extracts both sides:
+
+```bash
+python scripts/intake.py \
+    --previous inputs/week-11 --previous-period "Week 11" \
+    --current  inputs/week-12 --current-period  "Week 12" \
+    --snapshots snapshots --archive .snapshot-archive
+```
+
+Pairing is by filename with the client's version noise stripped, so `CM Plan v4 (for
+review).docx` and `CM Plan v5 FINAL.docx` pair automatically. Nothing pairs silently — the
+report says what paired, what is new, what is missing, and what was skipped as an
+unsupported type. Run it with `--dry-run` first if the naming looks chaotic, and check the
+pairing before anything is written.
+
+### After the first run, only this period gets uploaded
+
+`--archive` stores each document's snapshot. Next period, the consultant uploads only that
+period's documents and drops `--previous` entirely:
+
+```bash
+python scripts/intake.py --current inputs/week-13 --current-period "Week 13" \
+    --snapshots snapshots --archive .snapshot-archive
+```
+
+The archive is what makes this sustainable week after week — asking someone to keep and
+re-upload two versions of every document is a chore they will eventually skip, and a
+skipped week breaks the chain. Keep the archive in the run workspace, and treat it as
+carrying the same confidentiality as the source documents: it holds their extracted
+content, so it belongs wherever those files are allowed to live and nowhere else.
+
+A document in the archive that wasn't uploaded this period is reported as `MISSING`. **Ask
+for it.** Never report it as unchanged — an absent document and an unchanged one look
+identical downstream and mean completely different things.
+
+### What to ask, and what to say back
+
+Ask for whatever isn't obvious: which documents are in scope, what the period is called in
+the meeting, and — for anything flagged `NEW` — whether a prior version exists at all. A
+document with no previous version cannot be diffed. Report it as new and summarise it
+separately rather than diffing it against nothing; the first run of an engagement is a
+baseline, not an update, and should be delivered as one.
 
 **Then check the key before trusting anything downstream.** Run Stage 2 and look at the
 shape of the result: a large number of additions and removals with few field changes means
 the item key is wrong, not that the programme was rewritten. `reference/extraction-guide.md`
 has the causes and the fixes. Do not proceed past a bad key — every later stage inherits it.
 
-Report back briefly: which documents, how many items each, anything unsupported (a PDF, a
-colour-coded RAG column, a locked file). This is a transparency checkpoint, not a request
-for approval — continue into Stage 2 unless the consultant redirects.
+Report back briefly: which documents paired, how many items each, and anything the intake
+flagged — a `NEW` or `MISSING` document, a skipped PDF, a colour-coded RAG column, a
+locked file. This is a transparency checkpoint, not a request for approval; continue into
+Stage 2 unless the consultant redirects.
+
+`extract.py` remains available for a single document when the pairing needs doing by hand:
+
+```bash
+python scripts/extract.py inputs/week-11/cm-plan.docx --period "Week 11" \
+    --name cm-plan -o snapshots/cm-plan-11.json
+```
 
 ## Stage 2 — Diff
 
@@ -163,7 +215,8 @@ say plainly:
 
 Then offer the two obvious next steps: the `pptx` skill to put the update on a status slide
 on the programme's template, and re-running the same pipeline next week — the run folder,
-the rules file and the `--name` values all carry forward, which is most of the setup.
+the rules file and the snapshot archive all carry forward, so next week needs only this
+week's documents uploaded and one intake command.
 
 Two honest results this skill will produce and should never dress up:
 

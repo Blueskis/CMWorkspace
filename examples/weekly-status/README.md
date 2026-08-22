@@ -23,6 +23,13 @@ run/qa_report.md                   Stage 5 — PASS
 cd examples/weekly-status
 S=../../skills/status-update-agent/scripts
 
+# Stage 1 in one command — pairs the two folders, extracts both sides, seeds the archive:
+python $S/intake.py \
+    --previous inputs/week-11 --previous-period "Week 11" \
+    --current  inputs/week-12 --current-period  "Week 12" \
+    --snapshots run/snapshots --archive /tmp/snapshot-archive
+
+# ...or per document, which is what the committed snapshot filenames reflect:
 for p in 11 12; do
   python $S/extract.py inputs/week-$p/cm-plan.docx --period "Week $p" \
       --name cm-plan -o run/snapshots/cm-plan-$p.json
@@ -69,6 +76,19 @@ material, because the numbers in it moved.
 the training slip, the risk that opened in the plan and the steering escalation into one ask
 about Logistics super-user backfill. No single document contains that; every part of it is
 cited, and the connection itself is marked `[JUDGEMENT]`.
+
+**Intake survives client file naming.** The example's filenames are tidy, but the pairing
+strips version noise, so these all pair correctly:
+
+```
+Meridian CM Plan v4 (for review).docx   ↔  Meridian CM Plan v5 FINAL.docx
+Training Completion Tracker WK11 2026-08-14.xlsx  ↔  ...WK12 2026-08-21.xlsx
+RICEFWA Status Wk11 DRAFT.pptx          ↔  RICEFWA Status Wk12.pptx
+```
+
+while a `Steering Pack.pdf` is reported as skipped, a document only present this week is
+reported as new and undiffable, and one present only last week is reported as missing.
+Run `intake.py --dry-run` to see the pairing before anything is written.
 
 **Provenance is enforceable.** Every claim in `status_update.md` carries a `[C#]` or a
 `[JUDGEMENT]`. Adding an uncited sentence, or citing a `[C99]` that doesn't exist, fails QA
