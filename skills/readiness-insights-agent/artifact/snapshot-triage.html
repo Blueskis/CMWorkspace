@@ -1,0 +1,1074 @@
+<title>Readiness Snapshot Triage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&display=swap">
+
+<style>
+:root{
+  --ground:#eef1f3; --surface:#ffffff; --surface-2:#f6f8f9; --line:#d9e0e5; --line-soft:#e8edf0;
+  --ink:#16202b; --ink-2:#3d4b58; --muted:#697884;
+  --accent:#0d5c6b; --accent-ink:#0d5c6b; --accent-wash:#e2eef0;
+  --good:#0ca30c; --warn:#fab219; --crit:#d03b3b;
+  --good-wash:#e8f5e8; --warn-wash:#fdf3de; --crit-wash:#faeaea; --null-wash:#f0f2f4;
+  --pole-neg:#d03b3b; --pole-pos:#1f6f9c; --pole-mid:#f0efec;
+  --shadow:0 1px 2px rgba(22,32,43,.06), 0 8px 24px -18px rgba(22,32,43,.35);
+  --on-accent:#ffffff;
+  --r:3px;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0f151b; --surface:#18202a; --surface-2:#141c25; --line:#2a3742; --line-soft:#222d38;
+    --ink:#e3e9ee; --ink-2:#bcc8d2; --muted:#8b9aa7;
+    --accent:#4fb3c0; --accent-ink:#7fcbd5; --accent-wash:#152b31; --on-accent:#08171b;
+    --good-wash:#122612; --warn-wash:#2e2410; --crit-wash:#2c1516; --null-wash:#1c242e;
+    --pole-neg:#e0605e; --pole-pos:#4a97c9; --pole-mid:#383835;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -20px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0f151b; --surface:#18202a; --surface-2:#141c25; --line:#2a3742; --line-soft:#222d38;
+  --ink:#e3e9ee; --ink-2:#bcc8d2; --muted:#8b9aa7;
+  --accent:#4fb3c0; --accent-ink:#7fcbd5; --accent-wash:#152b31;
+  --good-wash:#122612; --warn-wash:#2e2410; --crit-wash:#2c1516; --null-wash:#1c242e;
+  --pole-neg:#e0605e; --pole-pos:#4a97c9; --pole-mid:#383835; --on-accent:#08171b;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -20px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font:400 16px/1.55 "Source Sans 3", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.wrap{max-width:1120px; margin:0 auto; padding:36px 22px 96px}
+h1,h2,h3{font-family:Archivo, ui-sans-serif, system-ui, sans-serif; text-wrap:balance; margin:0}
+h1{font-size:clamp(28px,4.4vw,40px); font-weight:700; letter-spacing:-.021em; line-height:1.08}
+h2{font-size:21px; font-weight:600; letter-spacing:-.01em}
+h3{font-size:16px; font-weight:600}
+p{margin:0}
+a{color:var(--accent-ink)}
+.mono{font-family:"IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace}
+.num{font-variant-numeric:tabular-nums}
+
+.eyebrow{
+  font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:500;
+  letter-spacing:.13em; text-transform:uppercase; color:var(--muted);
+}
+.lede{color:var(--ink-2); max-width:66ch; font-size:17px}
+.fine{font-size:13.5px; color:var(--muted); max-width:74ch}
+
+header.masthead{display:flex; flex-direction:column; gap:12px; padding-bottom:26px; margin-bottom:8px;
+  border-bottom:2px solid var(--ink)}
+.masthead .row{display:flex; justify-content:space-between; align-items:flex-start; gap:20px; flex-wrap:wrap}
+
+/* ---- step sections: the numbering is a real sequence (load, map, read) ---- */
+section.step{margin-top:34px}
+.step-head{display:flex; align-items:baseline; gap:12px; margin-bottom:14px}
+.step-n{
+  font-family:"IBM Plex Mono", monospace; font-size:12px; font-weight:600; color:var(--accent-ink);
+  border:1px solid var(--accent); border-radius:999px; padding:2px 9px; flex:0 0 auto;
+}
+.step-head p{color:var(--muted); font-size:14px}
+
+.panel{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); box-shadow:var(--shadow)}
+.panel-pad{padding:22px}
+.stack{display:flex; flex-direction:column; gap:14px}
+.hidden{display:none !important}
+
+/* ---- dropzone ---- */
+.drop{
+  border:1.5px dashed var(--line); border-radius:var(--r); background:var(--surface);
+  padding:38px 24px; text-align:center; display:flex; flex-direction:column; align-items:center; gap:10px;
+  transition:border-color .15s, background .15s;
+}
+.drop.over{border-color:var(--accent); background:var(--accent-wash)}
+.drop h3{font-size:18px}
+.btn{
+  font-family:Archivo, sans-serif; font-weight:600; font-size:14.5px; cursor:pointer;
+  background:var(--accent); color:var(--on-accent); border:1px solid var(--accent); border-radius:var(--r);
+  padding:9px 18px;
+}
+.btn.ghost{background:transparent; color:var(--accent-ink)}
+.btn:hover{filter:brightness(1.08)}
+.btn:focus-visible, select:focus-visible, input:focus-visible, .cell:focus-visible{
+  outline:2px solid var(--accent); outline-offset:2px
+}
+.btn[disabled]{opacity:.45; cursor:not-allowed}
+
+select, input[type="text"]{
+  font:400 14px/1.3 "Source Sans 3", sans-serif; color:var(--ink); background:var(--surface-2);
+  border:1px solid var(--line); border-radius:var(--r); padding:6px 8px; max-width:100%;
+}
+
+.filebar{display:flex; align-items:center; gap:14px; flex-wrap:wrap; font-size:14px}
+.filebar .name{font-family:"IBM Plex Mono", monospace; font-size:13px}
+
+/* ---- mapping table ---- */
+.scroll{overflow-x:auto}
+table{border-collapse:collapse; width:100%; font-size:14px}
+th,td{text-align:left; padding:9px 12px; border-bottom:1px solid var(--line-soft); vertical-align:middle}
+thead th{
+  font-family:"IBM Plex Mono", monospace; font-size:10.5px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); font-weight:500; border-bottom:1px solid var(--line); white-space:nowrap;
+}
+tbody tr:last-child td{border-bottom:none}
+td.colname{font-weight:600; max-width:290px}
+td.sample{color:var(--muted); font-size:13px; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+
+/* ---- KPI row ---- */
+.kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:12px}
+.kpi{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px;
+  box-shadow:var(--shadow); display:flex; flex-direction:column; gap:3px}
+.kpi .v{font-family:Archivo, sans-serif; font-size:30px; font-weight:700; letter-spacing:-.02em; line-height:1.05}
+.kpi .k{font-size:12.5px; color:var(--muted)}
+
+/* ---- heatmap ---- */
+.cell{border-radius:2px; padding:8px 10px; min-width:104px; border:1px solid transparent; cursor:default}
+.cell .v{font-family:Archivo, sans-serif; font-weight:700; font-size:16px; font-variant-numeric:tabular-nums}
+.cell .s{display:block; font-family:"IBM Plex Mono", monospace; font-size:10.5px; color:var(--muted); margin-top:1px}
+.b-good{background:var(--good-wash); border-color:color-mix(in srgb, var(--good) 30%, transparent)}
+.b-warn{background:var(--warn-wash); border-color:color-mix(in srgb, var(--warn) 34%, transparent)}
+.b-crit{background:var(--crit-wash); border-color:color-mix(in srgb, var(--crit) 32%, transparent)}
+.b-thin,.b-none{background:var(--null-wash); border-color:var(--line-soft)}
+.b-none .v{color:var(--muted); font-weight:500; font-size:13px}
+.dot{width:8px; height:8px; border-radius:2px; display:inline-block; flex:0 0 auto}
+.d-good{background:var(--good)} .d-warn{background:var(--warn)} .d-crit{background:var(--crit)}
+.d-thin{background:var(--muted)} .d-none{background:var(--line)}
+.legend{display:flex; gap:16px; flex-wrap:wrap; align-items:center; font-size:12.5px; color:var(--muted)}
+.legend span.i{display:inline-flex; align-items:center; gap:6px}
+
+/* ---- distribution bars ---- */
+.dist{display:flex; height:16px; border-radius:2px; overflow:hidden; background:var(--pole-mid); gap:2px}
+.dist i{display:block; height:100%}
+.dist i.neg{background:var(--pole-neg)} .dist i.mid{background:var(--pole-mid)} .dist i.pos{background:var(--pole-pos)}
+.bar-row{display:grid; grid-template-columns:150px 1fr 116px; gap:14px; align-items:center; padding:7px 0}
+.bar-row .lab{font-size:14px; font-weight:600}
+.bar-row .fig{font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--muted); text-align:right;
+  font-variant-numeric:tabular-nums}
+
+/* ---- findings ---- */
+.finding{display:grid; grid-template-columns:auto 1fr; gap:12px; padding:14px 16px; background:var(--surface);
+  border:1px solid var(--line); border-left-width:4px; border-radius:var(--r); box-shadow:var(--shadow)}
+.finding.crit{border-left-color:var(--crit)} .finding.warn{border-left-color:var(--warn)}
+.finding.good{border-left-color:var(--good)} .finding.info{border-left-color:var(--accent)}
+.finding .tag{font-family:"IBM Plex Mono", monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted); padding-top:3px; white-space:nowrap}
+.finding h3{margin-bottom:3px}
+.finding p{font-size:14.5px; color:var(--ink-2)}
+.finding .ev{font-family:"IBM Plex Mono", monospace; font-size:11.5px; color:var(--muted); margin-top:7px}
+
+/* ---- comments ---- */
+.chips{display:flex; flex-wrap:wrap; gap:7px}
+.chip{font-size:12.5px; border:1px solid var(--line); background:var(--surface-2); border-radius:999px;
+  padding:3px 11px; color:var(--ink-2)}
+.chip .n{font-family:"IBM Plex Mono", monospace; color:var(--muted); font-size:11px}
+.quote{border-left:2px solid var(--line); padding:3px 0 3px 13px; font-size:14.5px; color:var(--ink-2); font-style:italic}
+.quote .src{display:block; font-style:normal; font-family:"IBM Plex Mono", monospace; font-size:11px;
+  color:var(--muted); margin-top:3px}
+.qlist{display:flex; flex-direction:column; gap:12px; max-height:460px; overflow-y:auto; padding-right:6px}
+
+/* ---- tooltip ---- */
+#tip{position:fixed; z-index:50; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--ground); font-size:12.5px; line-height:1.45; padding:8px 11px;
+  border-radius:3px; max-width:280px; box-shadow:0 6px 24px -8px rgba(0,0,0,.5)}
+#tip b{font-family:Archivo, sans-serif}
+#tip .m{font-family:"IBM Plex Mono", monospace; font-size:11px; opacity:.8; display:block}
+
+.notice{border:1px solid var(--line); border-left:4px solid var(--warn); background:var(--warn-wash);
+  padding:12px 15px; border-radius:var(--r); font-size:14px; color:var(--ink-2)}
+.err{border-left-color:var(--crit); background:var(--crit-wash)}
+footer{margin-top:52px; padding-top:18px; border-top:1px solid var(--line); color:var(--muted); font-size:13px;
+  display:flex; flex-direction:column; gap:8px}
+.row-actions{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+@media (max-width:640px){
+  .bar-row{grid-template-columns:1fr; gap:5px}
+  .bar-row .fig{text-align:left}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none !important; animation:none !important}}
+</style>
+
+<div class="wrap">
+
+<header class="masthead">
+  <div class="row">
+    <div class="stack" style="gap:9px">
+      <p class="eyebrow">Change readiness &middot; quick-look</p>
+      <h1>Readiness Snapshot Triage</h1>
+      <p class="lede">Drop in a feedback export — training evaluations, a comms feedback form, a
+        readiness assessment — and read where each group actually stands, which cells are too thin to
+        trust, and who is missing from the data entirely.</p>
+    </div>
+  </div>
+  <p class="fine"><strong>Your file stays in this browser.</strong> The spreadsheet is parsed on your own
+    machine and nothing is uploaded, stored, or sent anywhere. Close the tab and it is gone.</p>
+</header>
+
+<section class="step">
+  <div class="step-head">
+    <span class="step-n">1</span>
+    <div><h2>Load the export</h2><p>.xlsx or .csv, one row per respondent, one header row.</p></div>
+  </div>
+
+  <div id="drop" class="drop">
+    <h3>Drop a spreadsheet here</h3>
+    <p class="fine" style="text-align:center">Excel (.xlsx) or CSV. Scores and free-text comments in the
+      same sheet is normal and fine.</p>
+    <button class="btn" id="pick" type="button">Choose a file</button>
+    <input type="file" id="file" accept=".xlsx,.csv,.tsv,text/csv" class="hidden">
+  </div>
+
+  <div id="loaded" class="panel panel-pad hidden" style="margin-top:12px">
+    <div class="filebar">
+      <span class="dot d-good"></span>
+      <span class="name" id="fname"></span>
+      <span class="mono" style="color:var(--muted); font-size:13px" id="fmeta"></span>
+      <span style="flex:1"></span>
+      <label class="fine" for="sheet" id="sheetwrap" style="display:none">Sheet
+        <select id="sheet"></select>
+      </label>
+      <button class="btn ghost" id="reset" type="button">Load a different file</button>
+    </div>
+  </div>
+  <div id="loaderr" class="notice err hidden" style="margin-top:12px"></div>
+</section>
+
+<section class="step hidden" id="step-map">
+  <div class="step-head">
+    <span class="step-n">2</span>
+    <div><h2>Check the column mapping</h2>
+      <p>Guessed from the headers. Correct anything wrong — the read below is only as good as this.</p></div>
+  </div>
+  <div class="panel scroll">
+    <table id="maptable">
+      <thead><tr>
+        <th>Column</th><th>Read as</th><th>Readiness dimension</th><th>Scale</th><th>Sample value</th>
+      </tr></thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  <div class="row-actions" style="margin-top:12px">
+    <button class="btn" id="run" type="button">Read the snapshot</button>
+    <span class="fine" id="mapsummary"></span>
+  </div>
+</section>
+
+<section class="step hidden" id="step-read">
+  <div class="step-head">
+    <span class="step-n">3</span>
+    <div><h2>The read</h2><p id="readsub"></p></div>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="panel panel-pad stack" style="margin-top:20px">
+    <div class="stack" style="gap:4px">
+      <h2>Where each group stands</h2>
+      <p class="fine">Every score normalised to 0&ndash;100, higher is better. A base under 5 responses is
+        marked <em>thin</em> and never shown as on track, however high it scores.</p>
+    </div>
+    <div class="scroll"><table id="heat"></table></div>
+    <div class="legend">
+      <span class="i"><span class="dot d-good"></span> On track &ge; 70</span>
+      <span class="i"><span class="dot d-warn"></span> Watch 55&ndash;69</span>
+      <span class="i"><span class="dot d-crit"></span> At risk &lt; 55</span>
+      <span class="i"><span class="dot d-thin"></span> Thin base (n &lt; 5)</span>
+      <span class="i"><span class="dot d-none"></span> No data</span>
+    </div>
+  </div>
+
+  <div class="panel panel-pad stack" style="margin-top:20px">
+    <div class="stack" style="gap:4px">
+      <h2>How the answers split</h2>
+      <p class="fine">An average hides a divided room. Each bar is the share of responses that were
+        negative, neutral, or positive on that dimension &mdash; two groups pulling apart look nothing like
+        a room that is mildly lukewarm, and they need opposite responses.</p>
+    </div>
+    <div id="dists"></div>
+    <div class="legend">
+      <span class="i"><span class="dot" style="background:var(--pole-neg)"></span> Negative (&le; 40)</span>
+      <span class="i"><span class="dot" style="background:var(--pole-mid); border:1px solid var(--line)"></span> Neutral (41&ndash;69)</span>
+      <span class="i"><span class="dot" style="background:var(--pole-pos)"></span> Positive (&ge; 70)</span>
+    </div>
+  </div>
+
+  <div class="stack" style="margin-top:20px">
+    <div class="stack" style="gap:4px">
+      <h2>What stands out</h2>
+      <p class="fine">Computed from the numbers above, not judged. Each one names the cells behind it so
+        you can check it. Read these as prompts for the conversation, not as conclusions.</p>
+    </div>
+    <div class="stack" id="findings"></div>
+  </div>
+
+  <div class="panel panel-pad stack hidden" style="margin-top:20px" id="commentpanel">
+    <div class="stack" style="gap:4px">
+      <h2>What people wrote</h2>
+      <p class="fine">Grouped so you can code them yourself. The word counts are a hint about where to look
+        &mdash; they are not themes. &ldquo;Training&rdquo; appearing forty times means nothing; eleven people
+        describing the same unusable exercise means a great deal.</p>
+    </div>
+    <div class="row-actions">
+      <label class="fine">Group <select id="cgroup"></select></label>
+      <label class="fine">Dimension <select id="cdim"></select></label>
+      <span class="fine" id="ccount"></span>
+    </div>
+    <div class="chips" id="cterms"></div>
+    <div class="qlist" id="cquotes"></div>
+  </div>
+
+  <div class="panel panel-pad stack" style="margin-top:20px">
+    <h2>Take it further</h2>
+    <p class="fine">This page reads one snapshot on its own. To turn it into a briefed set of insights
+      &mdash; themed comments, findings anchored to milestones with an action window, and an audit that
+      fails when a blind spot goes undeclared &mdash; export the summary and hand it to the practitioner
+      running the full readiness pipeline.</p>
+    <div class="row-actions">
+      <button class="btn" id="dl-csv" type="button">Download summary (.csv)</button>
+      <button class="btn ghost" id="dl-json" type="button">Download full read (.json)</button>
+      <span class="fine" id="dlnote"></span>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <p><strong>A quick look, not an assessment.</strong> This page computes what the responses say. It cannot
+    tell you whether the instrument asked the right question, whether the people who did not respond think
+    something different, or what to do by when.</p>
+  <p>Bands (70 / 55) and the thin-base floor (n = 5) are conventions, not findings. Say so when someone
+    quotes a colour at you.</p>
+</footer>
+</div>
+
+<div id="tip" role="status" aria-live="polite"></div>
+
+<script>
+"use strict";
+
+/* ============================ readiness model ============================ */
+
+const DIMS = [
+  ["awareness",         "Awareness",          ["inform","aware","hear","communicat","updat","newsletter","bulletin","channel","message"]],
+  ["understanding",     "Understanding",      ["understand","know what","clear","relevan","process","what changes","impact on my","content"]],
+  ["buy_in",            "Buy-in",             ["support the","believe","worth","benefit","positive about","committed","motivat","see the point"]],
+  ["skills",            "Skills",             ["apply","skill","able to","train","practi","exercise","competen","learn","hands on","hands-on"]],
+  ["system_readiness",  "System readiness",   ["system","tool","platform","data","access","environment","technically","works"]],
+  ["capacity",          "Capacity",           ["time","capacity","workload","busy","bandwidth","resourc","absorb","cover","headroom"]],
+  ["leadership_support","Leadership support", ["manager","leader","sponsor","supervisor","my boss","visible","senior"]],
+  ["confidence",        "Confidence",         ["confiden","ready","prepared","go-live","go live","day one","cope","comfortab"]],
+];
+const DIMLABEL = Object.fromEntries(DIMS.map(d => [d[0], d[1]]));
+const REVERSE_HINTS = ["extra workload","how much extra","difficult","hard to","concern","worried","risk of","burden","confus"];
+const MIN_N = 5, BAND_GOOD = 70, BAND_WARN = 55, NEG_MAX = 40, POS_MIN = 70;
+
+const STOP = new Set(("a an and are as at be been but by can could do does for from get got had has have how i if in is it its just like me more much my no not of on or our so than that the their them then there they this to too us was we were what when which who will with would you your really very lot bit thing things there's i'm we're don't didn't it's").split(" "));
+
+/* ============================ xlsx / csv reading ============================ */
+
+async function inflateRaw(bytes){
+  if (typeof DecompressionStream === "undefined") throw new Error("This browser cannot unzip .xlsx files. Save the sheet as CSV and load that instead.");
+  const ds = new DecompressionStream("deflate-raw");
+  const stream = new Blob([bytes]).stream().pipeThrough(ds);
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+/** Minimal ZIP central-directory reader — enough for the parts of an .xlsx we need. */
+async function unzip(buffer){
+  const dv = new DataView(buffer), u8 = new Uint8Array(buffer);
+  let eocd = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 66000); i--){
+    if (dv.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("That file is not a readable .xlsx (no zip directory found).");
+  const count = dv.getUint16(eocd + 10, true);
+  let p = dv.getUint32(eocd + 16, true);
+  const files = {};
+  for (let i = 0; i < count; i++){
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true);
+    const compSize = dv.getUint32(p + 20, true);
+    const nameLen = dv.getUint16(p + 28, true);
+    const extraLen = dv.getUint16(p + 30, true);
+    const cmtLen = dv.getUint16(p + 32, true);
+    const localAt = dv.getUint32(p + 42, true);
+    const name = new TextDecoder().decode(u8.subarray(p + 46, p + 46 + nameLen));
+    const lNameLen = dv.getUint16(localAt + 26, true);
+    const lExtraLen = dv.getUint16(localAt + 28, true);
+    const start = localAt + 30 + lNameLen + lExtraLen;
+    files[name] = { method, bytes: u8.subarray(start, start + compSize) };
+    p += 46 + nameLen + extraLen + cmtLen;
+  }
+  const out = {};
+  for (const [name, f] of Object.entries(files)){
+    out[name] = async () => {
+      const raw = f.method === 0 ? f.bytes : await inflateRaw(f.bytes);
+      return new TextDecoder().decode(raw);
+    };
+  }
+  return out;
+}
+
+const xml = s => new DOMParser().parseFromString(s, "application/xml");
+const colIndex = ref => {
+  let n = 0;
+  for (const ch of ref){
+    const c = ch.charCodeAt(0);
+    if (c < 65 || c > 90) break;
+    n = n * 26 + (c - 64);
+  }
+  return n - 1;
+};
+
+async function readXlsx(buffer){
+  const zip = await unzip(buffer);
+  const need = n => { if (!zip[n]) throw new Error(`That .xlsx is missing ${n} — it may be an unusual export. Try saving it as CSV.`); return zip[n](); };
+
+  let shared = [];
+  if (zip["xl/sharedStrings.xml"]){
+    const doc = xml(await zip["xl/sharedStrings.xml"]());
+    shared = [...doc.getElementsByTagName("si")].map(si =>
+      [...si.getElementsByTagName("t")].map(t => t.textContent).join(""));
+  }
+
+  const wb = xml(await need("xl/workbook.xml"));
+  const rels = {};
+  if (zip["xl/_rels/workbook.xml.rels"]){
+    const rd = xml(await zip["xl/_rels/workbook.xml.rels"]());
+    for (const r of rd.getElementsByTagName("Relationship")){
+      rels[r.getAttribute("Id")] = r.getAttribute("Target").replace(/^\/?xl\//, "").replace(/^\.\//, "");
+    }
+  }
+  const sheets = [...wb.getElementsByTagName("sheet")].map((s, i) => {
+    const rid = s.getAttribute("r:id") || s.getAttributeNS("http://schemas.openxmlformats.org/officeDocument/2006/relationships", "id");
+    const target = (rid && rels[rid]) || `worksheets/sheet${i + 1}.xml`;
+    return { name: s.getAttribute("name") || `Sheet ${i + 1}`, path: "xl/" + target };
+  }).filter(s => zip[s.path]);
+  if (!sheets.length) throw new Error("No worksheets found in that file.");
+
+  const readSheet = async path => {
+    const doc = xml(await zip[path]());
+    const rows = [];
+    for (const row of doc.getElementsByTagName("row")){
+      const cells = [];
+      for (const c of row.getElementsByTagName("c")){
+        const idx = colIndex(c.getAttribute("r") || "");
+        const t = c.getAttribute("t");
+        let v = "";
+        if (t === "inlineStr"){
+          v = [...c.getElementsByTagName("t")].map(n => n.textContent).join("");
+        } else {
+          const vn = c.getElementsByTagName("v")[0];
+          const raw = vn ? vn.textContent : "";
+          v = t === "s" ? (shared[+raw] ?? "") : raw;
+        }
+        if (idx >= 0) cells[idx] = v;
+      }
+      rows.push(cells);
+    }
+    return rows;
+  };
+  return { sheets, readSheet };
+}
+
+function parseDelimited(text){
+  const delim = (text.split("\n")[0].match(/\t/g) || []).length > (text.split("\n")[0].match(/,/g) || []).length ? "\t" : ",";
+  const rows = []; let row = [], field = "", q = false;
+  for (let i = 0; i < text.length; i++){
+    const ch = text[i];
+    if (q){
+      if (ch === '"'){ if (text[i + 1] === '"'){ field += '"'; i++; } else q = false; }
+      else field += ch;
+    } else if (ch === '"') q = true;
+    else if (ch === delim){ row.push(field); field = ""; }
+    else if (ch === "\n"){ row.push(field); rows.push(row); row = []; field = ""; }
+    else if (ch !== "\r") field += ch;
+  }
+  if (field.length || row.length){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+/* ============================ profiling & guessing ============================ */
+
+function toTable(rows){
+  const first = rows.findIndex(r => r && r.some(c => String(c ?? "").trim() !== ""));
+  if (first < 0) throw new Error("That sheet looks empty.");
+  const header = (rows[first] || []).map((h, i) => String(h ?? "").trim() || `Column ${i + 1}`);
+  const body = rows.slice(first + 1)
+    .map(r => header.map((_, i) => String((r || [])[i] ?? "").trim()))
+    .filter(r => r.some(c => c !== ""));
+  return { header, body };
+}
+
+function profile(table){
+  return table.header.map((name, i) => {
+    const vals = table.body.map(r => r[i]).filter(v => v !== "");
+    const nums = vals.map(Number).filter(v => Number.isFinite(v));
+    const numeric = vals.length > 0 && nums.length / vals.length > 0.85;
+    const distinct = new Set(vals);
+    const avgLen = vals.length ? vals.reduce((a, v) => a + v.length, 0) / vals.length : 0;
+    const min = nums.length ? Math.min(...nums) : null;
+    const max = nums.length ? Math.max(...nums) : null;
+    return { i, name, vals, nums, numeric, distinct: distinct.size,
+             values: [...distinct].slice(0, 14), avgLen, min, max,
+             sample: vals[0] ?? "" };
+  });
+}
+
+function guessScale(p){
+  if (!p.numeric || p.min === null) return null;
+  if (p.min >= 0 && p.max <= 5 && p.distinct <= 8)  return p.min === 0 ? {min:0,max:5} : {min:1,max:5};
+  if (p.min >= 1 && p.max <= 7 && p.distinct <= 9)  return {min:1,max:7};
+  if (p.min >= 0 && p.max <= 10 && p.distinct <= 12) return {min:0,max:10};
+  if (p.min >= 0 && p.max <= 100 && p.distinct > 12) return {min:0,max:100};
+  return null;
+}
+
+function guessDimension(name){
+  const h = name.toLowerCase();
+  let best = null, bestAt = Infinity;
+  for (const [key, , words] of DIMS){
+    for (const w of words){
+      const at = h.indexOf(w);
+      if (at >= 0 && at < bestAt){ best = key; bestAt = at; }
+    }
+  }
+  return { dimension: best || "understanding", matched: best !== null };
+}
+
+const looksReversed = name => REVERSE_HINTS.some(w => name.toLowerCase().includes(w));
+
+function guessRoles(profiles, rowCount){
+  const guessed = profiles.map(p => {
+    const scale = guessScale(p);
+    const g = guessDimension(p.name);
+    const base = { scale, dimension: g.dimension, unmatched: !g.matched, reverse: false };
+    const nameish = /^(id|ref|response|respondent|submitted|date|timestamp|email|name)\b/i.test(p.name);
+    if (nameish) return { ...base, role: "ignore" };
+    if (p.numeric && scale && scale.max <= 10 && p.distinct > 1)
+      return { ...base, role: "score", reverse: looksReversed(p.name) };
+    if (!p.numeric && p.avgLen > 25) return { ...base, role: "comment" };
+    if (!p.numeric && p.distinct >= 2 && p.distinct <= Math.max(12, rowCount * 0.25) && p.avgLen <= 40)
+      return { ...base, role: "segment" };
+    return { ...base, role: "ignore" };
+  });
+  // Only one grouping column can drive the matrix, so propose the most usable one and
+  // leave the rest to be promoted deliberately rather than silently ignored.
+  const candidates = guessed.map((m, i) => ({ m, i })).filter(x => x.m.role === "segment");
+  if (candidates.length > 1){
+    const best = candidates.reduce((a, b) =>
+      Math.abs(profiles[b.i].distinct - 4) < Math.abs(profiles[a.i].distinct - 4) ? b : a);
+    for (const c of candidates) if (c.i !== best.i) c.m.role = "ignore";
+  }
+  return guessed;
+}
+
+/* ============================ analysis ============================ */
+
+const normalise = (v, s, rev) => {
+  if (!Number.isFinite(v) || v < s.min || v > s.max || s.max === s.min) return null;
+  const pct = (v - s.min) / (s.max - s.min) * 100;
+  return rev ? 100 - pct : pct;
+};
+const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+
+function analyse(table, map){
+  const segCol = map.findIndex(m => m.role === "segment");
+  const scoreCols = map.map((m, i) => ({ ...m, i })).filter(m => m.role === "score");
+  const commentCols = map.map((m, i) => ({ ...m, i })).filter(m => m.role === "comment");
+
+  const segOf = r => segCol >= 0 ? (r[segCol] || "(unstated)") : "All respondents";
+  const segments = [...new Set(table.body.map(segOf))].sort();
+  const dims = [...new Set(scoreCols.map(c => c.dimension))]
+    .sort((a, b) => DIMS.findIndex(d => d[0] === a) - DIMS.findIndex(d => d[0] === b));
+
+  const cells = {}, byDim = {};
+  for (const d of dims){ byDim[d] = []; for (const s of segments) cells[d + "|" + s] = []; }
+
+  let dropped = 0;
+  table.body.forEach(r => {
+    const seg = segOf(r);
+    for (const c of scoreCols){
+      const raw = r[c.i];
+      if (raw === "") { dropped++; continue; }
+      const n = normalise(Number(raw), c.scale, c.reverse);
+      if (n === null){ dropped++; continue; }
+      cells[c.dimension + "|" + seg].push(n);
+      byDim[c.dimension].push(n);
+    }
+  });
+
+  const band = (m, n) => n === 0 ? "none" : n < MIN_N ? "thin" : m >= BAND_GOOD ? "good" : m >= BAND_WARN ? "warn" : "crit";
+  const matrix = dims.map(d => ({
+    dim: d,
+    cells: segments.map(s => {
+      const v = cells[d + "|" + s], n = v.length;
+      const m = n ? mean(v) : null;
+      return { dim: d, seg: s, n, mean: m, band: band(m ?? 0, n),
+               neg: n ? v.filter(x => x <= NEG_MAX).length / n * 100 : 0,
+               pos: n ? v.filter(x => x >= POS_MIN).length / n * 100 : 0 };
+    })
+  }));
+
+  const dimTotals = dims.map(d => {
+    const v = byDim[d], n = v.length;
+    return { dim: d, n, mean: n ? mean(v) : null,
+             neg: n ? v.filter(x => x <= NEG_MAX).length / n * 100 : 0,
+             pos: n ? v.filter(x => x >= POS_MIN).length / n * 100 : 0,
+             mid: n ? v.filter(x => x > NEG_MAX && x < POS_MIN).length / n * 100 : 0 };
+  });
+
+  const comments = [];
+  table.body.forEach((r, ri) => {
+    for (const c of commentCols){
+      const t = (r[c.i] || "").trim();
+      if (t.length >= 3) comments.push({ id: `R${ri + 1}`, seg: segOf(r), dim: c.dimension, col: c.name, text: t });
+    }
+  });
+
+  const blind = [];
+  for (const row of matrix) for (const c of row.cells)
+    if (c.band === "none" || c.band === "thin") blind.push(c);
+
+  return { segments, dims, matrix, dimTotals, comments, blind, dropped,
+           respondents: table.body.length, hasSegments: segCol >= 0,
+           segColName: segCol >= 0 ? table.header[segCol] : null };
+}
+
+/* rule-based observations — arithmetic, not judgement */
+function findings(a){
+  const out = [];
+  const all = a.matrix.flatMap(r => r.cells).filter(c => c.n >= MIN_N);
+
+  const worst = [...all].sort((x, y) => x.mean - y.mean)[0];
+  if (worst && worst.mean < BAND_WARN) out.push({
+    kind: "crit", tag: "Lowest",
+    title: `${DIMLABEL[worst.dim]} in ${worst.seg} is the weakest reading at ${worst.mean.toFixed(0)}/100`,
+    body: `${worst.neg.toFixed(0)}% of those responses were negative. Before treating it as the priority, check whether it is the finding or just the lowest number — what it predicts matters more than where it ranks.`,
+    ev: `${DIMLABEL[worst.dim]} × ${worst.seg} · n=${worst.n}`
+  });
+
+  for (const row of a.matrix){
+    const seen = row.cells.filter(c => c.n >= MIN_N);
+    if (seen.length < 2) continue;
+    const hi = seen.reduce((p, c) => c.mean > p.mean ? c : p);
+    const lo = seen.reduce((p, c) => c.mean < p.mean ? c : p);
+    const gap = hi.mean - lo.mean;
+    if (gap >= 20) out.push({
+      kind: "warn", tag: "Spread",
+      title: `${DIMLABEL[row.dim]} splits the population: ${lo.seg} at ${lo.mean.toFixed(0)}, ${hi.seg} at ${hi.mean.toFixed(0)}`,
+      body: `A ${gap.toFixed(0)}-point gap on the same question. An average across these two groups describes nobody, and one intervention will not serve both.`,
+      ev: `${DIMLABEL[row.dim]} × ${lo.seg} (n=${lo.n}) vs ${hi.seg} (n=${hi.n})`
+    });
+  }
+
+  const sk = a.dimTotals.find(d => d.dim === "skills"), cf = a.dimTotals.find(d => d.dim === "confidence");
+  if (sk && cf && sk.n >= MIN_N && cf.n >= MIN_N && sk.mean - cf.mean >= 12) out.push({
+    kind: "info", tag: "Pattern",
+    title: `Skills read ${(sk.mean - cf.mean).toFixed(0)} points higher than confidence`,
+    body: `People say they can do the task but not that they will cope on day one. Comprehension is not the constraint here — look at system readiness, capacity, and who will be there on the first morning.`,
+    ev: `Skills ${sk.mean.toFixed(0)} (n=${sk.n}) vs Confidence ${cf.mean.toFixed(0)} (n=${cf.n})`
+  });
+
+  const aw = a.dimTotals.find(d => d.dim === "awareness"), un = a.dimTotals.find(d => d.dim === "understanding");
+  if (aw && un && aw.n >= MIN_N && un.n >= MIN_N && aw.mean - un.mean >= 12) out.push({
+    kind: "info", tag: "Pattern",
+    title: `People are reached but not told what changes for them — awareness ${aw.mean.toFixed(0)}, understanding ${un.mean.toFixed(0)}`,
+    body: `The channel is working and the content is not. This is a comms-design finding, not a comms-volume one: more of the same bulletin will move the first number and not the second.`,
+    ev: `Awareness ${aw.mean.toFixed(0)} (n=${aw.n}) vs Understanding ${un.mean.toFixed(0)} (n=${un.n})`
+  });
+
+  for (const d of a.dimTotals){
+    if (d.n >= MIN_N && d.neg >= 30 && d.pos >= 30) out.push({
+      kind: "warn", tag: "Divided",
+      title: `${DIMLABEL[d.dim]} is a divided room, not a lukewarm one`,
+      body: `${d.neg.toFixed(0)}% negative and ${d.pos.toFixed(0)}% positive on the same question. The mean of ${d.mean.toFixed(0)} describes almost nobody who answered it — find out what separates the two halves before acting on the average.`,
+      ev: `${DIMLABEL[d.dim]} · n=${d.n}`
+    });
+  }
+
+  const noData = a.blind.filter(c => c.band === "none");
+  const thin = a.blind.filter(c => c.band === "thin");
+  if (noData.length){
+    const segs = [...new Set(noData.map(c => c.seg))];
+    out.push({
+      kind: "crit", tag: "Missing",
+      title: `${noData.length} combination${noData.length > 1 ? "s" : ""} returned nothing at all`,
+      body: `Affects ${segs.slice(0, 4).join(", ")}${segs.length > 4 ? ` and ${segs.length - 4} more` : ""}. An empty cell is not a green one. Before this snapshot goes to anyone, say plainly which groups it does not describe — including any group that was never sent the survey and so cannot appear here at all.`,
+      ev: noData.slice(0, 6).map(c => `${DIMLABEL[c.dim]} × ${c.seg}`).join(" · ")
+    });
+  }
+  if (thin.length) out.push({
+    kind: "warn", tag: "Thin",
+    title: `${thin.length} cell${thin.length > 1 ? "s" : ""} rest on fewer than ${MIN_N} responses`,
+    body: `Held back from the colour banding rather than shown as on track. Four enthusiastic replies out of a hundred people is not a green cell — treat these as questions to chase, not as readings.`,
+    ev: thin.slice(0, 6).map(c => `${DIMLABEL[c.dim]} × ${c.seg} (n=${c.n})`).join(" · ")
+  });
+
+  const best = [...all].sort((x, y) => y.mean - x.mean)[0];
+  if (best && best.mean >= BAND_GOOD) out.push({
+    kind: "good", tag: "Working",
+    title: `${DIMLABEL[best.dim]} in ${best.seg} is the strongest reading at ${best.mean.toFixed(0)}/100`,
+    body: `Worth naming out loud, and worth protecting when time gets short — whatever produced this is the thing most likely to be cut first.`,
+    ev: `${DIMLABEL[best.dim]} × ${best.seg} · n=${best.n}`
+  });
+
+  const order = { crit: 0, warn: 1, info: 2, good: 3 };
+  return out.sort((x, y) => order[x.kind] - order[y.kind]);
+}
+
+/* ============================ rendering ============================ */
+
+const $ = s => document.querySelector(s);
+const el = (tag, cls, txt) => { const n = document.createElement(tag); if (cls) n.className = cls; if (txt != null) n.textContent = txt; return n; };
+const tip = $("#tip");
+function bindTip(node, html){
+  const show = e => {
+    tip.innerHTML = html;
+    tip.style.opacity = "1";
+    const r = tip.getBoundingClientRect();
+    const x = Math.min(Math.max(8, e.clientX + 14), innerWidth - r.width - 8);
+    const y = Math.max(8, e.clientY - r.height - 12);
+    tip.style.left = x + "px"; tip.style.top = y + "px";
+  };
+  node.addEventListener("mousemove", show);
+  node.addEventListener("mouseenter", show);
+  node.addEventListener("mouseleave", () => tip.style.opacity = "0");
+  node.addEventListener("focus", e => { const b = node.getBoundingClientRect(); show({ clientX: b.left + 10, clientY: b.top + 8 }); });
+  node.addEventListener("blur", () => tip.style.opacity = "0");
+}
+
+const BANDWORD = { good: "On track", warn: "Watch", crit: "At risk", thin: "Thin base", none: "No data" };
+
+function renderKpis(a){
+  const box = $("#kpis"); box.innerHTML = "";
+  const scored = a.matrix.flatMap(r => r.cells).filter(c => c.n >= MIN_N);
+  const overall = scored.length ? mean(scored.map(c => c.mean)) : null;
+  const risk = scored.filter(c => c.band === "crit").length;
+  const kpi = (v, k) => { const n = el("div", "kpi"); n.append(el("div", "v num", v), el("div", "k", k)); return n; };
+  box.append(
+    kpi(String(a.respondents), "respondents"),
+    kpi(overall === null ? "—" : overall.toFixed(0), "mean across readable cells"),
+    kpi(String(risk), `cell${risk === 1 ? "" : "s"} at risk (< ${BAND_WARN})`),
+    kpi(String(a.blind.length), "cells thin or empty"),
+    kpi(String(a.comments.length), "written comments"),
+  );
+}
+
+function renderHeat(a){
+  const t = $("#heat"); t.innerHTML = "";
+  const thead = el("thead"), hr = el("tr");
+  hr.append(el("th", null, a.segColName || "Group"));
+  for (const d of a.dims) hr.append(el("th", null, DIMLABEL[d]));
+  thead.append(hr); t.append(thead);
+  const tb = el("tbody");
+  for (const seg of a.segments){
+    const tr = el("tr");
+    const th = el("th", null, seg); th.style.fontWeight = "600"; th.style.color = "var(--ink)";
+    th.style.fontFamily = "Archivo, sans-serif"; th.style.fontSize = "13.5px"; th.style.textTransform = "none";
+    th.style.letterSpacing = "0";
+    tr.append(th);
+    for (const d of a.dims){
+      const c = a.matrix.find(r => r.dim === d).cells.find(x => x.seg === seg);
+      const td = el("td");
+      const box = el("div", "cell b-" + c.band); box.tabIndex = 0;
+      const v = el("span", "v", c.n === 0 ? "no data" : c.mean.toFixed(0));
+      const s = el("span", "s", c.n === 0 ? "not asked here" : `n=${c.n} · ${BANDWORD[c.band]}`);
+      box.append(v, s);
+      bindTip(box, `<b>${DIMLABEL[d]} · ${seg}</b><span class="m">${BANDWORD[c.band]}</span>` +
+        (c.n === 0 ? "No responses in this combination." :
+         `Mean ${c.mean.toFixed(1)}/100 from ${c.n} response${c.n === 1 ? "" : "s"}.<br>${c.neg.toFixed(0)}% negative · ${c.pos.toFixed(0)}% positive` +
+         (c.band === "thin" ? "<br>Held back from banding — fewer than " + MIN_N + " responses." : "")));
+      td.append(box); tr.append(td);
+    }
+    tb.append(tr);
+  }
+  t.append(tb);
+}
+
+function renderDists(a){
+  const box = $("#dists"); box.innerHTML = "";
+  for (const d of a.dimTotals){
+    const row = el("div", "bar-row");
+    row.append(el("div", "lab", DIMLABEL[d.dim]));
+    const bar = el("div", "dist");
+    if (d.n){
+      for (const [cls, val] of [["neg", d.neg], ["mid", d.mid], ["pos", d.pos]]){
+        if (val <= 0) continue;
+        const i = el("i", cls); i.style.width = val + "%"; bar.append(i);
+      }
+    }
+    bindTip(bar, `<b>${DIMLABEL[d.dim]}</b><span class="m">n=${d.n}</span>` +
+      (d.n ? `${d.neg.toFixed(0)}% negative · ${d.mid.toFixed(0)}% neutral · ${d.pos.toFixed(0)}% positive<br>Mean ${d.mean.toFixed(1)}/100`
+           : "No responses."));
+    row.append(bar);
+    row.append(el("div", "fig", d.n ? `${d.mean.toFixed(0)} · n=${d.n}` : "no data"));
+    box.append(row);
+  }
+}
+
+function renderFindings(a){
+  const box = $("#findings"); box.innerHTML = "";
+  const list = findings(a);
+  if (!list.length){
+    box.append(el("p", "fine", "Nothing crossed a threshold worth flagging — no cell below 55, no gap over 20 points, no empty cells. Read the heatmap and the comments directly."));
+    return;
+  }
+  for (const f of list){
+    const n = el("div", "finding " + f.kind);
+    n.append(el("div", "tag", f.tag));
+    const body = el("div");
+    body.append(el("h3", null, f.title), el("p", null, f.body), el("p", "ev", f.ev));
+    n.append(body); box.append(n);
+  }
+}
+
+function renderComments(a){
+  const panel = $("#commentpanel");
+  if (!a.comments.length){ panel.classList.add("hidden"); return; }
+  panel.classList.remove("hidden");
+  const gsel = $("#cgroup"), dsel = $("#cdim");
+  const segs = [...new Set(a.comments.map(c => c.seg))].sort();
+  const dims = [...new Set(a.comments.map(c => c.dim))];
+  gsel.innerHTML = ""; dsel.innerHTML = "";
+  gsel.append(new Option("All groups", ""));
+  for (const s of segs) gsel.append(new Option(s, s));
+  dsel.append(new Option("All dimensions", ""));
+  for (const d of dims) dsel.append(new Option(DIMLABEL[d], d));
+
+  const draw = () => {
+    const g = gsel.value, d = dsel.value;
+    const list = a.comments.filter(c => (!g || c.seg === g) && (!d || c.dim === d));
+    $("#ccount").textContent = `${list.length} of ${a.comments.length} comments`;
+    const counts = new Map();
+    for (const c of list)
+      for (const w of (c.text.toLowerCase().match(/[a-z][a-z'-]{2,}/g) || []))
+        if (!STOP.has(w)) counts.set(w, (counts.get(w) || 0) + 1);
+    const terms = [...counts.entries()].filter(([, n]) => n > 1).sort((x, y) => y[1] - x[1]).slice(0, 14);
+    const tb = $("#cterms"); tb.innerHTML = "";
+    if (!terms.length) tb.append(el("span", "fine", "No word repeats across this selection."));
+    for (const [w, n] of terms){
+      const c = el("span", "chip"); c.append(document.createTextNode(w + " "), el("span", "n", String(n)));
+      tb.append(c);
+    }
+    const q = $("#cquotes"); q.innerHTML = "";
+    for (const c of list.slice(0, 300)){
+      const b = el("div", "quote", c.text);
+      b.append(el("span", "src", `${c.id} · ${c.seg} · ${DIMLABEL[c.dim]} · ${c.col}`));
+      q.append(b);
+    }
+    if (list.length > 300) q.append(el("p", "fine", `Showing the first 300. Narrow the filters to see the rest.`));
+  };
+  gsel.onchange = dsel.onchange = draw;
+  draw();
+}
+
+/* ============================ export ============================ */
+
+function summaryCsv(a){
+  const rows = [["group", "dimension", "n", "mean_0_100", "band", "pct_negative", "pct_positive"]];
+  for (const row of a.matrix) for (const c of row.cells)
+    rows.push([c.seg, DIMLABEL[c.dim], c.n, c.n ? c.mean.toFixed(1) : "", BANDWORD[c.band],
+               c.n ? c.neg.toFixed(1) : "", c.n ? c.pos.toFixed(1) : ""]);
+  return rows.map(r => r.map(v => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v).join(",")).join("\n");
+}
+function fullJson(a, meta){
+  return JSON.stringify({
+    source: meta, generated: new Date().toISOString(),
+    conventions: { bands: { on_track: BAND_GOOD, watch: BAND_WARN }, thin_base_under: MIN_N,
+                   negative_at_or_below: NEG_MAX, positive_at_or_above: POS_MIN,
+                   note: "Scores normalised to 0-100, higher is better. Conventions, not findings." },
+    respondents: a.respondents, dropped_cells: a.dropped,
+    matrix: a.matrix.flatMap(r => r.cells.map(c => ({
+      group: c.seg, dimension: DIMLABEL[c.dim], dimension_key: c.dim, n: c.n,
+      mean: c.n ? +c.mean.toFixed(1) : null, band: BANDWORD[c.band],
+      pct_negative: c.n ? +c.neg.toFixed(1) : null, pct_positive: c.n ? +c.pos.toFixed(1) : null }))),
+    blind_spots: a.blind.map(c => ({ group: c.seg, dimension: DIMLABEL[c.dim], status: c.band, n: c.n })),
+    observations: findings(a).map(f => ({ kind: f.kind, tag: f.tag, title: f.title, detail: f.body, evidence: f.ev })),
+    comments: a.comments.map(c => ({ ref: c.id, group: c.seg, dimension: DIMLABEL[c.dim], question: c.col, text: c.text })),
+  }, null, 2);
+}
+
+async function offer(filename, data, mime){
+  const note = $("#dlnote");
+  try {
+    const downloads = await window.claude?.use?.("downloads");
+    if (downloads){
+      await downloads.save({ filename, data });
+      note.textContent = `Saved ${filename}.`;
+      return;
+    }
+  } catch (err) {
+    note.textContent = err && err.code === "user_rejected" ? "Save cancelled." : "That save did not go through — try again.";
+    return;
+  }
+  // No downloads capability: put the text on the clipboard rather than a link the viewer cannot use.
+  try {
+    await navigator.clipboard.writeText(data);
+    note.textContent = `Downloads are not available here — ${filename} copied to your clipboard instead.`;
+  } catch {
+    note.textContent = "Downloads are not available in this view, and the clipboard was blocked too. Select the page content manually.";
+  }
+}
+
+/* ============================ wiring ============================ */
+
+let TABLE = null, PROFILES = null, MAP = null, ANALYSIS = null, META = null, SHEETS = null;
+
+function showError(msg){
+  const box = $("#loaderr");
+  box.textContent = msg;
+  box.classList.remove("hidden");
+}
+function clearError(){ $("#loaderr").classList.add("hidden"); }
+
+function buildMapUi(){
+  const tb = $("#maptable tbody"); tb.innerHTML = "";
+  PROFILES.forEach((p, i) => {
+    const m = MAP[i];
+    const tr = el("tr");
+    tr.append(el("td", "colname", p.name));
+
+    const roleTd = el("td");
+    const role = document.createElement("select");
+    for (const [v, l] of [["ignore", "Ignore"], ["segment", "Group / segment"], ["score", "Score"], ["comment", "Comment"]])
+      role.append(new Option(l, v, false, m.role === v));
+    roleTd.append(role); tr.append(roleTd);
+
+    // Only the controls a role actually uses are shown — a disabled dropdown on every
+    // row reads as something to fill in.
+    const dimTd = el("td");
+    if (m.role === "score" || m.role === "comment"){
+      const dim = document.createElement("select");
+      for (const [k, label] of DIMS) dim.append(new Option(label, k, false, m.dimension === k));
+      dim.onchange = () => { m.dimension = dim.value; m.unmatched = false; buildMapUi(); };
+      dimTd.append(dim);
+      if (m.unmatched){
+        const hint = el("span", "fine", "guessed from nothing in the header \u2014 check it");
+        hint.style.cssText = "display:block; margin-top:4px";
+        dimTd.append(hint);
+      }
+    } else dimTd.append(el("span", "fine", "\u2014"));
+    tr.append(dimTd);
+
+    const scaleTd = el("td");
+    if (m.role === "score"){
+      const scale = document.createElement("select");
+      const opts = [["1-5", { min: 1, max: 5 }], ["0-5", { min: 0, max: 5 }], ["1-7", { min: 1, max: 7 }],
+                    ["1-10", { min: 1, max: 10 }], ["0-10", { min: 0, max: 10 }], ["0-100", { min: 0, max: 100 }]];
+      for (const [label, sc] of opts){
+        const sel = m.scale && m.scale.min === sc.min && m.scale.max === sc.max;
+        scale.append(new Option(label, label, false, sel));
+      }
+      scale.onchange = () => { const f = opts.find(o => o[0] === scale.value); if (f) m.scale = f[1]; };
+      const rev = el("label", "fine");
+      rev.style.cssText = "display:inline-flex; gap:5px; align-items:center; margin-left:9px";
+      const revBox = document.createElement("input");
+      revBox.type = "checkbox"; revBox.checked = !!m.reverse;
+      revBox.onchange = () => { m.reverse = revBox.checked; };
+      rev.append(revBox, document.createTextNode("reverse"));
+      scaleTd.append(scale, rev);
+    } else scaleTd.append(el("span", "fine", "\u2014"));
+    tr.append(scaleTd);
+
+    tr.append(el("td", "sample", p.sample || "\u2014"));
+
+    role.onchange = () => {
+      m.role = role.value;
+      if (!m.scale && m.role === "score") m.scale = { min: 1, max: 5 };
+      if (m.role === "segment")
+        for (let j = 0; j < MAP.length; j++) if (j !== i && MAP[j].role === "segment") MAP[j].role = "ignore";
+      buildMapUi();
+    };
+    tb.append(tr);
+  });
+  mapSummary();
+}
+
+function mapSummary(){
+  const s = MAP.filter(m => m.role === "score").length;
+  const c = MAP.filter(m => m.role === "comment").length;
+  const g = MAP.find(m => m.role === "segment");
+  const gi = MAP.indexOf(g);
+  $("#mapsummary").textContent =
+    `${s} score column${s === 1 ? "" : "s"}, ${c} comment column${c === 1 ? "" : "s"}, ` +
+    (g ? `grouped by “${PROFILES[gi].name}”.` : "no grouping column — everyone will be read as one population.");
+  $("#run").disabled = s === 0;
+}
+
+function loadTable(rows, meta){
+  TABLE = toTable(rows);
+  PROFILES = profile(TABLE);
+  MAP = guessRoles(PROFILES, TABLE.body.length).map((m, i) => ({ ...m, name: PROFILES[i].name }));
+  META = meta;
+  $("#fname").textContent = meta.file;
+  $("#fmeta").textContent = `${TABLE.body.length} rows · ${TABLE.header.length} columns${meta.sheet ? ` · sheet “${meta.sheet}”` : ""}`;
+  $("#loaded").classList.remove("hidden");
+  $("#drop").classList.add("hidden");
+  $("#step-map").classList.remove("hidden");
+  $("#step-read").classList.add("hidden");
+  buildMapUi();
+  $("#step-map").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+async function handleFile(f){
+  clearError();
+  try {
+    if (/\.(csv|tsv|txt)$/i.test(f.name)){
+      $("#sheetwrap").style.display = "none";
+      loadTable(parseDelimited(await f.text()), { file: f.name });
+      return;
+    }
+    const wb = await readXlsx(await f.arrayBuffer());
+    SHEETS = wb;
+    const sel = $("#sheet");
+    sel.innerHTML = "";
+    wb.sheets.forEach((s, i) => sel.append(new Option(s.name, String(i))));
+    $("#sheetwrap").style.display = wb.sheets.length > 1 ? "" : "none";
+    const load = async i => loadTable(await wb.readSheet(wb.sheets[i].path), { file: f.name, sheet: wb.sheets[i].name });
+    sel.onchange = () => load(+sel.value).catch(err => {
+      showError(`Sheet “${wb.sheets[+sel.value].name}” could not be read: ${err.message} Pick another sheet.`);
+      $("#step-map").classList.add("hidden");
+      $("#step-read").classList.add("hidden");
+    });
+    await load(0);
+  } catch (err){
+    console.error(err);
+    showError(err.message || "That file could not be read. If it came out of a survey tool, try exporting it as CSV.");
+    $("#drop").classList.remove("hidden");
+    $("#loaded").classList.add("hidden");
+  }
+}
+
+$("#pick").onclick = () => $("#file").click();
+$("#file").onchange = e => { const f = e.target.files[0]; if (f) handleFile(f); };
+$("#reset").onclick = () => {
+  TABLE = PROFILES = MAP = ANALYSIS = null;
+  $("#file").value = "";
+  $("#drop").classList.remove("hidden");
+  $("#loaded").classList.add("hidden");
+  $("#step-map").classList.add("hidden");
+  $("#step-read").classList.add("hidden");
+  clearError();
+};
+const drop = $("#drop");
+for (const ev of ["dragenter", "dragover"]) drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); });
+for (const ev of ["dragleave", "drop"]) drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); });
+drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+
+$("#run").onclick = () => {
+  ANALYSIS = analyse(TABLE, MAP);
+  renderKpis(ANALYSIS);
+  renderHeat(ANALYSIS);
+  renderDists(ANALYSIS);
+  renderFindings(ANALYSIS);
+  renderComments(ANALYSIS);
+  $("#readsub").textContent =
+    `${ANALYSIS.respondents} respondents · ${ANALYSIS.segments.length} group${ANALYSIS.segments.length === 1 ? "" : "s"} · ` +
+    `${ANALYSIS.dims.length} dimension${ANALYSIS.dims.length === 1 ? "" : "s"}` +
+    (ANALYSIS.dropped ? ` · ${ANALYSIS.dropped} blank or out-of-scale answers left out rather than filled in` : "");
+  $("#step-read").classList.remove("hidden");
+  $("#step-read").scrollIntoView({ behavior: "smooth", block: "start" });
+};
+
+$("#dl-csv").onclick = () => offer("readiness-summary.csv", summaryCsv(ANALYSIS), "text/csv");
+$("#dl-json").onclick = () => offer("readiness-read.json", fullJson(ANALYSIS, META), "application/json");
+</script>
