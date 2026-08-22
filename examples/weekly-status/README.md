@@ -19,6 +19,17 @@ run/qa_report.md                   Stage 5 — PASS
 
 ## Reproduce it
 
+The simplest form — one pair of documents, standing alone:
+
+```bash
+cd examples/weekly-status
+python ../../skills/status-update-agent/scripts/compare.py \
+    inputs/week-11/cm-plan.docx inputs/week-12/cm-plan.docx \
+    --previous-period "Week 11" --current-period "Week 12" -o /tmp/one-doc
+```
+
+The full three-document run, which is what the committed artifacts show:
+
 ```bash
 cd examples/weekly-status
 S=../../skills/status-update-agent/scripts

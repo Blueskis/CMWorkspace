@@ -58,9 +58,14 @@ def canonical(filename):
 
 
 def documents_in(folder):
+    """A folder of uploads, or a single file — comparing two files is always allowed."""
     folder = Path(folder)
+    if folder.is_file():
+        if folder.suffix.lower() not in EXTRACTORS:
+            return {}, [folder]
+        return {canonical(folder.name): folder}, []
     if not folder.is_dir():
-        raise SystemExit(f"{folder} is not a folder — upload the documents into it first.")
+        raise SystemExit(f"{folder} is neither a file nor a folder.")
     found, skipped = {}, []
     for path in sorted(folder.iterdir()):
         if path.name.startswith(("~$", ".")):
@@ -121,9 +126,9 @@ def write_snapshot(path, period, name, out):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--current", required=True, help="folder of this period's uploads")
+    ap.add_argument("--current", required=True, help="this period's uploads: a folder, or a single file")
     ap.add_argument("--current-period", required=True, help="e.g. 'Week 12'")
-    ap.add_argument("--previous", help="folder of last period's uploads; omit to use --archive")
+    ap.add_argument("--previous", help="last period's uploads: a folder or a single file; omit to use --archive")
     ap.add_argument("--previous-period", help="e.g. 'Week 11'")
     ap.add_argument("--snapshots", required=True, help="folder to write snapshots into")
     ap.add_argument("--archive", help="folder of stored snapshots to read from and update")
@@ -139,10 +144,18 @@ def main():
     if not current:
         raise SystemExit(f"no supported documents in {args.current}")
 
+
     report, plan = [], []
     if args.previous:
         previous, skipped_p = documents_in(args.previous)
         pairs, fuzzy, missing, new = pair(previous, current)
+        # Two single files are the two versions, whatever they are called — the consultant
+        # settled that by passing them. Don't let filename dissimilarity override it.
+        if not pairs and len(previous) == 1 and len(current) == 1:
+            name = next(iter(current))
+            pairs = {name: (next(iter(previous.values())), next(iter(current.values())))}
+            fuzzy, missing, new = [], {}, {}
+            report.append("  (pairing the two files given, despite dissimilar names)")
         skipped_c += skipped_p
         for name, (prev_path, curr_path) in sorted(pairs.items()):
             note = next(

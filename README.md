@@ -84,15 +84,23 @@ week N-1 + week N docs ─▶ snapshots ─▶ changes ─▶ change_brief ─�
 
 Documents are **uploaded by the consultant** — there's no connection to SharePoint, OneDrive
 or any live source. That's deliberate: it keeps the skill working across clients whose
-tenants nobody has admin rights in. Intake pairs the two periods' files by name with the
-client's version noise stripped (`CM Plan v4 (for review).docx` ↔ `CM Plan v5 FINAL.docx`),
-and reports what paired, what's new, what's missing and what it skipped — nothing pairs
-silently.
+tenants nobody has admin rights in.
 
-After the first run, only the current period gets uploaded: intake keeps each document's
-snapshot in an archive and diffs against that. A document in the archive that wasn't
-uploaded is flagged, because an absent document and an unchanged one look identical
-downstream and mean completely different things.
+The default is two files and nothing else, with each run standing alone — two CM plans this
+week, two training trackers next week:
+
+```bash
+python skills/status-update-agent/scripts/compare.py "CM Plan v4.docx" "CM Plan v5 FINAL.docx" \
+    --previous-period "Week 11" --current-period "Week 12" -o run/
+```
+
+That runs the three mechanical stages in one command and writes the change brief. Nothing
+carries over between runs and nothing needs setting up first.
+
+For several documents in one update, `intake.py` pairs whole folders by filename with the
+client's version noise stripped, reporting what paired, what's new, what's missing and what
+it skipped. For a standing weekly rhythm it can also keep a snapshot archive, so only the
+current period gets uploaded from the second run on. Both are optional.
 
 Every format normalises into one snapshot shape, so the diff never branches on document
 type. Matching is by item key first — an activity ID, a learner, a RICEFWA object — then by

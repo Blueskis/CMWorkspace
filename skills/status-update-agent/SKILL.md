@@ -23,7 +23,7 @@ This is v0.1.
 
 | In scope | Out of scope (v0.1) |
 |---|---|
-| Two periods of the same document, compared | Trend across many periods, burn-up charts, forecasting |
+| Two documents, compared, each run standing alone | Trend across many periods, burn-up charts, forecasting |
 | Documents the consultant uploads or points at | Reading from SharePoint, OneDrive, Google Drive, Jira or any live source |
 | `.xlsx` `.xlsm` `.docx` `.pptx` `.csv` | `.pdf`, legacy `.doc`/`.xls`/`.ppt` |
 | Text, table and cell **values** | Cell colour, charts, images, tracked changes, comments, speaker notes |
@@ -37,14 +37,15 @@ an edge case. Say so at Stage 1 rather than inferring RAG from the numbers.
 ## Pipeline
 
 ```
-  Stage 1  INTAKE    uploaded documents, both periods ──▶ snapshots/*.json
-  Stage 2  DIFF      snapshot pair, per document  ──▶ changes/*.json
-  Stage 3  MERGE     all changes, one ID space    ──▶ change_brief.json + .md
-  Stage 4  WRITE     the brief, read by you       ──▶ status_update.md
-  Stage 5  QA        update vs. brief             ──▶ qa_report.md
+  Stage 1  INTAKE    two uploaded documents      ──▶ snapshots/*.json
+  Stage 2  DIFF      snapshot pair, per document ──▶ changes/*.json
+  Stage 3  MERGE     all changes, one ID space   ──▶ change_brief.json + .md
+  Stage 4  WRITE     the brief, read by you      ──▶ status_update.md
+  Stage 5  QA        update vs. brief            ──▶ qa_report.md
 ```
 
-Each stage writes a file, so a run can be resumed, inspected, or re-run from any stage.
+For the standard two-document case, `compare.py` runs Stages 1–3 in one command. Each
+stage still writes its file, so a run can be resumed, inspected, or re-run from any stage.
 Never go straight from two documents to an update — the intermediate artifacts are what
 make the output checkable, and Stage 5 has nothing to check against without them.
 
@@ -57,10 +58,7 @@ Create `status-updates/<programme-slug>-<period-slug>/` in the user's working di
 
 ```
 status-updates/meridian-wk12/
-├── inputs/
-│   ├── week-11/          # last period's documents, as uploaded
-│   └── week-12/          # this period's
-├── .snapshot-archive/    # snapshots kept between runs, so next week needs one upload
+├── inputs/               # the documents as uploaded, both periods
 ├── snapshots/            # Stage 1, one per document per period
 ├── changes/              # Stage 2, one per document
 ├── change_brief.json     # Stage 3
@@ -69,75 +67,88 @@ status-updates/meridian-wk12/
 └── qa_report.md          # Stage 5
 ```
 
+Multi-document runs put each period's uploads in `inputs/week-NN/`; a standing weekly rhythm
+adds `.snapshot-archive/`. Neither is needed for a two-file comparison.
+
 ## Stage 1 — Intake
 
 **Documents come from the consultant, as uploads or local files.** There is no connection
-to SharePoint, OneDrive or any live source, and this is a deliberate constraint rather than
-a missing feature — it keeps the skill working across clients whose tenants a consultant
-has no admin rights in. What it costs is that somebody has to put the files somewhere the
-skill can read them, and the archive below is what stops that cost repeating every week.
+to SharePoint, OneDrive or any live source. That's deliberate rather than missing: it keeps
+the skill working across clients whose tenants nobody has admin rights in.
 
-Ask for, or locate, the files. Put them in the run workspace:
+### The default: two files, compared
 
+The normal case is two files and nothing else. Two CM plans this week, two training
+trackers next week, two RICEFWA decks the week after — **each run stands alone**. Nothing
+carries over between runs, nothing has to have been set up beforehand, and the consultant
+never has to remember what was compared last time or which documents a previous session
+knew about.
+
+```bash
+python scripts/compare.py "CM Plan v4.docx" "CM Plan v5 FINAL.docx" \
+    --previous-period "Week 11" --current-period "Week 12" -o run/
 ```
-inputs/week-11/    last period's documents, as received
-inputs/week-12/    this period's
-```
 
-Then run intake, which pairs them and extracts both sides:
+Previous document first, current second. That runs extract, diff and merge in one go and
+writes `run/change_brief.md` — what you write the update from — plus every intermediate
+artifact, so the run is still inspectable stage by stage.
+
+Ask only for what you actually need: **which file is the earlier one**, and what the two
+periods are called in the meeting. The period labels are cosmetic (they appear in the
+brief); getting the order wrong is not, because it inverts every slip into a pull-in.
+If it isn't obvious from the filenames which is earlier, ask rather than infer.
+
+The two documents don't have to be the same type or have similar names — if they are two
+versions of the same report, pass them and they're compared. `compare.py` warns on a
+format mismatch, since a `.docx` against an `.xlsx` is more often two different documents
+than two versions of one.
+
+### Optional: several documents, or a weekly rhythm
+
+Only when the consultant asks for it. Neither of these is a prerequisite for the above.
+
+**Several documents in one update.** Put each period's files in a folder; `intake.py` pairs
+them by filename with the client's version noise stripped, and reports what paired, what's
+new, what's missing and what it skipped:
 
 ```bash
 python scripts/intake.py \
     --previous inputs/week-11 --previous-period "Week 11" \
     --current  inputs/week-12 --current-period  "Week 12" \
-    --snapshots snapshots --archive .snapshot-archive
+    --snapshots snapshots
 ```
 
-Pairing is by filename with the client's version noise stripped, so `CM Plan v4 (for
-review).docx` and `CM Plan v5 FINAL.docx` pair automatically. Nothing pairs silently — the
-report says what paired, what is new, what is missing, and what was skipped as an
-unsupported type. Run it with `--dry-run` first if the naming looks chaotic, and check the
-pairing before anything is written.
+Then diff each pair and merge them with `write_update.py` (Stages 2–3 below) so three
+documents produce one update rather than three.
 
-### After the first run, only this period gets uploaded
-
-`--archive` stores each document's snapshot. Next period, the consultant uploads only that
-period's documents and drops `--previous` entirely:
+**A standing weekly rhythm.** Adding `--archive .snapshot-archive` stores each snapshot, so
+from the next run onward only the current period's files get uploaded:
 
 ```bash
 python scripts/intake.py --current inputs/week-13 --current-period "Week 13" \
     --snapshots snapshots --archive .snapshot-archive
 ```
 
-The archive is what makes this sustainable week after week — asking someone to keep and
-re-upload two versions of every document is a chore they will eventually skip, and a
-skipped week breaks the chain. Keep the archive in the run workspace, and treat it as
-carrying the same confidentiality as the source documents: it holds their extracted
-content, so it belongs wherever those files are allowed to live and nowhere else.
+Offer this only to someone running the same documents week after week, and say what it
+costs: the archive holds the documents' extracted content, so it carries the same
+confidentiality as the source files and belongs wherever those are allowed to live. A
+document in the archive that wasn't uploaded is reported as `MISSING` — **ask for it**,
+never report it as unchanged. An absent document and an unchanged one look identical
+downstream and mean completely different things.
 
-A document in the archive that wasn't uploaded this period is reported as `MISSING`. **Ask
-for it.** Never report it as unchanged — an absent document and an unchanged one look
-identical downstream and mean completely different things.
+### Before trusting anything downstream
 
-### What to ask, and what to say back
+**Check the key.** Look at the shape of the diff: a large number of additions and removals
+with few field changes means the item key is wrong, not that the programme was rewritten.
+`reference/extraction-guide.md` has the causes and the fixes. Do not proceed past a bad
+key — every later stage inherits it.
 
-Ask for whatever isn't obvious: which documents are in scope, what the period is called in
-the meeting, and — for anything flagged `NEW` — whether a prior version exists at all. A
-document with no previous version cannot be diffed. Report it as new and summarise it
-separately rather than diffing it against nothing; the first run of an engagement is a
-baseline, not an update, and should be delivered as one.
+Report back briefly: which documents were compared, how many items each, and anything the
+intake flagged — a skipped PDF, a format mismatch, a colour-coded RAG column, a locked file,
+a document that produced no items at all. This is a transparency checkpoint, not a request
+for approval; continue into the next stage unless the consultant redirects.
 
-**Then check the key before trusting anything downstream.** Run Stage 2 and look at the
-shape of the result: a large number of additions and removals with few field changes means
-the item key is wrong, not that the programme was rewritten. `reference/extraction-guide.md`
-has the causes and the fixes. Do not proceed past a bad key — every later stage inherits it.
-
-Report back briefly: which documents paired, how many items each, and anything the intake
-flagged — a `NEW` or `MISSING` document, a skipped PDF, a colour-coded RAG column, a
-locked file. This is a transparency checkpoint, not a request for approval; continue into
-Stage 2 unless the consultant redirects.
-
-`extract.py` remains available for a single document when the pairing needs doing by hand:
+A single document can also be extracted by hand when the pairing needs doing manually:
 
 ```bash
 python scripts/extract.py inputs/week-11/cm-plan.docx --period "Week 11" \
@@ -215,8 +226,9 @@ say plainly:
 
 Then offer the two obvious next steps: the `pptx` skill to put the update on a status slide
 on the programme's template, and re-running the same pipeline next week — the run folder,
-the rules file and the snapshot archive all carry forward, so next week needs only this
-week's documents uploaded and one intake command.
+the rules file and the `--name` values all carry forward. If they're running the same
+documents every week, mention the snapshot archive — but a plain two-file comparison needs
+nothing carried over at all, which is usually the easier promise to keep.
 
 Two honest results this skill will produce and should never dress up:
 
