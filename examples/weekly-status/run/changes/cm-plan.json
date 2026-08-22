@@ -1,0 +1,207 @@
+{
+  "comparison": {
+    "previous": {
+      "name": "cm-plan",
+      "path": "inputs/week-11/cm-plan.docx",
+      "doc_type": "docx",
+      "period_label": "Week 11",
+      "extracted_at": "2026-08-22T13:04:57+00:00"
+    },
+    "current": {
+      "name": "cm-plan",
+      "path": "inputs/week-12/cm-plan.docx",
+      "doc_type": "docx",
+      "period_label": "Week 12",
+      "extracted_at": "2026-08-22T13:04:57+00:00"
+    },
+    "generated_at": "2026-08-22T13:06:00+00:00"
+  },
+  "summary": {
+    "items_previous": 10,
+    "items_current": 11,
+    "changes_total": 9,
+    "by_materiality": {
+      "high": 1,
+      "medium": 8,
+      "low": 0
+    }
+  },
+  "rollups": [
+    {
+      "field": "Status",
+      "before": {
+        "Complete": 1,
+        "In Progress": 3,
+        "Not Started": 1
+      },
+      "after": {
+        "Complete": 3,
+        "In Progress": 2,
+        "Not Started": 1
+      },
+      "population_before": 5,
+      "population_after": 6
+    }
+  ],
+  "changes": [
+    {
+      "change_type": "date_slip",
+      "field": "Due Date",
+      "before": "2026-09-04",
+      "after": "2026-09-11",
+      "detail": "7 day slip",
+      "materiality": "high",
+      "change_id": "C6",
+      "item_id": "t1:cm-04",
+      "item_label": "CM-04",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "table 1 under 'Activity Schedule'",
+        "current": "table 1 under 'Activity Schedule'"
+      }
+    },
+    {
+      "change_type": "text_changed",
+      "similarity": 0.729,
+      "added_text": [
+        "Change network stands at 16 named champions across 6 sites.",
+        "Porto has appointed a champion; all sites are now covered."
+      ],
+      "removed_text": [
+        "Change network stands at 14 named champions across 6 sites.",
+        "Site 6 (Porto) has no champion and recruitment is with the site lead."
+      ],
+      "numbers_moved": true,
+      "materiality": "medium",
+      "change_id": "C1",
+      "item_id": "section:stakeholder-engagement",
+      "item_label": "Stakeholder Engagement",
+      "item_kind": "section",
+      "source_ref": {
+        "previous": "heading 'Stakeholder Engagement'",
+        "current": "heading 'Stakeholder Engagement'"
+      }
+    },
+    {
+      "change_type": "text_changed",
+      "similarity": 0.6,
+      "added_text": [
+        "Wave 1 go-live comms approved by the sponsor.",
+        "First countdown mailer scheduled for 1 September."
+      ],
+      "removed_text": [
+        "Wave 1 go-live comms drafted and with the sponsor for review."
+      ],
+      "numbers_moved": true,
+      "materiality": "medium",
+      "change_id": "C2",
+      "item_id": "section:communications",
+      "item_label": "Communications",
+      "item_kind": "section",
+      "source_ref": {
+        "previous": "heading 'Communications'",
+        "current": "heading 'Communications'"
+      }
+    },
+    {
+      "change_type": "text_changed",
+      "similarity": 0.041,
+      "added_text": [
+        "Logistics super-user availability is now escalated to the steering committee after the Ops director declined to backfill during peak season.",
+        "A second risk has opened on master data readiness following the Week 12 data audit."
+      ],
+      "removed_text": [
+        "Top risk remains Logistics super-user availability during peak season; mitigation under discussion with the Ops director."
+      ],
+      "numbers_moved": true,
+      "materiality": "medium",
+      "change_id": "C3",
+      "item_id": "section:risks-and-issues",
+      "item_label": "Risks and Issues",
+      "item_kind": "section",
+      "source_ref": {
+        "previous": "heading 'Risks and Issues'",
+        "current": "heading 'Risks and Issues'"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Progress",
+      "after": "Complete",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C4",
+      "item_id": "t1:cm-02",
+      "item_label": "CM-02",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "table 1 under 'Activity Schedule'",
+        "current": "table 1 under 'Activity Schedule'"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Progress",
+      "after": "Complete",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C5",
+      "item_id": "t1:cm-03",
+      "item_label": "CM-03",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "table 1 under 'Activity Schedule'",
+        "current": "table 1 under 'Activity Schedule'"
+      }
+    },
+    {
+      "change_type": "owner_changed",
+      "field": "Owner",
+      "before": "S. Brandt",
+      "after": "L. Haddad",
+      "detail": null,
+      "materiality": "medium",
+      "change_id": "C7",
+      "item_id": "t1:cm-04",
+      "item_label": "CM-04",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "table 1 under 'Activity Schedule'",
+        "current": "table 1 under 'Activity Schedule'"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "Not Started",
+      "after": "In Progress",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C8",
+      "item_id": "t1:cm-05",
+      "item_label": "CM-05",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "table 1 under 'Activity Schedule'",
+        "current": "table 1 under 'Activity Schedule'"
+      }
+    },
+    {
+      "change_type": "item_added",
+      "before": null,
+      "after": "CM-06",
+      "detail": "Activity: Master data readiness remediation; Owner: G. Novak; Status: Not Started; Due Date: 2026-09-25",
+      "materiality": "medium",
+      "change_id": "C9",
+      "item_id": "t1:cm-06",
+      "item_label": "CM-06",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": null,
+        "current": "table 1 under 'Activity Schedule'"
+      }
+    }
+  ]
+}

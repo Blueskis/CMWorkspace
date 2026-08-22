@@ -1,0 +1,260 @@
+{
+  "comparison": {
+    "previous": {
+      "name": "training-completion",
+      "path": "inputs/week-11/training-completion.xlsx",
+      "doc_type": "xlsx",
+      "period_label": "Week 11",
+      "extracted_at": "2026-08-22T13:04:57+00:00"
+    },
+    "current": {
+      "name": "training-completion",
+      "path": "inputs/week-12/training-completion.xlsx",
+      "doc_type": "xlsx",
+      "period_label": "Week 12",
+      "extracted_at": "2026-08-22T13:04:57+00:00"
+    },
+    "generated_at": "2026-08-22T13:06:01+00:00"
+  },
+  "summary": {
+    "items_previous": 7,
+    "items_current": 8,
+    "changes_total": 13,
+    "by_materiality": {
+      "high": 2,
+      "medium": 6,
+      "low": 5
+    }
+  },
+  "rollups": [
+    {
+      "field": "Status",
+      "before": {
+        "Completed": 1,
+        "In Progress": 3,
+        "Not Started": 3
+      },
+      "after": {
+        "Completed": 4,
+        "In Progress": 2,
+        "Not Started": 2
+      },
+      "population_before": 7,
+      "population_after": 8
+    }
+  ],
+  "changes": [
+    {
+      "change_type": "date_slip",
+      "field": "Due Date",
+      "before": "2026-09-11",
+      "after": "2026-09-25",
+      "detail": "14 day slip",
+      "materiality": "high",
+      "change_id": "C7",
+      "item_id": "wave-1-completion:e-tanaka",
+      "item_label": "E. Tanaka",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      }
+    },
+    {
+      "change_type": "date_slip",
+      "field": "Due Date",
+      "before": "2026-09-11",
+      "after": "2026-09-25",
+      "detail": "14 day slip",
+      "materiality": "high",
+      "change_id": "C9",
+      "item_id": "wave-1-completion:f-adeyemi",
+      "item_label": "F. Adeyemi",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Progress",
+      "after": "Completed",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C2",
+      "item_id": "wave-1-completion:a-okafor",
+      "item_label": "A. Okafor",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "Not Started",
+      "after": "In Progress",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C4",
+      "item_id": "wave-1-completion:b-lindqvist",
+      "item_label": "B. Lindqvist",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Progress",
+      "after": "Completed",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C6",
+      "item_id": "wave-1-completion:d-ferreira",
+      "item_label": "D. Ferreira",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "Not Started",
+      "after": "In Progress",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C10",
+      "item_id": "wave-1-completion:f-adeyemi",
+      "item_label": "F. Adeyemi",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Progress",
+      "after": "Completed",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C12",
+      "item_id": "wave-1-completion:g-novak",
+      "item_label": "G. Novak",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      }
+    },
+    {
+      "change_type": "item_added",
+      "before": null,
+      "after": "H. Silva",
+      "detail": "Role: Master Data; Course: Data Stewardship; Status: Not Started; Completion %: 0; Due Date: 2026-09-18",
+      "materiality": "medium",
+      "change_id": "C13",
+      "item_id": "wave-1-completion:h-silva",
+      "item_label": "H. Silva",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": null,
+        "current": "sheet 'Wave 1 Completion'"
+      }
+    },
+    {
+      "change_type": "percent_changed",
+      "field": "Completion %",
+      "before": "40",
+      "after": "100",
+      "detail": "+60",
+      "materiality": "low",
+      "change_id": "C1",
+      "item_id": "wave-1-completion:a-okafor",
+      "item_label": "A. Okafor",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "subsumed_by": "C2"
+    },
+    {
+      "change_type": "percent_changed",
+      "field": "Completion %",
+      "before": "0",
+      "after": "25",
+      "detail": "+25",
+      "materiality": "low",
+      "change_id": "C3",
+      "item_id": "wave-1-completion:b-lindqvist",
+      "item_label": "B. Lindqvist",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "subsumed_by": "C4"
+    },
+    {
+      "change_type": "percent_changed",
+      "field": "Completion %",
+      "before": "60",
+      "after": "100",
+      "detail": "+40",
+      "materiality": "low",
+      "change_id": "C5",
+      "item_id": "wave-1-completion:d-ferreira",
+      "item_label": "D. Ferreira",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "subsumed_by": "C6"
+    },
+    {
+      "change_type": "percent_changed",
+      "field": "Completion %",
+      "before": "0",
+      "after": "30",
+      "detail": "+30",
+      "materiality": "low",
+      "change_id": "C8",
+      "item_id": "wave-1-completion:f-adeyemi",
+      "item_label": "F. Adeyemi",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "subsumed_by": "C10"
+    },
+    {
+      "change_type": "percent_changed",
+      "field": "Completion %",
+      "before": "75",
+      "after": "100",
+      "detail": "+25",
+      "materiality": "low",
+      "change_id": "C11",
+      "item_id": "wave-1-completion:g-novak",
+      "item_label": "G. Novak",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "subsumed_by": "C12"
+    }
+  ]
+}

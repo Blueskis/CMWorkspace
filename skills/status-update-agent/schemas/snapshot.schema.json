@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "snapshot",
+  "description": "One weekly document, normalised. Produced by scripts/extract.py. The same shape whatever the source format, so the diff stage never branches on document type.",
+  "type": "object",
+  "required": ["document", "items"],
+  "additionalProperties": false,
+  "properties": {
+    "document": {
+      "type": "object",
+      "required": ["name", "doc_type", "period_label"],
+      "properties": {
+        "name": {"type": "string", "description": "Stable across weeks — this is what pairs the two snapshots."},
+        "path": {"type": "string"},
+        "doc_type": {"type": "string", "enum": ["xlsx", "xlsm", "docx", "pptx", "csv"]},
+        "period_label": {"type": "string", "description": "How the period is named in the meeting, e.g. 'Week 12'."},
+        "extracted_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["item_id", "kind", "label"],
+        "properties": {
+          "item_id": {
+            "type": "string",
+            "description": "The matching key. Must identify the same real-world thing week to week — an activity ID, a learner, a RICEFWA object. Derived, never invented."
+          },
+          "kind": {"type": "string", "enum": ["row", "section", "slide", "object"]},
+          "label": {"type": "string"},
+          "source_ref": {"type": "string", "description": "Where in the document this came from — quoted back so a claim can be checked against the source."},
+          "fields": {"type": "object", "additionalProperties": {"type": "string"}},
+          "text": {"type": "string", "description": "Free prose for section and slide items; empty for tabular ones."}
+        }
+      }
+    }
+  }
+}

@@ -8,8 +8,8 @@
     {
       "name": "cm-workspace",
       "source": "./",
-      "description": "Change-management working tools. Currently: an RFP-to-proposal deck generator that plans a bid against the client's stated requirements and evaluation criteria, writes it from a curated knowledge bank, and audits the result for requirement coverage and content provenance.",
-      "version": "0.1.0"
+      "description": "Change-management working tools. An RFP-to-proposal deck generator that plans a bid against the client's stated requirements and evaluation criteria, writes it from a curated knowledge bank, and audits the result for requirement coverage and content provenance; and a status-update agent that diffs this period's programme documents against last period's and drafts the cadence-meeting update, with every claim traced to a specific change.",
+      "version": "0.2.0"
     }
   ]
 }

@@ -1,0 +1,116 @@
+{
+  "document": {
+    "name": "cm-plan",
+    "path": "inputs/week-11/cm-plan.docx",
+    "doc_type": "docx",
+    "period_label": "Week 11",
+    "extracted_at": "2026-08-22T13:04:57+00:00"
+  },
+  "items": [
+    {
+      "item_id": "section:purpose-and-scope",
+      "kind": "section",
+      "label": "Purpose and Scope",
+      "source_ref": "heading 'Purpose and Scope'",
+      "fields": {},
+      "text": "This plan covers change management for the Meridian S/4HANA rollout across Finance, Procurement and Logistics. It is reviewed weekly at the Thursday cadence."
+    },
+    {
+      "item_id": "section:stakeholder-engagement",
+      "kind": "section",
+      "label": "Stakeholder Engagement",
+      "source_ref": "heading 'Stakeholder Engagement'",
+      "fields": {},
+      "text": "Change network stands at 14 named champions across 6 sites. Site 6 (Porto) has no champion and recruitment is with the site lead."
+    },
+    {
+      "item_id": "section:communications",
+      "kind": "section",
+      "label": "Communications",
+      "source_ref": "heading 'Communications'",
+      "fields": {},
+      "text": "Wave 1 go-live comms drafted and with the sponsor for review. Intranet hub is live."
+    },
+    {
+      "item_id": "section:risks-and-issues",
+      "kind": "section",
+      "label": "Risks and Issues",
+      "source_ref": "heading 'Risks and Issues'",
+      "fields": {},
+      "text": "Top risk remains Logistics super-user availability during peak season; mitigation under discussion with the Ops director."
+    },
+    {
+      "item_id": "section:activity-schedule",
+      "kind": "section",
+      "label": "Activity Schedule",
+      "source_ref": "heading 'Activity Schedule'",
+      "fields": {},
+      "text": ""
+    },
+    {
+      "item_id": "t1:cm-01",
+      "kind": "row",
+      "label": "CM-01",
+      "source_ref": "table 1 under 'Activity Schedule'",
+      "fields": {
+        "Activity": "Change impact assessment - Finance",
+        "Owner": "R. Iyer",
+        "Status": "Complete",
+        "Due Date": "2026-07-31"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "t1:cm-02",
+      "kind": "row",
+      "label": "CM-02",
+      "source_ref": "table 1 under 'Activity Schedule'",
+      "fields": {
+        "Activity": "Change impact assessment - Logistics",
+        "Owner": "R. Iyer",
+        "Status": "In Progress",
+        "Due Date": "2026-08-21"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "t1:cm-03",
+      "kind": "row",
+      "label": "CM-03",
+      "source_ref": "table 1 under 'Activity Schedule'",
+      "fields": {
+        "Activity": "Champion network stand-up",
+        "Owner": "S. Brandt",
+        "Status": "In Progress",
+        "Due Date": "2026-08-28"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "t1:cm-04",
+      "kind": "row",
+      "label": "CM-04",
+      "source_ref": "table 1 under 'Activity Schedule'",
+      "fields": {
+        "Activity": "Go-live comms pack",
+        "Owner": "S. Brandt",
+        "Status": "In Progress",
+        "Due Date": "2026-09-04"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "t1:cm-05",
+      "kind": "row",
+      "label": "CM-05",
+      "source_ref": "table 1 under 'Activity Schedule'",
+      "fields": {
+        "Activity": "Training needs analysis - Wave 2",
+        "Owner": "R. Iyer",
+        "Status": "Not Started",
+        "Due Date": "2026-09-18"
+      },
+      "text": ""
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "document": {
+    "name": "ricefwa-status",
+    "path": "inputs/week-12/ricefwa-status.pptx",
+    "doc_type": "pptx",
+    "period_label": "Week 12",
+    "extracted_at": "2026-08-22T13:04:57+00:00"
+  },
+  "items": [
+    {
+      "item_id": "slide:ricefwa-status-week-12",
+      "kind": "slide",
+      "label": "RICEFWA Status - Week 12",
+      "source_ref": "slide 1",
+      "fields": {
+        "Total objects": "43",
+        "Build complete": "24",
+        "In test": "12",
+        "At risk": "2"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "object:fi-r-014",
+      "kind": "object",
+      "label": "FI-R-014",
+      "source_ref": "slide 2 ('Finance Objects')",
+      "fields": {
+        "Description": "Payment run report",
+        "Status": "In Test",
+        "RAG": "green"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "object:fi-i-002",
+      "kind": "object",
+      "label": "FI-I-002",
+      "source_ref": "slide 2 ('Finance Objects')",
+      "fields": {
+        "Description": "Bank statement interface",
+        "Status": "Signed Off",
+        "RAG": "green"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "object:fi-e-007",
+      "kind": "object",
+      "label": "FI-E-007",
+      "source_ref": "slide 2 ('Finance Objects')",
+      "fields": {
+        "Description": "Vendor master extract",
+        "Status": "In Build",
+        "RAG": "green"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "object:fi-a-021",
+      "kind": "object",
+      "label": "FI-A-021",
+      "source_ref": "slide 2 ('Finance Objects')",
+      "fields": {
+        "Description": "Period close automation",
+        "Status": "Not Started",
+        "RAG": "amber"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "slide:finance-objects",
+      "kind": "slide",
+      "label": "Finance Objects",
+      "source_ref": "slide 2",
+      "fields": {},
+      "text": ""
+    },
+    {
+      "item_id": "object:lo-w-011",
+      "kind": "object",
+      "label": "LO-W-011",
+      "source_ref": "slide 3 ('Logistics Objects')",
+      "fields": {
+        "Description": "Goods receipt workflow",
+        "Status": "In Test",
+        "RAG": "amber"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "object:lo-f-003",
+      "kind": "object",
+      "label": "LO-F-003",
+      "source_ref": "slide 3 ('Logistics Objects')",
+      "fields": {
+        "Description": "Pick list form",
+        "Status": "In Build",
+        "RAG": "amber"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "slide:logistics-objects",
+      "kind": "slide",
+      "label": "Logistics Objects",
+      "source_ref": "slide 3",
+      "fields": {},
+      "text": ""
+    },
+    {
+      "item_id": "slide:decisions-needed",
+      "kind": "slide",
+      "label": "Decisions Needed",
+      "source_ref": "slide 4",
+      "fields": {},
+      "text": "Approve additional test window for LO-W-011 goods receipt workflow"
+    }
+  ]
+}

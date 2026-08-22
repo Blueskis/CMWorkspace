@@ -1,0 +1,74 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "changes",
+  "description": "The result of comparing two snapshots of the same document. Produced by scripts/diff_snapshots.py.",
+  "type": "object",
+  "required": ["comparison", "summary", "changes"],
+  "properties": {
+    "comparison": {
+      "type": "object",
+      "properties": {
+        "previous": {"type": "object"},
+        "current": {"type": "object"},
+        "generated_at": {"type": "string"}
+      }
+    },
+    "summary": {
+      "type": "object",
+      "properties": {
+        "items_previous": {"type": "integer"},
+        "items_current": {"type": "integer"},
+        "changes_total": {"type": "integer"},
+        "by_materiality": {"type": "object"}
+      }
+    },
+    "rollups": {
+      "type": "array",
+      "description": "Value counts per status/RAG field, before and after — so the update can quote a movement rather than list every row that moved.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "field": {"type": "string"},
+          "before": {"type": "object"},
+          "after": {"type": "object"},
+          "population_before": {"type": "integer"},
+          "population_after": {"type": "integer"}
+        }
+      }
+    },
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["change_id", "change_type", "item_id", "materiality"],
+        "properties": {
+          "change_id": {"type": "string", "pattern": "^C\\d+$"},
+          "change_type": {
+            "type": "string",
+            "enum": [
+              "item_added", "item_removed", "renamed", "text_changed",
+              "field_added", "field_removed", "status_forward", "status_backward",
+              "status_changed", "rag_better", "rag_worse", "rag_changed",
+              "date_slip", "date_pull_in", "date_changed", "percent_changed",
+              "number_changed", "owner_changed", "other_changed"
+            ]
+          },
+          "item_id": {"type": "string"},
+          "item_label": {"type": "string"},
+          "item_kind": {"type": "string"},
+          "field": {"type": "string"},
+          "before": {"type": ["string", "null"]},
+          "after": {"type": ["string", "null"]},
+          "detail": {"type": ["string", "null"], "description": "The size of the movement in the units that matter — '14 day slip', '+30'."},
+          "materiality": {"type": "string", "enum": ["high", "medium", "low"]},
+          "subsumed_by": {"type": "string", "description": "Set when this change is a consequence of another and should not be reported twice."},
+          "similarity": {"type": "number"},
+          "numbers_moved": {"type": "boolean"},
+          "added_text": {"type": "array", "items": {"type": "string"}},
+          "removed_text": {"type": "array", "items": {"type": "string"}},
+          "source_ref": {"type": "object"}
+        }
+      }
+    }
+  }
+}

@@ -5,6 +5,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 | Skill | What it does |
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
+| `status-update-agent` | **v0.1 (MVP)** — last week's documents vs. this week's → the status update for the cadence meeting |
 
 ## Proposal generator (v0.1, MVP)
 
@@ -68,6 +69,60 @@ tag matching), and automated OOXML assembly — `build_deck.py` validates and se
 build, then the `pptx` skill's template workflow executes it. Output is always a **draft
 for practitioner review**, never a submission-ready document.
 
+## Status update agent (v0.1, MVP)
+
+Takes the recurring programme documents a consultant already has — a CM plan in Word, a
+training-completion tracker in Excel, a RICEFWA status deck in PowerPoint — in this week's
+version and last week's, and drafts the update they'll deliver at the weekly cadence.
+
+Five stages, each writing an inspectable artifact:
+
+```
+week N-1 + week N docs ─▶ snapshots ─▶ changes ─▶ change_brief ─▶ status_update.md ─▶ qa_report.md
+       EXTRACT              DIFF       MERGE          WRITE               QA
+```
+
+Every format normalises into one snapshot shape, so the diff never branches on document
+type. Matching is by item key first — an activity ID, a learner, a RICEFWA object — then by
+similarity, so a renamed activity reads as a rename rather than a deletion plus an addition.
+
+Two invariants the QA stage enforces mechanically:
+
+- **Attribution** — every claim in the update carries a `[C#]` citation with a specific
+  before and after, or an explicit `[JUDGEMENT]` marker. There's no third state, so an
+  invented movement can't hide among real ones, and the consultant's interpretation stays
+  visibly distinct from the tracker's contents.
+- **Coverage** — every high-materiality change is mentioned or explicitly waived with a
+  recorded reason. Silence fails the run.
+
+Stages 1, 2, 3 and 5 are deterministic scripts. Stage 4 — the writing — is the only stage
+the model does, which is the only stage worth a person's judgement.
+
+### Try it
+
+A complete worked example ships in `examples/weekly-status/` — fictional programme, invented
+data, real `.docx`/`.xlsx`/`.pptx` inputs:
+
+```bash
+cd examples/weekly-status
+python ../../skills/status-update-agent/scripts/write_update.py run/changes/*.json \
+    -o /tmp/brief.json --md /tmp/brief.md
+
+python ../../skills/status-update-agent/scripts/qa_update.py \
+    /tmp/brief.json run/status_update.md -o /tmp/qa_report.md
+```
+
+35 changes across three documents, 3 rated high, QA passing with 6 changes explicitly
+waived. That folder's README has the full pipeline and what each part demonstrates.
+
+### What v0.1 does not do
+
+PDFs and legacy `.doc`/`.xls`/`.ppt`, live sources (Jira, Smartsheet, Google), trends across
+more than two periods, and anything carried by formatting rather than text — cell colour as
+RAG, charts, tracked changes, speaker notes. Output is always a **draft for the consultant
+to review before the meeting**, never a client-ready readout.
+
+
 ## Layout
 
 ```
@@ -81,7 +136,13 @@ proposal-assets/
 ├── templates/
 │   └── html-generic/     # PoC template: 9 layouts, theme, vendored reveal.js (MIT)
 └── knowledge-bank/       # methodology, case-studies, credentials, team, commercials, boilerplate
+skills/status-update-agent/
+├── SKILL.md              # the five-stage process
+├── reference/            # extraction/keying guide, materiality rules, narrative patterns
+├── schemas/              # snapshot, changes, change_brief contracts
+└── scripts/              # extract, diff_snapshots, write_update, qa_update
 examples/acme-erp/        # worked example — fictional client
+examples/weekly-status/   # worked example — fictional programme, three documents, two weeks
 ```
 
 Scripts are stdlib-only and each runs standalone with `--help`.

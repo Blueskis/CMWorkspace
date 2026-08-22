@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "change_brief",
+  "description": "Every document's changes for one period, merged into a single ID space and grouped into the running order of a cadence update. Produced by scripts/write_update.py; audited against the written update by scripts/qa_update.py.",
+  "type": "object",
+  "required": ["documents", "totals", "changes"],
+  "properties": {
+    "generated_at": {"type": "string"},
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "document": {"type": "string"},
+          "doc_type": {"type": "string"},
+          "previous_period": {"type": "string"},
+          "current_period": {"type": "string"},
+          "changes_file": {"type": "string"},
+          "summary": {"type": "object"}
+        }
+      }
+    },
+    "totals": {"type": "object"},
+    "rollups": {"type": "array"},
+    "changes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "description": "A change record as in changes.schema.json, plus the fields below.",
+        "properties": {
+          "change_id": {"type": "string", "description": "Renumbered across all documents. This is the ID the update cites."},
+          "local_change_id": {"type": "string", "description": "The ID it had in its own document's changes.json."},
+          "document": {"type": "string"},
+          "group": {
+            "type": "string",
+            "enum": ["progress", "slippage", "new", "dropped", "ownership", "metrics", "narrative"]
+          }
+        }
+      }
+    }
+  }
+}
