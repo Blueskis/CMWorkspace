@@ -79,8 +79,9 @@ class-size caps), and prices a schedule of CM deliverables against an editable t
 your past project quotes. Day rates are medians of your own history indexed to the current
 year, falling back to the blended median where a deliverable has no comparable quote; every
 figure is labelled with the basis it came from. Scope the tender asks to be quoted as an option is detected and
-subtotalled separately, outside the headline total. Exports the priced schedule to CSV or
-Markdown, and prints to PDF.
+subtotalled separately, outside the headline total. The priced schedule exports to CSV or
+Markdown — saved as a file when the page is opened from disk, copied to the clipboard when
+it is shared as a hosted page, since a shared page is not allowed to hand over files.
 
 Effort comes from `assets/hours-library.csv` — 189 costed tasks across 53 deliverables,
 imported from the firm's itemised CM deliverables workbook. Each task is typed by archetype

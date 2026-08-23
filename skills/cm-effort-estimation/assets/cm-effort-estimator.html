@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>CM Effort &amp; Pricing Estimator</title>
 <style>
   :root {
@@ -268,6 +269,19 @@
   details.calc summary { cursor: pointer; font-size: .74rem; color: var(--ink-3); font-family: var(--font-mono); }
   details.calc[open] summary { color: var(--accent); }
   details.calc .formula { font-family: var(--font-mono); font-size: .74rem; color: var(--ink-2); padding-top: 4px; }
+
+  .copy-panel {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(12, 15, 22, .55);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .copy-panel[hidden] { display: none; }
+  .copy-panel-inner {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: var(--shadow); padding: 16px; width: min(760px, 100%);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .copy-panel-inner textarea { font-family: var(--font-mono); font-size: .78rem; }
 
   .toast {
     position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px);
@@ -566,6 +580,18 @@
     </div>
     <p class="note">Work is saved in this browser as you type. Benchmarks come from your own past quotes on tab 02 — the more history you load, the less the estimate leans on defaults.</p>
   </aside>
+</div>
+
+<div class="copy-panel" id="copy-panel" hidden>
+  <div class="copy-panel-inner">
+    <div class="row">
+      <strong id="copy-panel-name">Export</strong>
+      <span class="note">Select and copy, then paste into a spreadsheet and split by comma.</span>
+      <button class="btn small spacer" id="copy-panel-copy">Copy</button>
+      <button class="btn ghost small" id="copy-panel-close">Close</button>
+    </div>
+    <textarea id="copy-panel-text" rows="12" readonly spellcheck="false"></textarea>
+  </div>
 </div>
 
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -2131,7 +2157,10 @@ Anonymised extract of a public-sector requirement specification, used as the sam
   });
   $("client-name").addEventListener("input", (e) => { state.settings.client = e.target.value; renderLines(); save(); });
   $("currency").addEventListener("change", (e) => { state.settings.currency = e.target.value; renderAll(); save(); });
-  $("btn-print").addEventListener("click", () => window.print());
+  $("btn-print").addEventListener("click", () => {
+    try { window.print(); }
+    catch (e) { toast("Printing is blocked here — open the page in its own tab"); }
+  });
 
   $("btn-export-invoice").addEventListener("click", () => {
     const t = totals();
@@ -2214,36 +2243,55 @@ Anonymised extract of a public-sector requirement specification, used as the sam
     return rows.filter((r) => r.some((c) => c !== ""));
   }
 
-  // Saving a file works two ways: through the host when the page is published,
-  // and through an anchor when the file is opened straight off disk.
+  // Saving a file only works when the page is opened from disk; in a shared
+  // viewer the frame cannot hand over a file, so the data goes to the clipboard
+  // — or, failing that, into a panel the reader can select and copy.
+  const CAN_SAVE_FILES = location.protocol === "file:";
+
   async function download(filename, text) {
-    const host = typeof claude !== "undefined" && claude.use ? await claude.use("downloads").catch(() => null) : null;
-    if (host) {
-      try {
-        await host.save({ filename, data: text });
-        toast("Saved " + filename);
-        return;
-      } catch (err) {
-        if (err && err.code === "extension_not_enabled") {
-          const asText = filename.replace(/\.csv$/, ".txt");
-          try { await host.save({ filename: asText, data: text }); toast("Saved " + asText); return; }
-          catch (e2) { /* fall through to the anchor */ }
-        } else if (err && (err.code === "declined" || err.code === "rate_limited")) {
-          toast(err.code === "declined" ? "Save cancelled" : "Try that again in a moment");
-          return;
-        }
-      }
+    if (CAN_SAVE_FILES) {
+      const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return;
     }
-    const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("Copied — paste into a spreadsheet and split by comma");
+    } catch (e) {
+      showCopyPanel(filename, text);
+    }
   }
+
+  function showCopyPanel(filename, text) {
+    const wrap = $("copy-panel");
+    $("copy-panel-name").textContent = filename;
+    const box = $("copy-panel-text");
+    box.value = text;
+    wrap.hidden = false;
+    box.focus(); box.select();
+  }
+
+  $("copy-panel-close").addEventListener("click", () => { $("copy-panel").hidden = true; });
+  $("copy-panel-copy").addEventListener("click", async () => {
+    const box = $("copy-panel-text");
+    box.select();
+    try { await navigator.clipboard.writeText(box.value); toast("Copied"); }
+    catch (e) { toast("Press Ctrl+C / Cmd+C to copy the selection"); }
+  });
 
   /* =====================================================================
      Boot
      ===================================================================== */
+
+  function labelExports() {
+    if (CAN_SAVE_FILES) return;
+    ["btn-export-quotes", "btn-library-export", "btn-export-invoice"].forEach((id) => {
+      if ($(id)) $(id).textContent = "Copy as CSV";
+    });
+  }
 
   function hydrate() {
     $("rfp-text").value = state.rfpText || "";
@@ -2257,6 +2305,7 @@ Anonymised extract of a public-sector requirement specification, used as the sam
     $("c-tax").value = state.settings.tax;
     $("client-name").value = state.settings.client || "";
     if (!state.lines || !state.lines.length) buildLines(true);
+    labelExports();
     renderAll();
   }
 
