@@ -115,6 +115,13 @@ tbody tr:last-child td{border-bottom:none}
 td.colname{font-weight:600; max-width:290px}
 td.sample{color:var(--muted); font-size:13px; max-width:280px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 
+.maphead{display:flex; align-items:baseline; gap:10px; padding:13px 18px; border-bottom:1px solid var(--line);
+  background:var(--surface-2); flex-wrap:wrap}
+.maphead .mono{font-size:11px; color:var(--accent-ink); border:1px solid var(--accent); border-radius:999px;
+  padding:1px 8px}
+#sourcelist td, #sourcelist th{padding:10px 18px}
+#alignpanel select{max-width:260px}
+
 /* ---- KPI row ---- */
 .kpis{display:grid; grid-template-columns:repeat(auto-fit,minmax(168px,1fr)); gap:12px}
 .kpi{background:var(--surface); border:1px solid var(--line); border-radius:var(--r); padding:14px 16px;
@@ -194,39 +201,40 @@ footer{margin-top:52px; padding-top:18px; border-top:1px solid var(--line); colo
     <div class="stack" style="gap:9px">
       <p class="eyebrow">Change readiness &middot; quick-look</p>
       <h1>Readiness Snapshot Triage</h1>
-      <p class="lede">Drop in a feedback export — training evaluations, a comms feedback form, a
-        readiness assessment — and read where each group actually stands, which cells are too thin to
-        trust, and who is missing from the data entirely.</p>
+      <p class="lede">Drop in your feedback exports — training evaluations, a comms feedback form, a
+        readiness assessment — and read them together: where each group actually stands, where two sources
+        disagree, which cells are too thin to trust, and who is missing from the data entirely.</p>
     </div>
   </div>
-  <p class="fine"><strong>Your file stays in this browser.</strong> The spreadsheet is parsed on your own
+  <p class="fine"><strong>Your files stay in this browser.</strong> Every spreadsheet is parsed on your own
     machine and nothing is uploaded, stored, or sent anywhere. Close the tab and it is gone.</p>
 </header>
 
 <section class="step">
   <div class="step-head">
     <span class="step-n">1</span>
-    <div><h2>Load the export</h2><p>.xlsx or .csv, one row per respondent, one header row.</p></div>
+    <div><h2>Load the exports</h2><p>One or several files &mdash; .xlsx or .csv, one row per respondent,
+      one header row each.</p></div>
   </div>
 
   <div id="drop" class="drop">
-    <h3>Drop a spreadsheet here</h3>
-    <p class="fine" style="text-align:center">Excel (.xlsx) or CSV. Scores and free-text comments in the
-      same sheet is normal and fine.</p>
-    <button class="btn" id="pick" type="button">Choose a file</button>
-    <input type="file" id="file" accept=".xlsx,.csv,.tsv,text/csv" class="hidden">
+    <h3>Drop your spreadsheets here</h3>
+    <p class="fine" style="text-align:center">Excel (.xlsx) or CSV, as many as you have. A training
+      evaluation, a comms feedback form and a readiness assessment can be read together &mdash; each keeps
+      its own column mapping and they pool into one matrix.</p>
+    <button class="btn" id="pick" type="button">Choose files</button>
+    <input type="file" id="file" accept=".xlsx,.csv,.tsv,text/csv" multiple class="hidden">
   </div>
 
-  <div id="loaded" class="panel panel-pad hidden" style="margin-top:12px">
-    <div class="filebar">
-      <span class="dot d-good"></span>
-      <span class="name" id="fname"></span>
-      <span class="mono" style="color:var(--muted); font-size:13px" id="fmeta"></span>
-      <span style="flex:1"></span>
-      <label class="fine" for="sheet" id="sheetwrap" style="display:none">Sheet
-        <select id="sheet"></select>
-      </label>
-      <button class="btn ghost" id="reset" type="button">Load a different file</button>
+  <div id="loaded" class="panel hidden" style="margin-top:12px">
+    <div class="scroll"><table id="sourcelist">
+      <thead><tr><th>Source</th><th>Sheet</th><th>Rows</th><th>Columns</th><th>Label</th><th></th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+    <div class="row-actions" style="padding:14px 18px; border-top:1px solid var(--line)">
+      <button class="btn ghost" id="addmore" type="button">Add another file</button>
+      <button class="btn ghost" id="reset" type="button">Start over</button>
+      <span class="fine" id="loadsummary"></span>
     </div>
   </div>
   <div id="loaderr" class="notice err hidden" style="margin-top:12px"></div>
@@ -236,17 +244,25 @@ footer{margin-top:52px; padding-top:18px; border-top:1px solid var(--line); colo
   <div class="step-head">
     <span class="step-n">2</span>
     <div><h2>Check the column mapping</h2>
-      <p>Guessed from the headers. Correct anything wrong — the read below is only as good as this.</p></div>
+      <p>Guessed from the headers, per file. Correct anything wrong &mdash; the read below is only as good
+        as this.</p></div>
   </div>
-  <div class="panel scroll">
-    <table id="maptable">
-      <thead><tr>
-        <th>Column</th><th>Read as</th><th>Readiness dimension</th><th>Scale</th><th>Sample value</th>
-      </tr></thead>
+  <div class="stack" id="mapblocks"></div>
+
+  <div class="panel panel-pad stack hidden" id="alignpanel" style="margin-top:16px">
+    <div class="stack" style="gap:4px">
+      <h2>Line up the group names</h2>
+      <p class="fine">Group names are matched literally, so &ldquo;Field Ops&rdquo; in one export and
+        &ldquo;Field Operations&rdquo; in another are two groups to the matrix &mdash; which quietly halves
+        both bases. Point any spelling at the name you want to keep.</p>
+    </div>
+    <div class="scroll"><table id="aligntable">
+      <thead><tr><th>Value in the file</th><th>Appears in</th><th>Rows</th><th>Read as</th></tr></thead>
       <tbody></tbody>
-    </table>
+    </table></div>
   </div>
-  <div class="row-actions" style="margin-top:12px">
+
+  <div class="row-actions" style="margin-top:14px">
     <button class="btn" id="run" type="button">Read the snapshot</button>
     <span class="fine" id="mapsummary"></span>
   </div>
@@ -308,6 +324,7 @@ footer{margin-top:52px; padding-top:18px; border-top:1px solid var(--line); colo
         describing the same unusable exercise means a great deal.</p>
     </div>
     <div class="row-actions">
+      <label class="fine">Source <select id="csource"></select></label>
       <label class="fine">Group <select id="cgroup"></select></label>
       <label class="fine">Dimension <select id="cdim"></select></label>
       <span class="fine" id="ccount"></span>
@@ -563,80 +580,141 @@ function guessRoles(profiles, rowCount){
 
 /* ============================ analysis ============================ */
 
-const normalise = (v, s, rev) => {
-  if (!Number.isFinite(v) || v < s.min || v > s.max || s.max === s.min) return null;
-  const pct = (v - s.min) / (s.max - s.min) * 100;
+const normalise = (v, sc, rev) => {
+  if (!Number.isFinite(v) || v < sc.min || v > sc.max || sc.max === sc.min) return null;
+  const pct = (v - sc.min) / (sc.max - sc.min) * 100;
   return rev ? 100 - pct : pct;
 };
 const mean = a => a.reduce((x, y) => x + y, 0) / a.length;
+const canon = raw => (ALIAS[raw] !== undefined ? ALIAS[raw] : raw);
 
-function analyse(table, map){
-  const segCol = map.findIndex(m => m.role === "segment");
-  const scoreCols = map.map((m, i) => ({ ...m, i })).filter(m => m.role === "score");
-  const commentCols = map.map((m, i) => ({ ...m, i })).filter(m => m.role === "comment");
+/** The raw group values every source contributes, before aliasing. */
+function segmentValues(){
+  const out = new Map();   // raw value -> { rows, sources:Set }
+  for (const src of SOURCES){
+    const segCol = src.map.findIndex(m => m.role === "segment");
+    if (segCol < 0){
+      const key = `(all of ${src.label})`;
+      const e = out.get(key) || { rows: 0, sources: new Set(), whole: true };
+      e.rows += src.table.body.length; e.sources.add(src.sid); out.set(key, e);
+      continue;
+    }
+    for (const r of src.table.body){
+      const key = r[segCol] || "(unstated)";
+      const e = out.get(key) || { rows: 0, sources: new Set(), whole: false };
+      e.rows++; e.sources.add(src.sid); out.set(key, e);
+    }
+  }
+  return out;
+}
 
-  const segOf = r => segCol >= 0 ? (r[segCol] || "(unstated)") : "All respondents";
-  const segments = [...new Set(table.body.map(segOf))].sort();
-  const dims = [...new Set(scoreCols.map(c => c.dimension))]
+/** A likely-but-not-certain match: same first word, or one name a prefix of the other.
+ *  Suggested, never applied — "Field Ops" and "Field Operations" are usually the same team
+ *  and occasionally are not, and only the person holding the data knows which. */
+function suggestMatch(raw, canonical){
+  if (raw.startsWith("(all of ")) return null;
+  const norm = v => v.toLowerCase().replace(/[^a-z0-9 ]+/g, " ").replace(/\s+/g, " ").trim();
+  const a = norm(raw), first = a.split(" ")[0];
+  if (a.length < 3) return null;
+  for (const c of canonical){
+    if (c === raw || canon(raw) === c || c.startsWith("(all of ")) continue;
+    const b = norm(c);
+    if (b === a) continue;
+    const sameFirst = first.length >= 4 && b.split(" ")[0] === first;
+    const prefix = (a.length >= 4 && b.startsWith(a)) || (b.length >= 4 && a.startsWith(b));
+    if (sameFirst || prefix) return c;
+  }
+  return null;
+}
+
+/** Same name in different clothes — case, spacing, punctuation — merged by default. */
+function autoAlias(){
+  const seen = new Map();
+  for (const raw of segmentValues().keys()){
+    if (raw.startsWith("(all of ")) continue;
+    const k = raw.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+    if (seen.has(k)){
+      const keep = seen.get(k);
+      if (raw !== keep && ALIAS[raw] === undefined) ALIAS[raw] = keep;
+    } else seen.set(k, raw);
+  }
+}
+
+function analyse(){
+  const rows = [];                       // one normalised score per respondent-item
+  const comments = [];
+  let dropped = 0;
+
+  for (const src of SOURCES){
+    const segCol = src.map.findIndex(m => m.role === "segment");
+    const scoreCols = src.map.map((m, i) => ({ ...m, i })).filter(m => m.role === "score");
+    const commentCols = src.map.map((m, i) => ({ ...m, i })).filter(m => m.role === "comment");
+    const wholeKey = `(all of ${src.label})`;
+
+    src.table.body.forEach((r, ri) => {
+      const seg = canon(segCol >= 0 ? (r[segCol] || "(unstated)") : wholeKey);
+      for (const c of scoreCols){
+        const raw = r[c.i];
+        if (raw === ""){ dropped++; continue; }
+        const n = normalise(Number(raw), c.scale, c.reverse);
+        if (n === null){ dropped++; continue; }
+        rows.push({ sid: src.sid, seg, dim: c.dimension, v: n });
+      }
+      for (const c of commentCols){
+        const t = (r[c.i] || "").trim();
+        if (t.length >= 3)
+          comments.push({ id: `${src.sid}-R${ri + 1}`, sid: src.sid, source: src.label,
+                          seg, dim: c.dimension, col: c.name, text: t });
+      }
+    });
+  }
+
+  const segments = [...new Set(rows.map(r => r.seg).concat(comments.map(c => c.seg)))].sort();
+  const dims = [...new Set(rows.map(r => r.dim))]
     .sort((a, b) => DIMS.findIndex(d => d[0] === a) - DIMS.findIndex(d => d[0] === b));
 
-  const cells = {}, byDim = {};
-  for (const d of dims){ byDim[d] = []; for (const s of segments) cells[d + "|" + s] = []; }
-
-  let dropped = 0;
-  table.body.forEach(r => {
-    const seg = segOf(r);
-    for (const c of scoreCols){
-      const raw = r[c.i];
-      if (raw === "") { dropped++; continue; }
-      const n = normalise(Number(raw), c.scale, c.reverse);
-      if (n === null){ dropped++; continue; }
-      cells[c.dimension + "|" + seg].push(n);
-      byDim[c.dimension].push(n);
-    }
-  });
-
   const band = (m, n) => n === 0 ? "none" : n < MIN_N ? "thin" : m >= BAND_GOOD ? "good" : m >= BAND_WARN ? "warn" : "crit";
+  const pick = (d, sg) => rows.filter(r => r.dim === d && r.seg === sg);
+
   const matrix = dims.map(d => ({
     dim: d,
-    cells: segments.map(s => {
-      const v = cells[d + "|" + s], n = v.length;
-      const m = n ? mean(v) : null;
-      return { dim: d, seg: s, n, mean: m, band: band(m ?? 0, n),
+    cells: segments.map(sg => {
+      const hits = pick(d, sg), v = hits.map(h => h.v), n = v.length;
+      const bySource = {};
+      for (const sid of new Set(hits.map(h => h.sid))){
+        const sv = hits.filter(h => h.sid === sid).map(h => h.v);
+        bySource[sid] = { n: sv.length, mean: mean(sv) };
+      }
+      return { dim: d, seg: sg, n, mean: n ? mean(v) : null, band: band(n ? mean(v) : 0, n),
                neg: n ? v.filter(x => x <= NEG_MAX).length / n * 100 : 0,
-               pos: n ? v.filter(x => x >= POS_MIN).length / n * 100 : 0 };
+               pos: n ? v.filter(x => x >= POS_MIN).length / n * 100 : 0,
+               bySource };
     })
   }));
 
   const dimTotals = dims.map(d => {
-    const v = byDim[d], n = v.length;
+    const v = rows.filter(r => r.dim === d).map(r => r.v), n = v.length;
     return { dim: d, n, mean: n ? mean(v) : null,
              neg: n ? v.filter(x => x <= NEG_MAX).length / n * 100 : 0,
              pos: n ? v.filter(x => x >= POS_MIN).length / n * 100 : 0,
              mid: n ? v.filter(x => x > NEG_MAX && x < POS_MIN).length / n * 100 : 0 };
   });
 
-  const comments = [];
-  table.body.forEach((r, ri) => {
-    for (const c of commentCols){
-      const t = (r[c.i] || "").trim();
-      if (t.length >= 3) comments.push({ id: `R${ri + 1}`, seg: segOf(r), dim: c.dimension, col: c.name, text: t });
-    }
-  });
-
   const blind = [];
   for (const row of matrix) for (const c of row.cells)
     if (c.band === "none" || c.band === "thin") blind.push(c);
 
-  return { segments, dims, matrix, dimTotals, comments, blind, dropped,
-           respondents: table.body.length, hasSegments: segCol >= 0,
-           segColName: segCol >= 0 ? table.header[segCol] : null };
+  const respondents = SOURCES.reduce((a, s) => a + s.table.body.length, 0);
+  return { segments, dims, matrix, dimTotals, comments, blind, dropped, respondents,
+           sources: SOURCES.map(s => ({ sid: s.sid, label: s.label, file: s.file,
+                                        sheet: s.sheetName, rows: s.table.body.length })) };
 }
 
 /* rule-based observations — arithmetic, not judgement */
 function findings(a){
   const out = [];
   const all = a.matrix.flatMap(r => r.cells).filter(c => c.n >= MIN_N);
+  const label = sid => (a.sources.find(s => s.sid === sid) || {}).label || sid;
 
   const worst = [...all].sort((x, y) => x.mean - y.mean)[0];
   if (worst && worst.mean < BAND_WARN) out.push({
@@ -645,6 +723,20 @@ function findings(a){
     body: `${worst.neg.toFixed(0)}% of those responses were negative. Before treating it as the priority, check whether it is the finding or just the lowest number — what it predicts matters more than where it ranks.`,
     ev: `${DIMLABEL[worst.dim]} × ${worst.seg} · n=${worst.n}`
   });
+
+  // Two instruments, one question, different answers — only visible once files are read together.
+  for (const row of a.matrix) for (const c of row.cells){
+    const per = Object.entries(c.bySource).filter(([, v]) => v.n >= MIN_N);
+    if (per.length < 2) continue;
+    const hi = per.reduce((p, x) => x[1].mean > p[1].mean ? x : p);
+    const lo = per.reduce((p, x) => x[1].mean < p[1].mean ? x : p);
+    if (hi[1].mean - lo[1].mean >= 15) out.push({
+      kind: "warn", tag: "Sources differ",
+      title: `${label(lo[0])} and ${label(hi[0])} disagree about ${DIMLABEL[c.dim]} in ${c.seg}`,
+      body: `${lo[1].mean.toFixed(0)} against ${hi[1].mean.toFixed(0)} on the same dimension for the same group. Check what actually separates them — different questions, a different moment, or a different set of people answering — before pooling them into one number.`,
+      ev: `${label(lo[0])} n=${lo[1].n} · ${label(hi[0])} n=${hi[1].n}`
+    });
+  }
 
   for (const row of a.matrix){
     const seen = row.cells.filter(c => c.n >= MIN_N);
@@ -732,11 +824,12 @@ function bindTip(node, html){
   node.addEventListener("mousemove", show);
   node.addEventListener("mouseenter", show);
   node.addEventListener("mouseleave", () => tip.style.opacity = "0");
-  node.addEventListener("focus", e => { const b = node.getBoundingClientRect(); show({ clientX: b.left + 10, clientY: b.top + 8 }); });
+  node.addEventListener("focus", () => { const b = node.getBoundingClientRect(); show({ clientX: b.left + 10, clientY: b.top + 8 }); });
   node.addEventListener("blur", () => tip.style.opacity = "0");
 }
 
 const BANDWORD = { good: "On track", warn: "Watch", crit: "At risk", thin: "Thin base", none: "No data" };
+const esc = t => String(t).replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
 
 function renderKpis(a){
   const box = $("#kpis"); box.innerHTML = "";
@@ -745,6 +838,7 @@ function renderKpis(a){
   const risk = scored.filter(c => c.band === "crit").length;
   const kpi = (v, k) => { const n = el("div", "kpi"); n.append(el("div", "v num", v), el("div", "k", k)); return n; };
   box.append(
+    kpi(String(a.sources.length), `source${a.sources.length === 1 ? "" : "s"} read together`),
     kpi(String(a.respondents), "respondents"),
     kpi(overall === null ? "—" : overall.toFixed(0), "mean across readable cells"),
     kpi(String(risk), `cell${risk === 1 ? "" : "s"} at risk (< ${BAND_WARN})`),
@@ -755,28 +849,30 @@ function renderKpis(a){
 
 function renderHeat(a){
   const t = $("#heat"); t.innerHTML = "";
+  const label = sid => (a.sources.find(s => s.sid === sid) || {}).label || sid;
   const thead = el("thead"), hr = el("tr");
-  hr.append(el("th", null, a.segColName || "Group"));
+  hr.append(el("th", null, "Group"));
   for (const d of a.dims) hr.append(el("th", null, DIMLABEL[d]));
   thead.append(hr); t.append(thead);
   const tb = el("tbody");
   for (const seg of a.segments){
     const tr = el("tr");
-    const th = el("th", null, seg); th.style.fontWeight = "600"; th.style.color = "var(--ink)";
-    th.style.fontFamily = "Archivo, sans-serif"; th.style.fontSize = "13.5px"; th.style.textTransform = "none";
-    th.style.letterSpacing = "0";
+    const th = el("th", null, seg);
+    th.style.cssText = "font-weight:600; color:var(--ink); font-family:Archivo, sans-serif; font-size:13.5px; text-transform:none; letter-spacing:0";
     tr.append(th);
     for (const d of a.dims){
       const c = a.matrix.find(r => r.dim === d).cells.find(x => x.seg === seg);
       const td = el("td");
       const box = el("div", "cell b-" + c.band); box.tabIndex = 0;
-      const v = el("span", "v", c.n === 0 ? "no data" : c.mean.toFixed(0));
-      const s = el("span", "s", c.n === 0 ? "not asked here" : `n=${c.n} · ${BANDWORD[c.band]}`);
-      box.append(v, s);
-      bindTip(box, `<b>${DIMLABEL[d]} · ${seg}</b><span class="m">${BANDWORD[c.band]}</span>` +
+      box.append(el("span", "v", c.n === 0 ? "no data" : c.mean.toFixed(0)),
+                 el("span", "s", c.n === 0 ? "not asked here" : `n=${c.n} · ${BANDWORD[c.band]}`));
+      const per = Object.entries(c.bySource);
+      bindTip(box, `<b>${esc(DIMLABEL[d])} · ${esc(seg)}</b><span class="m">${BANDWORD[c.band]}</span>` +
         (c.n === 0 ? "No responses in this combination." :
-         `Mean ${c.mean.toFixed(1)}/100 from ${c.n} response${c.n === 1 ? "" : "s"}.<br>${c.neg.toFixed(0)}% negative · ${c.pos.toFixed(0)}% positive` +
-         (c.band === "thin" ? "<br>Held back from banding — fewer than " + MIN_N + " responses." : "")));
+         `Mean ${c.mean.toFixed(1)}/100 from ${c.n} response${c.n === 1 ? "" : "s"}.<br>` +
+         `${c.neg.toFixed(0)}% negative · ${c.pos.toFixed(0)}% positive` +
+         (per.length > 1 ? "<br>" + per.map(([sid, v]) => `${esc(label(sid))}: ${v.mean.toFixed(0)} (n=${v.n})`).join("<br>") : "") +
+         (c.band === "thin" ? `<br>Held back from banding — fewer than ${MIN_N} responses.` : "")));
       td.append(box); tr.append(td);
     }
     tb.append(tr);
@@ -790,17 +886,14 @@ function renderDists(a){
     const row = el("div", "bar-row");
     row.append(el("div", "lab", DIMLABEL[d.dim]));
     const bar = el("div", "dist");
-    if (d.n){
-      for (const [cls, val] of [["neg", d.neg], ["mid", d.mid], ["pos", d.pos]]){
-        if (val <= 0) continue;
-        const i = el("i", cls); i.style.width = val + "%"; bar.append(i);
-      }
+    if (d.n) for (const [cls, val] of [["neg", d.neg], ["mid", d.mid], ["pos", d.pos]]){
+      if (val <= 0) continue;
+      const i = el("i", cls); i.style.width = val + "%"; bar.append(i);
     }
-    bindTip(bar, `<b>${DIMLABEL[d.dim]}</b><span class="m">n=${d.n}</span>` +
+    bindTip(bar, `<b>${esc(DIMLABEL[d.dim])}</b><span class="m">n=${d.n}</span>` +
       (d.n ? `${d.neg.toFixed(0)}% negative · ${d.mid.toFixed(0)}% neutral · ${d.pos.toFixed(0)}% positive<br>Mean ${d.mean.toFixed(1)}/100`
            : "No responses."));
-    row.append(bar);
-    row.append(el("div", "fig", d.n ? `${d.mean.toFixed(0)} · n=${d.n}` : "no data"));
+    row.append(bar, el("div", "fig", d.n ? `${d.mean.toFixed(0)} · n=${d.n}` : "no data"));
     box.append(row);
   }
 }
@@ -809,7 +902,7 @@ function renderFindings(a){
   const box = $("#findings"); box.innerHTML = "";
   const list = findings(a);
   if (!list.length){
-    box.append(el("p", "fine", "Nothing crossed a threshold worth flagging — no cell below 55, no gap over 20 points, no empty cells. Read the heatmap and the comments directly."));
+    box.append(el("p", "fine", "Nothing crossed a threshold worth flagging — no cell below 55, no gap over 20 points, no empty cells, no source disagreeing with another. Read the heatmap and the comments directly."));
     return;
   }
   for (const f of list){
@@ -825,18 +918,22 @@ function renderComments(a){
   const panel = $("#commentpanel");
   if (!a.comments.length){ panel.classList.add("hidden"); return; }
   panel.classList.remove("hidden");
-  const gsel = $("#cgroup"), dsel = $("#cdim");
+  const gsel = $("#cgroup"), dsel = $("#cdim"), ssel = $("#csource");
   const segs = [...new Set(a.comments.map(c => c.seg))].sort();
   const dims = [...new Set(a.comments.map(c => c.dim))];
-  gsel.innerHTML = ""; dsel.innerHTML = "";
+  const srcs = [...new Set(a.comments.map(c => c.sid))];
+  gsel.innerHTML = ""; dsel.innerHTML = ""; ssel.innerHTML = "";
   gsel.append(new Option("All groups", ""));
-  for (const s of segs) gsel.append(new Option(s, s));
+  for (const sg of segs) gsel.append(new Option(sg, sg));
   dsel.append(new Option("All dimensions", ""));
   for (const d of dims) dsel.append(new Option(DIMLABEL[d], d));
+  ssel.append(new Option("All sources", ""));
+  for (const sid of srcs) ssel.append(new Option((a.sources.find(s => s.sid === sid) || {}).label || sid, sid));
+  ssel.parentElement.style.display = srcs.length > 1 ? "" : "none";
 
   const draw = () => {
-    const g = gsel.value, d = dsel.value;
-    const list = a.comments.filter(c => (!g || c.seg === g) && (!d || c.dim === d));
+    const g = gsel.value, d = dsel.value, sv = ssel.value;
+    const list = a.comments.filter(c => (!g || c.seg === g) && (!d || c.dim === d) && (!sv || c.sid === sv));
     $("#ccount").textContent = `${list.length} of ${a.comments.length} comments`;
     const counts = new Map();
     for (const c of list)
@@ -852,55 +949,56 @@ function renderComments(a){
     const q = $("#cquotes"); q.innerHTML = "";
     for (const c of list.slice(0, 300)){
       const b = el("div", "quote", c.text);
-      b.append(el("span", "src", `${c.id} · ${c.seg} · ${DIMLABEL[c.dim]} · ${c.col}`));
+      b.append(el("span", "src", `${c.id} · ${c.source} · ${c.seg} · ${DIMLABEL[c.dim]} · ${c.col}`));
       q.append(b);
     }
-    if (list.length > 300) q.append(el("p", "fine", `Showing the first 300. Narrow the filters to see the rest.`));
+    if (list.length > 300) q.append(el("p", "fine", "Showing the first 300. Narrow the filters to see the rest."));
   };
-  gsel.onchange = dsel.onchange = draw;
+  gsel.onchange = dsel.onchange = ssel.onchange = draw;
   draw();
 }
 
 /* ============================ export ============================ */
 
 function summaryCsv(a){
-  const rows = [["group", "dimension", "n", "mean_0_100", "band", "pct_negative", "pct_positive"]];
+  const rows = [["group", "dimension", "n", "mean_0_100", "band", "pct_negative", "pct_positive", "sources"]];
   for (const row of a.matrix) for (const c of row.cells)
     rows.push([c.seg, DIMLABEL[c.dim], c.n, c.n ? c.mean.toFixed(1) : "", BANDWORD[c.band],
-               c.n ? c.neg.toFixed(1) : "", c.n ? c.pos.toFixed(1) : ""]);
+               c.n ? c.neg.toFixed(1) : "", c.n ? c.pos.toFixed(1) : "",
+               Object.keys(c.bySource).map(sid => (a.sources.find(s => s.sid === sid) || {}).label || sid).join("; ")]);
   return rows.map(r => r.map(v => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v).join(",")).join("\n");
 }
-function fullJson(a, meta){
+
+function fullJson(a){
   return JSON.stringify({
-    source: meta, generated: new Date().toISOString(),
+    generated: new Date().toISOString(),
+    sources: a.sources,
     conventions: { bands: { on_track: BAND_GOOD, watch: BAND_WARN }, thin_base_under: MIN_N,
                    negative_at_or_below: NEG_MAX, positive_at_or_above: POS_MIN,
                    note: "Scores normalised to 0-100, higher is better. Conventions, not findings." },
+    group_aliases: ALIAS,
     respondents: a.respondents, dropped_cells: a.dropped,
     matrix: a.matrix.flatMap(r => r.cells.map(c => ({
       group: c.seg, dimension: DIMLABEL[c.dim], dimension_key: c.dim, n: c.n,
       mean: c.n ? +c.mean.toFixed(1) : null, band: BANDWORD[c.band],
-      pct_negative: c.n ? +c.neg.toFixed(1) : null, pct_positive: c.n ? +c.pos.toFixed(1) : null }))),
+      pct_negative: c.n ? +c.neg.toFixed(1) : null, pct_positive: c.n ? +c.pos.toFixed(1) : null,
+      by_source: Object.fromEntries(Object.entries(c.bySource).map(([sid, v]) => [sid, { n: v.n, mean: +v.mean.toFixed(1) }])) }))),
     blind_spots: a.blind.map(c => ({ group: c.seg, dimension: DIMLABEL[c.dim], status: c.band, n: c.n })),
     observations: findings(a).map(f => ({ kind: f.kind, tag: f.tag, title: f.title, detail: f.body, evidence: f.ev })),
-    comments: a.comments.map(c => ({ ref: c.id, group: c.seg, dimension: DIMLABEL[c.dim], question: c.col, text: c.text })),
+    comments: a.comments.map(c => ({ ref: c.id, source: c.source, group: c.seg,
+                                     dimension: DIMLABEL[c.dim], question: c.col, text: c.text })),
   }, null, 2);
 }
 
-async function offer(filename, data, mime){
+async function offer(filename, data){
   const note = $("#dlnote");
   try {
     const downloads = await window.claude?.use?.("downloads");
-    if (downloads){
-      await downloads.save({ filename, data });
-      note.textContent = `Saved ${filename}.`;
-      return;
-    }
-  } catch (err) {
+    if (downloads){ await downloads.save({ filename, data }); note.textContent = `Saved ${filename}.`; return; }
+  } catch (err){
     note.textContent = err && err.code === "user_rejected" ? "Save cancelled." : "That save did not go through — try again.";
     return;
   }
-  // No downloads capability: put the text on the clipboard rather than a link the viewer cannot use.
   try {
     await navigator.clipboard.writeText(data);
     note.textContent = `Downloads are not available here — ${filename} copied to your clipboard instead.`;
@@ -911,137 +1009,263 @@ async function offer(filename, data, mime){
 
 /* ============================ wiring ============================ */
 
-let TABLE = null, PROFILES = null, MAP = null, ANALYSIS = null, META = null, SHEETS = null;
+let SOURCES = [], ALIAS = {}, ANALYSIS = null, SEQ = 0;
 
-function showError(msg){
-  const box = $("#loaderr");
-  box.textContent = msg;
-  box.classList.remove("hidden");
-}
-function clearError(){ $("#loaderr").classList.add("hidden"); }
+const showError = msg => { const b = $("#loaderr"); b.textContent = msg; b.classList.remove("hidden"); };
+const clearError = () => $("#loaderr").classList.add("hidden");
+const niceLabel = (name, sheet) =>
+  (name.replace(/\.[a-z]+$/i, "").replace(/[_-]+/g, " ").trim() || "Source") + (sheet ? ` — ${sheet}` : "");
 
-function buildMapUi(){
-  const tb = $("#maptable tbody"); tb.innerHTML = "";
-  PROFILES.forEach((p, i) => {
-    const m = MAP[i];
-    const tr = el("tr");
-    tr.append(el("td", "colname", p.name));
-
-    const roleTd = el("td");
-    const role = document.createElement("select");
-    for (const [v, l] of [["ignore", "Ignore"], ["segment", "Group / segment"], ["score", "Score"], ["comment", "Comment"]])
-      role.append(new Option(l, v, false, m.role === v));
-    roleTd.append(role); tr.append(roleTd);
-
-    // Only the controls a role actually uses are shown — a disabled dropdown on every
-    // row reads as something to fill in.
-    const dimTd = el("td");
-    if (m.role === "score" || m.role === "comment"){
-      const dim = document.createElement("select");
-      for (const [k, label] of DIMS) dim.append(new Option(label, k, false, m.dimension === k));
-      dim.onchange = () => { m.dimension = dim.value; m.unmatched = false; buildMapUi(); };
-      dimTd.append(dim);
-      if (m.unmatched){
-        const hint = el("span", "fine", "guessed from nothing in the header \u2014 check it");
-        hint.style.cssText = "display:block; margin-top:4px";
-        dimTd.append(hint);
-      }
-    } else dimTd.append(el("span", "fine", "\u2014"));
-    tr.append(dimTd);
-
-    const scaleTd = el("td");
-    if (m.role === "score"){
-      const scale = document.createElement("select");
-      const opts = [["1-5", { min: 1, max: 5 }], ["0-5", { min: 0, max: 5 }], ["1-7", { min: 1, max: 7 }],
-                    ["1-10", { min: 1, max: 10 }], ["0-10", { min: 0, max: 10 }], ["0-100", { min: 0, max: 100 }]];
-      for (const [label, sc] of opts){
-        const sel = m.scale && m.scale.min === sc.min && m.scale.max === sc.max;
-        scale.append(new Option(label, label, false, sel));
-      }
-      scale.onchange = () => { const f = opts.find(o => o[0] === scale.value); if (f) m.scale = f[1]; };
-      const rev = el("label", "fine");
-      rev.style.cssText = "display:inline-flex; gap:5px; align-items:center; margin-left:9px";
-      const revBox = document.createElement("input");
-      revBox.type = "checkbox"; revBox.checked = !!m.reverse;
-      revBox.onchange = () => { m.reverse = revBox.checked; };
-      rev.append(revBox, document.createTextNode("reverse"));
-      scaleTd.append(scale, rev);
-    } else scaleTd.append(el("span", "fine", "\u2014"));
-    tr.append(scaleTd);
-
-    tr.append(el("td", "sample", p.sample || "\u2014"));
-
-    role.onchange = () => {
-      m.role = role.value;
-      if (!m.scale && m.role === "score") m.scale = { min: 1, max: 5 };
-      if (m.role === "segment")
-        for (let j = 0; j < MAP.length; j++) if (j !== i && MAP[j].role === "segment") MAP[j].role = "ignore";
-      buildMapUi();
-    };
-    tb.append(tr);
-  });
-  mapSummary();
+function addSource(file, sheets, sheetIdx, rows){
+  const table = toTable(rows);
+  const profiles = profile(table);
+  const sheetName = sheets ? sheets[sheetIdx].name : null;
+  const src = {
+    sid: "S" + (++SEQ), file, sheets, sheetIdx, sheetName, table, profiles,
+    label: niceLabel(file, sheets && sheets.length > 1 ? sheetName : null),
+    map: guessRoles(profiles, table.body.length).map((m, i) => ({ ...m, name: profiles[i].name })),
+  };
+  SOURCES.push(src);
+  return src;
 }
 
-function mapSummary(){
-  const s = MAP.filter(m => m.role === "score").length;
-  const c = MAP.filter(m => m.role === "comment").length;
-  const g = MAP.find(m => m.role === "segment");
-  const gi = MAP.indexOf(g);
-  $("#mapsummary").textContent =
-    `${s} score column${s === 1 ? "" : "s"}, ${c} comment column${c === 1 ? "" : "s"}, ` +
-    (g ? `grouped by “${PROFILES[gi].name}”.` : "no grouping column — everyone will be read as one population.");
-  $("#run").disabled = s === 0;
+async function readOne(f){
+  if (/\.(csv|tsv|txt)$/i.test(f.name)) return addSource(f.name, null, 0, parseDelimited(await f.text()));
+  const wb = await readXlsx(await f.arrayBuffer());
+  const src = addSource(f.name, wb.sheets, 0, await wb.readSheet(wb.sheets[0].path));
+  src.wb = wb;
+  return src;
 }
 
-function loadTable(rows, meta){
-  TABLE = toTable(rows);
-  PROFILES = profile(TABLE);
-  MAP = guessRoles(PROFILES, TABLE.body.length).map((m, i) => ({ ...m, name: PROFILES[i].name }));
-  META = meta;
-  $("#fname").textContent = meta.file;
-  $("#fmeta").textContent = `${TABLE.body.length} rows · ${TABLE.header.length} columns${meta.sheet ? ` · sheet “${meta.sheet}”` : ""}`;
-  $("#loaded").classList.remove("hidden");
+async function handleFiles(files){
+  clearError();
+  const problems = [];
+  for (const f of files){
+    try { await readOne(f); }
+    catch (err){ console.error(err); problems.push(`${f.name}: ${err.message}`); }
+  }
+  if (problems.length) showError(problems.join("  ") + " Everything else was loaded.");
+  if (!SOURCES.length){ $("#drop").classList.remove("hidden"); $("#loaded").classList.add("hidden"); return; }
+  ALIAS = {}; autoAlias();
+  renderSources();
+  buildMapUi();
   $("#drop").classList.add("hidden");
+  $("#loaded").classList.remove("hidden");
   $("#step-map").classList.remove("hidden");
   $("#step-read").classList.add("hidden");
-  buildMapUi();
   $("#step-map").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
-async function handleFile(f){
-  clearError();
-  try {
-    if (/\.(csv|tsv|txt)$/i.test(f.name)){
-      $("#sheetwrap").style.display = "none";
-      loadTable(parseDelimited(await f.text()), { file: f.name });
-      return;
-    }
-    const wb = await readXlsx(await f.arrayBuffer());
-    SHEETS = wb;
-    const sel = $("#sheet");
-    sel.innerHTML = "";
-    wb.sheets.forEach((s, i) => sel.append(new Option(s.name, String(i))));
-    $("#sheetwrap").style.display = wb.sheets.length > 1 ? "" : "none";
-    const load = async i => loadTable(await wb.readSheet(wb.sheets[i].path), { file: f.name, sheet: wb.sheets[i].name });
-    sel.onchange = () => load(+sel.value).catch(err => {
-      showError(`Sheet “${wb.sheets[+sel.value].name}” could not be read: ${err.message} Pick another sheet.`);
-      $("#step-map").classList.add("hidden");
+function renderSources(){
+  const tb = $("#sourcelist tbody"); tb.innerHTML = "";
+  for (const src of SOURCES){
+    const tr = el("tr");
+    const nameTd = el("td", "colname");
+    nameTd.append(el("span", "mono", src.sid + "  "), document.createTextNode(src.file));
+    tr.append(nameTd);
+
+    const sheetTd = el("td");
+    if (src.sheets && src.sheets.length > 1){
+      const sel = document.createElement("select");
+      src.sheets.forEach((sh, i) => sel.append(new Option(sh.name, String(i), false, i === src.sheetIdx)));
+      sel.onchange = async () => {
+        try {
+          const rows = await src.wb.readSheet(src.sheets[+sel.value].path);
+          src.sheetIdx = +sel.value;
+          src.sheetName = src.sheets[src.sheetIdx].name;
+          src.table = toTable(rows);
+          src.profiles = profile(src.table);
+          src.map = guessRoles(src.profiles, src.table.body.length).map((m, i) => ({ ...m, name: src.profiles[i].name }));
+          src.label = niceLabel(src.file, src.sheetName);
+          clearError(); ALIAS = {}; autoAlias(); renderSources(); buildMapUi();
+        } catch (err){
+          showError(`Sheet “${src.sheets[+sel.value].name}” could not be read: ${err.message}`);
+          sel.value = String(src.sheetIdx);
+        }
+      };
+      sheetTd.append(sel);
+    } else sheetTd.append(el("span", "fine", src.sheetName || "—"));
+    tr.append(sheetTd);
+
+    tr.append(el("td", "num", String(src.table.body.length)));
+    tr.append(el("td", "num", String(src.table.header.length)));
+
+    const labTd = el("td");
+    const lab = document.createElement("input");
+    lab.type = "text"; lab.value = src.label; lab.size = 22;
+    lab.oninput = () => { src.label = lab.value.trim() || src.file; };
+    lab.onchange = () => { renderAlign(); mapSummary(); };
+    labTd.append(lab); tr.append(labTd);
+
+    const rmTd = el("td");
+    const rm = el("button", "btn ghost", "Remove");
+    rm.type = "button"; rm.style.padding = "5px 12px";
+    rm.onclick = () => {
+      SOURCES = SOURCES.filter(x => x !== src);
+      if (!SOURCES.length) return $("#reset").click();
+      ALIAS = {}; autoAlias(); renderSources(); buildMapUi();
       $("#step-read").classList.add("hidden");
+    };
+    rmTd.append(rm); tr.append(rmTd);
+    tb.append(tr);
+  }
+  const rows = SOURCES.reduce((a, s) => a + s.table.body.length, 0);
+  $("#loadsummary").textContent =
+    `${SOURCES.length} file${SOURCES.length === 1 ? "" : "s"}, ${rows} rows in total. ` +
+    `The label is what each source is called in the read — rename it to something you would say out loud.`;
+}
+
+/* ---- mapping, one block per source ---- */
+
+function buildMapUi(){
+  const host = $("#mapblocks"); host.innerHTML = "";
+  for (const src of SOURCES){
+    const panel = el("div", "panel");
+    const head = el("div", "maphead");
+    head.append(el("span", "mono", src.sid), el("h3", null, src.label));
+    const note = el("span", "fine"); note.style.marginLeft = "auto";
+    head.append(note);
+    panel.append(head);
+
+    const wrap = el("div", "scroll");
+    const table = el("table");
+    const thead = el("thead");
+    thead.innerHTML = "<tr><th>Column</th><th>Read as</th><th>Readiness dimension</th><th>Scale</th><th>Sample value</th></tr>";
+    table.append(thead);
+    const tb = el("tbody");
+
+    src.profiles.forEach((p, i) => {
+      const m = src.map[i];
+      const tr = el("tr");
+      tr.append(el("td", "colname", p.name));
+
+      const roleTd = el("td");
+      const role = document.createElement("select");
+      for (const [v, l] of [["ignore", "Ignore"], ["segment", "Group / segment"], ["score", "Score"], ["comment", "Comment"]])
+        role.append(new Option(l, v, false, m.role === v));
+      roleTd.append(role); tr.append(roleTd);
+
+      // Only the controls a role actually uses are shown — a disabled dropdown on every
+      // row reads as something to fill in.
+      const dimTd = el("td");
+      if (m.role === "score" || m.role === "comment"){
+        const dim = document.createElement("select");
+        for (const [k, lbl] of DIMS) dim.append(new Option(lbl, k, false, m.dimension === k));
+        dim.onchange = () => { m.dimension = dim.value; m.unmatched = false; buildMapUi(); };
+        dimTd.append(dim);
+        if (m.unmatched){
+          const hint = el("span", "fine", "guessed from nothing in the header — check it");
+          hint.style.cssText = "display:block; margin-top:4px";
+          dimTd.append(hint);
+        }
+      } else dimTd.append(el("span", "fine", "—"));
+      tr.append(dimTd);
+
+      const scaleTd = el("td");
+      if (m.role === "score"){
+        const scale = document.createElement("select");
+        const opts = [["1-5", { min: 1, max: 5 }], ["0-5", { min: 0, max: 5 }], ["1-7", { min: 1, max: 7 }],
+                      ["1-10", { min: 1, max: 10 }], ["0-10", { min: 0, max: 10 }], ["0-100", { min: 0, max: 100 }]];
+        for (const [lbl, sc] of opts)
+          scale.append(new Option(lbl, lbl, false, !!(m.scale && m.scale.min === sc.min && m.scale.max === sc.max)));
+        scale.onchange = () => { const f = opts.find(o => o[0] === scale.value); if (f) m.scale = f[1]; };
+        const rev = el("label", "fine");
+        rev.style.cssText = "display:inline-flex; gap:5px; align-items:center; margin-left:9px";
+        const revBox = document.createElement("input");
+        revBox.type = "checkbox"; revBox.checked = !!m.reverse;
+        revBox.onchange = () => { m.reverse = revBox.checked; };
+        rev.append(revBox, document.createTextNode("reverse"));
+        scaleTd.append(scale, rev);
+      } else scaleTd.append(el("span", "fine", "—"));
+      tr.append(scaleTd);
+
+      tr.append(el("td", "sample", p.sample || "—"));
+
+      role.onchange = () => {
+        m.role = role.value;
+        if (m.role === "score" && !m.scale) m.scale = { min: 1, max: 5 };
+        if (m.role === "segment")
+          src.map.forEach((o, j) => { if (j !== i && o.role === "segment") o.role = "ignore"; });
+        ALIAS = {}; autoAlias();
+        buildMapUi();
+      };
+      tb.append(tr);
     });
-    await load(0);
-  } catch (err){
-    console.error(err);
-    showError(err.message || "That file could not be read. If it came out of a survey tool, try exporting it as CSV.");
-    $("#drop").classList.remove("hidden");
-    $("#loaded").classList.add("hidden");
+
+    table.append(tb); wrap.append(table); panel.append(wrap);
+    const scores = src.map.filter(m => m.role === "score").length;
+    const comments = src.map.filter(m => m.role === "comment").length;
+    const seg = src.map.find(m => m.role === "segment");
+    note.textContent = `${scores} score · ${comments} comment · ` +
+      (seg ? `grouped by “${seg.name}”` : "no grouping column");
+    host.append(panel);
+  }
+  renderAlign();
+  mapSummary();
+}
+
+/* ---- group-name alignment across sources ---- */
+
+function renderAlign(){
+  const values = segmentValues();
+  const panel = $("#alignpanel");
+  const canonical = [...new Set([...values.keys()].map(canon))].sort();
+  const worthShowing = SOURCES.length > 1 || [...values.keys()].some(v => canon(v) !== v);
+  if (!worthShowing || values.size === 0){ panel.classList.add("hidden"); return; }
+  panel.classList.remove("hidden");
+
+  const tb = $("#aligntable tbody"); tb.innerHTML = "";
+  for (const [raw, info] of [...values.entries()].sort((a, b) => a[0].localeCompare(b[0]))){
+    const tr = el("tr");
+    tr.append(el("td", "colname", raw));
+    tr.append(el("td", "fine", [...info.sources].join(", ")));
+    tr.append(el("td", "num", String(info.rows)));
+
+    const td = el("td");
+    const sel = document.createElement("select");
+    sel.append(new Option("Keep as “" + raw + "”", ""));
+    for (const c of canonical) if (c !== raw) sel.append(new Option("Merge into “" + c + "”", c, false, ALIAS[raw] === c));
+    sel.onchange = () => {
+      if (sel.value) ALIAS[raw] = sel.value; else delete ALIAS[raw];
+      renderAlign(); mapSummary();
+    };
+    td.append(sel);
+    if (ALIAS[raw]) td.append(el("span", "fine", ` → counted as ${ALIAS[raw]}`));
+    else {
+      const hit = suggestMatch(raw, canonical);
+      if (hit){
+        const wrap = el("div", "fine");
+        wrap.style.cssText = "display:flex; gap:8px; align-items:center; margin-top:5px";
+        wrap.append(document.createTextNode(`Looks like “${hit}”.`));
+        const go = el("button", "btn ghost", "Merge them");
+        go.type = "button"; go.style.padding = "3px 10px"; go.style.fontSize = "12.5px";
+        go.onclick = () => { ALIAS[raw] = hit; renderAlign(); mapSummary(); };
+        wrap.append(go);
+        td.append(wrap);
+      }
+    }
+    tr.append(td);
+    tb.append(tr);
   }
 }
 
+function mapSummary(){
+  const scores = SOURCES.reduce((a, s) => a + s.map.filter(m => m.role === "score").length, 0);
+  const groups = new Set([...segmentValues().keys()].map(canon));
+  $("#mapsummary").textContent = scores === 0
+    ? "No score columns mapped yet — mark at least one column as a Score."
+    : `${scores} score column${scores === 1 ? "" : "s"} across ${SOURCES.length} source${SOURCES.length === 1 ? "" : "s"}, ` +
+      `${groups.size} group${groups.size === 1 ? "" : "s"} after merging.`;
+  $("#run").disabled = scores === 0;
+}
+
+/* ---- events ---- */
+
 $("#pick").onclick = () => $("#file").click();
-$("#file").onchange = e => { const f = e.target.files[0]; if (f) handleFile(f); };
+$("#addmore").onclick = () => $("#file").click();
+$("#file").onchange = e => { const f = [...e.target.files]; e.target.value = ""; if (f.length) handleFiles(f); };
 $("#reset").onclick = () => {
-  TABLE = PROFILES = MAP = ANALYSIS = null;
+  SOURCES = []; ALIAS = {}; ANALYSIS = null; SEQ = 0;
   $("#file").value = "";
   $("#drop").classList.remove("hidden");
   $("#loaded").classList.add("hidden");
@@ -1052,16 +1276,25 @@ $("#reset").onclick = () => {
 const drop = $("#drop");
 for (const ev of ["dragenter", "dragover"]) drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); });
 for (const ev of ["dragleave", "drop"]) drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); });
-drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+drop.addEventListener("drop", e => { const f = [...e.dataTransfer.files]; if (f.length) handleFiles(f); });
+// Dropping onto the loaded list adds to the set rather than replacing it.
+document.addEventListener("dragover", e => { if (!$("#loaded").classList.contains("hidden")) e.preventDefault(); });
+document.addEventListener("drop", e => {
+  if ($("#loaded").classList.contains("hidden")) return;
+  if (drop.contains(e.target)) return;
+  const f = [...(e.dataTransfer?.files || [])];
+  if (f.length){ e.preventDefault(); handleFiles(f); }
+});
 
 $("#run").onclick = () => {
-  ANALYSIS = analyse(TABLE, MAP);
+  ANALYSIS = analyse();
   renderKpis(ANALYSIS);
   renderHeat(ANALYSIS);
   renderDists(ANALYSIS);
   renderFindings(ANALYSIS);
   renderComments(ANALYSIS);
   $("#readsub").textContent =
+    `${ANALYSIS.sources.length} source${ANALYSIS.sources.length === 1 ? "" : "s"} · ` +
     `${ANALYSIS.respondents} respondents · ${ANALYSIS.segments.length} group${ANALYSIS.segments.length === 1 ? "" : "s"} · ` +
     `${ANALYSIS.dims.length} dimension${ANALYSIS.dims.length === 1 ? "" : "s"}` +
     (ANALYSIS.dropped ? ` · ${ANALYSIS.dropped} blank or out-of-scale answers left out rather than filled in` : "");
@@ -1069,6 +1302,6 @@ $("#run").onclick = () => {
   $("#step-read").scrollIntoView({ behavior: "smooth", block: "start" });
 };
 
-$("#dl-csv").onclick = () => offer("readiness-summary.csv", summaryCsv(ANALYSIS), "text/csv");
-$("#dl-json").onclick = () => offer("readiness-read.json", fullJson(ANALYSIS, META), "application/json");
+$("#dl-csv").onclick = () => offer("readiness-summary.csv", summaryCsv(ANALYSIS));
+$("#dl-json").onclick = () => offer("readiness-read.json", fullJson(ANALYSIS));
 </script>

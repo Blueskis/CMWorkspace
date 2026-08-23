@@ -1,8 +1,9 @@
 # Snapshot triage page
 
 A self-contained HTML page for the people who *hold* the feedback rather than the people
-who analyse it. A workstream lead drops an .xlsx or .csv export into it and gets an
-immediate read: a segment × dimension heatmap, how the answers split, computed
+who analyse it. A workstream lead drops in one or several .xlsx or .csv exports — a
+training evaluation, a comms feedback form, a readiness assessment — and gets an immediate
+read across all of them: a segment × dimension heatmap, how the answers split, computed
 observations, and the comments laid out for coding.
 
 Published as an Artifact. The source lives here so it is versioned with the skill; edit
@@ -20,9 +21,28 @@ matrix, **Download full read (.json)** gives the matrix, blind spots, observatio
 every comment with its group and dimension. Hand either to the practitioner running
 `readiness-insights-agent` and Stage 2 onwards proceeds normally.
 
+## Reading several files together
+
+Each file keeps its **own** column mapping — instruments do not share headers, and forcing
+one mapping across them is how a comms question ends up scored as a training question.
+Sources pool into one matrix, and each cell records which sources fed it.
+
+Two things follow from pooling, and both are in the page:
+
+- **Group names are aligned explicitly.** They are matched literally, so "Field Ops" in one
+  export and "Field Operations" in another are two groups — which halves both bases while
+  looking like data. Case and punctuation variants merge automatically; a likely match on
+  wording is *suggested* with a one-click merge but never applied, because only the person
+  holding the data knows whether two similar names are one team. A file with no grouping
+  column at all appears as "(all of &lt;source&gt;)" and can be pointed at a real group.
+- **Disagreement between sources is a finding.** Where two sources both have a readable
+  base on the same group and dimension and their means differ by 15 points or more, the
+  page says so rather than quietly averaging them — different questions, a different
+  moment, or a different set of people answering are all worth knowing before pooling.
+
 ## Design decisions worth keeping
 
-- **The file never leaves the browser.** Parsing is local — a zip reader over the .xlsx
+- **The files never leave the browser.** Parsing is local — a zip reader over the .xlsx
   plus `DecompressionStream('deflate-raw')`, no upload, no storage, no network. This is
   what makes it safe to hand to a client-side lead with raw staff feedback in the sheet.
 - **The mapping step is visible and editable.** Column roles and readiness dimensions are
