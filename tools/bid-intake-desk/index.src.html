@@ -1520,7 +1520,9 @@ function ingest(name, text) {
   if (!text.trim()) { showNotice("That file came through empty. Try pasting the text instead."); return; }
   state.doc = { name, text, triage: triage(text), topics: topicProfile(text) };
   vocabTagsIn(text, projectTagVocabulary()).forEach(t => state.tags.add(t));
-  tagsSeeded = true;
+  // Only "seeded" if past bids had actually loaded by now — a tender read before
+  // Airtable answers must not block the catch-up seed once it does.
+  if (state.airtable.projects.length) tagsSeeded = true;
   $("drop").hidden = true;
   $("paste-area").hidden = true;
   $("intake-notice").innerHTML = "";
