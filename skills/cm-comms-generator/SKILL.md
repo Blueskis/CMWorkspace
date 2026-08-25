@@ -242,9 +242,10 @@ then `build_deck.py`, both reused unchanged from `cm-proposal-generator` — the
 the `pptx` skill's **template** workflow (unzip → edit `ppt/slides/slideN.xml` → rezip, never
 `pptxgenjs`).
 
-Without a `.potx`, `apply_brand.py` emits `deck_theme.json` and the deck is built from scratch.
-That carries the client's colours and is **not** their approved template: `design_provenance`
-records `generated-unapproved` and the handover says so.
+Without a `.potx`, `apply_brand.py` emits `deck_theme.json` and `build_pptx.py` generates a
+pptxgenjs build script from the plan. That carries the client's colours and is **not** their
+approved template: `design_provenance` records `generated-unapproved` and the handover says so.
+`build_pptx.py` refuses when the brand names a `.potx` — from-scratch is the wrong route then.
 
 ### newsletter and banner → Canva
 

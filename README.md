@@ -164,7 +164,7 @@ skills/cm-comms-generator/
 ├── reference/            # channel library, routing, change intake, brand profile guide
 ├── schemas/              # change_brief, brand_profile, comms_plan, channel_registry
 └── scripts/              # render_markdown, route_channel, qa_comms, apply_brand,
-                          #   build_docx, verify_docx, canva_brief, video_spec
+                          #   build_docx, build_pptx, verify_docx, canva_brief, video_spec
 proposal-assets/          # shared asset root (named for the first skill that used it)
 ├── templates/
 │   └── html-generic/     # PoC template: 9 layouts, theme, vendored reveal.js (MIT)

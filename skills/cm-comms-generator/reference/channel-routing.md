@@ -101,8 +101,22 @@ Then the `pptx` skill's **template** workflow: unzip → edit `ppt/slides/slideN
 Never `pptxgenjs` on a client template — a visually similar deck is not an approved-template
 deck, and someone notices.
 
-Without a `.potx`, `apply_brand.py` emits `deck_theme.json` and the `pptx` skill builds from
-scratch. That result carries the client's colours and is **not** their approved template:
+Without a `.potx`:
+
+```bash
+python skills/cm-comms-generator/scripts/apply_brand.py <brand> -o <run>/deck_theme.json
+python skills/cm-comms-generator/scripts/build_pptx.py <plan> --theme <run>/deck_theme.json -o <run>
+NODE_PATH="$(npm root -g)" node <run>/build_deck.js
+python /root/.claude/skills/synced/pptx/scripts/office/validate.py <run>/deck.pptx
+```
+
+`build_pptx.py` emits a pptxgenjs script — inspectable before it runs, with the `pptx` skill's
+footguns encoded once (layout set before any slide, hex with no `#`, a fresh options object per
+call, bullets via `bullet: true`, notes through `addNotes`). It refuses outright when the brand
+names a `.potx`, because from-scratch is the wrong route then. A slide with no speaker notes gets
+a visible placeholder note rather than shipping silently bare.
+
+That result carries the client's colours and is **not** their approved template:
 `design_provenance` records `generated-unapproved` and the handover says so.
 
 Speaker notes on every content slide are a hard requirement either way. A cascade deck
