@@ -42,7 +42,7 @@
 
     "palette": {
       "type": "object",
-      "description": "Maps 1:1 onto the CSS custom properties in the HTML template's theme.css, which is how apply_brand.py recolours a deck without touching layouts.",
+      "description": "The named roles every producer maps onto: ink/ink_soft are heading and body text, canvas is the background, panel a tinted block. apply_brand.py emits these as deck_theme.json for the .pptx build and checks every ink/canvas pair against the WCAG floor.",
       "additionalProperties": false,
       "properties": {
         "primary":   { "$ref": "#/$defs/colour" },
@@ -73,7 +73,7 @@
         "min_size_pt": { "type": "number" },
         "web_safe_fallback": {
           "type": "string",
-          "description": "What the HTML render actually uses. The template fetches no webfonts by design, so a brand font that is not installed locally will not appear."
+          "description": "What a producer falls back to when the brand typeface is not installed on the machine building the artifact. A .docx or .pptx referencing an absent font substitutes silently, so name what you are willing to see instead."
         }
       }
     },
@@ -118,6 +118,15 @@
       "type": "object",
       "description": "All optional; all enforced when present. A stated limit is a hard failure in Stage 4, an unstated one falls back to the channel library's default as a warning.",
       "properties": {
+        "docx": {
+          "type": "object",
+          "description": "Page setup shared by the email and article channels, both of which build as .docx.",
+          "properties": {
+            "page_size": { "enum": ["A4", "Letter"], "default": "A4" },
+            "margins_mm": { "type": "number", "default": 25 },
+            "dotx_path": { "type": "string", "description": "Client Word template / letterhead, where one exists" }
+          }
+        },
         "email": {
           "type": "object",
           "properties": {
@@ -129,7 +138,7 @@
             "html_width_px": { "type": "integer" }
           }
         },
-        "sharepoint_banner": {
+        "banner": {
           "type": "object",
           "properties": {
             "image_width_px": { "type": "integer" },
@@ -140,13 +149,47 @@
             "safe_area_px": { "type": "integer" }
           }
         },
-        "slide_deck": {
+        "newsletter": {
+          "type": "object",
+          "properties": {
+            "image_width_px": { "type": "integer" },
+            "headline_max_chars": { "type": "integer" },
+            "section_max_chars": { "type": "integer" },
+            "cta_max_chars": { "type": "integer" },
+            "max_sections": { "type": "integer" }
+          }
+        },
+        "article": {
+          "type": "object",
+          "properties": {
+            "headline_max_chars": { "type": "integer" },
+            "standfirst_max_chars": { "type": "integer" },
+            "max_words": { "type": "integer" },
+            "byline_required": { "type": "boolean" }
+          }
+        },
+        "briefing_deck": {
           "type": "object",
           "properties": {
             "aspect_ratio": { "type": "string" },
             "max_slides": { "type": "integer" },
             "title_max_chars": { "type": "integer" },
-            "bullets_per_slide_max": { "type": "integer" }
+            "bullets_per_slide_max": { "type": "integer" },
+            "potx_path": {
+              "type": "string",
+              "description": "The client's approved PowerPoint template. Absent means the from-scratch route, labelled UNAPPROVED TEMPLATE at handover."
+            }
+          }
+        },
+        "explainer_video": {
+          "type": "object",
+          "properties": {
+            "max_duration_seconds": { "type": "integer" },
+            "aspect_ratio": { "type": "string" },
+            "captions_required": { "type": "boolean" },
+            "words_per_minute": { "type": "integer", "default": 140 },
+            "avatar": { "type": "string", "description": "Named presenter avatar, where the client has approved one" },
+            "chaptered": { "type": "boolean" }
           }
         },
         "short_form_video": {

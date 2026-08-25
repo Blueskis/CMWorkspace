@@ -1,0 +1,521 @@
+{
+  "run_id": "northwind-deck-20260819",
+  "brief_ref": "../change_brief.json",
+  "brand_profile_ref": "../brand_profile.json",
+  "channel": "briefing_deck",
+  "client": "Northwind Foods",
+  "engagement_title": "Payroll change — manager cascade pack",
+  "target_audience_ids": [
+    "A2"
+  ],
+  "sender": "Marcus Bell, Chief People Officer",
+  "send_window": "2026-08-26 — brief managers before the all-colleague email on 2026-09-01",
+  "review_by": "Priya Raghavan",
+  "sections": [
+    {
+      "section_id": "title",
+      "title": "Title",
+      "order": 1,
+      "message_ids": [],
+      "audience_ids": [
+        "A2"
+      ],
+      "slides": [
+        {
+          "slide_id": "deck-title",
+          "part_kind": "content",
+          "layout": "title-slide",
+          "title": "Payroll is changing on 1 October",
+          "speaker_notes": "You have about 15 minutes with your team. The goal is not to explain payroll — it is to make sure everyone knows the one thing they have to do by 14 September, and that nobody leaves thinking their pay is being cut.",
+          "blocks": [
+            {
+              "placeholder": "client",
+              "kind": "text",
+              "content": "Northwind Foods",
+              "sources": [
+                "brief:client"
+              ]
+            },
+            {
+              "placeholder": "title",
+              "kind": "text",
+              "content": "Payroll is changing on 1 October",
+              "sources": [
+                "brief:change.title"
+              ]
+            },
+            {
+              "placeholder": "subtitle",
+              "kind": "text",
+              "content": "Manager cascade pack — brief your team before 1 September",
+              "sources": [
+                "brief:audiences.A2.required_action",
+                "cc-leader-briefing-deck-example"
+              ]
+            },
+            {
+              "placeholder": "meta",
+              "kind": "text",
+              "content": "DRAFT FOR PRACTITIONER REVIEW · For people managers · Marcus Bell, Chief People Officer",
+              "sources": [
+                "brief:governance.sender"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "why-now",
+      "title": "Why this, why now",
+      "order": 2,
+      "message_ids": [
+        "M3"
+      ],
+      "audience_ids": [
+        "A2"
+      ],
+      "slides": [
+        {
+          "slide_id": "deck-why",
+          "part_kind": "content",
+          "layout": "title-and-content",
+          "title": "Why this, why now",
+          "speaker_notes": "Your team will ask why. Lead with the survey — this is something colleagues asked for, twice. The system end-of-support is the second reason, not the first; leading with it makes the change sound like something being done to people rather than for them.",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "The reason",
+              "sources": [
+                "cc-leader-briefing-deck-example"
+              ]
+            },
+            {
+              "placeholder": "body",
+              "kind": "bullets",
+              "content": [
+                "Colleagues asked for it — more frequent pay was the top request in the last two engagement surveys",
+                "The current payroll system loses vendor support in March 2027",
+                "Doing both at once means one change for colleagues, not two"
+              ],
+              "sources": [
+                "brief:change.rationale",
+                "brief:key_messages.M3"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "whats-changing",
+      "title": "What's changing and what isn't",
+      "order": 3,
+      "message_ids": [
+        "M1",
+        "M2",
+        "M6",
+        "M7"
+      ],
+      "audience_ids": [
+        "A2"
+      ],
+      "milestone_ids": [
+        "T3"
+      ],
+      "slides": [
+        {
+          "slide_id": "deck-changing",
+          "part_kind": "whats-changing",
+          "layout": "two-content",
+          "title": "What's changing — and what isn't",
+          "speaker_notes": "Spend more time on the right-hand column than the left. The reassurance is what your team actually needs; the mechanics they can read later. If you only land one thing from this slide, land that total annual pay is unchanged.",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "The change in one slide",
+              "sources": [
+                "cc-leader-briefing-deck-example"
+              ]
+            },
+            {
+              "placeholder": "left_heading",
+              "kind": "text",
+              "content": "What's changing",
+              "sources": [
+                "cc-leader-briefing-deck-example"
+              ]
+            },
+            {
+              "placeholder": "left",
+              "kind": "bullets",
+              "content": [
+                "Pay moves from monthly to twice monthly — the 15th and the last working day",
+                "Payslips and tax documents move to the colleague portal",
+                "Managers approve their team's timesheets, instead of payroll doing it centrally"
+              ],
+              "sources": [
+                "brief:key_messages.M1",
+                "brief:key_messages.M7",
+                "brief:key_messages.M5"
+              ]
+            },
+            {
+              "placeholder": "right_heading",
+              "kind": "text",
+              "content": "What's not changing",
+              "sources": [
+                "cb-whats-not-changing-example"
+              ]
+            },
+            {
+              "placeholder": "right",
+              "kind": "bullets",
+              "content": [
+                "Total annual pay — the same amount, across two dates",
+                "Contracts, hours, grades and holiday entitlement",
+                "Pension contributions, overtime and shift premiums",
+                "Nobody's job, grade or role is affected by this"
+              ],
+              "sources": [
+                "brief:change.what_is_not_changing",
+                "brief:key_messages.M2",
+                "brief:key_messages.M6",
+                "cb-whats-not-changing-example"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "who-is-affected",
+      "title": "Who's affected",
+      "order": 4,
+      "message_ids": [
+        "M1"
+      ],
+      "audience_ids": [
+        "A2"
+      ],
+      "slides": [
+        {
+          "slide_id": "deck-who",
+          "part_kind": "who-is-affected",
+          "layout": "table",
+          "title": "Who's affected, and how",
+          "speaker_notes": "Find your own team in this table before you brief. If you manage a mix of employed and agency people, be clear that agency workers are not affected — that question comes up on every site.",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "By group",
+              "sources": [
+                "cc-leader-briefing-deck-example"
+              ]
+            },
+            {
+              "placeholder": "table",
+              "kind": "table",
+              "content": {
+                "headers": [
+                  "Group",
+                  "Impact",
+                  "What they must do",
+                  "By when"
+                ],
+                "rows": [
+                  [
+                    "All colleagues (2,400)",
+                    "High",
+                    "Activate the portal, check bank details",
+                    "14 September"
+                  ],
+                  [
+                    "People managers (310)",
+                    "High",
+                    "Complete approval training, brief your team",
+                    "21 September"
+                  ],
+                  [
+                    "Payroll and finance (14)",
+                    "High",
+                    "System training and the parallel run",
+                    "30 September"
+                  ],
+                  [
+                    "Contractors and agency (180)",
+                    "Information only",
+                    "Nothing",
+                    "—"
+                  ]
+                ]
+              },
+              "sources": [
+                "brief:audiences.A1",
+                "brief:audiences.A2",
+                "brief:audiences.A3",
+                "brief:audiences.A4"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "timeline",
+      "title": "Key dates",
+      "order": 5,
+      "message_ids": [
+        "M1"
+      ],
+      "audience_ids": [
+        "A2"
+      ],
+      "milestone_ids": [
+        "T1",
+        "T2",
+        "T3",
+        "T4"
+      ],
+      "slides": [
+        {
+          "slide_id": "deck-timeline",
+          "part_kind": "timeline",
+          "layout": "timeline",
+          "title": "Key dates",
+          "speaker_notes": "The November date is indicative, not confirmed. Say so out loud — if you present it as fixed and it moves, you personally lose credibility with your team, not the programme.",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "Between now and go-live",
+              "sources": [
+                "cc-leader-briefing-deck-example"
+              ]
+            },
+            {
+              "placeholder": "phases",
+              "kind": "phases",
+              "content": [
+                {
+                  "name": "14 September",
+                  "when": "Colleagues",
+                  "detail": "Portal activation deadline for everyone"
+                },
+                {
+                  "name": "21 September",
+                  "when": "You",
+                  "detail": "Timesheet approval training complete"
+                },
+                {
+                  "name": "1 October",
+                  "when": "Everyone",
+                  "detail": "First semi-monthly pay period begins"
+                },
+                {
+                  "name": "End of November",
+                  "when": "Indicative",
+                  "detail": "Paper payslips withdrawn — this date is currently indicative and expected to move"
+                }
+              ],
+              "sources": [
+                "brief:milestones.T1",
+                "brief:milestones.T2",
+                "brief:milestones.T3",
+                "brief:milestones.T4"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "your-action",
+      "title": "What we're asking of you",
+      "order": 6,
+      "message_ids": [
+        "M5"
+      ],
+      "audience_ids": [
+        "A2"
+      ],
+      "milestone_ids": [
+        "T2"
+      ],
+      "slides": [
+        {
+          "slide_id": "deck-action",
+          "part_kind": "your-action",
+          "layout": "title-and-content",
+          "title": "What we're asking of you",
+          "speaker_notes": "Be honest that this is new work. It is roughly ten minutes a fortnight once you are in the rhythm. Pretending it is nothing is how you lose the room.",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "Your action",
+              "sources": [
+                "cc-leader-briefing-deck-example"
+              ]
+            },
+            {
+              "placeholder": "body",
+              "kind": "bullets",
+              "content": [
+                "Complete the timesheet approval training by 21 September — 45 minutes",
+                "Brief your team using this pack before the all-colleague email on 1 September",
+                "From October, approve your team's timesheets each pay period",
+                "Check your team have activated the portal by 14 September"
+              ],
+              "sources": [
+                "brief:audiences.A2.required_action",
+                "brief:key_messages.M5"
+              ]
+            }
+          ]
+        },
+        {
+          "slide_id": "deck-cover",
+          "part_kind": "content",
+          "layout": "title-and-content",
+          "title": "If you're on leave when approvals are due",
+          "speaker_notes": "This is the question managers ask first, and we do not yet have a full answer.",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "Cover arrangements",
+              "sources": [
+                "cc-leader-briefing-deck-example"
+              ]
+            },
+            {
+              "placeholder": "body",
+              "kind": "paragraph",
+              "content": "",
+              "gap": true,
+              "gap_note": "No delegation or cover process has been defined for managers on leave during an approval window. This is the first question managers ask, and leaves M5 exposed for anyone with planned leave in October. Payroll must confirm the delegation route before this pack is cascaded."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "objections",
+      "title": "Questions you'll be asked",
+      "order": 7,
+      "message_ids": [
+        "M2",
+        "M6"
+      ],
+      "audience_ids": [
+        "A2"
+      ],
+      "slides": [
+        {
+          "slide_id": "deck-objections",
+          "part_kind": "objections",
+          "layout": "table",
+          "title": "Questions you'll be asked",
+          "speaker_notes": "Read these before you brief. An ambush on the first question loses you the rest of the session, and you only get one attempt at this.",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "Anticipated objections",
+              "sources": [
+                "cc-leader-briefing-deck-example"
+              ]
+            },
+            {
+              "placeholder": "table",
+              "kind": "table",
+              "content": {
+                "headers": [
+                  "They'll ask",
+                  "You can say"
+                ],
+                "rows": [
+                  [
+                    "Am I being paid less?",
+                    "No. The same annual amount, paid across two dates instead of one."
+                  ],
+                  [
+                    "Does this mean job losses?",
+                    "No. This changes how pay is processed, not what anyone does or what they're paid."
+                  ],
+                  [
+                    "What about my direct debits?",
+                    "Most people will be better off with two dates, but check anything timed to the old pay date. Payroll support can talk it through."
+                  ],
+                  [
+                    "I don't have a work computer.",
+                    "The portal works on any phone, and there are kiosks in every site canteen."
+                  ],
+                  [
+                    "Why now, when everything else is changing?",
+                    "Colleagues asked for it twice in engagement surveys, and the old system loses support in March 2027."
+                  ]
+                ]
+              },
+              "sources": [
+                "brief:key_messages.M2",
+                "brief:key_messages.M6",
+                "brief:audiences.A1.concerns",
+                "brief:audiences.A2.concerns",
+                "cc-leader-briefing-deck-example"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "help",
+      "title": "Support",
+      "order": 8,
+      "message_ids": [],
+      "audience_ids": [
+        "A2"
+      ],
+      "slides": [
+        {
+          "slide_id": "deck-help",
+          "part_kind": "help",
+          "layout": "title-and-content",
+          "title": "Where to send questions you can't answer",
+          "speaker_notes": "You are not expected to know everything about payroll. Sending someone to the right place is a complete answer, and it is better than guessing.",
+          "blocks": [
+            {
+              "placeholder": "kicker",
+              "kind": "text",
+              "content": "Support",
+              "sources": [
+                "cb-help-and-support-routes-example"
+              ]
+            },
+            {
+              "placeholder": "body",
+              "kind": "bullets",
+              "content": [
+                "Payroll support: payroll.support@northwindfoods.example, Monday to Friday, 8am to 6pm",
+                "Portal activation not working after two working days: People team, extension 4400",
+                "Anything about an individual's pay or contract: Payroll support, not your own judgement",
+                "Large print or printed copies available from the People team on request"
+              ],
+              "sources": [
+                "brief:governance.help_route",
+                "brief:constraints.accessibility_requirements",
+                "cb-help-and-support-routes-example"
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "design_provenance": "generated-unapproved"
+}

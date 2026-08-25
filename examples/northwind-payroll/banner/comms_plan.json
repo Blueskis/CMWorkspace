@@ -1,0 +1,96 @@
+{
+  "run_id": "northwind-banner-20260901",
+  "brief_ref": "../change_brief.json",
+  "brand_profile_ref": "../brand_profile.json",
+  "channel": "banner",
+  "client": "Northwind Foods",
+  "engagement_title": "Payroll change — intranet banner",
+  "design_provenance": "generated-unapproved",
+  "target_audience_ids": ["A1"],
+  "sender": "Northwind People team",
+  "send_window": "2026-09-01 to 2026-09-14",
+  "review_by": "Priya Raghavan",
+
+  "sections": [
+    {
+      "section_id": "headline",
+      "title": "Banner copy",
+      "order": 1,
+      "message_ids": ["M4"],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T1"],
+      "slides": [
+        {
+          "slide_id": "banner-headline",
+          "part_kind": "headline",
+          "title": "Headline",
+          "blocks": [
+            { "kind": "text", "content": "Activate your pay portal by 14 September",
+              "sources": ["brief:audiences.A1.required_action", "cc-go-live-email-example"] }
+          ]
+        },
+        {
+          "slide_id": "banner-subhead",
+          "part_kind": "subhead",
+          "title": "Body line",
+          "blocks": [
+            { "kind": "text", "content": "Pay moves to twice a month from 1 October. Ten minutes now.",
+              "sources": ["brief:key_messages.M1", "brief:audiences.A1.required_action"] }
+          ]
+        },
+        {
+          "slide_id": "banner-cta",
+          "part_kind": "cta",
+          "title": "Call to action",
+          "blocks": [
+            { "kind": "text", "content": "Activate now",
+              "sources": ["brief:audiences.A1.required_action"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "your-action",
+      "title": "Destination",
+      "order": 2,
+      "message_ids": ["M4"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "banner-destination",
+          "part_kind": "placement-spec",
+          "title": "Placement and destination",
+          "blocks": [
+            { "kind": "bullets",
+              "content": [
+                "Destination: the payroll change hub on the intranet, where the full detail lives",
+                "Display window: 1 to 14 September, retired the day after the deadline",
+                "Alt text must carry the deadline — the text is baked into the image and invisible to screen readers",
+                "All copy inside the safe area; it is clipped on narrow viewports otherwise"
+              ],
+              "sources": ["brief:constraints.accessibility_requirements", "cb-help-and-support-routes-example"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "help",
+      "title": "Support",
+      "order": 3,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "banner-help",
+          "part_kind": "help",
+          "title": "Support line",
+          "blocks": [
+            { "kind": "text",
+              "content": "Questions: payroll.support@northwindfoods.example",
+              "sources": ["brief:governance.help_route", "cb-help-and-support-routes-example"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

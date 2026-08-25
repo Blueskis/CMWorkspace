@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
-"""Render a comms plan into a Markdown draft (Stage 3, all four channels).
+"""Render a comms plan into a Markdown draft (Stage 3a, every channel).
 
     python render_markdown.py comms_plan.json -o comms/<run>/draft.md
     python render_markdown.py comms_plan.json --brand brand_profile.json -o draft.md
 
-Shapes the document by channel: an email comes out as subject/preheader headers followed by
-body copy; a banner as a copy block plus an explicit placement spec; a slide deck as
-slide-by-slide copy with speaker notes; a video as a scene table with an estimated runtime.
-The plan's block vocabulary is shared with the proposal generator, so the same plan that
-renders here also renders to HTML through render_html.py when the channel is slide_deck.
+Shapes the document by channel, dispatching on schemas/channel_registry.json: an email as
+subject/preheader headers over body copy; an article as headline, standfirst and sectioned
+prose; a briefing deck slide-by-slide with speaker notes; a newsletter as skimmable
+sections; a banner as copy plus a placement spec; a video as a scene table with an
+estimated runtime.
+
+This is the REVIEWABLE draft, not the deliverable. It is what a practitioner reads and what
+qa_comms.py audits. Once QA passes, route_channel.py routes the same plan to the producer
+that builds the real artifact — .docx, .pptx or a Canva design.
 
 Two things this renderer will not do quietly:
 
@@ -18,7 +22,7 @@ Two things this renderer will not do quietly:
     bank IDs and `brief:` references alike. Use `--sources hidden` only once the
     practitioner has reviewed the provenance.
 
-STATUS (v0.1): this produces a draft for a human to edit, not a sendable asset. It applies
+STATUS (v0.2): this produces a draft for a human to edit, not a sendable asset. It applies
 no brand colours — Markdown has none — so when a brand profile is passed its palette,
 typography and channel specs are emitted as an explicit spec block for whoever builds the
 final artifact. It does not send, schedule, or publish anything, and deliberately has no
@@ -31,15 +35,21 @@ import sys
 from datetime import date
 from pathlib import Path
 
-CHANNEL_LABEL = {
-    "email": "Email",
-    "sharepoint_banner": "SharePoint banner",
-    "slide_deck": "Slide deck",
-    "short_form_video": "Short-form video outline",
-}
+REGISTRY_PATH = Path(__file__).resolve().parent.parent / "schemas" / "channel_registry.json"
+
+
+def load_registry(path=None):
+    return json.loads(Path(path or REGISTRY_PATH).read_text(encoding="utf-8"))
+
+
+def channel_label(channel, registry):
+    entry = registry["channels"].get(channel) or {}
+    return entry.get("label", channel)
 
 # Parts an email renders as a labelled header line rather than a body section.
 EMAIL_HEADER_PARTS = ("subject", "preheader")
+# Same idea for an article: the furniture above the body copy.
+ARTICLE_HEADER_PARTS = ("headline", "standfirst")
 
 
 # --- block rendering -------------------------------------------------------
@@ -216,6 +226,72 @@ def render_email(plan, mode):
     return out
 
 
+def render_article(plan, mode):
+    """Headline and standfirst as furniture, then body copy under section headings."""
+    out = []
+    headers, body = [], []
+    for _, part in ordered_parts(plan):
+        (headers if part.get("part_kind") in ARTICLE_HEADER_PARTS else body).append(part)
+
+    for part in headers:
+        kind = part.get("part_kind")
+        text = body_of(part)
+        out.append(f"# {text}" if kind == "headline" else f"**{text}**")
+        line = sources_line(part, mode)
+        if line:
+            out.append(line)
+    if headers:
+        out.append("---")
+
+    words = 0
+    for part in body:
+        kind = part.get("part_kind")
+        if kind == "pull-quote":
+            # A pull quote is lifted from the body, not added to it — render it as a
+            # block quote and keep it out of the word count so it is not double-counted.
+            out.append(f"> {body_of(part)}")
+            line = sources_line(part, mode)
+            if line:
+                out.append(line)
+            continue
+        if part.get("title"):
+            out.append(f"## {part['title']}")
+        out.append(body_of(part))
+        line = sources_line(part, mode)
+        if line:
+            out.append(line)
+        words += all_words(part)
+
+    out.append("---")
+    out.append(f"*Body length: {words} words — excludes the headline, standfirst and any "
+               f"pull quote, which is the scope qa_comms.py checks `max_words` against.*")
+    return out
+
+
+def render_newsletter(plan, mode):
+    """Sections a reader skims. Each carries its own heading and, where present, a CTA."""
+    out = []
+    for _, part in ordered_parts(plan):
+        kind = part.get("part_kind")
+        if kind == "headline":
+            out.append(f"# {body_of(part)}")
+        elif kind == "standfirst":
+            out.append(f"**{body_of(part)}**")
+        elif kind == "cta":
+            out.append(f"**Call to action:** {body_of(part)}")
+        elif kind == "placement-spec":
+            out.append("### Placement")
+            out.append(body_of(part))
+        else:
+            if part.get("title"):
+                out.append(f"## {part['title']}")
+            out.append(body_of(part))
+        line = sources_line(part, mode)
+        if line:
+            out.append(line)
+    return out
+
+
 def render_banner(plan, mode):
     out = []
     for _, part in ordered_parts(plan):
@@ -254,7 +330,7 @@ def render_deck(plan, mode):
 
 
 def render_video(plan, brand, mode):
-    specs = (brand or {}).get("channel_specs", {}).get("short_form_video", {})
+    specs = (brand or {}).get("channel_specs", {}).get(plan["channel"], {})
     wpm = specs.get("words_per_minute", 150)
     limit = specs.get("max_duration_seconds")
 
@@ -343,11 +419,11 @@ def brand_block(brand, channel):
 # --- document assembly -----------------------------------------------------
 
 
-def render(plan, brand, mode):
+def render(plan, brand, mode, registry):
     channel = plan["channel"]
     title = plan.get("engagement_title") or plan.get("run_id", "")
     out = [f"# {title}",
-           f"**{CHANNEL_LABEL.get(channel, channel)} — DRAFT FOR PRACTITIONER REVIEW**"]
+           f"**{channel_label(channel, registry)} — DRAFT FOR PRACTITIONER REVIEW**"]
 
     meta = [
         f"- **Client:** {plan.get('client', '—')}",
@@ -363,16 +439,19 @@ def render(plan, brand, mode):
     # otherwise double-space every bullet.
     out += ["\n".join(meta), "---"]
 
-    if channel == "email":
-        out += render_email(plan, mode)
-    elif channel == "sharepoint_banner":
-        out += render_banner(plan, mode)
-    elif channel == "slide_deck":
-        out += render_deck(plan, mode)
-    elif channel == "short_form_video":
-        out += render_video(plan, brand, mode)
-    else:
-        sys.exit(f"unknown channel '{channel}'")
+    renderers = {
+        "email": lambda: render_email(plan, mode),
+        "article": lambda: render_article(plan, mode),
+        "briefing_deck": lambda: render_deck(plan, mode),
+        "newsletter": lambda: render_newsletter(plan, mode),
+        "banner": lambda: render_banner(plan, mode),
+        "short_form_video": lambda: render_video(plan, brand, mode),
+        "explainer_video": lambda: render_video(plan, brand, mode),
+    }
+    if channel not in renderers:
+        sys.exit(f"no renderer for channel '{channel}' — "
+                 f"known: {', '.join(sorted(renderers))}")
+    out += renderers[channel]()
 
     block = brand_block(brand, channel)
     out += ["---", block[0], "\n".join(block[2:])]
@@ -396,14 +475,19 @@ def main():
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
     brand = json.loads(args.brand.read_text(encoding="utf-8")) if args.brand else None
 
-    doc = render(plan, brand, args.sources)
+    registry = load_registry()
+    doc = render(plan, brand, args.sources, registry)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(doc + "\n", encoding="utf-8")
 
     parts = sum(1 for _ in ordered_parts(plan))
     gaps = sum(1 for _, p in ordered_parts(plan)
                for b in p["blocks"] if b.get("gap"))
+    entry = registry["channels"].get(plan["channel"], {})
     print(f"Rendered {parts} part(s) -> {args.out}  [{plan['channel']}]")
+    if entry.get("producer"):
+        print(f"  produces via {entry['producer']} ({entry.get('status', '?')}) — "
+              f"run route_channel.py for the production route")
     if gaps:
         print(f"  {gaps} [GAP] block(s) rendered visibly — see qa_report.md for the action list")
     if not brand:

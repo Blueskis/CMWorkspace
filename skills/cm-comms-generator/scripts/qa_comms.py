@@ -15,13 +15,19 @@ Six checks. The first five exit non-zero on violation; the sixth reports.
   5. Channel specs       stated character, slide and runtime limits are respected; banned
                          words and prohibited terms are absent; market-sensitive messages
                          are not on an open channel; indicative dates are hedged
+  5b. Design provenance  a generated (tool-invented) design is flagged as needing client
+                         sign-off, even when the copy itself passes
   6. The six questions   what / why / who / when / what-do-I-do / where-do-I-get-help
+
+Per-channel limits come from schemas/channel_registry.json, so a default is stated in one
+place and shared with route_channel.py and render_markdown.py. A limit the brand profile
+states is a hard failure; a registry default only warns.
 
 Coverage is computed against `plan.target_audience_ids`, NOT the whole brief. A single-
 audience email must not fail for omitting messages aimed at a different segment — those are
 reported as out of scope for this run instead.
 
-STATUS (v0.1): this checks what is computable. Whether the draft is *good* — whether the
+STATUS (v0.2): this checks what is computable. Whether the draft is *good* — whether the
 tone lands, whether the rationale persuades, whether the deck looks like the client's brand
 — is not computable, and the human checklist at the end of the report says so rather than
 implying the machine has covered it.
@@ -35,24 +41,45 @@ from datetime import date
 from pathlib import Path
 
 ACTION_PARTS = {"your-action", "cta"}
+# Channels whose part vocabulary has no "your-action" kind (a video uses scenes)
+# still carry the action in the section the library names for it.
+ACTION_SECTIONS = {"your-action", "cta"}
 HEX_IN_TEXT_RE = re.compile(r"#[0-9a-fA-F]{6}\b")
 HEDGES = ("expect", "around", "approximately", "indicative", "provisional", "planned",
           "currently", "subject to", "aim", "targeting", "estimated", "tbc", "early ",
           "mid ", "late ")
 
-# Channel-library defaults, used only where the brand profile states no limit.
-DEFAULT_SPECS = {
-    "email": {"subject_max_chars": 50, "preheader_max_chars": 90, "max_words": 300},
-    "sharepoint_banner": {"headline_max_chars": 60, "body_max_chars": 120,
-                          "cta_max_chars": 25},
-    "slide_deck": {"max_slides": 12, "bullets_per_slide_max": 5},
-    "short_form_video": {"max_duration_seconds": 90, "words_per_minute": 150},
-}
+# Channel defaults live in the registry, so a limit is stated in exactly one place.
+REGISTRY_PATH = Path(__file__).resolve().parent.parent / "schemas" / "channel_registry.json"
+
+
+def load_registry(path=None):
+    return json.loads(Path(path or REGISTRY_PATH).read_text(encoding="utf-8"))
+
+
+def registry_specs(channel, registry=None):
+    registry = registry or load_registry()
+    return dict((registry["channels"].get(channel) or {}).get("default_specs", {}))
+
+
+def requires_signature(channel, registry=None):
+    registry = registry or load_registry()
+    return (registry["channels"].get(channel) or {}).get("requires_signature", True)
+
+
+def coverage_mode(channel, registry=None):
+    """'full' = must carry every in-scope must-land message. 'signpost' = a banner or a
+    30-second clip: carries one message and points at where the detail lives. Holding a
+    signpost to full coverage forces content onto it the channel library says must not
+    be there."""
+    registry = registry or load_registry()
+    return (registry["channels"].get(channel) or {}).get("coverage_mode", "full")
+
 
 # The six questions, and the part kinds that answer each.
 SIX_QUESTIONS = {
-    "what's changing": {"whats-changing", "headline", "subject"},
-    "why": {"opening", "whats-changing", "content"},
+    "what's changing": {"whats-changing", "headline", "subject", "standfirst"},
+    "why": {"opening", "whats-changing", "content", "standfirst"},
     "who's affected": {"who-is-affected"},
     "when": {"timeline"},
     "what do I do": {"your-action", "cta"},
@@ -163,14 +190,32 @@ def audit(brief, plan, brand):
     r["coverage"] = {"in_scope": sorted(in_scope), "out_of_scope": sorted(out_of_scope),
                      "planned": sorted(planned_messages)}
 
+    mode = coverage_mode(channel)
+    r["coverage"]["mode"] = mode
+    must_in_scope = [m for m in in_scope if messages[m].get("priority") == "must-land"]
+
     for mid in sorted(in_scope):
         if mid in planned_messages:
             continue
-        if messages[mid].get("priority") == "must-land":
+        is_must = messages[mid].get("priority") == "must-land"
+        if is_must and mode == "full":
             r["fail"].append(f"must-land message {mid} is not carried by any part: "
                              f"\"{messages[mid]['text'][:70]}\"")
+        elif is_must:
+            r["info"].append(f"must-land message {mid} is not on this signpost — it must be "
+                             f"carried by the channel this one points at")
         else:
             r["warn"].append(f"supporting message {mid} is not carried by any part")
+
+    if mode == "signpost":
+        # A signpost carrying nothing is just decoration.
+        if must_in_scope and not (set(must_in_scope) & planned_messages):
+            r["fail"].append("this signpost carries none of the must-land messages in scope "
+                             "— it has nothing to say")
+        kinds_present = {p.get("part_kind") for _, p in parts_of(plan)}
+        if not (kinds_present & {"cta", "placement-spec"}):
+            r["fail"].append("a signpost must point somewhere — no cta or placement-spec "
+                             "part gives the reader anywhere to go for the full detail")
 
     for mid in sorted(planned_messages - set(messages)):
         r["fail"].append(f"plan references unknown message {mid} — mapping error")
@@ -194,17 +239,18 @@ def audit(brief, plan, brand):
             r["info"].append(f"{aid} has no required action (optional: true)")
             continue
         action_text = " ".join(
-            part_text(p) for _, p in parts_of(plan)
+            part_text(p) for s, p in parts_of(plan)
             if p.get("part_kind") in ACTION_PARTS
+            or s.get("section_id") in ACTION_SECTIONS
         )
         if not action_text.strip():
             r["fail"].append(f"audience {aid} has a required action but the draft has no "
-                             f"'{'/'.join(sorted(ACTION_PARTS))}' part")
+                             f"action part or '{'/'.join(sorted(ACTION_SECTIONS))}' section")
         elif not _mentions_action(action_text, action.get("action", "")):
             r["warn"].append(f"audience {aid}'s required action may not be stated in the "
                              f"action part — check: \"{action.get('action', '')[:60]}\"")
-        if aud.get("whats_in_it_for_me") and not _shares_vocabulary(
-                lower, aud["whats_in_it_for_me"]):
+        if (mode == "full" and aud.get("whats_in_it_for_me")
+                and not _shares_vocabulary(lower, aud["whats_in_it_for_me"])):
             r["warn"].append(f"audience {aid}'s WIIFM does not appear to be reflected "
                              f"anywhere in the draft")
 
@@ -250,7 +296,7 @@ def audit(brief, plan, brand):
                                  f"likely extracted rather than authored")
 
     # --- 5. channel specs
-    specs = dict(DEFAULT_SPECS.get(channel, {}))
+    specs = registry_specs(channel)
     stated = (brand.get("channel_specs") or {}).get(channel, {})
     specs.update(stated)
 
@@ -274,9 +320,13 @@ def audit(brief, plan, brand):
             limit_check("headline", len(body), "headline_max_chars")
         elif kind == "subhead":
             limit_check("banner body line", len(body), "body_max_chars")
+        elif kind == "standfirst":
+            limit_check("standfirst", len(body), "standfirst_max_chars")
+        elif kind == "section-heading":
+            limit_check("newsletter section", len(body), "section_max_chars")
         elif kind == "cta":
             limit_check("CTA label", len(body), "cta_max_chars")
-        if channel == "slide_deck":
+        if channel == "briefing_deck":
             for block in part.get("blocks", []):
                 if block.get("kind") == "bullets" and isinstance(block.get("content"), list):
                     limit_check(f"{part['slide_id']} bullet count",
@@ -285,9 +335,16 @@ def audit(brief, plan, brand):
     if channel == "email":
         limit_check("email body", word_count(plan, exclude_kinds=("subject", "preheader")),
                     "max_words", "words")
-    if channel == "slide_deck":
+    if channel == "article":
+        # Same scope render_markdown.py reports: a pull quote is lifted FROM the
+        # body, so counting it would double-count those words.
+        limit_check("article body",
+                    word_count(plan, exclude_kinds=("headline", "standfirst",
+                                                    "pull-quote")),
+                    "max_words", "words")
+    if channel == "briefing_deck":
         limit_check("deck", sum(1 for _ in parts_of(plan)), "max_slides", "slides")
-    if channel == "short_form_video":
+    if channel in ("short_form_video", "explainer_video"):
         wpm = specs.get("words_per_minute", 150)
         runtime = round(word_count(plan) / wpm * 60, 1)
         r["info"].append(f"estimated runtime {runtime}s at {wpm} wpm")
@@ -306,11 +363,11 @@ def audit(brief, plan, brand):
                              f"\"{use}\"")
 
     # sensitivity gate
-    if channel == "sharepoint_banner":
+    if channel in ("banner", "newsletter"):
         for mid in sorted(planned_messages & set(messages)):
             if messages[mid].get("sensitivity") == "market-sensitive":
-                r["fail"].append(f"market-sensitive message {mid} is planned onto a banner, "
-                                 f"which is an open channel with no audience control")
+                r["fail"].append(f"market-sensitive message {mid} is planned onto an open "
+                                 f"channel ({channel}) with no audience control")
 
     # indicative dates must be hedged
     for tid, milestone in milestones.items():
@@ -334,21 +391,43 @@ def audit(brief, plan, brand):
     # sender and help route
     sender = (brief.get("governance") or {}).get("sender") or {}
     if sender.get("name") and sender["name"].lower() not in lower:
-        r["fail"].append(f"the sender ({sender['name']}) is never named in the draft — a comm "
-                         f"with no signature reads as unattributed")
+        if mode == "full" and requires_signature(channel):
+            r["fail"].append(f"the sender ({sender['name']}) is never named in the draft — a "
+                             f"comm with no signature reads as unattributed")
+        else:
+            r["info"].append(f"the sender ({sender['name']}) is not named in the copy — "
+                             f"expected on this channel, where the messenger is carried by "
+                             f"the presenter or the placement rather than a signature")
     help_route = (brief.get("governance") or {}).get("help_route") or {}
     if help_route.get("detail") and help_route["detail"].lower() not in lower:
-        r["fail"].append(f"the help route ({help_route['detail']}) does not appear in the "
-                         f"draft — every required action needs a route for when it fails")
+        if mode == "full":
+            r["fail"].append(f"the help route ({help_route['detail']}) does not appear in the "
+                             f"draft — every required action needs a route for when it fails")
+        else:
+            r["warn"].append(f"the help route ({help_route['detail']}) is not on this signpost "
+                             f"— acceptable only if the destination it points at carries it")
 
     approver = (brief.get("governance") or {}).get("approver") or {}
     if not approver.get("approved"):
         r["warn"].append(f"not yet approved by {approver.get('name', 'the named approver')} — "
                          f"normal at draft stage, but it cannot be sent until it is")
 
+    # --- 5b. design provenance
+    provenance = plan.get("design_provenance", "not-applicable")
+    if provenance == "generated-unapproved":
+        r["warn"].append(
+            "design_provenance is 'generated-unapproved' — a tool invented this layout. "
+            "The copy has been checked; the DESIGN has not been approved by the client and "
+            "must be signed off before publish."
+        )
+    r["design_provenance"] = provenance
+
     # --- 6. the six questions
-    present_kinds = {p.get("part_kind") for _, p in parts_of(plan)}
-    missing = [q for q, kinds in SIX_QUESTIONS.items() if not (kinds & present_kinds)]
+    # Score on part kinds AND section ids: a video answers these in scenes, so the
+    # section is what identifies which question a passage is doing.
+    present = {p.get("part_kind") for _, p in parts_of(plan)}
+    present |= {s.get("section_id") for s, _ in parts_of(plan)}
+    missing = [q for q, kinds in SIX_QUESTIONS.items() if not (kinds & present)]
     r["six_questions"] = {"answered": [q for q in SIX_QUESTIONS if q not in missing],
                           "missing": missing}
     for q in missing:
@@ -398,6 +477,9 @@ def render(brief, plan, result):
 
     cov = result["coverage"]
     lines += ["### Message coverage", "",
+              f"- Mode: **{cov.get('mode', 'full')}**"
+              + ("  — a signpost carries one message and points at the detail"
+                 if cov.get("mode") == "signpost" else ""),
               f"- In scope for this run: {len(cov['in_scope'])} "
               f"({', '.join(cov['in_scope']) or '—'})",
               f"- Carried by the draft: {', '.join(cov['planned']) or '—'}",
@@ -414,6 +496,13 @@ def render(brief, plan, result):
     if prov["gaps"]:
         lines += ["#### Open gaps — the practitioner's action list", ""]
         lines += [f"- **{sid}** — {note}" for sid, note in prov["gaps"]] + [""]
+
+    prov_state = result.get("design_provenance", "not-applicable")
+    if prov_state != "not-applicable":
+        lines += ["### Design provenance", "",
+                  f"- `{prov_state}`" + ("  — **needs client sign-off before publish**"
+                                         if prov_state == "generated-unapproved" else ""),
+                  ""]
 
     six = result["six_questions"]
     lines += ["### The six questions", ""]

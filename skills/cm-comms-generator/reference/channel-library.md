@@ -1,8 +1,10 @@
 # Channel Library
 
-The four channels `cm-comms-generator` v0.1 drafts, what each is actually for, and how each
-one fails. Read the rules before the catalogue — they decide more outcomes than the anatomy
-does.
+The seven channels `cm-comms-generator` drafts, what each is actually for, and how each one
+fails. Read the rules before the catalogue — they decide more outcomes than the anatomy does.
+
+Which tool builds each one, and what to do when it is unreachable, is in
+`channel-routing.md`. This file is about the writing.
 
 ## Rules
 
@@ -26,8 +28,13 @@ on a segment, the manager brief goes *before* the mass channel — a line manage
 from the all-staff email is the fastest way to lose the cascade.
 
 **5. Sensitivity gates the channel.** A `market-sensitive` message may not be planned onto a
-`sharepoint_banner`, which is an open channel with no audience control. Checked mechanically in
-Stage 4.
+`banner` or a `newsletter` — both are open channels with no audience control. Checked
+mechanically in Stage 4.
+
+**5a. Some channels are signposts, not comms.** A `banner` and a `short_form_video` carry one
+message and point at where the detail lives; everything on them must exist in full somewhere
+they link to. QA scores them that way (`coverage_mode: signpost`), so do not stuff a signpost
+with the whole story to make coverage look better — that is the failure, not the fix.
 
 **6. One primary action per comm.** A second call to action roughly halves compliance on the
 first. Where a segment genuinely has two actions, sequence them across sends rather than
@@ -72,7 +79,7 @@ link with no statement of what it does. Sending to all-staff because segmenting 
 
 ---
 
-## SharePoint banner
+## Banner
 
 **Purpose.** Ambient awareness and a route to the detail. It is a signpost, not a comm.
 
@@ -93,10 +100,56 @@ who have not been told through an owned channel first.
 
 ---
 
-## Slide deck
+## Article
+
+**Purpose.** The considered version — an intranet or newsletter piece someone reads because
+they want the whole story, not because an action is chasing them.
+
+**The right choice when** the change has a rationale worth explaining at length, when
+speculation needs answering in public, or when a comm has already gone out and people now want
+the detail behind it. It is the channel that persuades; the email is the channel that instructs.
+
+**Anatomy.** `headline` → `standfirst` (the one-paragraph promise of what the reader gets) →
+opening → why this, why now → what's changing → `pull-quote` → what's not changing → who's
+affected → what you need to do → timeline → where to get help → byline.
+
+**Constraints.** Headline ≤ 80 characters; standfirst ≤ 200; body ≤ 900 words. One pull quote
+per screen at most. A byline with a real person, because an unattributed article about pay
+reads as a press release.
+
+**Failure modes.** An article that is really a long email — if it opens with an instruction and
+a deadline, it should have been an email. Burying the rationale under programme background.
+A pull quote that repeats the sentence directly above it. Writing to the length of what you
+know rather than what the reader needs.
+
+---
+
+## Newsletter
+
+**Purpose.** A periodic round-up carrying several items, of which this change is one. It
+reaches people who are not currently thinking about the change at all.
+
+**The right choice when** you need sustained visibility across a programme rather than a single
+announcement; when the change is one of several things an audience must track; when reinforcing
+something already sent through a direct channel.
+
+**Anatomy.** `headline` → `standfirst` → stacked `section-heading` blocks, each self-contained →
+`cta` → placement and distribution spec.
+
+**Constraints.** Headline ≤ 70 characters; each section ≤ 220; at most six sections before it
+stops being read. Every section stands alone — assume nobody reads to the end, and put nothing
+in the last section that matters.
+
+**Failure modes.** Burying a deadline in item four. Sections that depend on each other in order.
+Recycling the email verbatim, which tells subscribers the newsletter carries nothing new. Letting
+the round-up become the only place an action was ever stated.
+
+---
+
+## Briefing deck
 
 **Purpose.** A briefing someone *presents* — a manager cascade pack, a town hall, a leadership
-pre-brief. This is the only channel that also renders to HTML.
+pre-brief. Builds as `.pptx`, on the client's own `.potx` wherever one exists.
 
 **The right choice when** the message needs a human in the room, or the audience needs to ask
 questions; whenever `manager_cascade_required` is set on the target segment.
@@ -115,10 +168,10 @@ are not needed.
 
 ---
 
-## Short-form video outline
+## Short-form video
 
-**Purpose.** A script and shot outline for a 30–90 second explainer. **The output is an outline
-for a producer, not a video.** Say so at handover.
+**Purpose.** A script and shot outline for a 30–90 second clip. **The output is a production
+spec for a producer, not a video.** Say so at handover.
 
 **The right choice when** the change is visual or procedural — a new screen, a new physical
 process — and demonstration beats description; when reach matters more than depth.
@@ -136,18 +189,47 @@ is `confirmed`, or the asset dates itself the moment the plan slips.
 have dropped off. On-screen text too small to read on a phone. Handing the outline over as
 though it were a finished asset.
 
+It is a **signpost**: one message, then point at the detail. Do not try to make a 60-second clip
+carry a whole change.
+
+---
+
+## Explainer video
+
+**Purpose.** A 2–5 minute walkthrough of a process or a system — the channel that shows rather
+than tells. Typically an on-screen presenter over screen capture.
+
+**The right choice when** the change is procedural and someone has to *do* something in a new
+interface; when a written instruction keeps generating the same support tickets; when the
+audience needs to see the screens before they meet them.
+
+**Anatomy.** Hook → why this, why now → what's changing and what isn't → `chapter` per task,
+each one a complete walkthrough → the deadline → where to get help → end card.
+
+**Constraints.** `max_duration_seconds` from the brand profile, typically 240–300. Chaptered, so
+someone stuck on step three can jump to it rather than rewatching. Captions mandatory. Runtime is
+estimated from word count at the brand's words-per-minute — a scene near its budget is over,
+because a real read has pauses.
+
+**Failure modes.** A talking head with no screen capture, which is a video of a memo. Recording
+the interface before it is final, so the video and the system disagree on day one. No chapters,
+so it is unusable as reference. Dates on screen that date the asset the moment a plan slips —
+only put a `confirmed` milestone on screen.
+
 ---
 
 ## Choosing when the practitioner has not chosen
 
 | Impact | Required action? | Sensitivity | Primary channel | Also required |
 |---|---|---|---|---|
-| High | Yes | routine / sensitive | Email | Manager cascade deck first |
-| High | No | routine | Email | Banner to sustain |
-| High | Any | market-sensitive | Manager cascade deck | Email after release; **never** a banner |
+| High | Yes | routine / sensitive | Email | Briefing deck cascade first |
+| High | No | routine | Article | Banner to sustain |
+| High | Any | market-sensitive | Briefing deck | Email after release; **never** a banner or newsletter |
 | Medium | Yes | routine | Email | — |
-| Medium | No | routine | Banner | Links to a hub page |
+| Medium | No | routine | Newsletter | Links to a hub page |
 | Low / informational | No | routine | Banner | — |
-| Any | Yes | routine, procedural | Email | Video outline if the action is a screen flow |
+| Any | Yes | routine, procedural | Email | Explainer video when the action is a screen flow |
+| Any | No | routine, contested | Article | Answers speculation in public |
+| Any | Yes | routine, high reach | Short-form video | Only alongside a channel carrying the detail |
 
 Recommend once, with the reason. Then build what was asked for.

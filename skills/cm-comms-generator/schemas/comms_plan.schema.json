@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "comms_plan.schema.json",
   "title": "Comms Plan",
-  "description": "The part-by-part build plan for ONE channel of ONE change. Deliberately key-compatible with proposal_plan.json so the slide-deck channel renders through cm-proposal-generator's existing build_deck.py and render_html.py with no modification to either.",
+  "description": "The part-by-part build plan for ONE channel of ONE change. Channel-neutral and auditable: QA runs on this, and production (Stage 3b) is routed from it via channel_registry.json. The briefing_deck shape stays key-compatible with proposal_plan.json so cm-proposal-generator's build_deck.py validates it against a client .potx unchanged.",
   "type": "object",
   "required": ["run_id", "brief_ref", "channel", "client", "target_audience_ids", "sections"],
   "properties": {
@@ -13,15 +13,22 @@
     },
     "brand_profile_ref": { "type": "string" },
 
-    "channel": {
-      "enum": ["email", "sharepoint_banner", "slide_deck", "short_form_video"],
-      "description": "Exactly one per run. Cross-channel consistency comes from the shared brief, never from copying text between drafts."
+    "design_provenance": {
+      "enum": ["client-approved-template", "generated-unapproved", "not-applicable"],
+      "default": "not-applicable",
+      "description": "Who authored the DESIGN, as distinct from the copy. 'generated-unapproved' means a tool invented the layout (Canva generate-design, or a from-scratch deck) — the copy may have passed QA but the design still needs client sign-off before publish. Set by the producer, reported at handover."
     },
 
-    "client": { "type": "string", "description": "Read by render_html.py for slide footers." },
+    "channel": {
+      "enum": ["email", "article", "briefing_deck", "newsletter", "banner",
+               "short_form_video", "explainer_video"],
+      "description": "Exactly one per run. Cross-channel consistency comes from the shared brief, never from copying text between drafts. Each channel routes to a producer declared in channel_registry.json."
+    },
+
+    "client": { "type": "string", "description": "Carried onto the produced artifact — deck footers, document headers." },
     "engagement_title": {
       "type": "string",
-      "description": "The change title. render_html.py builds the HTML <title> from client + engagement_title, so populate both for the deck channel."
+      "description": "The change title. Becomes the document or deck title, so populate it alongside client for any produced artifact."
     },
 
     "target_audience_ids": {
@@ -37,18 +44,18 @@
 
     "template": {
       "type": "object",
-      "description": "Required for the slide_deck channel only. Point at the run-local branded copy produced by apply_brand.py, not at the shared template.",
+      "description": "The client's approved .potx for the briefing_deck channel. Omit it and the from-scratch route applies, which must be labelled UNAPPROVED TEMPLATE at handover.",
       "required": ["path"],
       "properties": {
         "path": { "type": "string" },
         "profile_ref": { "type": "string" },
-        "kind": { "enum": ["html", "pptx"], "default": "html" }
+        "kind": { "enum": ["pptx", "potx"], "default": "potx" }
       }
     },
 
     "slide_budget": {
       "type": "object",
-      "description": "Permitted but discouraged. render_html.py's over-limit warning is worded 'exceeds the RFP limit', which is nonsense in a comms run. Use brand_profile.channel_specs.slide_deck.max_slides and let qa_comms.py report it instead.",
+      "description": "Permitted but discouraged. Prefer brand_profile.channel_specs.briefing_deck.max_slides, which qa_comms.py enforces as a stated limit.",
       "properties": {
         "limit": { "type": ["integer", "null"] },
         "planned": { "type": "integer" }
@@ -74,7 +81,7 @@
           "milestone_ids": { "type": "array", "items": { "type": "string", "pattern": "^T[0-9]+$" } },
 
           "slides": {
-            "description": "One output unit each — a slide for slide_deck, a titled part for the other three channels. The key is named 'slides' on purpose: renaming it would force a change to build_deck.py, and that compatibility is what buys the deck channel for free.",
+            "description": "One output unit each — a slide for briefing_deck, a titled part for the other channels. The key is named 'slides' on purpose: renaming it would force a change to build_deck.py, and that compatibility is what buys the deck channel for free.",
             "type": "array",
             "minItems": 1,
             "items": {
@@ -87,15 +94,16 @@
                   "enum": [
                     "subject", "preheader", "opening", "whats-changing", "whats-not-changing",
                     "who-is-affected", "your-action", "timeline", "help", "signoff",
-                    "scene", "headline", "subhead", "cta", "placement-spec", "objections", "content"
+                    "scene", "chapter", "headline", "standfirst", "subhead", "section-heading",
+                    "pull-quote", "cta", "placement-spec", "objections", "content"
                   ],
                   "description": "Shapes the markdown output and drives the channel-spec checks in Stage 4."
                 },
                 "layout": {
                   "type": "string",
-                  "description": "Required for slide_deck only. Must name a layout present in the template profile."
+                  "description": "Required for briefing_deck only. Must name a layout present in the template profile."
                 },
-                "duration_seconds": { "type": "number", "description": "short_form_video scenes only." },
+                "duration_seconds": { "type": "number", "description": "short_form_video and explainer_video scenes only." },
                 "speaker_notes": {
                   "type": "string",
                   "description": "Every content slide in a cascade deck needs these. A deck without notes gets improvised, and the improvisation is what the audience remembers."
@@ -115,8 +123,9 @@
 
   "allOf": [
     {
-      "if": { "properties": { "channel": { "const": "slide_deck" } }, "required": ["channel"] },
-      "then": { "required": ["template", "engagement_title"] }
+      "$comment": "briefing_deck needs a title for the produced file. It does NOT require a template: omitting one selects the from-scratch route, which is legitimate and is labelled UNAPPROVED TEMPLATE at handover.",
+      "if": { "properties": { "channel": { "const": "briefing_deck" } }, "required": ["channel"] },
+      "then": { "required": ["engagement_title"] }
     }
   ],
 
@@ -127,11 +136,11 @@
       "properties": {
         "placeholder": {
           "type": "string",
-          "description": "Placeholder name from the template profile. Required for the slide_deck channel; ignored by the markdown renderer."
+          "description": "Placeholder name from the template profile. Required for the briefing_deck channel; ignored by the markdown renderer."
         },
         "kind": {
           "enum": ["text", "heading", "paragraph", "bullets", "table", "metric", "phases", "members", "image", "notes"],
-          "description": "Same vocabulary as proposal_plan, so one plan renders to both markdown and HTML. 'table' carries a video shot list; 'phases' carries a milestone timeline."
+          "description": "Same vocabulary as proposal_plan, so one plan renders to markdown and to every producer. 'table' carries a video shot list; 'phases' carries a milestone timeline."
         },
         "content": { "type": ["string", "array", "object"] },
         "sources": {

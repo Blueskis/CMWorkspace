@@ -1,0 +1,231 @@
+{
+  "run_id": "northwind-article-20260902",
+  "brief_ref": "../change_brief.json",
+  "brand_profile_ref": "../brand_profile.json",
+  "channel": "article",
+  "client": "Northwind Foods",
+  "engagement_title": "Why your pay is moving to twice a month",
+  "design_provenance": "generated-unapproved",
+  "target_audience_ids": ["A1"],
+  "sender": "Marcus Bell, Chief People Officer",
+  "send_window": "2026-09-02",
+  "review_by": "Priya Raghavan",
+
+  "sections": [
+    {
+      "section_id": "furniture",
+      "title": "Headline and standfirst",
+      "order": 1,
+      "message_ids": ["M1"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "article-headline",
+          "part_kind": "headline",
+          "title": "Headline",
+          "blocks": [
+            { "kind": "text", "content": "Why your pay is moving to twice a month",
+              "sources": ["brief:key_messages.M1", "ct-house-voice-example"] }
+          ]
+        },
+        {
+          "slide_id": "article-standfirst",
+          "part_kind": "standfirst",
+          "title": "Standfirst",
+          "blocks": [
+            { "kind": "text",
+              "content": "From 1 October you'll be paid on the 15th and the last working day. Here's why we're doing it, what it means for you, and the one thing you need to do before 14 September.",
+              "sources": ["brief:key_messages.M1", "brief:audiences.A1.required_action"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "opening",
+      "title": "The short version",
+      "order": 2,
+      "message_ids": ["M1", "M2"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "article-opening",
+          "part_kind": "opening",
+          "title": "The short version",
+          "blocks": [
+            { "kind": "paragraph",
+              "content": [
+                "Pay is changing on 1 October. Instead of one payment a month, you'll be paid twice — on the 15th and on the last working day.",
+                "Your total annual pay is not changing. The same amount arrives across two dates instead of one."
+              ],
+              "sources": ["brief:key_messages.M1", "brief:key_messages.M2"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "why-now",
+      "title": "Why we're doing this",
+      "order": 3,
+      "message_ids": ["M3"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "article-why",
+          "part_kind": "whats-changing",
+          "title": "Why we're doing this",
+          "blocks": [
+            { "kind": "paragraph",
+              "content": [
+                "You asked for it. More frequent pay was the single most requested change in each of our last two engagement surveys — most people find two dates easier to budget around than one.",
+                "There's a second reason. The payroll system we run today loses vendor support in March 2027. We'd have had to move anyway, so we're making both changes at once rather than disrupting everyone twice in a year."
+              ],
+              "sources": ["brief:change.rationale", "brief:key_messages.M3"] }
+          ]
+        },
+        {
+          "slide_id": "article-quote",
+          "part_kind": "pull-quote",
+          "title": "Pull quote",
+          "blocks": [
+            { "kind": "text",
+              "content": "More frequent pay was the top request in our last two engagement surveys.",
+              "sources": ["brief:key_messages.M3"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "whats-not-changing",
+      "title": "What isn't changing",
+      "order": 4,
+      "message_ids": ["M6"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "article-not-changing",
+          "part_kind": "whats-not-changing",
+          "title": "What isn't changing",
+          "blocks": [
+            { "kind": "bullets",
+              "content": [
+                "Your contract, hours, grade and holiday entitlement",
+                "Your pension contributions and when they're taken",
+                "How overtime and shift premiums are calculated",
+                "Your job. This is a change to how pay is processed, not to what anyone does or what they're paid."
+              ],
+              "sources": ["brief:change.what_is_not_changing", "brief:key_messages.M6",
+                          "cb-whats-not-changing-example"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "who-is-affected",
+      "title": "Who this affects",
+      "order": 5,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "article-who",
+          "part_kind": "who-is-affected",
+          "title": "Who this affects",
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "Everyone on the Northwind payroll, at every site in the UK and Ireland. If you're paid through an agency, your terms are set by your agency and this doesn't change them.",
+              "sources": ["brief:audiences.A1", "brief:audiences.A4"] },
+            { "kind": "paragraph", "content": "",
+              "gap": true,
+              "gap_note": "Whether agency-paid contractors see any change to payment timing is still unconfirmed — Procurement has not come back on the agency contracts. Do not publish the reassurance above until they do." }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "your-action",
+      "title": "What you need to do",
+      "order": 6,
+      "message_ids": ["M4"],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T1"],
+      "slides": [
+        {
+          "slide_id": "article-action",
+          "part_kind": "your-action",
+          "title": "What you need to do",
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "Activate your colleague portal account and check your bank details are correct, by 14 September. It takes about ten minutes. If your details are wrong on the first run, your pay will be delayed while we fix them.",
+              "sources": ["brief:audiences.A1.required_action", "cc-go-live-email-example"] },
+            { "kind": "paragraph",
+              "content": "You don't need a work computer — the portal works on any phone, and there are kiosks in every site canteen.",
+              "sources": ["brief:constraints.accessibility_requirements"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "timeline",
+      "title": "Key dates",
+      "order": 7,
+      "message_ids": ["M7"],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T1", "T3", "T4"],
+      "slides": [
+        {
+          "slide_id": "article-timeline",
+          "part_kind": "timeline",
+          "title": "Key dates",
+          "blocks": [
+            { "kind": "phases",
+              "content": [
+                { "when": "14 September", "name": "Activate your portal account" },
+                { "when": "30 September", "name": "Last paper payslip" },
+                { "when": "1 October", "name": "Semi-monthly pay begins" },
+                { "when": "Around end of November", "name": "Paper payslips withdrawn (date to be confirmed)" }
+              ],
+              "sources": ["brief:milestones.T1", "brief:milestones.T3", "brief:milestones.T4",
+                          "brief:key_messages.M7"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "help",
+      "title": "Where to get help",
+      "order": 8,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "article-help",
+          "part_kind": "help",
+          "title": "Where to get help",
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "Contact Payroll support at payroll.support@northwindfoods.example, Monday to Friday, 8am to 6pm. If activation hasn't worked after two working days, call the People team on 4400. We can send this in large print or on paper — just ask.",
+              "sources": ["brief:governance.help_route",
+                          "brief:constraints.accessibility_requirements",
+                          "cb-help-and-support-routes-example"] }
+          ]
+        },
+        {
+          "slide_id": "article-signoff",
+          "part_kind": "signoff",
+          "title": "",
+          "blocks": [
+            { "kind": "paragraph", "content": "Marcus Bell, Chief People Officer, Northwind Foods",
+              "sources": ["brief:governance.sender"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

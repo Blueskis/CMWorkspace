@@ -5,7 +5,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 | Skill | What it does |
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
-| `cm-comms-generator` | **v0.1 (MVP)** — a change + a chosen channel → a comms draft, on the client's approved brand |
+| `cm-comms-generator` | **v0.2** — a change + a chosen channel → a comms draft, routed to the tool that builds it (.docx / .pptx / Canva) |
 
 ## Proposal generator (v0.1, MVP)
 
@@ -52,7 +52,90 @@ python skills/cm-proposal-generator/scripts/qa_deck.py \
 12 slides, 8/8 requirements covered, 1 open `[GAP]`. See that folder's README for what
 each part demonstrates.
 
-### Setup before real use
+### What v0.1 does not do
+
+Pricing calculation, multi-lot bids, semantic search over the bank (retrieval is literal
+tag matching), and automated OOXML assembly — `build_deck.py` validates and sequences the
+build, then the `pptx` skill's template workflow executes it. Output is always a **draft
+for practitioner review**, never a submission-ready document.
+
+## Comms generator (v0.2)
+
+Takes a change — what's changing, who it affects, when, what they must do — plus the client's
+approved brand, produces a first-draft communication for one channel, and **routes it to the
+tool that actually builds the artifact**.
+
+| Channel | Builds as | Producer | Status |
+|---|---|---|---|
+| `email`, `article` | `.docx` | `docx` skill | live |
+| `briefing_deck` | `.pptx` | `pptx` skill | live |
+| `newsletter`, `banner` | Canva design | Canva MCP | needs the connector authorized |
+| `short_form_video` | scene spec + captions | ElevenLabs MCP | planned, v0.3 |
+| `explainer_video` | scene spec + captions | Synthesia MCP | planned, v0.3 |
+
+```
+change inputs ─▶ change_brief.json ──┐
+                                     ├─▶ comms_plan.json ─▶ draft.md ─▶ qa_report.md ─▶ route ─▶ artifact
+client brand  ─▶ brand_profile.json ─┘
+   INTAKE / BRAND                          PLAN (3a)         QA (4)      ROUTE (3b)
+```
+
+The brief is authored **once per change** and the brand profile **once per client**; only the
+plan, QA and routing stages repeat per channel. That is what stops two channels disagreeing
+about a go-live date.
+
+**QA gates production.** `route_channel.py` re-runs the audit itself and emits no production
+route while a hard failure stands — production is where a comm becomes expensive and externally
+visible, and the plan is where defects are cheap.
+
+**An unreachable producer is not a failed run.** When Canva is unauthorized or a video lane has
+no connector, the run exits 0 and the handoff artifact — a design brief with per-field copy, or
+a video spec with scene timing and captions — *is* the deliverable. The routing table lives in
+`schemas/channel_registry.json` as data, so a channel whose producer does not exist yet is a
+declared, supported state rather than a TODO.
+
+**Copy and design are approved separately.** `design_provenance` records when a tool invented
+the layout — a generated Canva design, a from-scratch deck. QA can pass the copy while the
+design still needs client sign-off, and the handover says so.
+
+Provenance has **three** valid states, not the proposal generator's two: a knowledge-bank entry
+ID, a `brief:` reference into the change brief, or an explicit `[GAP]`. Dangling `brief:`
+references fail the run, so the third state cannot become a loophole. Coverage is computed
+against the run's target audiences, and against the channel's `coverage_mode` — a banner is a
+signpost, not a full comm, and is scored as one.
+
+### Try it
+
+```bash
+python skills/cm-comms-generator/scripts/route_channel.py --list
+
+python skills/cm-comms-generator/scripts/qa_comms.py \
+    examples/northwind-payroll/change_brief.json \
+    examples/northwind-payroll/email/comms_plan.json \
+    --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/qa.md
+
+python skills/cm-comms-generator/scripts/build_docx.py \
+    examples/northwind-payroll/email/comms_plan.json \
+    --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/email
+NODE_PATH="$(npm root -g)" node /tmp/nw/email/build.js
+python skills/cm-comms-generator/scripts/verify_docx.py /tmp/nw/email/draft.docx \
+    --plan examples/northwind-payroll/email/comms_plan.json \
+    --brief examples/northwind-payroll/change_brief.json
+```
+
+One brief, five channel runs, four different producers. See that folder's README for what each
+demonstrates and the seventeen negative tests. The `.docx` builds need `npm install -g docx`.
+
+### What v0.2 does not do
+
+A sequenced multi-channel campaign, channels beyond the seven, sending or publishing anything,
+a rendered video, or any judgement about whether the tone lands. Output is always a **draft for
+practitioner review**, never an approved send — and a design a tool generated is never a design
+the client has approved.
+
+## Setup before real use
+
+Shared by both skills.
 
 1. **Fill the knowledge bank** at `proposal-assets/knowledge-bank/` — see the README
    there, and delete the `*-EXAMPLE.md` format exemplars so they can't be retrieved into a
@@ -67,76 +150,6 @@ each part demonstrates.
 4. **Always pass `--strict-section`** when retrieving. The bank is shared between both skills
    and the section is the only thing keeping a past staff email out of a live bid.
 
-### What v0.1 does not do
-
-Pricing calculation, multi-lot bids, semantic search over the bank (retrieval is literal
-tag matching), and automated OOXML assembly — `build_deck.py` validates and sequences the
-build, then the `pptx` skill's template workflow executes it. Output is always a **draft
-for practitioner review**, never a submission-ready document.
-
-## Comms generator (v0.1, MVP)
-
-Takes a change — what's changing, who it affects, when, what they must do — plus the client's
-approved brand, and produces a first-draft communication for one requested channel: **email**,
-**SharePoint banner**, **slide deck**, or **short-form video outline**.
-
-Four stages, and two of the artifacts are reusable assets rather than per-run output:
-
-```
-change inputs ─▶ change_brief.json ──┐
-                                     ├─▶ comms_plan.json ─▶ draft.md (+ deck.html) ─▶ qa_report.md
-client brand  ─▶ brand_profile.json ─┘
-   INTAKE / BRAND                          DRAFT                                          QA
-```
-
-The brief is authored **once per change** and the brand profile **once per client**; only the
-draft and QA stages repeat per channel. That is what stops two channels disagreeing about a
-go-live date.
-
-Provenance works differently here than in a bid, and it is the thing most likely to look like a
-bug. A comms draft is new writing about a new change, so most copy has no knowledge-bank
-ancestor. There are **three** valid states, not two: a knowledge-bank entry ID, a `brief:`
-reference into the change brief, or an explicit `[GAP]`. Dangling `brief:` references fail the
-run, so the third state cannot become a loophole.
-
-Coverage is computed against the run's **target audiences**, so a single-audience email is not
-failed for omitting messages aimed at a different segment.
-
-The slide-deck channel reuses `cm-proposal-generator`'s renderer **unmodified** — a comms deck
-plan is written in the same shape — with `apply_brand.py` recolouring the PoC template to the
-client's palette first, refusing any palette that fails the WCAG contrast floor.
-
-### Try it
-
-```bash
-python skills/cm-comms-generator/scripts/render_markdown.py \
-    examples/northwind-payroll/email/comms_plan.json \
-    --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/email/draft.md
-
-python skills/cm-comms-generator/scripts/qa_comms.py \
-    examples/northwind-payroll/change_brief.json \
-    examples/northwind-payroll/email/comms_plan.json \
-    --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/email/qa_report.md
-
-python skills/cm-comms-generator/scripts/apply_brand.py \
-    examples/northwind-payroll/brand_profile.json \
-    proposal-assets/templates/html-generic -o /tmp/nw/deck/template
-
-python skills/cm-proposal-generator/scripts/render_html.py \
-    examples/northwind-payroll/deck/comms_plan.json \
-    /tmp/nw/deck/template -o /tmp/nw/deck/deck.html
-```
-
-One brief, two channels: a 10-part email to all colleagues and a 9-slide manager cascade deck.
-One honest `[GAP]` in each. See that folder's README for what each part demonstrates and the
-nine negative tests.
-
-### What v0.1 does not do
-
-A sequenced multi-channel campaign, channels beyond the four, a sendable email or a built
-banner image, a `.pptx` on the client's own template, or any judgement about whether the tone
-lands. Output is always a **draft for practitioner review**, never an approved send.
-
 ## Layout
 
 ```
@@ -147,10 +160,11 @@ skills/cm-proposal-generator/
 └── scripts/              # index_kb, retrieve, profile_template, build_deck,
                           #   render_html, qa_deck
 skills/cm-comms-generator/
-├── SKILL.md              # the four-stage process
-├── reference/            # channel library, change intake, brand profile guide
-├── schemas/              # change_brief, brand_profile, comms_plan contracts
-└── scripts/              # render_markdown, apply_brand, qa_comms
+├── SKILL.md              # the four-stage process, with routed production
+├── reference/            # channel library, routing, change intake, brand profile guide
+├── schemas/              # change_brief, brand_profile, comms_plan, channel_registry
+└── scripts/              # render_markdown, route_channel, qa_comms, apply_brand,
+                          #   build_docx, verify_docx, canva_brief, video_spec
 proposal-assets/          # shared asset root (named for the first skill that used it)
 ├── templates/
 │   └── html-generic/     # PoC template: 9 layouts, theme, vendored reveal.js (MIT)
@@ -158,11 +172,13 @@ proposal-assets/          # shared asset root (named for the first skill that us
 └── knowledge-bank/       # methodology, case-studies, credentials, team, commercials,
                           #   boilerplate, comms-collateral, comms-tone, comms-boilerplate
 examples/acme-erp/        # worked example — proposal, fictional client
-examples/northwind-payroll/  # worked example — comms, fictional client, two channels
+examples/northwind-payroll/  # worked example — comms, fictional client, five channels
 ```
 
-The comms skill adds only three scripts. Indexing, retrieval, template profiling, deck
-validation and HTML rendering are all reused from `cm-proposal-generator` unchanged.
+Indexing, retrieval, template profiling and deck validation are reused from
+`cm-proposal-generator` unchanged — `profile_template.py` and `build_deck.py` validate a comms
+deck plan against a client `.potx` exactly as they do a bid. `render_html.py` is no longer part
+of the comms path, and is untouched.
 
 Scripts are stdlib-only and each runs standalone with `--help`.
 

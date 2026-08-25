@@ -1,0 +1,241 @@
+{
+  "$comment": "The routing table, as data. route_channel.py, qa_comms.py and render_markdown.py all read this file, so adding a channel is a registry edit plus a producer — not a change in three scripts. 'status' is first-class: a lane with no reachable producer is declared, not commented out, and blocked_by names exactly what is missing. 'coverage_mode' distinguishes a full comm, which must carry every must-land message in scope for its audiences, from a signpost — a banner or a 30-second clip whose job is to carry one message and point at where the detail lives. Holding a signpost to full-comm coverage would force content onto it that the channel library says must not be there. 'requires_signature' says whether the messenger must be named in the copy. A written comm is unattributed without one; a banner carries no signature by nature, and a video's messenger is the on-screen presenter, so demanding the name in the script would force an unnatural line into the read.",
+  "registry_version": "0.2",
+  "producers": {
+    "skill:docx": {
+      "kind": "skill",
+      "name": "docx",
+      "path": "/root/.claude/skills/synced/docx",
+      "note": "Emits a Node script against the docx (docx-js) package. The package is NOT reliably preinstalled despite the skill's SKILL.md — build_docx.py checks and reports the `npm install -g docx` remedy. Run with NODE_PATH=$(npm root -g)."
+    },
+    "skill:pptx": {
+      "kind": "skill",
+      "name": "pptx",
+      "path": "/root/.claude/skills/synced/pptx",
+      "note": "Template route is unzip -> edit ppt/slides/slideN.xml -> rezip. Never pptxgenjs when building on a client .potx."
+    },
+    "mcp:Canva": {
+      "kind": "mcp",
+      "server": "Canva",
+      "tools": [
+        "generate-design",
+        "export-design",
+        "create-design-from-brand-template",
+        "get-brand-template-dataset",
+        "search-brand-templates"
+      ],
+      "note": "v0.2 routes through generate-design per the practitioner's decision. create-design-from-brand-template is listed so switching to approved-template autofill is a one-line change once the client has a Brand Template."
+    },
+    "mcp:ElevenLabs": {
+      "kind": "mcp",
+      "server": "ElevenLabs",
+      "tools": [],
+      "note": "Installed on the account but disabled in chat. The tools it exposes are voice-agent management (create_agent, duplicate_agent, get_agent_link), not TTS or video rendering — re-check the surface once enabled before wiring."
+    },
+    "mcp:Synthesia": {
+      "kind": "mcp",
+      "server": "Synthesia",
+      "tools": [],
+      "note": "No Synthesia connector exists in the Claude connector directory as of 2026-08. Requires either a first-party connector or a custom MCP server."
+    }
+  },
+  "channels": {
+    "email": {
+      "label": "Email",
+      "format": ".docx",
+      "producer": "skill:docx",
+      "status": "live",
+      "blocked_by": null,
+      "handoff": "build.js + draft.docx",
+      "preconditions": [
+        "brand_approved",
+        "node_docx_available"
+      ],
+      "part_kinds": [
+        "subject",
+        "preheader",
+        "opening",
+        "whats-changing",
+        "whats-not-changing",
+        "who-is-affected",
+        "your-action",
+        "timeline",
+        "help",
+        "signoff"
+      ],
+      "default_specs": {
+        "subject_max_chars": 50,
+        "preheader_max_chars": 90,
+        "max_words": 300
+      },
+      "coverage_mode": "full",
+      "requires_signature": true
+    },
+    "article": {
+      "label": "Article",
+      "format": ".docx",
+      "producer": "skill:docx",
+      "status": "live",
+      "blocked_by": null,
+      "handoff": "build.js + draft.docx",
+      "preconditions": [
+        "brand_approved",
+        "node_docx_available"
+      ],
+      "part_kinds": [
+        "headline",
+        "standfirst",
+        "opening",
+        "section-heading",
+        "whats-changing",
+        "whats-not-changing",
+        "who-is-affected",
+        "pull-quote",
+        "your-action",
+        "timeline",
+        "help",
+        "signoff"
+      ],
+      "default_specs": {
+        "headline_max_chars": 80,
+        "standfirst_max_chars": 200,
+        "max_words": 900
+      },
+      "coverage_mode": "full",
+      "requires_signature": true
+    },
+    "briefing_deck": {
+      "label": "Briefing deck",
+      "format": ".pptx",
+      "producer": "skill:pptx",
+      "status": "live",
+      "blocked_by": null,
+      "handoff": "build_manifest + deck.pptx",
+      "preconditions": [
+        "brand_approved"
+      ],
+      "part_kinds": [
+        "content",
+        "whats-changing",
+        "whats-not-changing",
+        "who-is-affected",
+        "timeline",
+        "your-action",
+        "objections",
+        "help"
+      ],
+      "default_specs": {
+        "max_slides": 12,
+        "bullets_per_slide_max": 5,
+        "title_max_chars": 70
+      },
+      "notes": [
+        "With a client .potx: profile_template.py then build_deck.py validate every layout and placeholder before the pptx skill assembles.",
+        "Without a .potx: from-scratch build on deck_theme.json, labelled unapproved at handover.",
+        "Speaker notes on every content slide are a hard requirement, not a nicety."
+      ],
+      "coverage_mode": "full",
+      "requires_signature": true
+    },
+    "newsletter": {
+      "label": "Newsletter",
+      "format": "canva-design",
+      "producer": "mcp:Canva",
+      "status": "blocked",
+      "blocked_by": "The Canva MCP server is not connected in this session and requires authorization. Reconnect it via claude.ai connector settings.",
+      "handoff": "canva_brief.json",
+      "preconditions": [
+        "brand_approved",
+        "canva_connected"
+      ],
+      "part_kinds": [
+        "headline",
+        "standfirst",
+        "section-heading",
+        "whats-changing",
+        "your-action",
+        "timeline",
+        "help",
+        "cta",
+        "placement-spec"
+      ],
+      "default_specs": {
+        "headline_max_chars": 70,
+        "section_max_chars": 220,
+        "cta_max_chars": 25
+      },
+      "coverage_mode": "full",
+      "requires_signature": true
+    },
+    "banner": {
+      "label": "Intranet banner",
+      "format": "canva-design",
+      "producer": "mcp:Canva",
+      "status": "blocked",
+      "blocked_by": "The Canva MCP server is not connected in this session and requires authorization. Reconnect it via claude.ai connector settings.",
+      "handoff": "canva_brief.json",
+      "preconditions": [
+        "brand_approved",
+        "canva_connected"
+      ],
+      "part_kinds": [
+        "headline",
+        "subhead",
+        "cta",
+        "placement-spec"
+      ],
+      "default_specs": {
+        "headline_max_chars": 60,
+        "body_max_chars": 120,
+        "cta_max_chars": 25
+      },
+      "coverage_mode": "signpost",
+      "requires_signature": false
+    },
+    "short_form_video": {
+      "label": "Short-form video",
+      "format": "scene outline + VO script",
+      "producer": "mcp:ElevenLabs",
+      "status": "planned",
+      "blocked_by": "The ElevenLabs connector is installed but disabled in this chat, and the tools it exposes are voice-agent management rather than TTS or video rendering. Enable it and re-check the tool surface before wiring this lane.",
+      "planned_for": "v0.3",
+      "handoff": "video_spec.json + captions.vtt",
+      "preconditions": [
+        "brand_approved"
+      ],
+      "part_kinds": [
+        "scene"
+      ],
+      "default_specs": {
+        "max_duration_seconds": 90,
+        "words_per_minute": 150,
+        "aspect_ratio": "9:16"
+      },
+      "coverage_mode": "signpost",
+      "requires_signature": false
+    },
+    "explainer_video": {
+      "label": "Explainer video",
+      "format": "scene outline + avatar/screen direction",
+      "producer": "mcp:Synthesia",
+      "status": "planned",
+      "blocked_by": "No Synthesia connector exists in the Claude connector directory. Adding one — first-party or a custom MCP server — is a prerequisite for this lane.",
+      "planned_for": "v0.3",
+      "handoff": "video_spec.json + captions.vtt",
+      "preconditions": [
+        "brand_approved"
+      ],
+      "part_kinds": [
+        "scene",
+        "chapter"
+      ],
+      "default_specs": {
+        "max_duration_seconds": 300,
+        "words_per_minute": 140,
+        "aspect_ratio": "16:9"
+      },
+      "coverage_mode": "full",
+      "requires_signature": false
+    }
+  }
+}
