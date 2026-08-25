@@ -131,14 +131,25 @@ python skills/cm-comms-generator/scripts/canva_brief.py <plan> --brand <brand> -
 Then `generate-design` with the brief's prompt and copy fields, and `export-design` to
 retrieve the asset.
 
-**This lane generates rather than autofills, and that has a cost worth stating plainly.**
-`generate-design` means Canva invents the layout. The copy has passed QA; the *design* has
-been approved by nobody. The brief stamps `design_provenance: "generated-unapproved"`,
-`qa_comms.py` warns on it, and the handover must say the design needs client sign-off before
-publish. Where the client has an approved Canva **Brand Template**,
-`create-design-from-brand-template` with `get-brand-template-dataset` is the better route —
-the brief's `copy_fields` map onto that dataset directly, and it is a one-line change in the
-registry.
+**Which route runs is decided by the brand profile, not by this document.**
+
+| `channel_specs.<channel>.canva_brand_template_id` | Route | `design_provenance` |
+|---|---|---|
+| set (a `BTM…` id) | `get-brand-template-dataset` → `autofill-design` → `export-design` | `client-approved-template` |
+| absent | `generate-design` → `create-design-from-candidate` → `export-design` | `generated-unapproved` |
+
+`canva_brief.py` emits the matching `route` block either way, so switching is a one-line edit
+to the client's brand profile.
+
+**When it generates, say what that costs.** `generate-design` means Canva invents the layout.
+The copy has passed QA; the *design* has been approved by nobody. `qa_comms.py` warns on the
+provenance and the handover must say the design needs client sign-off before publish.
+
+**A Brand Template is not a file you upload.** It is built in Canva and referenced by id, so
+the practitioner records the id in the brand profile once per client — exactly as `potx_path`
+works for decks. Listing or autofilling one requires a **Canva paid plan** (Pro, Teams or
+Enterprise); on a free plan `search-brand-templates` refuses and the generate route is the
+only one available.
 
 Alt text is mandatory, not optional: on most intranet tenancies the text is baked into the
 image and invisible to screen readers, so the alt text must carry the message rather than

@@ -16,10 +16,12 @@ A NOTE ON PROVENANCE, because it matters here more than anywhere else in this sk
 `generate-design` means Canva invents the layout. The copy in this brief has passed QA;
 the DESIGN has not been approved by anyone. That is why the brief stamps
 `design_provenance: "generated-unapproved"` and carries an explicit sign-off warning — a
-generated design must not go out under a client's name until they have seen it. Where the
-client has an approved Canva Brand Template, `create-design-from-brand-template` with
-`get-brand-template-dataset` is the better route and this brief's `copy_fields` map onto
-that dataset directly.
+generated design must not go out under a client's name until they have seen it. Where the client has an approved Canva Brand Template, set
+`channel_specs.<channel>.canva_brand_template_id` in the brand profile: this brief then
+emits the autofill route instead, `copy_fields` map onto the template's dataset, and
+`design_provenance` becomes `client-approved-template`. Brand Templates live in Canva and
+are referenced by id (BTM…) — there is no file to upload — and listing them requires a
+Canva paid plan.
 
 STATUS (v0.2): this writes the brief; it does not call Canva. Keeping the external call
 out of a script means a failed run leaves an inspectable file rather than a half-created
@@ -100,17 +102,48 @@ def build(plan, brand, channel):
     for rule in (brand.get("palette_rules") or []):
         prompt_bits.append(rule)
 
+    template_id = specs.get("canva_brand_template_id")
+    brand_kit_id = specs.get("canva_brand_kit_id")
+
+    if template_id:
+        provenance = "client-approved-template"
+        sign_off = ("Autofilled into the client's approved Canva Brand Template — the design "
+                    "is theirs, not invented. Normal practitioner review still applies.")
+        route = {
+            "mode": "autofill",
+            "brand_template_id": template_id,
+            "steps": [
+                "get-brand-template-dataset with this brand_template_id",
+                "map copy_fields onto the dataset's field names",
+                "autofill-design, then export-design",
+            ],
+        }
+    else:
+        provenance = "generated-unapproved"
+        sign_off = ("Canva generates this layout — the DESIGN is not client-approved. The copy "
+                    "has passed QA; the design must be signed off by the client before publish.")
+        route = {
+            "mode": "generate",
+            "steps": ["generate-design with the prompt below",
+                      "create-design-from-candidate for the chosen candidate",
+                      "export-design"],
+            "to_upgrade": ("Add channel_specs.%s.canva_brand_template_id to the brand profile "
+                           "and this lane switches to autofill. Brand Templates live in Canva "
+                           "and are referenced by id (BTM…) — there is no file to upload — and "
+                           "listing them requires a Canva paid plan." % channel),
+        }
+        if brand_kit_id:
+            route["brand_kit_id"] = brand_kit_id
+
     brief = {
         "generated": date.today().isoformat(),
         "run_id": plan.get("run_id"),
         "channel": channel,
         "client": plan.get("client"),
         "title": plan.get("engagement_title"),
-        "design_provenance": "generated-unapproved",
-        "sign_off_required": (
-            "Canva generates this layout — the DESIGN is not client-approved. The copy has "
-            "passed QA; the design must be signed off by the client before publish."
-        ),
+        "design_provenance": provenance,
+        "sign_off_required": sign_off,
+        "route": route,
         "canvas": canvas,
         "prompt": " ".join(prompt_bits),
         "section_order": sections,
@@ -129,12 +162,6 @@ def build(plan, brand, channel):
         },
         "logo": brand.get("logo") or {},
         "over_limit": over,
-        "mcp_route": {
-            "preferred": "create-design-from-brand-template + get-brand-template-dataset "
-                         "(use when the client has an approved Canva Brand Template — the "
-                         "copy_fields map onto the dataset)",
-            "current": "generate-design, then export-design",
-        },
     }
     return brief
 
@@ -177,8 +204,14 @@ def main():
         print(f"  {gaps} field(s) carry an open [GAP] — resolve before the design is built")
     for o in brief["over_limit"]:
         print(f"  WARNING over limit: {o}", file=sys.stderr)
-    print("  design_provenance: generated-unapproved — the DESIGN needs client sign-off, "
-          "even though the copy has passed QA.")
+    if brief["design_provenance"] == "client-approved-template":
+        print(f"  route: autofill into {brief['route']['brand_template_id']} — the design is "
+              f"the client's own template")
+    else:
+        print("  route: generate-design — design_provenance is generated-unapproved, so the "
+              "DESIGN needs client sign-off even though the copy has passed QA.")
+        print("  add channel_specs.%s.canva_brand_template_id to switch this lane to autofill."
+              % brief["channel"])
     return 0
 
 

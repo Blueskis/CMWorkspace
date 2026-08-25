@@ -256,11 +256,14 @@ python skills/cm-comms-generator/scripts/canva_brief.py <plan> --brand <brand> \
 
 Then `generate-design` and `export-design` when the connector is available.
 
-**This lane generates rather than autofills, and that has a cost.** Canva invents the layout, so
-the copy has passed QA but the *design* has been approved by nobody. Stamp
-`design_provenance: "generated-unapproved"` and say at handover that the design needs client
-sign-off before publish. Where the client has an approved Canva Brand Template,
-`create-design-from-brand-template` is the better route and a one-line registry change.
+**The brand profile picks the route.** With `channel_specs.<channel>.canva_brand_template_id`
+set, the lane autofills the client's approved Canva Brand Template and `design_provenance` is
+`client-approved-template`. Without it, `generate-design` invents the layout: the copy has
+passed QA but the *design* has been approved by nobody, so it is stamped
+`generated-unapproved` and the handover must say it needs client sign-off before publish.
+
+A Brand Template is referenced by id (`BTM…`), not uploaded as a file, and listing one needs a
+Canva paid plan.
 
 ### short_form_video and explainer_video → reserved
 

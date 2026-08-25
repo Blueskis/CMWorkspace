@@ -141,6 +141,15 @@
         "banner": {
           "type": "object",
           "properties": {
+            "canva_brand_template_id": {
+              "type": "string",
+              "pattern": "^BTM[A-Za-z0-9_-]+$",
+              "description": "The client's approved Canva Brand Template (an id beginning BTM). Present means the autofill route: get-brand-template-dataset then create-design-from-brand-template, and design_provenance becomes client-approved-template. Absent means generate-design, which invents the layout and is stamped generated-unapproved. Brand Templates live in Canva and are referenced by id — there is no file to upload — and listing them needs a Canva paid plan."
+            },
+            "canva_brand_kit_id": {
+              "type": "string",
+              "description": "Optional brand kit to constrain a generated design when no Brand Template exists. Also requires a Canva paid plan."
+            },
             "image_width_px": { "type": "integer" },
             "image_height_px": { "type": "integer" },
             "headline_max_chars": { "type": "integer" },
@@ -152,6 +161,12 @@
         "newsletter": {
           "type": "object",
           "properties": {
+            "canva_brand_template_id": {
+              "type": "string",
+              "pattern": "^BTM[A-Za-z0-9_-]+$",
+              "description": "As for banner — the approved Canva Brand Template id, which switches this lane from generate-design to autofill."
+            },
+            "canva_brand_kit_id": { "type": "string" },
             "image_width_px": { "type": "integer" },
             "headline_max_chars": { "type": "integer" },
             "section_max_chars": { "type": "integer" },
