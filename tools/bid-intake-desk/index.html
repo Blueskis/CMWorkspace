@@ -1,4 +1,4 @@
-<title>Bid Intake Desk</title>
+<title>Proposal Reference Tool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
@@ -151,15 +151,11 @@ code, kbd { font-family: var(--mono); }
 }
 .scope b { color: var(--ink); font-weight: 600; }
 
-.theme-switch {
+.theme-toggle {
   position: absolute;
   top: 22px;
   right: 28px;
-  display: flex;
-  gap: 6px;
-}
-.theme-switch button {
-  padding: 5px 13px;
+  padding: 4px 9px;
   font-size: 12px;
 }
 
@@ -576,13 +572,10 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
 
 <header class="masthead">
   <div class="wrap">
-    <div class="theme-switch" role="group" aria-label="Colour theme">
-      <button type="button" id="theme-light" aria-pressed="false">Light</button>
-      <button type="button" id="theme-dark" aria-pressed="false">Dark</button>
-    </div>
+    <button type="button" id="theme-toggle" class="quiet theme-toggle" title="Toggle light/dark">Theme</button>
     <div class="brand">
       <div class="stamp">Change Management Proposal Reference</div>
-      <h1>Bid Intake Desk</h1>
+      <h1>Proposal Reference Tool</h1>
       <p>Upload a tender and find the past proposals most similar to it — ranked
          automatically, so you know which ones to open first.</p>
     </div>
@@ -1074,48 +1067,14 @@ let tagsSeeded = false;
 
 const $ = id => document.getElementById(id);
 
-/* =================================================================
-   Theme — light by default, dark if the viewer's system asks for it,
-   and overridable with the two buttons in the masthead. An explicit
-   choice is remembered per browser (localStorage), so it survives a
-   reload; until someone picks one, the page keeps following the
-   system setting live, including a mid-session change of it.
-   ================================================================= */
-const THEME_KEY = "bid-intake-theme";
-const darkMedia = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)");
-
-function resolvedTheme() {
-  const chosen = document.documentElement.getAttribute("data-theme");
-  if (chosen === "light" || chosen === "dark") return chosen;
-  return darkMedia && darkMedia.matches ? "dark" : "light";
-}
-
-function reflectTheme() {
-  const theme = resolvedTheme();
-  const lightBtn = $("theme-light"), darkBtn = $("theme-dark");
-  if (!lightBtn || !darkBtn) return;
-  lightBtn.classList.toggle("primary", theme === "light");
-  darkBtn.classList.toggle("primary", theme === "dark");
-  lightBtn.setAttribute("aria-pressed", String(theme === "light"));
-  darkBtn.setAttribute("aria-pressed", String(theme === "dark"));
-}
-
-function chooseTheme(theme) {
-  document.documentElement.setAttribute("data-theme", theme);
-  try { localStorage.setItem(THEME_KEY, theme); } catch {}
-  reflectTheme();
-}
-
-(function initTheme() {
-  let stored = null;
-  try { stored = localStorage.getItem(THEME_KEY); } catch {}
-  if (stored === "light" || stored === "dark") document.documentElement.setAttribute("data-theme", stored);
-  reflectTheme();
-  if (darkMedia && darkMedia.addEventListener) darkMedia.addEventListener("change", reflectTheme);
-})();
-
-$("theme-light").addEventListener("click", () => chooseTheme("light"));
-$("theme-dark").addEventListener("click", () => chooseTheme("dark"));
+// Theme — light or dark by system default; the button flips whichever is currently
+// showing. Matches the toggle in Change Impact Intake, this tool's sibling.
+$("theme-toggle").addEventListener("click", () => {
+  const docEl = document.documentElement;
+  const cur = docEl.getAttribute("data-theme");
+  const isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  docEl.setAttribute("data-theme", isDark ? "light" : "dark");
+});
 
 
 /* =================================================================
