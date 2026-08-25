@@ -37,3 +37,20 @@ parse `a:clrScheme`, so colours are a manual read, and `.docx`/`.dotx` are rejec
 The guide has the `unzip` recipe and the full recovery table.
 
 Tone of voice is hand-written on both routes. Nothing extracts it.
+
+## Deloitte (unapproved — internal drafting only)
+
+`deloitte.brand_profile.EXAMPLE.json` carries the Deloitte Green Dot palette (ten colours,
+hex/RGB/CMYK/Pantone) pulled from `proposal-assets/templates/html-deloitte/theme.css` — the
+same "not an official download" build used for the proposal-generator's Deloitte template.
+
+**`approval` is deliberately left empty.** Every producer script refuses to run against it —
+verified: `apply_brand.py`, `qa_comms.py`, `canva_brief.py` and `route_channel.py` all exit
+non-zero with "brand profile has no recorded approval." That is correct behaviour, not a bug
+to fix: this palette has no real Deloitte brand/legal sign-off behind it, and the schema's
+approval gate exists exactly to stop a run in that situation rather than draft on a lookalike.
+
+Before this profile can produce anything: get a real approver from Deloitte's own brand or
+legal function, confirm the palette and typography against current Brand Space guidance (no
+licensed wordmark typeface ships here — headings and body both fall back to system Segoe UI),
+and only then fill in `approval.approved_by`, `.role` and `.approved_date`.
