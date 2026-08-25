@@ -205,7 +205,7 @@ add a channel, is in `reference/channel-routing.md`.
 |---|---|---|---|
 | `email`, `article` | `.docx` | `docx` skill | live |
 | `briefing_deck` | `.pptx` | `pptx` skill | live |
-| `newsletter`, `banner` | Canva design | Canva MCP | needs the connector authorized |
+| `newsletter`, `banner` | Canva design | Canva MCP | live — needs the connector authorized this run |
 | `short_form_video` | scene spec + captions | ElevenLabs MCP | planned, v0.3 |
 | `explainer_video` | scene spec + captions | Synthesia MCP | planned, v0.3 |
 

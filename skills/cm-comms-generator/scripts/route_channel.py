@@ -52,6 +52,11 @@ def load_registry(path=None):
 
 HARD_PRECONDITIONS = {"brand_approved"}
 
+# Preconditions that report an external CONNECTOR's reachability rather than a local
+# fact. Named separately because they gate the outcome even off a "live" entry — see
+# route().
+CONNECTOR_PRECONDITIONS = {"canva_connected", "elevenlabs_connected", "synthesia_connected"}
+
 
 def check_brand_approved(ctx):
     brand = ctx.get("brand")
@@ -223,11 +228,20 @@ def route(plan, brief, brand, registry, ctx):
     unmet_hard = [n for n, ok, _ in checks if not ok and n in HARD_PRECONDITIONS]
     result["unmet_hard"] = unmet_hard
 
+    # entry["status"] == "live" means an automated build chain EXISTS — it is a static
+    # fact about the pipeline, not a live check of whether the external account behind
+    # it (an npm package, an MCP connector) is reachable right now. A connector
+    # precondition that isn't CONFIRMED available downgrades the outcome to the honest
+    # handoff, exactly as an unresolved npm package would: design for absence, never
+    # claim READY without evidence. Pass --available-servers to supply that evidence.
+    connector_names = {n for n in entry.get("preconditions", []) if n in CONNECTOR_PRECONDITIONS}
+    connector_unreachable = any(not ok for n, ok, _ in checks if n in connector_names)
+
     if audit["fail"]:
         result["outcome"] = "qa_failed"
     elif unmet_hard:
         result["outcome"] = "precondition_failed"
-    elif entry["status"] == "live":
+    elif entry["status"] == "live" and not connector_unreachable:
         result["outcome"] = "route"
     else:
         result["outcome"] = "handoff_only"
@@ -379,7 +393,13 @@ def main():
     if result["outcome"] == "handoff_only":
         print(f"  {entry['producer']} unreachable — {entry['handoff']} is the deliverable "
               f"for this run")
-        print(f"  {entry['blocked_by']}")
+        if entry.get("blocked_by"):
+            print(f"  {entry['blocked_by']}")
+        else:
+            unreachable = [f"{n}: {d}" for n, ok, d in result["preconditions"]
+                          if not ok and n in CONNECTOR_PRECONDITIONS]
+            for line in unreachable:
+                print(f"  {line}")
         return 0
 
     print(f"  ready: {len(result['commands'])} step(s) — see {args.out}")

@@ -16,10 +16,17 @@ python skills/cm-comms-generator/scripts/route_channel.py --list
 | `email` | `.docx` | `docx` skill | live |
 | `article` | `.docx` | `docx` skill | live |
 | `briefing_deck` | `.pptx` | `pptx` skill | live |
-| `newsletter` | Canva design | Canva MCP | blocked — connector needs authorizing |
-| `banner` | Canva design | Canva MCP | blocked — connector needs authorizing |
+| `newsletter` | Canva design | Canva MCP | live — needs the connector authorized for this run |
+| `banner` | Canva design | Canva MCP | live — needs the connector authorized for this run |
 | `short_form_video` | scene outline + VO script | ElevenLabs MCP | planned, v0.3 |
 | `explainer_video` | scene outline + avatar direction | Synthesia MCP | planned, v0.3 |
+
+**"live" means an automated build chain exists, not that it is guaranteed reachable this
+run.** `docx`/`pptx` depend on a local npm package; `banner`/`newsletter` depend on the Canva
+connector being authorized. Both are ordinary preconditions `route_channel.py` checks at run
+time — a missing npm package or an unauthorized connector both downgrade the outcome to the
+honest handoff rather than a false READY. `short_form_video`/`explainer_video` are the only
+channels genuinely `planned`: no automated build chain exists for either yet.
 
 ## The gate
 

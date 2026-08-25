@@ -1,5 +1,5 @@
 {
-  "$comment": "The routing table, as data. route_channel.py, qa_comms.py and render_markdown.py all read this file, so adding a channel is a registry edit plus a producer — not a change in three scripts. 'status' is first-class: a lane with no reachable producer is declared, not commented out, and blocked_by names exactly what is missing. 'coverage_mode' distinguishes a full comm, which must carry every must-land message in scope for its audiences, from a signpost — a banner or a 30-second clip whose job is to carry one message and point at where the detail lives. Holding a signpost to full-comm coverage would force content onto it that the channel library says must not be there. 'requires_signature' says whether the messenger must be named in the copy. A written comm is unattributed without one; a banner carries no signature by nature, and a video's messenger is the on-screen presenter, so demanding the name in the script would force an unnatural line into the read.",
+  "$comment": "The routing table, as data. route_channel.py, qa_comms.py and render_markdown.py all read this file, so adding a channel is a registry edit plus a producer — not a change in three scripts. 'status' is first-class: a lane with no reachable producer is declared, not commented out, and blocked_by names exactly what is missing. 'coverage_mode' distinguishes a full comm, which must carry every must-land message in scope for its audiences, from a signpost — a banner or a 30-second clip whose job is to carry one message and point at where the detail lives. Holding a signpost to full-comm coverage would force content onto it that the channel library says must not be there. 'requires_signature' says whether the messenger must be named in the copy. A written comm is unattributed without one; a banner carries no signature by nature, and a video's messenger is the on-screen presenter, so demanding the name in the script would force an unnatural line into the read. A channel's 'status' means an automated build chain EXISTS for it — it is not a live check of whether an external account (npm, an MCP connector) is reachable right now. That is what 'preconditions' checks at run time in route_channel.py, which downgrades a 'live' channel to a handoff outcome when a connector precondition (canva_connected, etc.) isn't confirmed available, exactly as it already does for a missing npm package.",
   "registry_version": "0.2",
   "producers": {
     "skill:docx": {
@@ -141,8 +141,8 @@
       "label": "Newsletter",
       "format": "canva-design",
       "producer": "mcp:Canva",
-      "status": "blocked",
-      "blocked_by": "The Canva MCP server is not connected in this session and requires authorization. Reconnect it via claude.ai connector settings.",
+      "status": "live",
+      "blocked_by": null,
       "handoff": "canva_brief.json",
       "preconditions": [
         "brand_approved",
@@ -171,8 +171,8 @@
       "label": "Intranet banner",
       "format": "canva-design",
       "producer": "mcp:Canva",
-      "status": "blocked",
-      "blocked_by": "The Canva MCP server is not connected in this session and requires authorization. Reconnect it via claude.ai connector settings.",
+      "status": "live",
+      "blocked_by": null,
       "handoff": "canva_brief.json",
       "preconditions": [
         "brand_approved",
