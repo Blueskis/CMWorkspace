@@ -1,0 +1,3082 @@
+<meta charset="utf-8">
+<title>CM Pursuit Estimator</title>
+
+<style>
+  :root {
+    color-scheme: light dark;
+    --paper: #F3F5F9;
+    --surface: #FFFFFF;
+    --surface-2: #EAEEF5;
+    --ink: #12161F;
+    --ink-2: #4C5666;
+    --ink-3: #7A8494;
+    --line: #DCE1EA;
+    --line-strong: #BFC7D4;
+    --accent: #2E3D77;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E4E8F6;
+    --jade: #0B6B54;
+    --jade-soft: #E0F0EA;
+    --amber: #8C5E0C;
+    --amber-soft: #F7EBD5;
+    --clay: #A33D2E;
+    --clay-soft: #F7E4E0;
+    --shadow: 0 1px 2px rgba(18, 22, 31, .06), 0 8px 24px -16px rgba(18, 22, 31, .35);
+
+    --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E1117;
+      --surface: #171B23;
+      --surface-2: #1F242E;
+      --ink: #E8EBF2;
+      --ink-2: #A5AEBD;
+      --ink-3: #7B8494;
+      --line: #2A303B;
+      --line-strong: #3B4351;
+      --accent: #97A5EA;
+      --accent-ink: #10131B;
+      --accent-soft: #1C2340;
+      --jade: #4FC7A0;
+      --jade-soft: #12302A;
+      --amber: #D9A54E;
+      --amber-soft: #2E2617;
+      --clay: #E38375;
+      --clay-soft: #33201D;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0E1117;
+    --surface: #171B23;
+    --surface-2: #1F242E;
+    --ink: #E8EBF2;
+    --ink-2: #A5AEBD;
+    --ink-3: #7B8494;
+    --line: #2A303B;
+    --line-strong: #3B4351;
+    --accent: #97A5EA;
+    --accent-ink: #10131B;
+    --accent-soft: #1C2340;
+    --jade: #4FC7A0;
+    --jade-soft: #12302A;
+    --amber: #D9A54E;
+    --amber-soft: #2E2617;
+    --clay: #E38375;
+    --clay-soft: #33201D;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; letter-spacing: -.01em; }
+  h1 { font-size: 1.3rem; }
+  h2 { font-size: 1.15rem; }
+  h3 { font-size: .98rem; }
+  p { margin: 0; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: .68rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- App frame ---------- */
+
+  .appbar {
+    position: sticky; top: 0; z-index: 20;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 16px;
+    padding: 12px 24px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; flex-direction: column; margin-right: auto; }
+  .brand small { color: var(--ink-3); font-size: .78rem; }
+
+  .steps { display: flex; gap: 4px; flex-wrap: wrap; padding: 0 24px; background: var(--surface); border-bottom: 1px solid var(--line); position: sticky; top: 61px; z-index: 19; }
+  .step {
+    appearance: none; background: none; border: 0; border-bottom: 2px solid transparent;
+    font: inherit; color: var(--ink-2); cursor: pointer;
+    padding: 10px 14px; display: flex; align-items: center; gap: 8px;
+  }
+  .step:hover { color: var(--ink); }
+  .step[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .step .idx { font-family: var(--font-mono); font-size: .72rem; color: var(--ink-3); }
+  .step[aria-selected="true"] .idx { color: var(--accent); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 24px;
+    align-items: start;
+    padding: 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  @media (max-width: 1080px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+  .panel { display: none; flex-direction: column; gap: 20px; min-width: 0; }
+  .panel.active { display: flex; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+  .card > header {
+    display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap;
+    padding: 14px 18px; border-bottom: 1px solid var(--line);
+  }
+  .card > header .hint { color: var(--ink-3); font-size: .82rem; margin-left: auto; }
+  .card .body { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+
+  /* ---------- Controls ---------- */
+
+  button, select, input, textarea { font: inherit; color: inherit; }
+
+  .btn {
+    appearance: none; cursor: pointer;
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line-strong); border-radius: 7px;
+    padding: 7px 13px; font-size: .87rem; font-weight: 500;
+    transition: background .12s ease, border-color .12s ease;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+  .btn.primary:hover { filter: brightness(1.08); }
+  .btn.ghost { border-color: transparent; background: transparent; color: var(--ink-2); }
+  .btn.ghost:hover { background: var(--surface-2); color: var(--ink); }
+  .btn.danger { color: var(--clay); border-color: var(--line); }
+  .btn.small { padding: 4px 9px; font-size: .78rem; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .spacer { margin-left: auto; }
+
+  input[type="text"], input[type="number"], select, textarea {
+    background: var(--surface);
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    padding: 6px 8px;
+    width: 100%;
+    min-width: 0;
+  }
+  textarea { resize: vertical; font-size: .9rem; line-height: 1.6; }
+  input[type="number"] { font-family: var(--font-mono); font-variant-numeric: tabular-nums; text-align: right; }
+
+  .field { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .field label { font-size: .78rem; color: var(--ink-2); font-weight: 500; }
+  .field .src { font-size: .7rem; color: var(--jade); font-family: var(--font-mono); }
+  .field .src.default { color: var(--ink-3); }
+  .grid-drivers { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 14px; }
+
+  /* ---------- Drop zone ---------- */
+
+  .drop {
+    border: 1.5px dashed var(--line-strong);
+    border-radius: 9px;
+    padding: 22px;
+    text-align: center;
+    background: var(--surface-2);
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .drop.over { border-color: var(--accent); background: var(--accent-soft); }
+  .drop .files { font-size: .82rem; color: var(--ink-2); }
+
+  /* ---------- Tables ---------- */
+
+  .tablewrap { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .87rem; }
+  th, td { padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  thead th {
+    position: sticky; top: 0;
+    background: var(--surface-2);
+    font-family: var(--font-mono); font-size: .68rem; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-2); font-weight: 600; white-space: nowrap;
+  }
+  tbody tr:hover { background: var(--surface-2); }
+  td.n, th.n { text-align: right; font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  td input { border-color: transparent; background: transparent; }
+  td input:hover { border-color: var(--line); }
+  td input:focus { border-color: var(--accent); background: var(--surface); }
+  td select { border-color: transparent; background: transparent; font-size: .85rem; }
+  td select:focus { border-color: var(--accent); background: var(--surface); }
+  tfoot td { font-weight: 600; border-top: 2px solid var(--line-strong); border-bottom: 0; }
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 2px 8px; border-radius: 20px;
+    font-size: .7rem; font-weight: 600; letter-spacing: .02em;
+    background: var(--surface-2); color: var(--ink-2);
+    border: 1px solid var(--line);
+    white-space: nowrap;
+  }
+  .chip.detected { background: var(--jade-soft); color: var(--jade); border-color: transparent; }
+  .chip.bench { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .chip.assumed { background: var(--amber-soft); color: var(--amber); border-color: transparent; }
+
+  .cat-stripe { border-left: 3px solid var(--accent-soft); }
+
+  .evidence {
+    font-size: .78rem; color: var(--ink-2);
+    background: var(--surface-2); border-left: 2px solid var(--jade);
+    padding: 6px 10px; border-radius: 0 5px 5px 0;
+    font-style: italic;
+  }
+  .signals { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .empty { color: var(--ink-3); font-size: .87rem; padding: 18px; text-align: center; }
+
+  /* ---------- Summary aside ---------- */
+
+  aside.summary { position: sticky; top: 110px; display: flex; flex-direction: column; gap: 12px; }
+  @media (max-width: 1080px) { aside.summary { position: static; } }
+
+  .total-block { padding: 16px 18px; display: flex; flex-direction: column; gap: 2px; border-bottom: 1px solid var(--line); }
+  .total-block .value { font-family: var(--font-mono); font-size: 1.85rem; font-weight: 600; color: var(--jade); letter-spacing: -.02em; }
+  .total-block .value.zero { color: var(--ink-3); }
+
+  .sumline { display: flex; justify-content: space-between; gap: 12px; font-size: .84rem; padding: 3px 0; }
+  .sumline span:last-child { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .sumline.muted { color: var(--ink-2); }
+  .sumline.strong { font-weight: 600; border-top: 1px solid var(--line); margin-top: 6px; padding-top: 8px; }
+
+  .metrics { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); }
+  .metric { background: var(--surface); padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+  .metric .v { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 600; }
+
+  .note { font-size: .78rem; color: var(--ink-3); line-height: 1.5; }
+  details.calc summary { cursor: pointer; font-size: .74rem; color: var(--ink-3); font-family: var(--font-mono); }
+  details.calc[open] summary { color: var(--accent); }
+  details.calc .formula { font-family: var(--font-mono); font-size: .74rem; color: var(--ink-2); padding-top: 4px; }
+
+  .copy-panel {
+    position: fixed; inset: 0; z-index: 60;
+    background: rgba(12, 15, 22, .55);
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+  }
+  .copy-panel[hidden] { display: none; }
+  .copy-panel-inner {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: var(--shadow); padding: 16px; width: min(760px, 100%);
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .copy-panel-inner textarea { font-family: var(--font-mono); font-size: .78rem; }
+
+  .toast {
+    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(8px);
+    background: var(--ink); color: var(--paper);
+    padding: 9px 16px; border-radius: 7px; font-size: .85rem;
+    opacity: 0; pointer-events: none; transition: opacity .18s ease, transform .18s ease; z-index: 50;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+  /* ---------- Print ---------- */
+  @media print {
+    .appbar, .steps, aside.summary, .no-print { display: none !important; }
+    body { background: #fff; }
+    .layout { display: block; padding: 0; }
+    .panel { display: none !important; }
+    .panel#panel-quote { display: flex !important; }
+    .card { box-shadow: none; border-color: #ccc; break-inside: avoid; }
+  }
+
+
+  /* ---------- v0.3: role, country, rank ---------- */
+
+  .seg {
+    display: inline-flex; border: 1px solid var(--line-strong); border-radius: 7px;
+    overflow: hidden; background: var(--surface);
+  }
+  .seg button {
+    font: inherit; font-size: .78rem; font-weight: 500; border: 0; cursor: pointer;
+    padding: 5px 11px; background: transparent; color: var(--ink-2); line-height: 1.4;
+  }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .seg button:hover:not([aria-pressed="true"]) { background: var(--surface-2); color: var(--ink); }
+  .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+  /* .step sets its own display, which would otherwise beat the UA's [hidden]. */
+  .admin-only[hidden] { display: none !important; }
+
+  .steps .divider {
+    align-self: center; margin: 0 6px 0 14px; padding-left: 14px;
+    border-left: 1px solid var(--line-strong);
+    font-family: var(--font-mono); font-size: .64rem; letter-spacing: .14em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .step.admin[aria-selected="true"] { color: var(--amber); border-bottom-color: var(--amber); }
+  .step.admin[aria-selected="true"] .idx { color: var(--amber); }
+
+  .admin-note {
+    display: flex; gap: 9px; align-items: baseline;
+    background: var(--amber-soft); color: var(--amber);
+    border-left: 3px solid var(--amber); padding: 9px 13px; font-size: .82rem;
+  }
+  .admin-note strong { font-weight: 600; }
+
+  .country-badge {
+    display: inline-flex; align-items: baseline; gap: 7px;
+    font-family: var(--font-mono); font-size: .7rem; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--ink-2);
+    background: var(--surface-2); border: 1px solid var(--line);
+    padding: 4px 9px; border-radius: 5px;
+  }
+  .country-badge b { font-weight: 600; color: var(--ink); letter-spacing: .04em; }
+
+  .empty-gate {
+    display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
+    padding: 30px 26px; color: var(--ink-2);
+  }
+  .empty-gate h3 { color: var(--ink); }
+
+  /* rank mix editor */
+  .mixgrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+  .mixgrid label {
+    display: flex; flex-direction: column; gap: 2px;
+    font-family: var(--font-mono); font-size: .6rem; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-3);
+  }
+  .mixgrid input { width: 100%; padding: 3px 5px; font-size: .8rem; text-align: right; }
+  .mixsum { font-family: var(--font-mono); font-size: .74rem; color: var(--jade); white-space: nowrap; }
+  .mixsum.bad { color: var(--clay); font-weight: 600; }
+
+  /* rank effort breakdown bar */
+  .rankbar { display: flex; height: 7px; border-radius: 4px; overflow: hidden; background: var(--surface-2); }
+  .rankbar span { display: block; }
+  .ranklist { display: flex; flex-direction: column; gap: 3px; }
+  .rankrow { display: flex; align-items: baseline; gap: 8px; font-size: .78rem; }
+  .rankrow .sw { width: 9px; height: 9px; border-radius: 2px; flex: none; }
+  .rankrow .nm { flex: 1; color: var(--ink-2); }
+  .rankrow .dv { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* vocabulary */
+  .vocab-term {
+    display: grid; grid-template-columns: minmax(180px, 230px) minmax(0, 1fr);
+    gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--line);
+  }
+  @media (max-width: 720px) { .vocab-term { grid-template-columns: minmax(0, 1fr); } }
+  .vocab-term:last-child { border-bottom: 0; }
+  .syns { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; }
+  .syn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 12px; padding: 2px 4px 2px 10px; font-size: .78rem;
+  }
+  .syn.dupe { background: var(--clay-soft); border-color: transparent; color: var(--clay); }
+  .syn button {
+    font: inherit; line-height: 1; border: 0; background: transparent; cursor: pointer;
+    color: var(--ink-3); padding: 2px 5px; border-radius: 9px; font-size: .78rem;
+  }
+  .syn button:hover { background: var(--clay-soft); color: var(--clay); }
+  .syn-add { width: 168px; font-size: .8rem; padding: 3px 8px; }
+
+  /* variance */
+  .chip.var-hi { background: var(--clay-soft); color: var(--clay); border-color: transparent; }
+  .chip.var-lo { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+
+  .rate-cell input { width: 100%; }
+  .rates-scroll th.sticky-col, .rates-scroll td.sticky-col {
+    position: sticky; left: 0; background: var(--surface); z-index: 1;
+    border-right: 1px solid var(--line);
+  }
+</style>
+
+
+<header class="appbar">
+  <div class="brand">
+    <h1>CM Pursuit Estimator</h1>
+    <small>Price a change management pursuit from RFP scope, effort archetypes and Southeast Asian rate cards</small>
+  </div>
+  <div class="row no-print">
+    <div class="seg" role="group" aria-label="Role">
+      <button type="button" id="role-user" aria-pressed="true">Estimator</button>
+      <button type="button" id="role-admin" aria-pressed="false">Admin</button>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button type="button" id="theme-light" aria-pressed="false">Light</button>
+      <button type="button" id="theme-dark" aria-pressed="false">Dark</button>
+    </div>
+    <button class="btn ghost small danger" id="btn-reset">Reset all</button>
+  </div>
+</header>
+
+<nav class="steps" role="tablist" aria-label="Estimation steps">
+  <button class="step" role="tab" aria-selected="true" data-panel="scope"><span class="idx">01</span> Scope &amp; RFP</button>
+  <button class="step" role="tab" aria-selected="false" data-panel="quote"><span class="idx">02</span> Priced deliverables</button>
+  <span class="divider admin-only" hidden>Configuration</span>
+  <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="quotes" hidden>Past quotes</button>
+  <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="library" hidden>Hours library</button>
+  <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="rates" hidden>Billing rates</button>
+  <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="vocab" hidden>CM vocabulary</button>
+</nav>
+
+<div class="layout">
+  <main>
+    <!-- ============ 01 SCOPE ============ -->
+    <section class="panel active" id="panel-scope" role="tabpanel">
+      <div class="card">
+        <header>
+          <h2>1 &middot; The engagement</h2>
+          <span class="hint">Where the work is delivered sets the rate card</span>
+        </header>
+        <div class="body">
+          <div class="row">
+            <div class="field" style="max-width:250px">
+              <label for="country">Country of implementation</label>
+              <select id="country"></select>
+              <span class="src" id="country-src">Sets rates and tax</span>
+            </div>
+            <div class="field" style="min-width:220px;flex:1">
+              <label for="client-name">Client / pursuit name</label>
+              <input type="text" id="client-name" placeholder="e.g. Northwind Utilities &mdash; S/4HANA">
+            </div>
+            <div class="field" style="max-width:150px">
+              <label for="hours-per-day">Hours per day</label>
+              <input type="number" id="hours-per-day" min="1" max="24" step="0.5">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header>
+          <h2>2 &middot; Read the RFP scope</h2>
+          <span class="hint">Word, PDF or plain text &mdash; nothing leaves your browser</span>
+        </header>
+        <div class="body">
+          <div class="drop" id="drop">
+            <strong>Drop the RFP here</strong>
+            <span class="files">.docx, .pdf, .txt or .md &mdash; or paste the scope section below. Scanned PDFs have no text layer; paste those.</span>
+            <div class="row">
+              <button class="btn" id="btn-browse">Choose file</button>
+              <button class="btn ghost" id="btn-sample-authority">Sample: public authority</button>
+              <button class="btn ghost" id="btn-sample-transport">Sample: transport operator</button>
+            </div>
+            <input type="file" id="file" accept=".docx,.pdf,.txt,.md,.csv" hidden>
+            <div class="files" id="file-status"></div>
+          </div>
+          <div class="field">
+            <label for="rfp-text">Scope text</label>
+            <textarea id="rfp-text" rows="9" placeholder="Paste the scope of work, deliverables list, or CM requirements from the RFP&hellip;"></textarea>
+          </div>
+          <div class="row">
+            <button class="btn primary" id="btn-analyse">Analyse scope</button>
+            <span class="note" id="analyse-status"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header>
+          <h2>3 &middot; Scope drivers</h2>
+          <span class="hint">Auto-read from the RFP where possible &mdash; override anything</span>
+        </header>
+        <div class="body">
+          <div class="grid-drivers" id="drivers"></div>
+          <details class="calc" id="evidence-wrap">
+            <summary>What was detected in the document</summary>
+            <div class="body" style="padding:10px 0 0; gap:8px" id="evidence-list"></div>
+          </details>
+        </div>
+      </div>
+
+      <div class="card">
+        <header>
+          <h2>4 &middot; Deliverables signalled by the RFP</h2>
+          <span class="hint" id="signal-count"></span>
+        </header>
+        <div class="body">
+          <div class="signals" id="signals"><span class="note">Analyse a scope document to see which deliverables the RFP asks for.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 02 PRICED DELIVERABLES ============ -->
+    <section class="panel" id="panel-quote" role="tabpanel">
+      <div class="card" id="quote-gate" hidden>
+        <div class="empty-gate">
+          <h3>Choose a country of implementation first</h3>
+          <p class="note">Day rates differ by country and rank across Southeast Asia, so nothing can be priced until the delivery country is set on the Scope tab.</p>
+          <button class="btn primary" id="btn-goto-scope">Go to Scope &amp; RFP</button>
+        </div>
+      </div>
+
+      <div class="card" id="quote-card">
+        <header>
+          <h2 id="quote-title">Schedule of deliverables and fees</h2>
+          <span class="hint" id="quote-meta"></span>
+        </header>
+        <div class="body">
+          <div class="row no-print">
+            <span class="country-badge" id="quote-country"></span>
+            <button class="btn spacer" id="btn-rebuild">Rebuild from scope</button>
+            <button class="btn ghost" id="btn-copy-md">Copy as Markdown</button>
+            <button class="btn ghost" id="btn-export-invoice">Export CSV</button>
+            <button class="btn primary" id="btn-print">Print / PDF</button>
+          </div>
+          <div class="tablewrap">
+            <table id="lines-table">
+              <thead>
+                <tr>
+                  <th class="n">In</th><th>Deliverable</th><th>Unit</th>
+                  <th class="n">Qty</th><th class="n">Days / unit</th><th class="n">Effort</th>
+                  <th class="n">Day rate</th><th class="n">Amount</th><th class="n">Option</th><th class="no-print"></th>
+                </tr>
+              </thead>
+              <tbody id="lines-body"></tbody>
+              <tfoot id="lines-foot"></tfoot>
+            </table>
+          </div>
+          <div class="row no-print">
+            <button class="btn small" id="btn-add-line">Add custom line</button>
+            <span class="note">Tick <strong>Option</strong> to move a line out of the headline total and into a separately priced options schedule.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header>
+          <h2>Contingencies and adjustments</h2>
+          <span class="hint">Applied in order: fees &rarr; buffer &rarr; discount &rarr; expenses &rarr; tax</span>
+        </header>
+        <div class="body">
+          <div class="row">
+            <div class="field"><label for="c-contingency">Delivery buffer %</label><input type="number" id="c-contingency" step="1" min="0"></div>
+            <div class="field"><label for="c-discount">Pursuit discount %</label><input type="number" id="c-discount" step="1" min="0"></div>
+            <div class="field"><label for="c-expenses">Travel &amp; expenses</label><input type="number" id="c-expenses" step="500" min="0"></div>
+            <div class="field"><label for="c-tax"><span id="tax-label">Tax</span> %</label><input type="number" id="c-tax" step="0.5" min="0"></div>
+          </div>
+          <p class="note" id="tax-note"></p>
+        </div>
+      </div>
+
+      <div class="card">
+        <header><h2>Assumptions</h2><span class="hint">Carry these into the proposal</span></header>
+        <div class="body">
+          <ul class="note" style="margin:0; padding-left:18px; display:flex; flex-direction:column; gap:5px" id="assumptions"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ADMIN: PAST QUOTES ============ -->
+    <section class="panel" id="panel-quotes" role="tabpanel">
+      <div class="card">
+        <header>
+          <h2>Past project quotes</h2>
+          <span class="hint">Calibrates effort and flags price variance</span>
+        </header>
+        <div class="body">
+          <div class="admin-note"><strong>Admin</strong><span>Since v0.3 prices from the rank rate card, this history no longer sets day rates. It calibrates days per unit where the hours library is silent, and drives the variance flag on the priced schedule.</span></div>
+          <p class="note">One row per priced line from a past proposal. <strong>Days</strong> is the total effort quoted for that line, <strong>Price</strong> the fee charged, in that country's currency. The implied day rate is derived, then indexed to today at the escalation rate on the Billing rates tab.</p>
+          <div class="tablewrap">
+            <table id="quotes-table">
+              <thead>
+                <tr>
+                  <th>Project</th><th class="n">Year</th><th>Country</th><th>Industry</th><th>Deliverable</th>
+                  <th class="n">Qty</th><th class="n">Days</th><th class="n">Price</th>
+                  <th class="n">Implied rate</th><th class="n">Days / unit</th><th class="no-print"></th>
+                </tr>
+              </thead>
+              <tbody id="quotes-body"></tbody>
+            </table>
+          </div>
+          <div class="row">
+            <button class="btn" id="btn-add-quote">Add line</button>
+            <button class="btn ghost" id="btn-import-quotes">Import CSV</button>
+            <button class="btn ghost" id="btn-export-quotes">Export CSV</button>
+            <input type="file" id="quotes-file" accept=".csv" hidden>
+            <button class="btn ghost spacer" id="btn-restore-samples">Restore sample data</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ADMIN: HOURS LIBRARY ============ -->
+    <section class="panel" id="panel-library" role="tabpanel">
+      <div class="card">
+        <header>
+          <h2>Effort archetypes</h2>
+          <span class="hint">Generic hours by complexity, and the rank mix that builds them</span>
+        </header>
+        <div class="body">
+          <div class="admin-note"><strong>Admin</strong><span>Every task in the library resolves its hours through this matrix, and its cost through the rank mix on the same row. Editing a row reprices every deliverable built from that archetype.</span></div>
+          <div class="tablewrap">
+            <table id="archetype-table">
+              <thead><tr><th>Archetype</th><th class="n">Simple</th><th class="n">Standard</th><th class="n">Complex</th><th>Rank mix %</th><th class="n">Sum</th></tr></thead>
+              <tbody id="archetype-body"></tbody>
+            </table>
+          </div>
+          <div class="row">
+            <button class="btn ghost small" id="btn-mix-reset">Reset rank mixes</button>
+            <span class="note">Each mix must total 100%. A deliverable with no enabled tasks falls back to the default mix.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header>
+          <h2>Hours library</h2>
+          <span class="hint" id="library-meta"></span>
+        </header>
+        <div class="body">
+          <div class="row">
+            <button class="btn ghost small" id="btn-library-reset">Reset library to source</button>
+            <button class="btn ghost small" id="btn-library-export">Export CSV</button>
+          </div>
+          <div class="tablewrap">
+            <table id="library-table">
+              <thead><tr><th class="n">In</th><th>Task</th><th>Unit</th><th>Archetype</th><th>Complexity</th><th class="n">Hours</th></tr></thead>
+              <tbody id="library-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ADMIN: BILLING RATES ============ -->
+    <section class="panel" id="panel-rates" role="tabpanel">
+      <div class="card">
+        <header>
+          <h2>Billing rates by country and rank</h2>
+          <span class="hint">Day rates in each country's local currency</span>
+        </header>
+        <div class="body">
+          <div class="admin-note"><strong>Illustrative rates</strong><span>These are placeholder day rates for the MVP, not your firm's card. Replace them &mdash; edit any cell, or import a CSV &mdash; before quoting anything real.</span></div>
+          <div class="tablewrap rates-scroll">
+            <table id="rates-table">
+              <thead><tr id="rates-head"></tr></thead>
+              <tbody id="rates-body"></tbody>
+            </table>
+          </div>
+          <div class="row">
+            <div class="field" style="max-width:200px">
+              <label for="escalation">Annual rate escalation %</label>
+              <input type="number" id="escalation" min="0" max="20" step="0.5">
+            </div>
+            <p class="note" style="flex:1;min-width:220px">Escalation indexes past quotes to today for the variance flag. It does not inflate the rate card &mdash; keep the card current instead.</p>
+          </div>
+          <div class="row">
+            <button class="btn ghost" id="btn-import-rates">Import CSV</button>
+            <button class="btn ghost" id="btn-export-rates">Export CSV</button>
+            <input type="file" id="rates-file" accept=".csv" hidden>
+            <button class="btn ghost small spacer" id="btn-rates-reset">Reset rate card</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header><h2>Tax and currency by country</h2><span class="hint">Seeds the tax field on the priced schedule</span></header>
+        <div class="body">
+          <div class="tablewrap">
+            <table id="tax-table">
+              <thead><tr><th>Country</th><th>Currency</th><th>Tax name</th><th class="n">Default rate %</th></tr></thead>
+              <tbody id="tax-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ ADMIN: VOCABULARY ============ -->
+    <section class="panel" id="panel-vocab" role="tabpanel">
+      <div class="card">
+        <header>
+          <h2>CM vocabulary</h2>
+          <span class="hint" id="vocab-meta"></span>
+        </header>
+        <div class="body">
+          <div class="admin-note"><strong>Admin</strong><span>Synonyms decide which catalogue deliverable a phrase in the RFP maps to. They never rename anything: the priced schedule always shows the client's own wording, with our term underneath.</span></div>
+          <div class="row">
+            <button class="btn ghost small" id="btn-vocab-reset">Reset vocabulary to source</button>
+            <button class="btn ghost small" id="btn-vocab-export">Export CSV</button>
+            <span class="note">Removing every synonym from a term stops the analyser signalling it.</span>
+          </div>
+          <div id="vocab-list"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="summary no-print">
+    <div class="card">
+      <div class="body">
+        <span class="eyebrow">Total price</span>
+        <span class="value zero" id="s-total">&mdash;</span>
+        <span class="note" id="s-total-note">Nothing priced yet</span>
+        <span class="country-badge" id="s-country" style="align-self:flex-start"></span>
+      </div>
+      <div class="body" style="border-top:1px solid var(--line)">
+        <div class="sumline"><span>Fees</span><span id="s-fees">&mdash;</span></div>
+        <div class="sumline muted"><span>Buffer</span><span id="s-cont">&mdash;</span></div>
+        <div class="sumline muted"><span>Discount</span><span id="s-disc">&mdash;</span></div>
+        <div class="sumline muted"><span>Expenses</span><span id="s-exp">&mdash;</span></div>
+        <div class="sumline muted"><span id="s-tax-label">Tax</span><span id="s-tax">&mdash;</span></div>
+        <div class="sumline strong"><span>Total</span><span id="s-total2">&mdash;</span></div>
+        <div class="sumline muted" id="s-opt-row" style="display:none"><span>Options, priced separately</span><span id="s-opt">&mdash;</span></div>
+      </div>
+      <div class="metrics">
+        <div class="metric"><span class="eyebrow">Effort</span><span class="v" id="s-days">&mdash;</span><span class="note">person-days</span></div>
+        <div class="metric"><span class="eyebrow">Blended</span><span class="v" id="s-blended">&mdash;</span><span class="note">per day</span></div>
+        <div class="metric"><span class="eyebrow">Team size</span><span class="v" id="s-fte">&mdash;</span><span class="note">avg FTE</span></div>
+        <div class="metric"><span class="eyebrow">Duration</span><span class="v" id="s-months">&mdash;</span><span class="note">months</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="body">
+        <span class="eyebrow">Effort by rank</span>
+        <div class="rankbar" id="s-rankbar"></div>
+        <div class="ranklist" id="s-ranklist"></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<div class="copy-panel" id="copy-panel" hidden>
+  <div class="card">
+    <header>
+      <strong id="copy-panel-name">Export</strong>
+      <span class="hint">Select all and copy</span>
+      <button class="btn small spacer" id="copy-panel-copy">Copy</button>
+      <button class="btn ghost small" id="copy-panel-close">Close</button>
+    </header>
+    <textarea id="copy-panel-text" rows="12" readonly spellcheck="false"></textarea>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+
+<script>
+(function () {
+  "use strict";
+
+  const STORE_KEY = "cm-estimator-v3";
+  const THIS_YEAR = new Date().getFullYear();
+  const $ = (id) => document.getElementById(id);
+
+  /* =====================================================================
+     Deliverable taxonomy — the vocabulary shared by past quotes, the rate
+     card and the priced schedule.
+     ===================================================================== */
+
+  const TAXONOMY = [
+    { id: "cm_strategy", cat: "Strategy", name: "CM strategy & approach", unit: "document", base: 8, core: true,
+      desc: "Change strategy, guiding principles, governance model and integrated CM plan aligned to the programme roadmap.",
+      qty: () => 1, scales: {},
+      kw: ["change management strategy", "change strategy", "cm approach", "change approach", "change management plan", "change management framework"] },
+
+    { id: "impact_assessment", cat: "Impact & readiness", name: "Change impact assessment", unit: "business unit", base: 6, core: true,
+      desc: "As-is to to-be impact analysis by process, role and system, with a consolidated impact register and mitigation actions.",
+      qty: (d) => Math.max(1, d.units), scales: { geo: true },
+      kw: ["change impact", "impact assessment", "impact analysis", "as-is to to-be", "process impact", "impact register"] },
+
+    { id: "stakeholder_plan", cat: "Impact & readiness", name: "Stakeholder analysis & engagement plan", unit: "plan", base: 5, core: true,
+      desc: "Stakeholder mapping by influence and disposition, engagement approach and a sequenced engagement calendar.",
+      qty: () => 1, scales: {},
+      kw: ["stakeholder analysis", "stakeholder mapping", "stakeholder engagement", "stakeholder management", "influence map"] },
+
+    { id: "readiness_assess", cat: "Impact & readiness", name: "Change readiness assessment", unit: "wave", base: 4,
+      desc: "Readiness survey design, fielding and analysis per deployment wave, with go/no-go readiness scorecard.",
+      qty: (d) => Math.max(1, d.waves), scales: { geo: true },
+      kw: ["readiness assessment", "change readiness", "readiness survey", "pulse survey", "readiness check", "go/no-go"] },
+
+    { id: "comms_strategy", cat: "Engagement & comms", name: "Communications strategy & plan", unit: "plan", base: 6, core: true,
+      desc: "Key messages by audience, channel strategy, spokesperson map and a dated communications calendar.",
+      qty: () => 1, scales: {},
+      kw: ["communication strategy", "communications strategy", "communication plan", "communications plan", "key messages", "comms plan"] },
+
+    { id: "comms_collateral", cat: "Engagement & comms", name: "Communications collateral", unit: "item", base: 1.5,
+      desc: "Drafting and production of individual comms assets — emails, intranet articles, leader talking points, posters, FAQs.",
+      qty: (d) => Math.max(4, Math.round(d.months * 1.5)), scales: { geo: false, lang: true },
+      kw: ["collateral", "communication material", "communications material", "materials development", "newsletter", "intranet", "talking points", "faq", "town hall", "roadshow", "campaign", "poster", "video"] },
+
+    { id: "leadership_workshops", cat: "Engagement & comms", name: "Leadership alignment workshops", unit: "workshop", base: 2.5,
+      desc: "Design and facilitation of sponsor and leadership alignment sessions, including pre-reads and follow-up actions.",
+      qty: (d) => Math.max(2, d.units), scales: {},
+      kw: ["leadership alignment", "sponsor", "executive workshop", "leadership workshop", "steering", "alignment session"] },
+
+    { id: "change_network", cat: "Engagement & comms", name: "Change agent network set-up & enablement", unit: "network", base: 6,
+      desc: "Change champion selection criteria, role charter, onboarding pack and recurring enablement sessions.",
+      qty: () => 1, scales: { geo: true },
+      kw: ["change agent", "change champion", "change network", "super user", "super-user", "ambassador", "champion network"] },
+
+    { id: "tna", cat: "Training", name: "Training needs analysis", unit: "analysis", base: 6,
+      desc: "Role-to-course mapping, audience sizing and skills-gap analysis producing the training curriculum matrix.",
+      qty: () => 1, scales: {},
+      kw: ["training needs analysis", "tna", "learning needs", "role mapping", "curriculum", "skills gap"] },
+
+    { id: "training_strategy", cat: "Training", name: "Training strategy & plan", unit: "plan", base: 5,
+      desc: "Learning approach, delivery modalities, logistics plan, trainer sourcing and the training schedule.",
+      qty: () => 1, scales: {},
+      kw: ["training strategy", "training plan", "learning strategy", "training approach", "learning plan"] },
+
+    { id: "courseware", cat: "Training", name: "Training content development", unit: "module", base: 4,
+      desc: "Storyboard, build and revision of one training module — deck, exercises, simulations, quick reference guide.",
+      qty: (d) => Math.max(2, d.modules), scales: { lang: true },
+      kw: ["training material", "courseware", "e-learning", "elearning", "job aid", "quick reference", "storyboard", "training content", "user guide", "wbt"] },
+
+    { id: "t3", cat: "Training", name: "Train-the-trainer delivery", unit: "session", base: 2,
+      desc: "Preparation and facilitation of train-the-trainer sessions, including trainer certification and feedback.",
+      qty: (d) => Math.max(1, Math.ceil(Math.ceil(d.headcount / 50) / 12)), scales: {},
+      kw: ["train the trainer", "train-the-trainer", "t3", "trainer certification", "ttt"] },
+
+    { id: "eu_training", cat: "Training", name: "End-user training delivery", unit: "session", base: 1,
+      desc: "Facilitation of end-user training sessions including logistics support and attendance tracking.",
+      qty: (d) => Math.max(1, Math.ceil(d.headcount / Math.max(1, d.sessionSize || 20))), scales: { geo: true, lang: true },
+      kw: ["end user training", "end-user training", "classroom", "instructor led", "instructor-led", "training instructor", "training delivery", "training session", "number of sessions", "trainees per session", "floorwalk"] },
+
+    { id: "business_readiness", cat: "Deployment", name: "Business readiness & cutover support", unit: "wave", base: 5,
+      desc: "Readiness checklist ownership, cutover business tasks, command-centre participation and go-live comms.",
+      qty: (d) => Math.max(1, d.waves), scales: { geo: true },
+      kw: ["cutover", "business readiness", "go-live", "go live", "deployment support", "command centre", "command center", "mock go-live"] },
+
+    { id: "hypercare", cat: "Sustainment", name: "Hypercare & adoption support", unit: "month", base: 10,
+      desc: "Post go-live floorwalking, issue triage from a people angle, refresher content and adoption nudges.",
+      qty: (d) => Math.max(1, d.hypercareMonths), scales: { geo: true },
+      kw: ["hypercare", "hyper-care", "post go-live", "post-go-live", "sustainment", "aftercare", "stabilisation", "stabilization"] },
+
+    { id: "adoption_measurement", cat: "Sustainment", name: "Adoption measurement & benefits tracking", unit: "cycle", base: 5,
+      desc: "Adoption KPI definition, dashboard build, measurement cycles and corrective action recommendations.",
+      qty: (d) => Math.max(1, d.waves), scales: {},
+      kw: ["adoption", "benefits realisation", "benefits realization", "kpi", "metrics", "measurement", "dashboard", "sustain"] },
+
+    { id: "org_design", cat: "Strategy", name: "Organisation & role design", unit: "design", base: 10,
+      desc: "To-be role definition, org structure options, role-to-position mapping and transition considerations.",
+      qty: () => 1, scales: {},
+      kw: ["organisation design", "organization design", "org design", "role design", "operating model", "job design", "role mapping"] },
+
+    { id: "cm_lead", cat: "Management", name: "CM lead & workstream management", unit: "month", base: 12, core: true,
+      desc: "Change workstream leadership, programme governance participation, reporting and client management.",
+      qty: (d) => Math.max(1, d.months), scales: {},
+      kw: ["change lead", "change manager", "workstream lead", "programme management", "program management", "governance", "reporting", "pmo"] }
+  ];
+
+  const BY_ID = Object.fromEntries(TAXONOMY.map((t) => [t.id, t]));
+
+  // ---- Hours knowledge base, imported from the itemised CM deliverables workbook ----
+  // 189 costed tasks across 53 deliverables. Hours per task come from an archetype x
+  // complexity matrix; editing the matrix reprices every task that still uses it.
+  const ARCHETYPE_HOURS = {
+    "Decks & Visual Assets": { Simple: 4.0, Standard: 6.0, Complex: 10.0 },
+    "Facilitation & Sessions": { Simple: 3.0, Standard: 6.0, Complex: 12.0 },
+    "Recurring PMO / Admin": { Simple: 1.0, Standard: 2.0, Complex: null },
+    "Strategic Plans & Models": { Simple: 6.0, Standard: 8.0, Complex: 12.0 },
+    "Surveys, Reports & Analytics": { Simple: 4.0, Standard: 8.0, Complex: 12.0 },
+    "Trackers & Registers": { Simple: 1.0, Standard: 3.0, Complex: 6.0 },
+    "Video & Digital Assets": { Simple: 4.0, Standard: 8.0, Complex: 12.0 },
+    "Written Comms & Guides": { Simple: 2.0, Standard: 4.0, Complex: 6.0 },
+  };
+
+  const CATALOG = [
+    { id: "cm_plan", name: "CM Plan", section: 1, cat: "Planning & Design", unit: "plan", rateKey: "cm_strategy", qty: "one", core: true, geo: false, hours: 59 },
+    { id: "cm_team", name: "CM Team Structure", section: 1, cat: "Planning & Design", unit: "structure", rateKey: "cm_strategy", qty: "one", core: true, geo: false, hours: 31 },
+    { id: "stakeholder_plan", name: "Stakeholder Engagement Plan", section: 2, cat: "Stakeholder Engagement", unit: "plan", rateKey: "stakeholder_plan", qty: "one", core: true, geo: false, hours: 49 },
+    { id: "stakeholder_sessions", name: "Stakeholder Engagement Sessions", section: 2, cat: "Stakeholder Engagement", unit: "session", rateKey: "leadership_workshops", qty: "months", core: false, geo: false, hours: 18 },
+    { id: "change_network", name: "Change Agent Network Activation", section: 3, cat: "Change Agent Network", unit: "network", rateKey: "change_network", qty: "one", core: false, geo: true, hours: 32 },
+    { id: "comms_plan", name: "Communications Plan", section: 4, cat: "Communications Management", unit: "plan", rateKey: "comms_strategy", qty: "one", core: true, geo: false, hours: 45 },
+    { id: "sharepoint_site", name: "SharePoint Site", section: 5, cat: "Communications Collaterals", unit: "site", rateKey: "comms_collateral", qty: "one", core: false, geo: false, hours: 21 },
+    { id: "email_comms", name: "Email Communications", section: 5, cat: "Communications Collaterals", unit: "email", rateKey: "comms_collateral", qty: "comms_cadence", core: false, geo: false, hours: 9 },
+    { id: "orientation_comms", name: "Orientation Programme Communications", section: 5, cat: "Communications Collaterals", unit: "communication", rateKey: "comms_collateral", qty: "two", core: false, geo: false, hours: 2 },
+    { id: "leader_video", name: "Leadership Video Message", section: 5, cat: "Communications Collaterals", unit: "video", rateKey: "comms_collateral", qty: "waves", core: false, geo: false, hours: 25 },
+    { id: "briefings", name: "Briefings", section: 5, cat: "Communications Collaterals", unit: "briefing", rateKey: "comms_collateral", qty: "units_min2", core: false, geo: false, hours: 16 },
+    { id: "cra_comms", name: "CRA Survey Communications", section: 5, cat: "Communications Collaterals", unit: "cycle", rateKey: "comms_collateral", qty: "waves", core: false, geo: false, hours: 8 },
+    { id: "readiness_assess", name: "Change Readiness Assessments", section: 6, cat: "Assessment, Analysis & Insight Generation", unit: "wave", rateKey: "readiness_assess", qty: "waves", core: false, geo: true, hours: 58 },
+    { id: "impact_assessment", name: "Change Impact Assessments", section: 6, cat: "Assessment, Analysis & Insight Generation", unit: "business unit", rateKey: "impact_assessment", qty: "units", core: true, geo: true, hours: 77 },
+    { id: "training_plan", name: "Training Plan", section: 7, cat: "Training", unit: "plan", rateKey: "training_strategy", qty: "one", core: false, geo: false, hours: 55 },
+    { id: "ilt_materials", name: "Instructor-Led Training Materials", section: 8, cat: "Training Collaterals", unit: "module", rateKey: "courseware", qty: "modules", core: false, geo: false, hours: 21 },
+    { id: "quizzes", name: "Training Materials and Quizzes", section: 8, cat: "Training Collaterals", unit: "quiz", rateKey: "courseware", qty: "modules", core: false, geo: false, hours: 8 },
+    { id: "user_guides", name: "User Guides", section: 8, cat: "Training Collaterals", unit: "guide", rateKey: "courseware", qty: "modules", core: false, geo: false, hours: 8 },
+    { id: "training_videos", name: "Training Videos", section: 8, cat: "Training Collaterals", unit: "video", rateKey: "courseware", qty: "modules_third", core: false, geo: false, hours: 20 },
+    { id: "demo_videos", name: "System Demo Videos", section: 8, cat: "Training Collaterals", unit: "video", rateKey: "courseware", qty: "modules_third", core: false, geo: false, hours: 20 },
+    { id: "microlearning", name: "Micro-Learning Materials", section: 8, cat: "Training Collaterals", unit: "asset", rateKey: "courseware", qty: "modules_half", core: false, geo: false, hours: 12 },
+    { id: "localised_materials", name: "Localized Training Materials", section: 8, cat: "Training Collaterals", unit: "language pack", rateKey: "courseware", qty: "extra_languages", core: false, geo: false, hours: 12 },
+    { id: "qrgs", name: "QRGs", section: 8, cat: "Training Collaterals", unit: "QRG", rateKey: "courseware", qty: "modules", core: false, geo: false, hours: 6 },
+    { id: "faqs", name: "FAQs", section: 8, cat: "Training Collaterals", unit: "FAQ set", rateKey: "courseware", qty: "one", core: false, geo: false, hours: 6 },
+    { id: "adoption_clinics", name: "User Adoption Clinics", section: 8, cat: "Training Collaterals", unit: "clinic", rateKey: "hypercare", qty: "hypercare_double", core: false, geo: true, hours: 12 },
+    { id: "helpdesk", name: "Helpdesk Support", section: 8, cat: "Training Collaterals", unit: "article", rateKey: "hypercare", qty: "modules_half", core: false, geo: false, hours: 8 },
+    { id: "expert_groups", name: "Expert User Groups", section: 8, cat: "Training Collaterals", unit: "group", rateKey: "hypercare", qty: "units", core: false, geo: false, hours: 7 },
+    { id: "peer_groups", name: "Peer Support Groups", section: 8, cat: "Training Collaterals", unit: "group", rateKey: "hypercare", qty: "units", core: false, geo: false, hours: 4 },
+    { id: "t3", name: "Train-the-Trainer Sessions", section: 9, cat: "Content Delivery", unit: "session", rateKey: "t3", qty: "trainer_sessions", core: false, geo: false, hours: 19 },
+    { id: "eu_training", name: "End User Training", section: 9, cat: "Content Delivery", unit: "session", rateKey: "eu_training", qty: "training_sessions", core: false, geo: true, hours: 13 },
+    { id: "local_training", name: "Local Process Training", section: 9, cat: "Content Delivery", unit: "market", rateKey: "eu_training", qty: "geos", core: false, geo: false, hours: 12 },
+    { id: "uat_training", name: "UAT Support Training", section: 9, cat: "Content Delivery", unit: "session", rateKey: "eu_training", qty: "waves", core: false, geo: false, hours: 12 },
+    { id: "training_admin", name: "Training Administration", section: 9, cat: "Content Delivery", unit: "cycle", rateKey: "eu_training", qty: "waves_double", core: false, geo: false, hours: 11 },
+    { id: "decks", name: "PowerPoint Decks", section: 10, cat: "Content Creation & Asset Production", unit: "deck", rateKey: "comms_collateral", qty: "months_third", core: false, geo: false, hours: 22 },
+    { id: "videos", name: "Videos", section: 10, cat: "Content Creation & Asset Production", unit: "video", rateKey: "comms_collateral", qty: "one", core: false, geo: false, hours: 20 },
+    { id: "infographics", name: "Infographics", section: 10, cat: "Content Creation & Asset Production", unit: "asset", rateKey: "comms_collateral", qty: "two", core: false, geo: false, hours: 10 },
+    { id: "posters", name: "Posters / Banners", section: 10, cat: "Content Creation & Asset Production", unit: "asset", rateKey: "comms_collateral", qty: "two", core: false, geo: false, hours: 6 },
+    { id: "sharepoint_content", name: "SharePoint Content", section: 10, cat: "Content Creation & Asset Production", unit: "page", rateKey: "comms_collateral", qty: "months", core: false, geo: false, hours: 4 },
+    { id: "evaluation_plan", name: "Global Evaluation and Success Measures Plan and Approach", section: 11, cat: "Evaluation & Reports", unit: "framework", rateKey: "adoption_measurement", qty: "one", core: false, geo: false, hours: 36 },
+    { id: "eval_global", name: "Post-Globalisation Evaluation Report", section: 11, cat: "Evaluation & Reports", unit: "report", rateKey: "adoption_measurement", qty: "one", core: false, geo: false, hours: 32 },
+    { id: "eval_local", name: "Post-Localisation Evaluation Report", section: 11, cat: "Evaluation & Reports", unit: "report", rateKey: "adoption_measurement", qty: "one", core: false, geo: false, hours: 32 },
+    { id: "eval_uat", name: "Post-UAT Evaluation Report", section: 11, cat: "Evaluation & Reports", unit: "report", rateKey: "adoption_measurement", qty: "waves", core: false, geo: false, hours: 20 },
+    { id: "eval_pir", name: "Post-Implementation Review Report", section: 11, cat: "Evaluation & Reports", unit: "report", rateKey: "adoption_measurement", qty: "waves", core: false, geo: false, hours: 32 },
+    { id: "adoption_reporting", name: "Adoption Reporting", section: 11, cat: "Evaluation & Reports", unit: "cycle", rateKey: "adoption_measurement", qty: "months_third", core: false, geo: false, hours: 16 },
+    { id: "handover_plan", name: "Handover Plan", section: 12, cat: "Handover & Transition", unit: "plan", rateKey: "business_readiness", qty: "one", core: false, geo: false, hours: 29 },
+    { id: "transition_plan", name: "Transition Plan", section: 12, cat: "Handover & Transition", unit: "plan", rateKey: "business_readiness", qty: "one", core: false, geo: false, hours: 31 },
+    { id: "sustenance_plan", name: "Change Sustenance Plan", section: 12, cat: "Handover & Transition", unit: "plan", rateKey: "adoption_measurement", qty: "one", core: false, geo: false, hours: 31 },
+    { id: "orientation", name: "Orientation Programme Plan", section: 13, cat: "Orientation Programme", unit: "programme", rateKey: "orientation", qty: "one", core: false, geo: false, hours: 28 },
+    { id: "status_reporting", name: "CM Status Reporting", section: 14, cat: "Governance & PMO Support", unit: "week", rateKey: "cm_lead", qty: "weeks", core: true, geo: false, hours: 3 },
+    { id: "steerco", name: "Steering Committee Support", section: 14, cat: "Governance & PMO Support", unit: "meeting", rateKey: "cm_lead", qty: "months", core: false, geo: false, hours: 10 },
+    { id: "working_group", name: "Working Group Support", section: 14, cat: "Governance & PMO Support", unit: "meeting", rateKey: "cm_lead", qty: "months_double", core: false, geo: false, hours: 7 },
+    { id: "raid", name: "RAID Management", section: 14, cat: "Governance & PMO Support", unit: "update", rateKey: "cm_lead", qty: "months_double", core: false, geo: false, hours: 1 },
+    { id: "deliverable_mgmt", name: "Deliverable Management", section: 14, cat: "Governance & PMO Support", unit: "cycle", rateKey: "cm_lead", qty: "months_double", core: false, geo: false, hours: 4 },
+  ];
+
+  const TASKS = [
+    { g: "cm_plan", t: "Develop CM strategy and approach", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "cm_plan", t: "Define CM roadmap and key milestones", u: "Per roadmap", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "cm_plan", t: "Define change governance approach", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "cm_plan", t: "Draft Change Management Plan", u: "Per draft", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "cm_plan", t: "Review and update CM Plan based on stakeholder feedback", u: "Per review cycle", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "cm_plan", t: "Prepare CM Plan presentation deck", u: "Per deck", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "cm_plan", t: "Facilitate CM strategy alignment workshop", u: "Per workshop (per day)", a: "Facilitation & Sessions", c: "Complex", h: 12 },
+    { g: "cm_team", t: "Define CM team structure", u: "Per structure", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "cm_team", t: "Define roles and responsibilities", u: "Per RACI", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "cm_team", t: "Develop CM governance and escalation model", u: "Per model", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "cm_team", t: "Validate CM team structure with client/project team", u: "Per review cycle", a: "Facilitation & Sessions", c: "Simple", h: 3 },
+    { g: "stakeholder_plan", t: "Identify stakeholder groups", u: "Per stakeholder group", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "stakeholder_plan", t: "Build stakeholder register", u: "Per register", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "stakeholder_plan", t: "Conduct stakeholder mapping", u: "Per stakeholder / group", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "stakeholder_plan", t: "Develop power-interest grid", u: "Per grid", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "stakeholder_plan", t: "Segment stakeholders by role, function, country, and impact level", u: "Per stakeholder group", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "stakeholder_plan", t: "Define stakeholder engagement approach", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "stakeholder_plan", t: "Draft Stakeholder Engagement Plan", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "stakeholder_sessions", t: "Prepare engagement session materials", u: "Per session", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "stakeholder_sessions", t: "Schedule stakeholder engagement sessions", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "stakeholder_sessions", t: "Facilitate stakeholder engagement sessions", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "stakeholder_sessions", t: "Capture meeting notes and actions", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "stakeholder_sessions", t: "Track stakeholder concerns and feedback", u: "Per feedback log", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "stakeholder_sessions", t: "Update stakeholder engagement tracker", u: "Per update cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "change_network", t: "Define change agent model", u: "Per model", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "change_network", t: "Define change agent roles and responsibilities", u: "Per role description", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "change_network", t: "Identify change agent candidates", u: "Per change agent", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "change_network", t: "Prepare change agent onboarding materials", u: "Per deck / pack", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "change_network", t: "Conduct change agent onboarding session", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "change_network", t: "Run change agent check-ins", u: "Per session", a: "Facilitation & Sessions", c: "Simple", h: 3 },
+    { g: "change_network", t: "Capture change agent feedback", u: "Per feedback cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "change_network", t: "Maintain change agent tracker", u: "Per update cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "comms_plan", t: "Define communications strategy", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "comms_plan", t: "Define communication audiences", u: "Per audience group", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "comms_plan", t: "Define communication channels", u: "Per channel", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "comms_plan", t: "Develop key messages", u: "Per message set", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "comms_plan", t: "Develop communication calendar", u: "Per calendar", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "comms_plan", t: "Draft Communications Plan", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "comms_plan", t: "Review and revise Communications Plan", u: "Per review cycle", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "sharepoint_site", t: "Design SharePoint structure", u: "Per site", a: "Video & Digital Assets", c: "Complex", h: 12 },
+    { g: "sharepoint_site", t: "Draft SharePoint page content", u: "Per page", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "sharepoint_site", t: "Upload and format content", u: "Per page", a: "Video & Digital Assets", c: "Simple", h: 4 },
+    { g: "sharepoint_site", t: "Maintain SharePoint updates", u: "Per update", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "email_comms", t: "Draft global email communication", u: "Per email", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "email_comms", t: "Localize email communication", u: "Per market / language", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "email_comms", t: "Route email for review and approval", u: "Per review cycle", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "email_comms", t: "Finalize and issue email communication", u: "Per email", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "orientation_comms", t: "Draft invitation and reminder communications", u: "Per communication", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "leader_video", t: "Draft leadership video script", u: "Per script", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "leader_video", t: "Develop video storyboard", u: "Per storyboard", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "leader_video", t: "Coordinate recording", u: "Per recording", a: "Recurring PMO / Admin", c: "Standard", h: 2 },
+    { g: "leader_video", t: "Edit leadership video", u: "Per video", a: "Video & Digital Assets", c: "Complex", h: 12 },
+    { g: "leader_video", t: "Manage video review cycles", u: "Per review cycle", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "briefings", t: "Develop briefing deck", u: "Per deck", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "briefings", t: "Prepare speaker notes", u: "Per deck", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "briefings", t: "Support briefing delivery", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "cra_comms", t: "Draft CRA launch communication", u: "Per communication", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "cra_comms", t: "Draft CRA reminder communication", u: "Per communication", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "cra_comms", t: "Draft CRA results summary communication", u: "Per communication", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "readiness_assess", t: "Define CRA approach", u: "Per approach", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "readiness_assess", t: "Develop CRA questionnaire", u: "Per survey", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "readiness_assess", t: "Configure CRA survey", u: "Per survey", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "readiness_assess", t: "Test CRA survey", u: "Per survey", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "readiness_assess", t: "Launch CRA survey", u: "Per survey", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "readiness_assess", t: "Send CRA reminders", u: "Per reminder", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "readiness_assess", t: "Monitor survey responses", u: "Per response cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "readiness_assess", t: "Analyze CRA results", u: "Per survey", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "readiness_assess", t: "Develop CRA report", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "readiness_assess", t: "Present CRA findings", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "impact_assessment", t: "Review process documentation", u: "Per process", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "impact_assessment", t: "Attend functional walkthroughs", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "impact_assessment", t: "Identify change impacts", u: "Per process / role", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "impact_assessment", t: "Map impacts by stakeholder group", u: "Per stakeholder group", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "impact_assessment", t: "Assess impact severity", u: "Per impact", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "impact_assessment", t: "Build impact heatmap", u: "Per heatmap", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "impact_assessment", t: "Develop change impact register", u: "Per register", a: "Trackers & Registers", c: "Complex", h: 6 },
+    { g: "impact_assessment", t: "Facilitate impact validation workshop", u: "Per workshop", a: "Facilitation & Sessions", c: "Complex", h: 12 },
+    { g: "impact_assessment", t: "Update impact assessment after validation", u: "Per update cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "impact_assessment", t: "Create CIA summary deck", u: "Per deck", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "training_plan", t: "Conduct training needs analysis", u: "Per role / group", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "training_plan", t: "Define training audience groups", u: "Per audience group", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "training_plan", t: "Develop training curriculum", u: "Per curriculum", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "training_plan", t: "Define training approach", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "training_plan", t: "Develop training schedule", u: "Per schedule", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "training_plan", t: "Draft Training Plan", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "training_plan", t: "Review and revise Training Plan", u: "Per review cycle", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "ilt_materials", t: "Storyboard ILT content", u: "Per module", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "ilt_materials", t: "Develop ILT deck", u: "Per deck", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "ilt_materials", t: "Format ILT deck", u: "Per deck", a: "Decks & Visual Assets", c: "Simple", h: 4 },
+    { g: "ilt_materials", t: "Manage ILT review cycles", u: "Per review cycle", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "quizzes", t: "Draft quiz questions", u: "Per quiz", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "quizzes", t: "Configure quiz", u: "Per quiz", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "user_guides", t: "Draft user guide", u: "Per guide", a: "Written Comms & Guides", c: "Complex", h: 6 },
+    { g: "user_guides", t: "Format user guide", u: "Per guide", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "training_videos", t: "Draft video script", u: "Per video", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "training_videos", t: "Record training video", u: "Per video", a: "Video & Digital Assets", c: "Standard", h: 8 },
+    { g: "training_videos", t: "Edit training video", u: "Per video", a: "Video & Digital Assets", c: "Standard", h: 8 },
+    { g: "demo_videos", t: "Draft demo script", u: "Per video", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "demo_videos", t: "Record system demo", u: "Per video", a: "Video & Digital Assets", c: "Standard", h: 8 },
+    { g: "demo_videos", t: "Edit system demo video", u: "Per video", a: "Video & Digital Assets", c: "Standard", h: 8 },
+    { g: "microlearning", t: "Design micro-learning asset", u: "Per asset", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "microlearning", t: "Draft micro-learning content", u: "Per asset", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "microlearning", t: "Review and finalize micro-learning content", u: "Per asset", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "localised_materials", t: "Localize training deck", u: "Per market / language", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "localised_materials", t: "Reformat translated materials", u: "Per deck", a: "Decks & Visual Assets", c: "Simple", h: 4 },
+    { g: "localised_materials", t: "Conduct translation quality check", u: "Per asset", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "qrgs", t: "Draft quick reference guide", u: "Per QRG", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "qrgs", t: "Format quick reference guide", u: "Per QRG", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "faqs", t: "Collect frequently asked questions", u: "Per FAQ set", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "faqs", t: "Draft FAQ responses", u: "Per FAQ set", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "adoption_clinics", t: "Prepare clinic materials", u: "Per clinic", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "adoption_clinics", t: "Facilitate user adoption clinic", u: "Per clinic", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "helpdesk", t: "Develop helpdesk knowledge articles", u: "Per article", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "helpdesk", t: "Prepare support scripts", u: "Per script", a: "Written Comms & Guides", c: "Standard", h: 4 },
+    { g: "expert_groups", t: "Set up expert user group", u: "Per group", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "expert_groups", t: "Facilitate expert user group session", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "peer_groups", t: "Set up peer support group", u: "Per group", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "peer_groups", t: "Coordinate peer support activities", u: "Per activity", a: "Facilitation & Sessions", c: "Simple", h: 3 },
+    { g: "t3", t: "Prepare TTT materials", u: "Per session", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "t3", t: "Deliver TTT session", u: "Per session", a: "Facilitation & Sessions", c: "Complex", h: 12 },
+    { g: "t3", t: "Capture attendance and feedback", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "eu_training", t: "Prepare EUT session materials", u: "Per session", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "eu_training", t: "Deliver EUT session", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "eu_training", t: "Track EUT attendance", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "local_training", t: "Prepare local process training materials", u: "Per market", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "local_training", t: "Deliver local process training", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "uat_training", t: "Prepare UAT briefing materials", u: "Per session", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "uat_training", t: "Deliver UAT briefing or walkthrough", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "training_admin", t: "Schedule training sessions", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "training_admin", t: "Send invitations and reminders", u: "Per communication", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "training_admin", t: "Consolidate training completion data", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "decks", t: "Build presentation deck", u: "Per deck", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "decks", t: "Format presentation deck", u: "Per deck", a: "Decks & Visual Assets", c: "Simple", h: 4 },
+    { g: "decks", t: "Apply branding and visual clean-up", u: "Per deck", a: "Decks & Visual Assets", c: "Simple", h: 4 },
+    { g: "decks", t: "Update deck based on review comments", u: "Per review cycle", a: "Decks & Visual Assets", c: "Simple", h: 4 },
+    { g: "videos", t: "Edit functional system demo video", u: "Per video", a: "Video & Digital Assets", c: "Complex", h: 12 },
+    { g: "videos", t: "Add subtitles or captions", u: "Per video", a: "Video & Digital Assets", c: "Simple", h: 4 },
+    { g: "videos", t: "Cut video into shorter learning clips", u: "Per video", a: "Video & Digital Assets", c: "Simple", h: 4 },
+    { g: "infographics", t: "Design infographic", u: "Per asset", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "posters", t: "Draft and design visual collateral", u: "Per asset", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "sharepoint_content", t: "Draft and upload digital content", u: "Per page / update", a: "Video & Digital Assets", c: "Simple", h: 4 },
+    { g: "evaluation_plan", t: "Define evaluation approach", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "evaluation_plan", t: "Define success metrics and KPIs", u: "Per KPI set", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "evaluation_plan", t: "Define data collection approach", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "evaluation_plan", t: "Draft evaluation framework", u: "Per framework", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "eval_global", t: "Collect post-globalisation data", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "eval_global", t: "Analyze results", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "eval_global", t: "Draft report", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "eval_local", t: "Collect post-localisation data", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "eval_local", t: "Analyze results", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "eval_local", t: "Draft report", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "eval_uat", t: "Collect UAT feedback", u: "Per report", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "eval_uat", t: "Analyze UAT feedback", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "eval_uat", t: "Draft UAT evaluation report", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "eval_pir", t: "Collect PIR inputs", u: "Per report", a: "Surveys, Reports & Analytics", c: "Standard", h: 8 },
+    { g: "eval_pir", t: "Conduct lessons learned analysis", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "eval_pir", t: "Draft PIR report", u: "Per report", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "adoption_reporting", t: "Prepare adoption dashboard", u: "Per dashboard", a: "Surveys, Reports & Analytics", c: "Complex", h: 12 },
+    { g: "adoption_reporting", t: "Update adoption metrics", u: "Per reporting cycle", a: "Surveys, Reports & Analytics", c: "Simple", h: 4 },
+    { g: "handover_plan", t: "Define handover scope", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "handover_plan", t: "Identify receiving teams", u: "Per team", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "handover_plan", t: "Prepare handover checklist", u: "Per checklist", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "handover_plan", t: "Compile handover documentation", u: "Per pack", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "handover_plan", t: "Conduct handover session", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "transition_plan", t: "Define transition activities", u: "Per plan", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "transition_plan", t: "Map transition ownership", u: "Per activity", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "transition_plan", t: "Define support model", u: "Per support model", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "transition_plan", t: "Track transition readiness", u: "Per checkpoint", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "sustenance_plan", t: "Define sustenance approach", u: "Per plan", a: "Strategic Plans & Models", c: "Complex", h: 12 },
+    { g: "sustenance_plan", t: "Define reinforcement activities", u: "Per activity", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "sustenance_plan", t: "Define BAU ownership", u: "Per owner group", a: "Strategic Plans & Models", c: "Standard", h: 8 },
+    { g: "sustenance_plan", t: "Develop sustainment tracker", u: "Per tracker", a: "Trackers & Registers", c: "Standard", h: 3 },
+    { g: "orientation", t: "Define orientation objectives", u: "Per plan", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "orientation", t: "Define audience and participant groups", u: "Per audience group", a: "Strategic Plans & Models", c: "Simple", h: 6 },
+    { g: "orientation", t: "Develop orientation agenda", u: "Per agenda", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "orientation", t: "Develop orientation materials", u: "Per deck / pack", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "orientation", t: "Coordinate orientation logistics", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "orientation", t: "Deliver orientation programme", u: "Per session", a: "Facilitation & Sessions", c: "Standard", h: 6 },
+    { g: "orientation", t: "Capture orientation attendance and feedback", u: "Per session", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "status_reporting", t: "Prepare weekly CM status update", u: "Per week", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "status_reporting", t: "Update CM workplan", u: "Per update", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "status_reporting", t: "Track CM deliverables", u: "Per update cycle", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "steerco", t: "Prepare SteerCo CM slides", u: "Per meeting", a: "Decks & Visual Assets", c: "Complex", h: 10 },
+    { g: "working_group", t: "Prepare working group materials", u: "Per meeting", a: "Decks & Visual Assets", c: "Standard", h: 6 },
+    { g: "working_group", t: "Capture meeting minutes and actions", u: "Per meeting", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+    { g: "raid", t: "Update CM risks, issues, actions, dependencies", u: "Per update", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "deliverable_mgmt", t: "Manage review tracker", u: "Per tracker", a: "Trackers & Registers", c: "Simple", h: 1 },
+    { g: "deliverable_mgmt", t: "Consolidate comments from reviewers", u: "Per review cycle", a: "Written Comms & Guides", c: "Simple", h: 2 },
+    { g: "deliverable_mgmt", t: "Version control CM deliverables", u: "Per version", a: "Recurring PMO / Admin", c: "Simple", h: 1 },
+  ];
+
+  const TASKS_BY_GROUP = TASKS.reduce((acc, t, i) => { (acc[t.g] = acc[t.g] || []).push(i); return acc; }, {});
+
+  // Quantity rules — how many units of a deliverable the scope drivers imply.
+  const QTY_RULES = {
+    one: () => 1,
+    two: () => 2,
+    months: (d) => Math.max(1, d.months),
+    months_double: (d) => Math.max(2, d.months * 2),
+    months_third: (d) => Math.max(2, Math.round(d.months / 3)),
+    weeks: (d) => Math.max(4, Math.round(d.months * 4.33)),
+    waves: (d) => Math.max(1, d.waves),
+    waves_double: (d) => Math.max(2, d.waves * 2),
+    units: (d) => Math.max(1, d.units),
+    units_min2: (d) => Math.max(2, d.units),
+    geos: (d) => Math.max(1, d.geos),
+    modules: (d) => Math.max(1, d.modules),
+    modules_half: (d) => Math.max(2, Math.round(d.modules / 2)),
+    modules_third: (d) => Math.max(1, Math.round(d.modules / 3)),
+    extra_languages: (d) => Math.max(0, d.modules * Math.max(0, d.languages - 1)),
+    comms_cadence: (d) => Math.max(6, d.months * 2),
+    hypercare_double: (d) => Math.max(2, d.hypercareMonths * 2),
+    trainer_sessions: (d) => Math.max(1, Math.ceil(Math.ceil(d.headcount / 50) / 12)),
+    training_sessions: (d) => Math.max(1, Math.ceil(d.headcount / Math.max(1, d.sessionSize || 20)))
+  };
+
+  const CAT_BY_ID = Object.fromEntries(CATALOG.map((c) => [c.id, c]));
+
+  /* ---- Hours library: task hours resolve through the archetype matrix ---- */
+
+  function archetypeHours(archetype, complexity) {
+    const ov = (state.archetypes || {})[archetype] || {};
+    if (ov[complexity] > 0) return +ov[complexity];
+    const row = ARCHETYPE_HOURS[archetype] || {};
+    return row[complexity] > 0 ? row[complexity] : null;
+  }
+
+  function taskHours(i) {
+    const t = TASKS[i];
+    const ov = (state.taskHours || {})[i];
+    if (ov > 0) return +ov;
+    const fromMatrix = archetypeHours(t.a, t.c);
+    return fromMatrix != null ? fromMatrix : t.h;
+  }
+
+  function taskEnabled(i) { return !(state.taskOff || {})[i]; }
+
+  function libraryHours(groupId) {
+    const idx = TASKS_BY_GROUP[groupId] || [];
+    let hours = 0, n = 0;
+    idx.forEach((i) => { if (taskEnabled(i)) { hours += taskHours(i); n++; } });
+    return { hours, n, total: idx.length };
+  }
+
+  function libraryTaskNames(groupId) {
+    return (TASKS_BY_GROUP[groupId] || []).filter(taskEnabled).map((i) => TASKS[i].t);
+  }
+
+  /* =====================================================================
+     Scope drivers
+     ===================================================================== */
+
+  const DRIVERS = [
+    { key: "headcount", label: "Impacted people", type: "number", def: 500, step: 50,
+      rx: /([\d][\d,\.]{1,9})\s*(?:\+\s*)?(?:end[\s-]?users|users|employees|staff|headcount|impacted people|people impacted|colleagues|personnel)/i },
+    { key: "units", label: "Business units / functions", type: "number", def: 3, step: 1,
+      rx: /(\d{1,3})\s*(?:business units|bus\b|entities|departments|functions|divisions|process areas|workstreams)/i },
+    { key: "geos", label: "Countries / sites", type: "number", def: 1, step: 1,
+      rx: /(\d{1,3})\s*(?:countries|geographies|regions|markets|sites|locations|plants|offices)/i },
+    { key: "languages", label: "Languages", type: "number", def: 1, step: 1,
+      rx: /(\d{1,2})\s*(?:languages|local languages)/i },
+    { key: "waves", label: "Deployment waves", type: "number", def: 1, step: 1,
+      rx: /(\d{1,2})\s*(?:waves|releases|go[\s-]?lives|deployment phases|rollout phases|tranches)/i },
+    { key: "months", label: "Programme duration (months)", type: "number", def: 9, step: 1,
+      rx: /(?:duration of|period of|runs? for|lasting|spanning|contract period of)\s*(?:approximately\s*)?\(?\s*(\d{1,3})\s*\)?\s*(?:calendar\s*)?months?|(\d{1,3})[\s-]*month\s*(?:programme|program|project|engagement|contract|implementation)/i },
+    { key: "modules", label: "Training modules", type: "number", def: 6, step: 1,
+      rx: /(\d{1,3})\s*(?:training modules|modules|courses|curricula)/i },
+    { key: "sessionSize", label: "Trainees per session", type: "number", def: 20, step: 5,
+      rx: /(?:participants?|trainees|pax)\s*per\s*(?:training\s*)?session[^.]{0,80}?\(?\s*(\d{1,3})\s*\)?|(?:not more than|maximum of|up to)\s*\(?\s*(\d{1,3})\s*\)?\s*(?:participants?|trainees|pax)\s*(?:per|in each)/i },
+    { key: "hypercareMonths", label: "Hypercare (months)", type: "number", def: 2, step: 1,
+      rx: /(?:hypercare|hyper-care|post[\s-]?go[\s-]?live support)[^.\n]{0,60}?(\d{1,2})\s*months?|(\d{1,2})\s*months?\s*(?:of\s+)?(?:hypercare|hyper-care)/i },
+    { key: "complexity", label: "Complexity", type: "select", def: 3,
+      options: [[1, "1 — Simple, single system"], [2, "2 — Low"], [3, "3 — Typical"], [4, "4 — High"], [5, "5 — Very high, multi-system"]] },
+    { key: "maturity", label: "Client CM maturity", type: "select", def: "medium",
+      options: [["low", "Low — starting from scratch"], ["medium", "Medium — some practice"], ["high", "High — mature CM function"]] }
+  ];
+
+  const COMPLEXITY_MULT = { 1: 0.85, 2: 0.92, 3: 1, 4: 1.15, 5: 1.35 };
+  const MATURITY_MULT = { low: 1.1, medium: 1, high: 0.92 };
+
+  /* =====================================================================
+     Sample data
+     ===================================================================== */
+
+  // Past quotes are historic prices in the currency of the country they were
+  // delivered in, so a benchmark is only comparable within its own country.
+  const SAMPLE_QUOTE_COUNTRY = {
+    "Project Meridian (sample)": "MY",
+    "Project Halyard (sample)": "SG",
+    "Project Kestrel (sample)": "SG"
+  };
+
+  const SAMPLE_QUOTES = [
+    ["Project Meridian (sample)", 2023, "Manufacturing", "cm_strategy", 1, 10, 15000],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "impact_assessment", 4, 24, 36000],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "comms_strategy", 1, 7, 10500],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "comms_collateral", 18, 27, 37800],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "tna", 1, 8, 12000],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "courseware", 8, 34, 47600],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "eu_training", 26, 26, 33800],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "hypercare", 2, 20, 30000],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "cm_lead", 9, 108, 172800],
+    ["Project Halyard (sample)", 2024, "Banking", "cm_strategy", 1, 8, 14400],
+    ["Project Halyard (sample)", 2024, "Banking", "stakeholder_plan", 1, 6, 10800],
+    ["Project Halyard (sample)", 2024, "Banking", "readiness_assess", 3, 12, 21600],
+    ["Project Halyard (sample)", 2024, "Banking", "leadership_workshops", 4, 10, 19000],
+    ["Project Halyard (sample)", 2024, "Banking", "change_network", 1, 7, 12600],
+    ["Project Halyard (sample)", 2024, "Banking", "comms_collateral", 24, 34, 57800],
+    ["Project Halyard (sample)", 2024, "Banking", "adoption_measurement", 1, 6, 10800],
+    ["Project Kestrel (sample)", 2025, "Public sector", "cm_strategy", 1, 7, 11900],
+    ["Project Kestrel (sample)", 2025, "Public sector", "impact_assessment", 3, 17, 27200],
+    ["Project Kestrel (sample)", 2025, "Public sector", "training_strategy", 1, 5, 8000],
+    ["Project Kestrel (sample)", 2025, "Public sector", "courseware", 6, 26, 41600],
+    ["Project Kestrel (sample)", 2025, "Public sector", "t3", 3, 6, 9600],
+    ["Project Kestrel (sample)", 2025, "Public sector", "business_readiness", 2, 11, 17600],
+    ["Project Kestrel (sample)", 2025, "Public sector", "hypercare", 1, 9, 14400],
+    ["Project Kestrel (sample)", 2025, "Public sector", "cm_lead", 6, 66, 105600]
+  ].map(([project, year, industry, deliverable, qty, days, price]) =>
+    ({ project, year, industry, deliverable, qty, days, price,
+       country: SAMPLE_QUOTE_COUNTRY[project] || "SG" }));
+
+  const SAMPLE_RFP = `REQUIREMENT SPECIFICATIONS — CHANGE MANAGEMENT AND TRAINING
+
+Anonymised extract of a public-sector requirement specification, used as the sample scope for the estimator. All identifying references have been removed: the buying organisation is "the Client", the bidding party is "the provider", and the entities onboarded in phases are "participating organisations".
+
+1. INTRODUCTION
+
+1.1.1 The provider shall lead and execute change management activities to ensure stakeholder readiness prior to each phase of participating organisation onboarding. The provider shall adapt change management approaches as needed throughout the phased implementation up till the end of the solution warranty period for the last participating organisation onboarded.
+
+1.1.2 The stakeholders include but are not limited to the following: (a) senior stakeholder groups including executive project sponsors, leadership, board members, service professionals, administrators and staff; (b) policy divisions, operational teams, and owners of existing systems affected by or replaced by the new solution; (c) client users, nominated personnel and nominated technical personnel; (d) functional business units such as Finance and Procurement with processes and systems directly impacted by the solution; (e) technical and project delivery teams, including ICT representatives, data owners, system integration leads, cybersecurity and infrastructure personnel; (f) end users of the solution across all organisational levels, including identified superusers and change champions who will support training and adoption activities; (g) external partners and third-party providers involved in service delivery, solution integration or ongoing system support after each participating organisation has onboarded.
+
+1.1.3 The provider shall develop a stakeholder engagement strategy and change management plan to address the varying levels of concerns across different stakeholder groups.
+
+1.1.4 The provider shall ensure that stakeholders understand the need for change and the impact of new working procedures to promote positive reactions and enthusiasm for adopting the solution.
+
+2. CHANGE MANAGEMENT TEAM
+
+2.1.1 The provider shall propose a change management team led by a change manager. The change management team shall possess appropriate expertise and experience to support and partner with the Client in delivering effective change management throughout the project lifecycle.
+
+2.1.2 The provider shall clearly define the reporting hierarchy and organisational structure of the change management team, including reporting relationships with the Client's project team and other delivery teams.
+
+2.3.1 The change manager shall collaborate with the development and design team to ensure change management considerations are integrated throughout the development process.
+
+2.3.3 The change management team shall review and ensure consistency and coherence in all messaging and communications materials (including emails, presentations, training materials and announcements) prior to seeking Client approval and releasing to stakeholders.
+
+3. CHANGE MANAGEMENT SCOPE
+
+3.1.1 The provider shall propose a change management plan that covers the entire project lifecycle, including: (a) implementation stage; (b) post go-live BAU operations stage, including the performance guarantee period and the solution warranty period; and (c) maintenance services stage, encompassing new releases and patches that affect stakeholders.
+
+3.1.2 The provider shall provide a comprehensive change management proposal, including the following:
+
+(a) Change management strategy and approach, including but not limited to: i) Planning — design, scheduling and timeline for intended outcomes, changes and announcements, organised into phased stages, including a capability building plan to equip key stakeholders and the change management team with the requisite mindset and skills, including just-in-time coaching and mentoring; ii) Evaluation — assessment of risks and benefits at each stage, with recommended implementation approaches for each phase, including change impact analysis across the Client and participating organisations; iii) Communication strategy — development of a compelling change narrative that establishes context, initiates calls to action and explains the transformation journey towards the desired vision; iv) Implementation schedule — detailed timeline for executing the change management plan according to project milestones; v) Post-implementation review — monitoring and evaluation of change implementation effectiveness, including pulse check surveys to track project success measures and change progress, conducted every six months or aligned with project milestones; vi) Change agent identification and training — identification of suitable change agents within the organisation and development of a comprehensive training plan for the identified change agents.
+
+(b) Change management team structure, including the roles and responsibilities of the provider team, subcontractors, the Client and participating organisations;
+
+(c) Detailed stakeholder engagement plan, including methods of engagement (dialogue sessions, seminars) and training approaches to ease the onboarding process;
+
+(d) Comprehensive communications plan, detailing communication channels, materials development, coordination mechanisms and approval processes. The provider shall quote for communication materials development as optional items;
+
+(e) Transition management plan;
+
+(f) Change readiness assessment;
+
+(g) Change impact assessment;
+
+(h) Change intervention plan;
+
+(i) Change risk management plan;
+
+(j) Change management activities and schedule;
+
+(k) User training plan and materials;
+
+(l) Success measurement framework, including indicators to measure change success during and beyond solution implementation, clearly specifying measurement objectives, timelines, measurement indices and appropriate follow-up actions;
+
+(m) Handover plan to enable the Client team to sustain and institutionalise the change within three (3) months before the end of the solution warranty period for the last participating organisation onboarded.
+
+3.1.3 The provider shall provide a cost breakdown for all change management activities.
+
+3.3.1 The provider shall work with the Client to leverage policy makers, stakeholders and change networks to develop and customise communications and materials.
+
+3.3.2 The provider may use communication channels such as newsletters, videos and road shows. The change management team shall track and coordinate all communications from all channels and sources.
+
+3.3.3 The provider shall prepare all engagement and communication materials (including EDMs, posters, briefing slides) and obtain Client approval at least five (5) working days before engagement commencement.
+
+3.3.5 During change management programme implementation, the provider shall analyse issues related to system usage or adoption and propose additional change management measures to address these issues.
+
+3.3.6 The provider shall provide timely reviews tracking key performance indicators to validate change management success, and provide a post-implementation report one (1) month after each participating organisation is onboarded, including key successes, challenges and measures of success; a summary of findings from reviews and retrospective meetings; and recommendations for sustaining and reinforcing business change efforts.
+
+4. CHANGE SUSTENANCE AFTER THE WARRANTY PERIOD
+
+4.1.1 The provider shall propose, as an option for the Client to exercise, a detailed change sustenance plan to sustain adoption of the solution after the solution warranty period of the last participating organisation onboarded.
+
+4.1.2 The plan shall minimally include: (a) stakeholder management plan; (b) strategy and approach to sustain adoption; (c) engagement and communications plan, including engagements during solution enhancements; (d) governance and team structure; (e) support framework to sustain any proposed interventions to shape desired behaviour; (f) capability building; (g) tools and resources; (h) success measurement indicators for change interventions beyond solution implementation; and (i) handover plan to enable the Client team to sustain and institutionalise the change within three (3) months after completing the change sustenance plan.
+
+4.2.3 The provider shall itemise the cost for this scope of work as an option for the Client to exercise.
+
+5. TRAINING
+
+5.1.1 The provider shall provide training to meet the following objectives: (a) to enable all client users and nominated personnel to manage, operate, configure and use the solution effectively and proficiently; (b) to enable all nominated technical personnel to manage, operate, configure and maintain the solution; (c) to enable all nominated technical personnel to have an overview of the system architecture and to diagnose and resolve problems in using the solution; (d) to enable a smooth transfer of knowledge from the provider to the nominated technical personnel.
+
+5.1.2 The provider shall provide at least the following types of training: (a) product overview and business process training; (b) configuration for system modules training; (c) business rule training; (d) application security administration overview training; (e) system maintenance overview training; (f) interface and integration training; (g) reports and dashboards overview training; (h) senior management pre go-live briefings; (i) technical training; (j) training on software and tools.
+
+5.1.9 The provider shall ensure that all training instructors are suitably qualified and competent and are well-versed in the system.
+
+5.1.12 The provider shall include the type of training, target audience, duration of each session, proposed number of sessions, number of trainees per session, schedule of the sessions, and training charges and rates. The exact number of participants will be determined by the Client during the contract period.
+
+5.1.13 The provider shall ensure the maximum number of participants per training session should not be more than thirty (30) to ensure training is delivered effectively.
+
+5.1.14 The provider shall provide all necessary equipment, training materials and logistics coordination (including informing users of the training schedule, registration of participants, maintaining records of attendance and collating training feedback forms) for all training sessions.
+
+5.2.1 The provider shall provide all the training materials, inclusive of instructor's guide, slides and trainee's booklet, in soft copy and obtain Client approval at least five (5) working days before the commencement of the training.
+
+5.2.4 The provider shall update the training materials when the need arises, including to account for any new changes made to the solution such as newly implemented modules and new releases or patches.
+
+5.3.1 The provider shall collect feedback from all participants of each training session by distributing evaluation forms, collate the results and submit the completed evaluation forms to the Client within seven (7) days after the end of each training session.
+
+5.4.1 The provider shall provide training on the application for various roles such as users, administrators and operators.
+
+6. ORIENTATION PROGRAMME
+
+6.1.1 Prior to the commencement of application software development activities, the provider shall deliver an orientation programme for the project team, in order to familiarise and prepare these personnel on project and product management activities.
+
+6.1.2 The provider shall provide the necessary manpower and logistics to support the end-to-end delivery of the proposed orientation programme, which may include the venue where the orientation programme would be conducted, printing of presentation and reference materials, and coaches to facilitate group discussion activities and gamification.
+
+6.1.5 The orientation programme shall build capabilities for effective and efficient involvement in the development phase of the project, including aligning the project, product management, Agile methodology and event milestones; sharing roles and responsibilities of key roles in the project; defining sprint duration, definition of done and the calendar of ceremonies; and sharing examples of user stories with clear acceptance criteria.`;
+
+
+
+  /* =====================================================================
+     Southeast Asian delivery countries, consultant ranks and billing rates.
+     Rates are day rates held in each country's own billing currency — there
+     is no FX layer, because a pursuit is delivered and invoiced in one place.
+     ===================================================================== */
+
+  const RANKS = [
+    { id: "analyst", name: "Analyst", short: "AN" },
+    { id: "consultant", name: "Consultant", short: "C" },
+    { id: "senior_consultant", name: "Senior Consultant", short: "SC" },
+    { id: "manager", name: "Manager", short: "M" },
+    { id: "senior_manager", name: "Senior Manager", short: "SM" },
+    { id: "director", name: "Director", short: "D" },
+    { id: "partner", name: "Partner", short: "P" }
+  ];
+
+  // A sequential ramp off the accent hue — junior ranks light, senior ranks deep.
+  const RANK_COLOR = {
+    analyst: "#B9C3E8", consultant: "#8E9CD8", senior_consultant: "#6B7BC4",
+    manager: "#4E5EA8", senior_manager: "#3A4788", director: "#2A3468", partner: "#1B2247"
+  };
+
+  const COUNTRIES = [
+    { id: "SG", name: "Singapore", currency: "SGD", tax: "GST", taxRate: 9 },
+    { id: "MY", name: "Malaysia", currency: "MYR", tax: "SST", taxRate: 8 },
+    { id: "BN", name: "Brunei", currency: "BND", tax: "No indirect tax", taxRate: 0 },
+    { id: "VN", name: "Vietnam", currency: "VND", tax: "VAT", taxRate: 10 },
+    { id: "KH", name: "Cambodia", currency: "USD", tax: "VAT", taxRate: 10 },
+    { id: "ID", name: "Indonesia", currency: "IDR", tax: "PPN", taxRate: 11 },
+    { id: "PH", name: "Philippines", currency: "PHP", tax: "VAT", taxRate: 12 }
+  ];
+
+  const COUNTRY_BY_ID = Object.fromEntries(COUNTRIES.map((c) => [c.id, c]));
+
+  // Illustrative day rates for the MVP — replace with the firm's own card.
+  // Cambodia is quoted in USD, as professional services there routinely are.
+  const RATE_CARD = {
+    SG: { analyst: 900, consultant: 1300, senior_consultant: 1800, manager: 2400, senior_manager: 3100, director: 4000, partner: 5500 },
+    MY: { analyst: 1600, consultant: 2400, senior_consultant: 3300, manager: 4400, senior_manager: 5700, director: 7300, partner: 10000 },
+    BN: { analyst: 850, consultant: 1250, senior_consultant: 1700, manager: 2300, senior_manager: 2950, director: 3800, partner: 5200 },
+    VN: { analyst: 6000000, consultant: 9000000, senior_consultant: 12500000, manager: 16500000, senior_manager: 21000000, director: 27000000, partner: 37000000 },
+    KH: { analyst: 500, consultant: 750, senior_consultant: 1050, manager: 1400, senior_manager: 1800, director: 2300, partner: 3200 },
+    ID: { analyst: 3500000, consultant: 5200000, senior_consultant: 7200000, manager: 9500000, senior_manager: 12500000, director: 16000000, partner: 22000000 },
+    PH: { analyst: 18000, consultant: 27000, senior_consultant: 37000, manager: 49000, senior_manager: 63000, director: 82000, partner: 112000 }
+  };
+
+  // Who actually does the work. Keyed by archetype, because every task in the
+  // hours library already carries one — so a deliverable's rank profile falls
+  // out of its task composition instead of being maintained 53 times over.
+  const RANK_MIX = {
+    "Strategic Plans & Models":     { analyst: 5,  consultant: 20, senior_consultant: 30, manager: 25, senior_manager: 12, director: 6, partner: 2 },
+    "Facilitation & Sessions":      { analyst: 5,  consultant: 15, senior_consultant: 25, manager: 30, senior_manager: 17, director: 6, partner: 2 },
+    "Surveys, Reports & Analytics": { analyst: 20, consultant: 35, senior_consultant: 25, manager: 15, senior_manager: 5,  director: 0, partner: 0 },
+    "Written Comms & Guides":       { analyst: 25, consultant: 40, senior_consultant: 25, manager: 10, senior_manager: 0,  director: 0, partner: 0 },
+    "Decks & Visual Assets":        { analyst: 25, consultant: 40, senior_consultant: 20, manager: 10, senior_manager: 5,  director: 0, partner: 0 },
+    "Video & Digital Assets":       { analyst: 30, consultant: 40, senior_consultant: 20, manager: 10, senior_manager: 0,  director: 0, partner: 0 },
+    "Trackers & Registers":         { analyst: 45, consultant: 35, senior_consultant: 15, manager: 5,  senior_manager: 0,  director: 0, partner: 0 },
+    "Recurring PMO / Admin":        { analyst: 50, consultant: 35, senior_consultant: 10, manager: 5,  senior_manager: 0,  director: 0, partner: 0 }
+  };
+
+  // Used where a deliverable has no enabled tasks to profile.
+  const DEFAULT_MIX = { analyst: 15, consultant: 30, senior_consultant: 25, manager: 18, senior_manager: 8, director: 3, partner: 1 };
+
+  const emptyMix = () => Object.fromEntries(RANKS.map((r) => [r.id, 0]));
+
+  function mixFor(archetype) {
+    const ov = (state.rankMix || {})[archetype];
+    const base = RANK_MIX[archetype] || DEFAULT_MIX;
+    return { ...emptyMix(), ...base, ...(ov || {}) };
+  }
+
+  function mixSum(mix) { return RANKS.reduce((s, r) => s + (+mix[r.id] || 0), 0); }
+
+  function rateFor(countryId, rankId) {
+    const ov = ((state.rates || {})[countryId] || {})[rankId];
+    if (ov > 0) return +ov;
+    return (RATE_CARD[countryId] || {})[rankId] || 0;
+  }
+
+  const activeCountry = () => COUNTRY_BY_ID[state.country] || null;
+
+
+  /* =====================================================================
+     Second sample: a rail operator's tender, written in operator language
+     (depots, crews, rosters, shift briefings) rather than public-sector
+     procurement language, so the vocabulary mapping gets a real workout.
+     ===================================================================== */
+
+  const SAMPLE_RFP_TRANSPORT = `SECTION 4 — SCOPE OF SERVICES
+CHANGE MANAGEMENT AND WORKFORCE TRANSITION
+Integrated Depot and Rolling Stock Maintenance System (IDRMS)
+
+4.1 Background
+4.1.1 The Operator runs a network of 6 depots and 3 permanent way sites across the country and will replace its legacy maintenance management application with the IDRMS platform. The programme will run over a period of 14 months from contract award, delivered in 3 waves aligned to depot readiness.
+4.1.2 The transition affects approximately 2,400 employees, comprising maintenance technicians, depot supervisors, rolling stock engineers, materials controllers, permanent way crews and the central maintenance planning office. Frontline staff work a rotating shift roster and have limited access to desktop computers during the working day.
+
+4.2 Change Management Requirements
+4.2.1 The Contractor shall develop a Change Management Strategy and an integrated change management plan covering the full programme lifecycle, including the change governance approach and the change management team structure to be deployed.
+4.2.2 The Contractor shall conduct a change impact assessment covering each affected depot and the central planning office. The Operator anticipates the assessment will address 7 business units. The impact register shall record process, role, system and industrial-relations impacts, and shall be validated with the relevant union representatives.
+4.2.3 The Contractor shall carry out stakeholder analysis and produce a stakeholder engagement plan, giving specific attention to union stakeholders, depot leadership and the shift-based frontline population.
+4.2.4 The Contractor shall establish and activate a change agent network drawing nominated change champions from every depot, and shall provide the network with an activation session, a toolkit and ongoing coaching support.
+4.2.5 The Contractor shall conduct change readiness assessments before each of the deployment waves, and shall report results with recommended mitigations to the Programme Steering Committee.
+4.2.6 The Contractor shall develop a communications plan and produce the associated communications collaterals. Given the shift-based workforce, collaterals shall include depot noticeboard posters, shift briefing packs, toolbox talk cards and short video messages from the Chief Operating Officer suitable for viewing on personal mobile devices.
+4.2.7 The Contractor shall provide CM status reporting to the Programme Management Office on a weekly basis, maintain the change RAID log, and support the monthly Programme Steering Committee.
+
+4.3 Training Requirements
+4.3.1 The Contractor shall develop a training plan and shall design and deliver role-based training for all affected employees. The Operator has identified 9 training modules spanning work order management, asset registry, materials requisition, planned maintenance scheduling, defect reporting, safety certification, mobile inspection, reporting and system administration.
+4.3.2 Training shall be delivered through instructor-led sessions at each depot. Classes shall be capped at not more than 15 participants per session to accommodate hands-on practice at the terminals.
+4.3.3 The Contractor shall deliver train-the-trainer sessions to build a sustainable internal training capability, and shall produce user guides, quick reference guides and micro-learning assets suitable for mobile viewing.
+4.3.4 All training materials shall be produced in 2 languages.
+4.3.5 The Contractor shall provide UAT support training ahead of each wave.
+
+4.4 Deployment and Post Go-Live
+4.4.1 The Contractor shall provide hypercare support for 3 months following each wave go-live, including on-site floorwalking at depots during the first two weeks of each wave.
+4.4.2 The Contractor shall run user adoption clinics at each depot during hypercare and shall establish expert user groups to sustain capability after the Contractor demobilises.
+4.4.3 The Contractor shall produce a post-implementation review report for each wave and shall define the adoption measurement approach, including the success measures and the reporting cadence.
+4.4.4 The Contractor shall produce a handover plan and a change sustenance plan transferring ongoing change and training responsibilities to the Operator's Learning and Development function.
+
+4.5 Optional Scope
+4.5.1 Tenderers shall price the following as an option: an orientation programme for the Operator's incoming digital maintenance team, covering agile ways of working and the target operating model.
+4.5.2 Tenderers shall price as an option the development of system demo videos covering each of the training modules.`;
+
+  /* =====================================================================
+     State
+     ===================================================================== */
+
+  const seedVocab = () => Object.fromEntries(TAXONOMY.map((t) => [t.id, [...t.kw]]));
+
+  const defaultState = () => ({
+    role: "user",
+    country: "",
+    rfpText: "",
+    fileName: "",
+    drivers: Object.fromEntries(DRIVERS.map((d) => [d.key, d.def])),
+    detected: {},          // driverKey -> {value, evidence}
+    signals: {},           // rate key -> evidence snippet
+    catSignals: {},        // catalogId -> evidence snippet where the RFP names the deliverable
+    optionalSignals: {},   // rate key -> sentence asking for it to be priced as an option
+    optionalCat: {},       // catalogId -> the same, named outright
+    clientTerms: {},       // catalogId -> the client's own wording for this deliverable
+    quotes: SAMPLE_QUOTES.map((q) => ({ ...q })),
+    overrides: {},         // catalogId -> {days, rate}
+    taskHours: {},         // task index -> hours, overriding the archetype matrix
+    taskOff: {},           // task index -> true when excluded from the library rollup
+    archetypes: {},        // archetype -> {Simple, Standard, Complex} hour overrides
+    rankMix: {},           // archetype -> {rankId: percent} overrides
+    rates: {},             // countryId -> {rankId: day rate} overrides
+    taxes: {},             // countryId -> {rate} overrides
+    vocab: seedVocab(),    // rate key -> synonyms the analyser matches on
+    lines: [],
+    settings: {
+      escalation: 3, hoursPerDay: 8,
+      contingency: 0, discount: 0, expenses: 0, tax: 0, taxTouched: false, client: ""
+    }
+  });
+
+  let state = load() || defaultState();
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      const base = defaultState();
+      return {
+        ...base, ...parsed,
+        drivers: { ...base.drivers, ...(parsed.drivers || {}) },
+        settings: { ...base.settings, ...(parsed.settings || {}) },
+        vocab: { ...base.vocab, ...(parsed.vocab || {}) }
+      };
+    } catch (e) { return null; }
+  }
+
+  let saveTimer;
+  function save() {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => {
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) { /* quota — non-fatal */ }
+    }, 250);
+  }
+
+  /* =====================================================================
+     Formatting helpers — money follows the selected country's currency
+     ===================================================================== */
+
+  const currencyCode = () => (activeCountry() || {}).currency || "SGD";
+
+  const money = (n) => new Intl.NumberFormat(undefined, {
+    style: "currency", currency: currencyCode(), maximumFractionDigits: 0
+  }).format(isFinite(n) ? n : 0);
+
+  const moneyShort = (n) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(n || 0));
+  const days = (n) => (Math.round(n * 10) / 10).toFixed(1);
+  const median = (arr) => {
+    if (!arr.length) return null;
+    const s = [...arr].sort((a, b) => a - b);
+    const m = Math.floor(s.length / 2);
+    return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
+  };
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  function toast(msg) {
+    const t = $("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  /* =====================================================================
+     Document reading — .docx and .pdf parsed in-browser, no libraries
+     ===================================================================== */
+
+  async function inflate(bytes, format) {
+    const ds = new DecompressionStream(format);
+    const stream = new Blob([bytes]).stream().pipeThrough(ds);
+    return new Uint8Array(await new Response(stream).arrayBuffer());
+  }
+
+  async function docxToText(buffer) {
+    const bytes = new Uint8Array(buffer);
+    const dv = new DataView(buffer);
+    const dec = new TextDecoder();
+    let i = 0, entry = null;
+
+    while (i < bytes.length - 30) {
+      if (bytes[i] === 0x50 && bytes[i + 1] === 0x4b && bytes[i + 2] === 0x03 && bytes[i + 3] === 0x04) {
+        const method = dv.getUint16(i + 8, true);
+        const compSize = dv.getUint32(i + 18, true);
+        const nameLen = dv.getUint16(i + 26, true);
+        const extraLen = dv.getUint16(i + 28, true);
+        const name = dec.decode(bytes.subarray(i + 30, i + 30 + nameLen));
+        const start = i + 30 + nameLen + extraLen;
+        if (name === "word/document.xml" && compSize > 0) { entry = { method, data: bytes.subarray(start, start + compSize) }; break; }
+        i = compSize > 0 ? start + compSize : i + 4;
+      } else i++;
+    }
+    if (!entry) throw new Error("no document.xml");
+
+    const xmlBytes = entry.method === 8 ? await inflate(entry.data, "deflate-raw") : entry.data;
+    const xml = new TextDecoder().decode(xmlBytes);
+    return xml
+      .replace(/<w:tab[^>]*\/>/g, "\t")
+      .replace(/<w:br[^>]*\/>/g, "\n")
+      .replace(/<\/w:p>/g, "\n")
+      .replace(/<[^>]+>/g, "")
+      .replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+  }
+
+  async function pdfToText(buffer) {
+    const bytes = new Uint8Array(buffer);
+    let latin = "";
+    const CHUNK = 0x8000;
+    for (let i = 0; i < bytes.length; i += CHUNK) latin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+
+    const pieces = [];
+    const rx = /(?:^|[^d])stream\r?\n/g;   // "stream", not the tail of "endstream"
+    let m;
+    while ((m = rx.exec(latin)) !== null) {
+      const start = m.index + m[0].length;
+      const end = latin.indexOf("endstream", start);
+      if (end < 0) continue;
+      rx.lastIndex = end;
+
+      // Prefer the declared /Length; decompressors reject trailing bytes.
+      const dict = latin.slice(Math.max(0, m.index - 300), m.index);
+      const lenMatch = /\/Length\s+(\d+)(?![\s\d]*\d\s+R)/.exec(dict);
+      let stop = end;
+      if (lenMatch) {
+        const declared = start + parseInt(lenMatch[1], 10);
+        if (declared > start && declared <= end) stop = declared;
+      }
+      while (stop > start && [0x0a, 0x0d, 0x20, 0x09].includes(bytes[stop - 1])) stop--;
+
+      const raw = bytes.subarray(start, stop);
+      let content = null;
+      for (const format of ["deflate", "deflate-raw"]) {
+        try { content = new TextDecoder("latin1").decode(await inflate(raw, format)); break; }
+        catch (e) { /* try the next container format */ }
+      }
+      if (content === null) content = latin.slice(start, stop);   // uncompressed content stream
+      // Only page content streams — embedded font programs decompress too and
+      // are full of byte sequences that look like text operators.
+      if (/\bBT\b/.test(content) && /\bTf\b/.test(content)) pieces.push(extractPdfOps(content));
+    }
+    return pieces.join("\n").replace(/[ \t]{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim();
+  }
+
+  // Strings are only text if a text-showing operator consumes them — otherwise
+  // they are dictionary values (language tags, marked-content properties).
+  function extractPdfOps(content) {
+    let out = "", pending = "";
+    const rx = /\((?:\\.|[^\\()])*\)|[A-Za-z'"*]+/g;
+    let m;
+    while ((m = rx.exec(content)) !== null) {
+      const tok = m[0];
+      if (tok[0] === "(") {
+        pending += tok.slice(1, -1)
+          .replace(/\\([nrt])/g, (s, c) => ({ n: "\n", r: "", t: "\t" }[c]))
+          .replace(/\\([()\\])/g, "$1")
+          .replace(/\\(\d{1,3})/g, (s, o) => String.fromCharCode(parseInt(o, 8)));
+        continue;
+      }
+      if (tok === "Tj" || tok === "TJ" || tok === "'" || tok === '"') { out += pending; pending = ""; continue; }
+      pending = "";
+      if (/^(Td|TD|Tm|T\*|ET)$/.test(tok) && !out.endsWith("\n")) out += "\n";
+    }
+    return out;
+  }
+
+  async function readFile(file) {
+    const name = file.name.toLowerCase();
+    if (name.endsWith(".docx")) return docxToText(await file.arrayBuffer());
+    if (name.endsWith(".pdf")) return pdfToText(await file.arrayBuffer());
+    return file.text();
+  }
+
+
+  /* =====================================================================
+     Scope analysis
+     ===================================================================== */
+
+  function snippet(text, index, len) {
+    const from = Math.max(0, index - 60);
+    const to = Math.min(text.length, index + len + 60);
+    return (from > 0 ? "…" : "") + text.slice(from, to).replace(/\s+/g, " ").trim() + (to < text.length ? "…" : "");
+  }
+
+  // PDF text arrives fragmented — line breaks and kerning splits land inside
+  // phrases ("change impact\nanalysis", "promot e"). Matching on a letters-only
+  // copy, with an index back to the readable text, survives that.
+  function compactIndex(normalized) {
+    let compact = "";
+    const map = [];
+    for (let i = 0; i < normalized.length; i++) {
+      const ch = normalized[i].toLowerCase();
+      if (ch >= "a" && ch <= "z" || ch >= "0" && ch <= "9") { compact += ch; map.push(i); }
+    }
+    return { compact, map };
+  }
+
+  // "Orientation Programme Plan" -> "orientation programme"; but never down to a
+  // single generic word like "adoption", which matches half a tender.
+  function trimGeneric(name) {
+    const trimmed = name.replace(/\s+(plans?|sessions?|materials?|assessments?|support|reporting|activation)$/, "");
+    return trimmed !== name && trimmed.split(/\s+/).length >= 2 ? trimmed : null;
+  }
+
+  function findPhrase(norm, ci, phrase) {
+    const key = phrase.replace(/[^a-z0-9]/g, "");
+    if (!key) return null;
+
+    // Short keys ("t3") need word boundaries — stripped of spaces they hide
+    // inside ordinary text such as "Part 3".
+    if (key.length < 6) {
+      const rx = new RegExp("\\b" + phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b", "i");
+      const m = rx.exec(norm);
+      return m ? { index: m.index, length: m[0].length } : null;
+    }
+
+    const direct = norm.toLowerCase().indexOf(phrase);
+    if (direct >= 0) return { index: direct, length: phrase.length };
+    const at = ci.compact.indexOf(key);
+    if (at < 0) return null;
+    const start = ci.map[at];
+    const end = ci.map[Math.min(ci.map.length - 1, at + key.length - 1)];
+    return { index: start, length: Math.max(1, end - start + 1) };
+  }
+
+  // "…the following types of training: (a) … (j) …" — the enumeration length is
+  // the only statement of how many courses are in scope.
+  function countEnumerated(norm, afterPhrase) {
+    const at = norm.toLowerCase().indexOf(afterPhrase);
+    if (at < 0) return null;
+    const window = norm.slice(at, at + 2000);
+    let highest = 0, expected = "a";
+    for (const m of window.matchAll(/\(\s*([a-z])\s*\)/g)) {
+      if (m[1] === expected) {
+        highest++;
+        expected = String.fromCharCode(expected.charCodeAt(0) + 1);
+      }
+    }
+    return highest >= 3 ? { count: highest, index: at, length: Math.min(120, window.length) } : null;
+  }
+
+
+
+  function analyse() {
+    const raw = state.rfpText || "";
+    if (!raw.trim()) { toast("Add some scope text first"); return; }
+    const text = raw.replace(/\s+/g, " ").trim();
+    const ci = compactIndex(text);
+
+    state.detected = {};
+    DRIVERS.forEach((d) => {
+      if (!d.rx) return;
+      const m = d.rx.exec(text);
+      if (!m) return;
+      const capture = m.slice(1).find((v) => v !== undefined);
+      if (capture === undefined) return;
+      const value = Math.round(parseFloat(String(capture).replace(/,/g, "")));
+      if (!isFinite(value) || value <= 0) return;
+      state.detected[d.key] = { value, evidence: snippet(text, m.index, m[0].length) };
+      state.drivers[d.key] = value;
+    });
+
+    // A course list is a module count even when no number is written out.
+    const courses = countEnumerated(text, "types of training");
+    if (courses) {
+      state.drivers.modules = courses.count;
+      state.detected.modules = { value: courses.count, evidence: snippet(text, courses.index, courses.length) };
+    }
+
+    // Synonyms come from the editable vocabulary, not from the code.
+    state.signals = {};
+    TAXONOMY.forEach((t) => {
+      for (const k of (state.vocab[t.id] || [])) {
+        const hit = findPhrase(text, ci, String(k).toLowerCase());
+        if (hit) { state.signals[t.id] = snippet(text, hit.index, hit.length); break; }
+      }
+    });
+
+    // A catalogue deliverable can also be named outright ("Change Sustenance
+    // Plan", "Orientation Programme"), which is stronger evidence than its
+    // category keywords. The matched phrase is kept as the client's own term.
+    state.catSignals = {};
+    state.clientTerms = {};
+    CATALOG.forEach((entry) => {
+      const name = entry.name.toLowerCase();
+      const trimmed = trimGeneric(name);
+      for (const variant of [name, name.replace(/s\b/g, ""), trimmed].filter(Boolean)) {
+        const hit = findPhrase(text, ci, variant);
+        if (hit) {
+          state.catSignals[entry.id] = snippet(text, hit.index, hit.length);
+          state.clientTerms[entry.id] = clientTerm(text, hit);
+          break;
+        }
+      }
+    });
+
+    // Where the RFP did not name the deliverable outright, the synonym that
+    // matched its rate key is still the client's wording for it.
+    CATALOG.forEach((entry) => {
+      if (state.clientTerms[entry.id]) return;
+      for (const k of (state.vocab[entry.rateKey] || [])) {
+        const hit = findPhrase(text, ci, String(k).toLowerCase());
+        if (hit) { state.clientTerms[entry.id] = clientTerm(text, hit); break; }
+      }
+    });
+
+    // Scope the tender wants quoted as an option: a sentence that says "option"
+    // and names a deliverable in the same breath.
+    state.optionalSignals = {};
+    state.optionalCat = {};
+    text.split(/(?:[.;]\s+)/).forEach((sentence) => {
+      if (!/\boption(al|s)?\b/i.test(sentence)) return;
+      const sci = compactIndex(sentence);
+      TAXONOMY.forEach((t) => {
+        if (state.optionalSignals[t.id]) return;
+        for (const k of (state.vocab[t.id] || [])) {
+          if (findPhrase(sentence, sci, String(k).toLowerCase())) { state.optionalSignals[t.id] = sentence.trim(); break; }
+        }
+      });
+      // A named deliverable in the same sentence is far more precise than its
+      // category keyword, which would otherwise flag every sibling line.
+      CATALOG.forEach((entry) => {
+        if (state.optionalCat[entry.id]) return;
+        const name = entry.name.toLowerCase();
+        for (const variant of [name, trimGeneric(name)].filter(Boolean)) {
+          if (findPhrase(sentence, sci, variant)) { state.optionalCat[entry.id] = sentence.trim(); break; }
+        }
+      });
+    });
+
+    buildLines(true);
+    renderAll();
+    const n = Object.keys(state.signals).length;
+    const dn = Object.keys(state.detected).length;
+    $("analyse-status").textContent = `${n} deliverable${n === 1 ? "" : "s"} signalled · ${dn} scope driver${dn === 1 ? "" : "s"} read from the document`;
+    toast("Scope analysed — priced schedule rebuilt");
+    save();
+  }
+
+  // The exact words the RFP used, taken back out of the document with its own
+  // capitalisation intact. We price our deliverable; we name it their way.
+  function clientTerm(text, hit) {
+    const slice = text.slice(hit.index, hit.index + hit.length).replace(/\s+/g, " ").trim();
+    return slice.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9)]+$/g, "");
+  }
+
+  /* =====================================================================
+     Benchmarks from past quotes — effort calibration and a variance check.
+     Only quotes from the selected country are comparable, since prices are
+     held in the currency they were sold in.
+     ===================================================================== */
+
+  function benchmarks() {
+    const out = {};
+    const allRates = [];
+    const here = state.country;
+    state.quotes.forEach((q) => {
+      const qty = +q.qty, d = +q.days, p = +q.price, year = +q.year || THIS_YEAR;
+      if (!(qty > 0) || !(d > 0)) return;
+      (out[q.deliverable] = out[q.deliverable] || { rates: [], dpu: [] });
+      out[q.deliverable].dpu.push(d / qty);
+      // Effort travels between countries; price does not.
+      if (!(p > 0) || (here && q.country !== here)) return;
+      const idx = Math.pow(1 + (+state.settings.escalation || 0) / 100, Math.max(0, THIS_YEAR - year));
+      const rate = (p / d) * idx;
+      allRates.push(rate);
+      out[q.deliverable].rates.push(rate);
+    });
+    const res = { _blended: median(allRates) || 0, _n: allRates.length };
+    Object.entries(out).forEach(([id, v]) => {
+      res[id] = { n: v.dpu.length, rateN: v.rates.length, rate: median(v.rates), dpu: median(v.dpu) };
+    });
+    return res;
+  }
+
+
+  /* =====================================================================
+     Pricing engine
+
+     Effort is built bottom-up from the hours library, exactly as in v0.2.
+     Price is new: each task's hours are costed at its archetype's rank mix
+     against the selected country's rate card, and the deliverable's blended
+     day rate falls out of the total cost over the total effort.
+     ===================================================================== */
+
+  // Cost one hour of work done under a given rank mix, in the country's currency.
+  function mixHourlyCost(mix, countryId, hpd) {
+    const sum = mixSum(mix);
+    if (!(sum > 0)) return 0;
+    const dayRate = RANKS.reduce((s, r) => s + ((+mix[r.id] || 0) / sum) * rateFor(countryId, r.id), 0);
+    return dayRate / (hpd || 8);
+  }
+
+  // Person-hours by rank for one deliverable, at its library composition.
+  function rankHours(entry) {
+    const out = emptyMix();
+    let total = 0;
+    (TASKS_BY_GROUP[entry.id] || []).forEach((i) => {
+      if (!taskEnabled(i)) return;
+      const h = taskHours(i);
+      const mix = mixFor(TASKS[i].a);
+      const sum = mixSum(mix);
+      if (!(sum > 0)) return;
+      RANKS.forEach((r) => { out[r.id] += h * ((+mix[r.id] || 0) / sum); });
+      total += h;
+    });
+    return { byRank: out, total };
+  }
+
+  function resolveRate(entry, bm) {
+    const ov = state.overrides[entry.id] || {};
+    if (ov.rate > 0) return { value: +ov.rate, basis: "override" };
+
+    const country = state.country;
+    if (!country) return { value: 0, basis: "nocountry" };
+    const hpd = state.settings.hoursPerDay || 8;
+
+    const rh = rankHours(entry);
+    if (rh.total > 0) {
+      const cost = RANKS.reduce((s, r) => s + rh.byRank[r.id] * (rateFor(country, r.id) / hpd), 0);
+      return { value: cost / (rh.total / hpd), basis: "mix", mix: rh.byRank, hours: rh.total };
+    }
+
+    // No tasks to profile — cost it at the default mix.
+    return { value: mixHourlyCost({ ...DEFAULT_MIX }, country, hpd) * hpd, basis: "defaultmix" };
+  }
+
+  function resolveDays(entry, bm) {
+    const ov = state.overrides[entry.id] || {};
+    if (ov.days > 0) return { value: +ov.days, basis: "override" };
+    const lib = libraryHours(entry.id);
+    if (lib.hours > 0) return { value: lib.hours / (state.settings.hoursPerDay || 8), basis: "library", n: lib.n, hours: lib.hours };
+    const q = bm[entry.rateKey];
+    if (q && q.dpu > 0) return { value: q.dpu, basis: "benchmark", n: q.n };
+    return { value: 5, basis: "default" };
+  }
+
+  /* ---------------------------- estimate build ---------------------------- */
+
+  function multipliers(entry) {
+    const d = state.drivers;
+    const parts = [];
+    let m = 1;
+    const cx = COMPLEXITY_MULT[d.complexity] || 1;
+    if (cx !== 1) { m *= cx; parts.push(`complexity ${d.complexity} ×${cx}`); }
+    const mat = MATURITY_MULT[d.maturity] || 1;
+    if (mat !== 1) { m *= mat; parts.push(`${d.maturity} maturity ×${mat}`); }
+    // Localisation and per-market delivery carry their own quantities, so only
+    // deliverables coordinated across sites take a location multiplier.
+    if (entry.geo && d.geos > 1) {
+      const g = Math.min(1.5, 1 + 0.07 * (d.geos - 1));
+      m *= g; parts.push(`${d.geos} locations ×${g.toFixed(2)}`);
+    }
+    return { m, parts };
+  }
+
+  // Option flags: a deliverable named in an "option" sentence is flagged on its
+  // own; a category keyword flags the whole category only when nothing in that
+  // category was named specifically.
+  function isOptional(entry) {
+    const byName = (state.optionalCat || {})[entry.id];
+    if (byName) return true;
+    const groupNamed = CATALOG.some((c) => c.rateKey === entry.rateKey && (state.optionalCat || {})[c.id]);
+    if (groupNamed) return false;
+    return !!(state.optionalSignals || {})[entry.rateKey];
+  }
+
+  function buildLines(reset) {
+    const bm = benchmarks();
+    const previous = Object.fromEntries((state.lines || []).map((l) => [l.id, l]));
+    const analysed = Object.keys(state.signals).length > 0 || Object.keys(state.catSignals || {}).length > 0;
+
+    state.lines = CATALOG.map((entry) => {
+      // A rebuild drops manual edits; every other recalculation preserves them.
+      const prev = reset ? null : previous[entry.id];
+      const rate = resolveRate(entry, bm);
+      const dpu = resolveDays(entry, bm);
+      const { m, parts } = multipliers(entry);
+      const rule = QTY_RULES[entry.qty] || QTY_RULES.one;
+      const autoQty = Math.max(0, Math.round(rule(state.drivers)));
+      const autoDays = Math.round(dpu.value * m * 10) / 10;
+      const signal = (state.catSignals || {})[entry.id] || state.signals[entry.rateKey];
+      const included = analysed ? (!!signal || !!entry.core) : !!entry.core;
+      const tasks = libraryTaskNames(entry.id);
+      const rh = rankHours(entry);
+
+      return {
+        id: entry.id,
+        name: entry.name,
+        clientTerm: (state.clientTerms || {})[entry.id] || "",
+        desc: tasks.length ? tasks.join(" · ") : "No tasks enabled in the hours library for this deliverable.",
+        unit: entry.unit,
+        cat: entry.cat,
+        rateKey: entry.rateKey,
+        include: prev && prev.editedInclude ? prev.include : included,
+        // Tenders routinely ask for parts of the scope to be priced as options.
+        optional: prev && prev.editedOptional ? prev.optional : isOptional(entry),
+        editedOptional: prev ? !!prev.editedOptional : false,
+        qty: prev && prev.editedQty ? prev.qty : autoQty,
+        dpu: prev && prev.editedDpu ? prev.dpu : autoDays,
+        rate: prev && prev.editedRate ? prev.rate : Math.round(rate.value),
+        editedQty: prev ? !!prev.editedQty : false,
+        editedDpu: prev ? !!prev.editedDpu : false,
+        editedRate: prev ? !!prev.editedRate : false,
+        editedInclude: prev ? !!prev.editedInclude : false,
+        rateBasis: rate.basis,
+        daysBasis: dpu.basis, daysN: dpu.n, libHours: dpu.hours,
+        rankShare: rh.total > 0 ? rh.byRank : null, rankTotalHours: rh.total,
+        multParts: parts, baseDpu: Math.round(dpu.value * 10) / 10,
+        detected: !!signal,
+        custom: false
+      };
+    }).concat((state.lines || []).filter((l) => l.custom));
+
+    save();
+  }
+
+  // How the derived price compares with what this deliverable actually sold for
+  // before, in this country. Only meaningful with real history behind it.
+  function variance(l) {
+    if (l.custom || !state.country) return null;
+    const bm = benchmarks();
+    const q = bm[l.rateKey];
+    if (!q || !(q.rate > 0) || !(q.rateN > 0)) return null;
+    const delta = (l.rate - q.rate) / q.rate;
+    if (Math.abs(delta) < 0.2) return null;
+    return { delta, quoted: q.rate, n: q.rateN };
+  }
+
+  function totals() {
+    const inc = state.lines.filter((l) => l.include && !l.optional);
+    const opt = state.lines.filter((l) => l.include && l.optional);
+    const fees = inc.reduce((s, l) => s + l.qty * l.dpu * l.rate, 0);
+    const effort = inc.reduce((s, l) => s + l.qty * l.dpu, 0);
+    const optFees = opt.reduce((s, l) => s + l.qty * l.dpu * l.rate, 0);
+    const optEffort = opt.reduce((s, l) => s + l.qty * l.dpu, 0);
+    const s = state.settings;
+    const contingency = fees * (+s.contingency || 0) / 100;
+    const beforeDiscount = fees + contingency;
+    const discount = beforeDiscount * (+s.discount || 0) / 100;
+    const expenses = +s.expenses || 0;
+    const net = beforeDiscount - discount + expenses;
+    const tax = net * (+s.tax || 0) / 100;
+
+    // Person-days by rank across the included lines, scaled from each line's
+    // library composition up to its actual quantity and edited days per unit.
+    const byRank = emptyMix();
+    let ranked = 0;
+    inc.forEach((l) => {
+      const lineDays = l.qty * l.dpu;
+      if (!(lineDays > 0)) return;
+      const share = l.rankShare;
+      if (!share || !(l.rankTotalHours > 0)) return;
+      RANKS.forEach((r) => { byRank[r.id] += lineDays * (share[r.id] / l.rankTotalHours); });
+      ranked += lineDays;
+    });
+
+    return { inc, opt, optFees, optEffort, fees, effort, contingency, discount, expenses, tax, total: net + tax,
+      byRank, rankedEffort: ranked,
+      blended: effort > 0 ? fees / effort : 0,
+      fte: state.drivers.months > 0 ? effort / (state.drivers.months * 21) : 0 };
+  }
+
+
+  /* =====================================================================
+     Rendering
+     ===================================================================== */
+
+  function renderDrivers() {
+    $("drivers").innerHTML = DRIVERS.map((d) => {
+      const det = state.detected[d.key];
+      const src = det ? `<span class="src">read from RFP</span>` : `<span class="src default">assumed</span>`;
+      const val = state.drivers[d.key];
+      const input = d.type === "select"
+        ? `<select data-driver="${d.key}">${d.options.map(([v, l]) => `<option value="${v}" ${String(v) === String(val) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`
+        : `<input type="number" data-driver="${d.key}" value="${esc(val)}" step="${d.step || 1}" min="0">`;
+      return `<div class="field"><label>${esc(d.label)}</label>${input}${d.rx || d.type === "select" ? src : ""}</div>`;
+    }).join("");
+
+    const ev = Object.entries(state.detected);
+    $("evidence-list").innerHTML = ev.length
+      ? ev.map(([k, v]) => {
+          const d = DRIVERS.find((x) => x.key === k);
+          return `<div><strong style="font-size:.82rem">${esc(d.label)}: ${esc(v.value)}</strong><div class="evidence">${esc(v.evidence)}</div></div>`;
+        }).join("")
+      : `<span class="note">No numeric drivers found yet — the defaults above are assumptions you should sanity-check.</span>`;
+    $("evidence-wrap").style.display = ev.length ? "" : "none";
+  }
+
+  function renderSignals() {
+    const ids = Object.keys(state.signals);
+    $("signal-count").textContent = ids.length ? `${ids.length} of ${TAXONOMY.length} deliverable types` : "";
+    if (!ids.length) {
+      $("signals").innerHTML = `<span class="note">Analyse a scope document to see which deliverables the RFP asks for.</span>`;
+      return;
+    }
+    $("signals").innerHTML = TAXONOMY.map((t) => {
+      const hit = state.signals[t.id];
+      const core = t.core && !hit;
+      if (!hit && !core) return "";
+      return `<span class="chip ${hit ? "detected" : "assumed"}" title="${esc(hit || "Not named in the RFP — included as standard scope")}">${esc(t.name)}${core ? " · assumed" : ""}</span>`;
+    }).join("");
+  }
+
+  function renderQuotes() {
+    const options = TAXONOMY.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join("");
+    const countryOpts = COUNTRIES.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+    $("quotes-body").innerHTML = state.quotes.length ? state.quotes.map((q, i) => {
+      const idx = Math.pow(1 + (+state.settings.escalation || 0) / 100, Math.max(0, THIS_YEAR - (+q.year || THIS_YEAR)));
+      const rate = (+q.days > 0) ? (+q.price / +q.days) * idx : 0;
+      const dpu = (+q.qty > 0) ? +q.days / +q.qty : 0;
+      const cur = (COUNTRY_BY_ID[q.country] || {}).currency || "";
+      return `<tr data-i="${i}">
+        <td><input type="text" data-q="project" value="${esc(q.project)}"></td>
+        <td class="n" style="width:78px"><input type="number" data-q="year" value="${esc(q.year)}" step="1"></td>
+        <td style="width:130px"><select data-q="country">${countryOpts}</select></td>
+        <td><input type="text" data-q="industry" value="${esc(q.industry)}"></td>
+        <td><select data-q="deliverable">${options}</select></td>
+        <td class="n" style="width:78px"><input type="number" data-q="qty" value="${esc(q.qty)}" step="1" min="0"></td>
+        <td class="n" style="width:82px"><input type="number" data-q="days" value="${esc(q.days)}" step="0.5" min="0"></td>
+        <td class="n" style="width:118px"><input type="number" data-q="price" value="${esc(q.price)}" step="100" min="0"></td>
+        <td class="n" title="Indexed to ${THIS_YEAR}">${rate ? moneyShort(rate) + " " + cur : "—"}</td>
+        <td class="n">${dpu ? days(dpu) : "—"}</td>
+        <td class="no-print"><button class="btn ghost small danger" data-del="${i}" aria-label="Delete row">✕</button></td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="11" class="empty">No past quotes yet — add lines or import a CSV.</td></tr>`;
+
+    state.quotes.forEach((q, i) => {
+      const row = document.querySelector(`#quotes-body tr[data-i="${i}"]`);
+      if (!row) return;
+      row.querySelector('select[data-q="deliverable"]').value = q.deliverable;
+      row.querySelector('select[data-q="country"]').value = q.country || "SG";
+    });
+  }
+
+  /* ---- Billing rates by country and rank ---- */
+
+  function renderRates() {
+    $("rates-head").innerHTML = `<th class="sticky-col">Country</th><th>Currency</th>`
+      + RANKS.map((r) => `<th class="n">${esc(r.name)}</th>`).join("");
+
+    $("rates-body").innerHTML = COUNTRIES.map((c) => {
+      const cells = RANKS.map((r) => {
+        const ov = ((state.rates || {})[c.id] || {})[r.id];
+        const src = (RATE_CARD[c.id] || {})[r.id] || 0;
+        return `<td class="n rate-cell" style="min-width:112px"><input type="number" data-country="${c.id}" data-rank="${r.id}" value="${ov > 0 ? ov : src}" step="50" min="0"></td>`;
+      }).join("");
+      const here = c.id === state.country;
+      return `<tr data-country="${c.id}">
+        <td class="sticky-col"><strong>${esc(c.name)}</strong>${here ? ` <span class="chip bench">this pursuit</span>` : ""}</td>
+        <td class="num">${esc(c.currency)}</td>${cells}</tr>`;
+    }).join("");
+
+    $("tax-body").innerHTML = COUNTRIES.map((c) => {
+      const ov = ((state.taxes || {})[c.id] || {}).rate;
+      const val = ov === undefined ? c.taxRate : ov;
+      return `<tr>
+        <td><strong>${esc(c.name)}</strong></td>
+        <td class="num">${esc(c.currency)}</td>
+        <td>${esc(c.tax)}</td>
+        <td class="n" style="width:110px"><input type="number" data-tax="${c.id}" value="${esc(val)}" step="0.5" min="0"></td>
+      </tr>`;
+    }).join("");
+  }
+
+  /* ---- Hours library and the rank mix that costs it ---- */
+
+  function renderLibrary() {
+    const hpd = state.settings.hoursPerDay || 8;
+    const complexities = ["Simple", "Standard", "Complex"];
+
+    $("archetype-body").innerHTML = Object.keys(ARCHETYPE_HOURS).map((a) => {
+      const cells = complexities.map((c) => {
+        const src = ARCHETYPE_HOURS[a][c];
+        const ov = ((state.archetypes || {})[a] || {})[c];
+        if (src == null && !ov) return `<td class="n" style="color:var(--ink-3)">not used</td>`;
+        return `<td class="n" style="width:104px"><input type="number" data-arch="${esc(a)}" data-cx="${c}" value="${ov || src}" step="0.5" min="0"></td>`;
+      }).join("");
+      const mix = mixFor(a);
+      const sum = mixSum(mix);
+      const mixCells = RANKS.map((r) =>
+        `<label>${esc(r.short)}<input type="number" data-mix="${esc(a)}" data-rank="${r.id}" value="${+mix[r.id] || 0}" step="5" min="0" max="100" aria-label="${esc(r.name)} share for ${esc(a)}"></label>`
+      ).join("");
+      return `<tr>
+        <td><strong>${esc(a)}</strong></td>${cells}
+        <td style="min-width:290px"><div class="mixgrid">${mixCells}</div></td>
+        <td class="n"><span class="mixsum ${sum === 100 ? "" : "bad"}">${sum}%</span></td>
+      </tr>`;
+    }).join("");
+
+    let totalHours = 0, enabled = 0;
+    const rows = [];
+    CATALOG.forEach((entry) => {
+      const lib = libraryHours(entry.id);
+      totalHours += lib.hours; enabled += lib.n;
+      rows.push(`<tr><td colspan="6" style="background:var(--surface-2)">
+        <span class="eyebrow">${esc(entry.cat)}</span>
+        <strong style="margin-left:8px">${esc(entry.name)}</strong>
+        <span class="chip" style="margin-left:8px">per ${esc(entry.unit)}</span>
+        <span class="chip bench" style="margin-left:4px">${days(lib.hours)} h · ${days(lib.hours / hpd)} days</span>
+      </td></tr>`);
+      (TASKS_BY_GROUP[entry.id] || []).forEach((i) => {
+        const t = TASKS[i];
+        const pinned = (state.taskHours || {})[i] > 0;
+        rows.push(`<tr data-task="${i}" style="${taskEnabled(i) ? "" : "opacity:.45"}">
+          <td class="n"><input type="checkbox" data-lib="on" ${taskEnabled(i) ? "checked" : ""} aria-label="Include ${esc(t.t)}"></td>
+          <td>${esc(t.t)}</td>
+          <td class="note">${esc(t.u)}</td>
+          <td class="note">${esc(t.a)}</td>
+          <td>${esc(t.c)}</td>
+          <td class="n" style="width:96px"><input type="number" data-lib="hours" value="${days(taskHours(i))}" step="0.5" min="0" title="${pinned ? "Pinned for this pursuit" : "From the archetype matrix"}"></td>
+        </tr>`);
+      });
+    });
+    $("library-body").innerHTML = rows.join("");
+    $("library-meta").textContent = `${enabled} of ${TASKS.length} tasks · ${days(totalHours)} hours · ${days(totalHours / hpd)} days if every deliverable were built once`;
+  }
+
+  /* ---- CM vocabulary ---- */
+
+  function renderVocab() {
+    // A synonym that maps to two canonical terms makes the analyser's choice
+    // arbitrary, so it is worth flagging where it sits.
+    const seen = {};
+    Object.entries(state.vocab).forEach(([id, list]) => {
+      (list || []).forEach((s) => {
+        const k = String(s).toLowerCase().trim();
+        (seen[k] = seen[k] || []).push(id);
+      });
+    });
+    const dupes = new Set(Object.keys(seen).filter((k) => seen[k].length > 1));
+
+    $("vocab-list").innerHTML = TAXONOMY.map((t) => {
+      const list = state.vocab[t.id] || [];
+      const chips = list.map((s, i) => {
+        const dupe = dupes.has(String(s).toLowerCase().trim());
+        return `<span class="syn ${dupe ? "dupe" : ""}" ${dupe ? `title="Also mapped to another term — the analyser will pick whichever matches first"` : ""}>${esc(s)}<button type="button" data-rm="${i}" data-term="${t.id}" aria-label="Remove ${esc(s)}">✕</button></span>`;
+      }).join("");
+      return `<div class="vocab-term">
+        <div>
+          <strong>${esc(t.name)}</strong>
+          <div class="note">${esc(t.cat)} · ${list.length} synonym${list.length === 1 ? "" : "s"}</div>
+        </div>
+        <div class="syns">
+          ${chips || `<span class="note">No synonyms — this term will never be signalled.</span>`}
+          <input class="syn-add" type="text" data-add="${t.id}" placeholder="add synonym + Enter" aria-label="Add a synonym for ${esc(t.name)}">
+        </div>
+      </div>`;
+    }).join("");
+
+    const total = Object.values(state.vocab).reduce((s, l) => s + (l || []).length, 0);
+    $("vocab-meta").textContent = `${TAXONOMY.length} canonical terms · ${total} synonyms${dupes.size ? ` · ${dupes.size} mapped more than once` : ""}`;
+  }
+
+  /* ---- Priced deliverables ---- */
+
+  function renderLines() {
+    const t = totals();
+    const hpd = state.settings.hoursPerDay || 8;
+    let n = 0;
+    let lastCat = null;
+
+    $("lines-body").innerHTML = state.lines.map((l, i) => {
+      const amount = l.qty * l.dpu * l.rate;
+      const head = l.cat !== lastCat ? `<tr><td colspan="10" style="background:var(--surface-2);padding-top:9px"><span class="eyebrow">${esc(l.cat || "Other")}</span></td></tr>` : "";
+      lastCat = l.cat;
+      if (l.include && !l.optional) n++;
+
+      const effortSource = l.daysBasis === "library"
+        ? `· ${days(l.libHours)} h from ${l.daysN} library task${l.daysN === 1 ? "" : "s"} ÷ ${hpd} h/day`
+        : l.daysBasis === "benchmark" ? `· effort benchmarked on ${l.daysN} past quote line${l.daysN === 1 ? "" : "s"}`
+        : l.daysBasis === "override" ? `· effort pinned by an admin` : `· standard effort assumption`;
+
+      const mixNote = l.rankShare && l.rankTotalHours > 0
+        ? "· rank mix " + RANKS.filter((r) => l.rankShare[r.id] / l.rankTotalHours >= 0.05)
+            .map((r) => `${r.short} ${Math.round(100 * l.rankShare[r.id] / l.rankTotalHours)}%`).join(" / ")
+        : "";
+
+      const rateSource = l.rateBasis === "mix" ? `· blended from the ${esc((activeCountry() || {}).name || "")} rate card ${mixNote}`
+        : l.rateBasis === "override" ? `· rate pinned by an admin`
+        : l.rateBasis === "defaultmix" ? `· default rank mix on the ${esc((activeCountry() || {}).name || "")} rate card`
+        : `· no country selected`;
+
+      const formula = [
+        `${l.qty} ${l.unit}${l.qty === 1 ? "" : "s"} × ${days(l.dpu)} days`,
+        l.multParts && l.multParts.length ? `(base ${days(l.baseDpu)} d/unit, ${l.multParts.join(", ")})` : "",
+        `→ ${days(l.qty * l.dpu)} days × ${moneyShort(l.rate)}/day`,
+        effortSource, rateSource
+      ].filter(Boolean).join(" ");
+
+      const v = variance(l);
+      const varChip = v
+        ? `<span class="chip ${v.delta > 0 ? "var-hi" : "var-lo"}" title="Past quotes in this country imply ${moneyShort(v.quoted)} a day across ${v.n} line${v.n === 1 ? "" : "s"}">${v.delta > 0 ? "+" : "−"}${Math.round(Math.abs(v.delta) * 100)}% vs history</span>`
+        : "";
+
+      const clientLine = l.clientTerm && l.clientTerm.toLowerCase() !== l.name.toLowerCase()
+        ? `<div class="note" title="The RFP's own wording — use this name in the proposal">RFP calls this &ldquo;${esc(l.clientTerm)}&rdquo;</div>` : "";
+
+      return head + `<tr data-i="${i}" style="${l.include ? "" : "opacity:.45"}">
+        <td class="n"><input type="checkbox" data-l="include" ${l.include ? "checked" : ""} aria-label="Include ${esc(l.name)}"></td>
+        <td class="cat-stripe">
+          <strong>${esc(l.name)}</strong>
+          ${l.detected ? `<span class="chip detected" style="margin-left:6px">in RFP</span>` : ""}
+          ${varChip}
+          ${clientLine}
+          <div class="note">${esc(l.desc)}</div>
+          <details class="calc no-print"><summary>how this was estimated</summary><div class="formula">${esc(formula)}</div></details>
+        </td>
+        <td>${esc(l.unit)}</td>
+        <td class="n" style="width:78px"><input type="number" data-l="qty" value="${esc(l.qty)}" step="1" min="0"></td>
+        <td class="n" style="width:88px"><input type="number" data-l="dpu" value="${esc(l.dpu)}" step="0.5" min="0"></td>
+        <td class="n cell-effort">${days(l.qty * l.dpu)}</td>
+        <td class="n" style="width:112px"><input type="number" data-l="rate" value="${esc(l.rate)}" step="50" min="0"></td>
+        <td class="n cell-amount"><strong>${money(amount)}</strong></td>
+        <td class="n"><input type="checkbox" data-l="optional" ${l.optional ? "checked" : ""} aria-label="Price ${esc(l.name)} as an option" title="${esc((state.optionalCat || {})[l.id] || (state.optionalSignals || {})[l.rateKey] || "Price this line as an option, outside the headline total")}"></td>
+        <td class="no-print">${l.custom ? `<button class="btn ghost small danger" data-delline="${i}">✕</button>` : ""}</td>
+      </tr>`;
+    }).join("");
+
+    $("lines-foot").innerHTML = `<tr>
+      <td></td><td>Total professional fees</td><td></td><td></td><td></td>
+      <td class="n" id="foot-days">${days(t.effort)}</td><td class="n" id="foot-rate">${moneyShort(t.blended)}</td>
+      <td class="n" id="foot-fees">${money(t.fees)}</td><td></td><td class="no-print"></td>
+    </tr>` + (t.opt.length ? `<tr>
+      <td></td><td style="font-weight:500;color:var(--ink-2)">Optional items, priced separately</td><td></td><td></td><td></td>
+      <td class="n" id="foot-opt-days" style="font-weight:500;color:var(--ink-2)">${days(t.optEffort)}</td><td></td>
+      <td class="n" id="foot-opt-fees" style="font-weight:500;color:var(--ink-2)">${money(t.optFees)}</td><td></td><td class="no-print"></td>
+    </tr>` : "");
+
+    $("quote-meta").textContent = `${n} priced line${n === 1 ? "" : "s"} · ${days(t.effort)} person-days · prepared ${new Date().toLocaleDateString()}`;
+    $("quote-title").textContent = state.settings.client
+      ? `Schedule of deliverables and fees — ${state.settings.client}`
+      : "Schedule of deliverables and fees";
+
+    const c = activeCountry();
+    $("quote-country").innerHTML = c ? `Delivered in <b>${esc(c.name)}</b> · priced in <b>${esc(c.currency)}</b>` : "";
+  }
+
+  function renderAssumptions() {
+    const d = state.drivers;
+    const t = totals();
+    const c = activeCountry();
+    const items = [
+      c ? `Services are delivered in ${c.name} and priced in ${c.currency} at the ${c.name} rate card; rates for other countries do not apply to this schedule.` : null,
+      `Pricing covers ${(+d.headcount || 0).toLocaleString()} impacted people across ${d.units} business unit${d.units === 1 ? "" : "s"} and ${d.geos} location${d.geos === 1 ? "" : "s"}, in ${d.languages} language${d.languages === 1 ? "" : "s"}.`,
+      `Programme duration of ${d.months} months with ${d.waves} deployment wave${d.waves === 1 ? "" : "s"}; effort is spread evenly at an average of ${t.fte.toFixed(1)} FTE.`,
+      `Complexity rated ${d.complexity}/5 and client change maturity ${d.maturity} — effort multipliers are applied on this basis and should be revisited after scoping calls.`,
+      `Effort is built bottom-up from the itemised task library at ${state.settings.hoursPerDay || 8} hours per day. Day rates are blended from the rank mix each deliverable actually requires, costed against the ${c ? c.name : "selected country"} rate card.`,
+      `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately priced.`,
+      state.settings.expenses > 0 ? `Travel and expenses budgeted at ${money(state.settings.expenses)}, billed at cost against approved receipts.` : `Travel and expenses are excluded and will be billed at cost.`,
+      state.settings.contingency > 0 ? `A ${state.settings.contingency}% delivery buffer is held against scope volatility and is drawn down only on agreed change requests.` : null,
+      c && state.settings.tax > 0 ? `${c.tax} of ${state.settings.tax}% is shown separately and is payable in addition to the fees.` : null,
+      t.opt.length ? `${t.opt.length} line${t.opt.length === 1 ? " is" : "s are"} priced as option${t.opt.length === 1 ? "" : "s"} totalling ${money(t.optFees)}, exercisable by the client and excluded from the headline total.` : null
+    ].filter(Boolean);
+    $("assumptions").innerHTML = items.map((i) => `<li>${esc(i)}</li>`).join("");
+  }
+
+  function renderSummary() {
+    const t = totals();
+    const c = activeCountry();
+    const has = t.total > 0;
+
+    $("s-total").textContent = has ? money(t.total) : "—";
+    $("s-total").classList.toggle("zero", !has);
+    $("s-total-note").textContent = has
+      ? `${t.inc.length} deliverable${t.inc.length === 1 ? "" : "s"} priced`
+      : c ? "Nothing priced yet" : "Select a country to price";
+    $("s-country").innerHTML = c ? `<b>${esc(c.name)}</b> · ${esc(c.currency)}` : `No country selected`;
+
+    $("s-fees").textContent = money(t.fees);
+    $("s-cont").textContent = t.contingency ? "+" + money(t.contingency) : "—";
+    $("s-disc").textContent = t.discount ? "−" + money(t.discount) : "—";
+    $("s-exp").textContent = t.expenses ? "+" + money(t.expenses) : "—";
+    $("s-tax-label").textContent = c ? c.tax : "Tax";
+    $("s-tax").textContent = t.tax ? "+" + money(t.tax) : "—";
+    $("s-total2").textContent = money(t.total);
+    $("s-opt-row").style.display = t.opt.length ? "" : "none";
+    $("s-opt").textContent = money(t.optFees);
+
+    $("s-days").textContent = days(t.effort);
+    $("s-blended").textContent = t.blended ? moneyShort(t.blended) : "—";
+    $("s-fte").textContent = t.fte ? t.fte.toFixed(1) : "—";
+    $("s-months").textContent = state.drivers.months || "—";
+
+    const ranked = t.rankedEffort;
+    if (ranked > 0) {
+      $("s-rankbar").innerHTML = RANKS.map((r) => {
+        const pct = 100 * t.byRank[r.id] / ranked;
+        return pct > 0 ? `<span style="width:${pct}%;background:${RANK_COLOR[r.id]}" title="${esc(r.name)} ${pct.toFixed(0)}%"></span>` : "";
+      }).join("");
+      $("s-ranklist").innerHTML = RANKS.filter((r) => t.byRank[r.id] >= 0.05).reverse().map((r) =>
+        `<div class="rankrow"><span class="sw" style="background:${RANK_COLOR[r.id]}"></span><span class="nm">${esc(r.name)}</span><span class="dv">${days(t.byRank[r.id])} d</span></div>`
+      ).join("");
+    } else {
+      $("s-rankbar").innerHTML = "";
+      $("s-ranklist").innerHTML = `<span class="note">Price some deliverables to see the team shape.</span>`;
+    }
+  }
+
+  function renderGate() {
+    const gated = !state.country;
+    $("quote-gate").hidden = !gated;
+    $("quote-card").style.display = gated ? "none" : "";
+  }
+
+  function renderAll() {
+    renderDrivers(); renderSignals(); renderQuotes(); renderLibrary(); renderRates();
+    renderVocab(); renderLines(); renderAssumptions(); renderSummary(); renderGate();
+  }
+
+
+  /* =====================================================================
+     Role, theme and navigation
+     ===================================================================== */
+
+  const ADMIN_PANELS = ["quotes", "library", "rates", "vocab"];
+
+  function showPanel(name) {
+    if (state.role !== "admin" && ADMIN_PANELS.includes(name)) name = "scope";
+    document.querySelectorAll(".step").forEach((b) => b.setAttribute("aria-selected", String(b.dataset.panel === name)));
+    document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + name));
+  }
+
+  function applyRole() {
+    const admin = state.role === "admin";
+    $("role-user").setAttribute("aria-pressed", String(!admin));
+    $("role-admin").setAttribute("aria-pressed", String(admin));
+    document.querySelectorAll(".admin-only").forEach((el) => { el.hidden = !admin; });
+    const open = document.querySelector('.step[aria-selected="true"]');
+    if (!admin && open && ADMIN_PANELS.includes(open.dataset.panel)) showPanel("scope");
+  }
+
+  document.querySelectorAll(".step").forEach((btn) => {
+    btn.addEventListener("click", () => showPanel(btn.dataset.panel));
+  });
+
+  $("role-user").addEventListener("click", () => { state.role = "user"; applyRole(); save(); });
+  $("role-admin").addEventListener("click", () => { state.role = "admin"; applyRole(); save(); });
+
+  function applyTheme(mode) {
+    document.documentElement.setAttribute("data-theme", mode);
+    $("theme-light").setAttribute("aria-pressed", String(mode === "light"));
+    $("theme-dark").setAttribute("aria-pressed", String(mode === "dark"));
+    try { localStorage.setItem(STORE_KEY + ":theme", mode); } catch (e) { /* private mode */ }
+  }
+  $("theme-light").addEventListener("click", () => applyTheme("light"));
+  $("theme-dark").addEventListener("click", () => applyTheme("dark"));
+
+  $("btn-goto-scope").addEventListener("click", () => showPanel("scope"));
+
+  /* =====================================================================
+     Tab 1 — engagement and document intake
+     ===================================================================== */
+
+  $("country").innerHTML = `<option value="">Select a country…</option>`
+    + COUNTRIES.map((c) => `<option value="${c.id}">${esc(c.name)} · ${esc(c.currency)}</option>`).join("");
+
+  $("country").addEventListener("change", (e) => {
+    state.country = e.target.value;
+    const c = activeCountry();
+    // The tax field follows the country until an estimator types their own.
+    if (c && !state.settings.taxTouched) {
+      const ov = ((state.taxes || {})[c.id] || {}).rate;
+      state.settings.tax = ov === undefined ? c.taxRate : ov;
+      $("c-tax").value = state.settings.tax;
+    }
+    applyTaxLabel();
+    buildLines(false);
+    renderAll();
+    save();
+    if (c) toast(`Priced against the ${c.name} rate card`);
+  });
+
+  function applyTaxLabel() {
+    const c = activeCountry();
+    $("tax-label").textContent = c ? c.tax : "Tax";
+    $("tax-note").textContent = c
+      ? (c.taxRate > 0
+          ? `${c.name} applies ${c.tax} at a standard rate of ${c.taxRate}%. Change it here for this pursuit, or change the default on the Billing rates tab.`
+          : `${c.name} has no broad indirect tax on services. Leave this at zero unless the contract says otherwise.`)
+      : "Select a country of implementation to pick up its default tax treatment.";
+  }
+
+  const drop = $("drop");
+  ["dragenter", "dragover"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave", "drop"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", (ev) => { if (ev.dataTransfer.files[0]) handleFile(ev.dataTransfer.files[0]); });
+  $("btn-browse").addEventListener("click", () => $("file").click());
+  $("file").addEventListener("change", (e) => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+  async function handleFile(file) {
+    $("file-status").textContent = `Reading ${file.name}…`;
+    try {
+      const text = await readFile(file);
+      if (!text || text.replace(/\s/g, "").length < 40) {
+        $("file-status").textContent = `${file.name}: little or no text found — if it is a scanned PDF, paste the scope text below instead.`;
+        return;
+      }
+      state.rfpText = text;
+      state.fileName = file.name;
+      $("rfp-text").value = text;
+      $("file-status").textContent = `${file.name} — ${text.split(/\s+/).length.toLocaleString()} words read`;
+      analyse();
+    } catch (err) {
+      $("file-status").textContent = `Could not read ${file.name} (${err.message}). Paste the scope text below instead.`;
+    }
+  }
+
+  function loadSample(text, label) {
+    state.rfpText = text;
+    $("rfp-text").value = text;
+    $("file-status").textContent = label;
+    analyse();
+  }
+  $("btn-sample-authority").addEventListener("click", () =>
+    loadSample(SAMPLE_RFP, "Sample loaded — anonymised public authority change management & training requirement specification"));
+  $("btn-sample-transport").addEventListener("click", () =>
+    loadSample(SAMPLE_RFP_TRANSPORT, "Sample loaded — anonymised rail operator depot maintenance system tender"));
+
+  $("rfp-text").addEventListener("input", (e) => { state.rfpText = e.target.value; save(); });
+  $("btn-analyse").addEventListener("click", analyse);
+  $("client-name").addEventListener("input", (e) => { state.settings.client = e.target.value; renderLines(); save(); });
+  $("hours-per-day").addEventListener("input", (e) => {
+    state.settings.hoursPerDay = Math.max(1, parseFloat(e.target.value) || 8);
+    renderLibrary(); buildLines(false); renderLines(); renderSummary(); save();
+  });
+
+  $("drivers").addEventListener("input", (e) => {
+    const key = e.target.dataset.driver;
+    if (!key) return;
+    const d = DRIVERS.find((x) => x.key === key);
+    let v = e.target.value;
+    if (d.type === "number") v = Math.max(0, parseFloat(v) || 0);
+    else if (key === "complexity") v = parseInt(v, 10);
+    state.drivers[key] = v;
+    buildLines(false);
+    renderLines(); renderAssumptions(); renderSummary();
+    save();
+  });
+
+  /* =====================================================================
+     Tab 2 — priced deliverables
+     ===================================================================== */
+
+  $("lines-body").addEventListener("input", (e) => {
+    const tr = e.target.closest("tr"); if (!tr || tr.dataset.i === undefined) return;
+    const l = state.lines[+tr.dataset.i], f = e.target.dataset.l;
+    if (!f) return;
+    if (f === "optional") {
+      l.optional = e.target.checked; l.editedOptional = true;
+      renderLines(); renderAssumptions(); renderSummary(); save();
+      return;
+    }
+    if (f === "include") { l.include = e.target.checked; l.editedInclude = true; }
+    else {
+      l[f] = Math.max(0, parseFloat(e.target.value) || 0);
+      l[f === "qty" ? "editedQty" : f === "dpu" ? "editedDpu" : "editedRate"] = true;
+    }
+    // Update the row's derived cells without a full re-render, so focus is kept.
+    tr.querySelector(".cell-effort").textContent = days(l.qty * l.dpu);
+    tr.querySelector(".cell-amount").innerHTML = `<strong>${money(l.qty * l.dpu * l.rate)}</strong>`;
+    tr.style.opacity = l.include ? "" : ".45";
+    const t = totals();
+    $("foot-days").textContent = days(t.effort);
+    $("foot-rate").textContent = moneyShort(t.blended);
+    $("foot-fees").textContent = money(t.fees);
+    if ($("foot-opt-days")) { $("foot-opt-days").textContent = days(t.optEffort); $("foot-opt-fees").textContent = money(t.optFees); }
+    renderSummary(); save();
+  });
+
+  $("lines-body").addEventListener("click", (e) => {
+    const i = e.target.dataset.delline;
+    if (i === undefined) return;
+    state.lines.splice(+i, 1);
+    renderLines(); renderSummary(); save();
+  });
+
+  $("btn-add-line").addEventListener("click", () => {
+    const name = prompt("Name of the custom deliverable:");
+    if (!name) return;
+    const hpd = state.settings.hoursPerDay || 8;
+    const rate = state.country ? Math.round(mixHourlyCost({ ...DEFAULT_MIX }, state.country, hpd) * hpd) : 0;
+    state.lines.push({ id: "custom_" + Date.now(), name, clientTerm: "", desc: "Custom line added for this pursuit.", unit: "item",
+      cat: "Custom", include: true, optional: false, qty: 1, dpu: 5, rate,
+      editedQty: true, editedDpu: true, editedRate: true, editedInclude: true, editedOptional: true,
+      rateBasis: "defaultmix", daysBasis: "default", rankShare: null, rankTotalHours: 0,
+      multParts: [], baseDpu: 5, detected: false, custom: true });
+    renderLines(); renderSummary(); save();
+  });
+
+  $("btn-rebuild").addEventListener("click", () => {
+    if (!confirm("Rebuild quantities, effort and rates from the current scope? Manual edits to standard lines will be lost.")) return;
+    state.lines = state.lines.filter((l) => l.custom);
+    buildLines(true);
+    renderLines(); renderAssumptions(); renderSummary();
+    toast("Rebuilt from scope");
+  });
+
+  ["c-contingency", "c-discount", "c-expenses", "c-tax"].forEach((id) => {
+    $(id).addEventListener("input", (e) => {
+      state.settings[id.slice(2)] = parseFloat(e.target.value) || 0;
+      if (id === "c-tax") state.settings.taxTouched = true;
+      renderAssumptions(); renderSummary(); save();
+    });
+  });
+
+  $("btn-print").addEventListener("click", () => {
+    try { window.print(); }
+    catch (e) { toast("Printing is blocked here — open the page in its own tab"); }
+  });
+
+  /* =====================================================================
+     Admin — past quotes
+     ===================================================================== */
+
+  const NUMERIC_QUOTE_FIELDS = ["year", "qty", "days", "price"];
+
+  $("quotes-body").addEventListener("input", (e) => {
+    const tr = e.target.closest("tr"); if (!tr) return;
+    const i = +tr.dataset.i, f = e.target.dataset.q;
+    if (!f || f === "deliverable" || f === "country") return;
+    state.quotes[i][f] = NUMERIC_QUOTE_FIELDS.includes(f) ? (parseFloat(e.target.value) || 0) : e.target.value;
+    buildLines(false); renderLines(); renderSummary(); save();
+  });
+
+  $("quotes-body").addEventListener("change", (e) => {
+    const f = e.target.dataset.q;
+    if (f !== "deliverable" && f !== "country") return;
+    const i = +e.target.closest("tr").dataset.i;
+    state.quotes[i][f] = e.target.value;
+    renderQuotes(); buildLines(false); renderLines(); renderSummary(); save();
+  });
+
+  $("quotes-body").addEventListener("click", (e) => {
+    const del = e.target.dataset.del;
+    if (del === undefined) return;
+    state.quotes.splice(+del, 1);
+    renderQuotes(); buildLines(false); renderLines(); renderSummary(); save();
+  });
+
+  $("btn-add-quote").addEventListener("click", () => {
+    const last = state.quotes[state.quotes.length - 1];
+    state.quotes.push({ project: last ? last.project : "New project", year: THIS_YEAR,
+      country: state.country || (last ? last.country : "SG") || "SG",
+      industry: last ? last.industry : "", deliverable: "cm_strategy", qty: 1, days: 0, price: 0 });
+    renderQuotes();
+    const rows = document.querySelectorAll("#quotes-body tr");
+    const input = rows[rows.length - 1] && rows[rows.length - 1].querySelector("input");
+    if (input) input.focus();
+    save();
+  });
+
+  $("btn-restore-samples").addEventListener("click", () => {
+    if (!confirm("Replace the current past-quotes table with the sample data?")) return;
+    state.quotes = SAMPLE_QUOTES.map((q) => ({ ...q }));
+    renderQuotes(); buildLines(false); renderLines(); renderSummary(); save();
+    toast("Sample quotes restored");
+  });
+
+  $("btn-export-quotes").addEventListener("click", () => {
+    const rows = [["project", "year", "country", "industry", "deliverable", "qty", "days", "price"]]
+      .concat(state.quotes.map((q) => [q.project, q.year, q.country, q.industry, q.deliverable, q.qty, q.days, q.price]));
+    download("past-quotes.csv", toCsv(rows));
+  });
+
+  $("btn-import-quotes").addEventListener("click", () => $("quotes-file").click());
+  $("quotes-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const rows = parseCsv(await file.text());
+    if (rows.length < 2) { toast("No rows found in that CSV"); return; }
+    const head = rows[0].map((h) => h.trim().toLowerCase());
+    const col = (n) => head.indexOf(n);
+    const imported = rows.slice(1).filter((r) => r.length > 3).map((r) => ({
+      project: r[col("project")] || "Imported",
+      year: parseInt(r[col("year")], 10) || THIS_YEAR,
+      country: COUNTRY_BY_ID[String(r[col("country")] || "").toUpperCase().trim()] ? String(r[col("country")]).toUpperCase().trim() : (state.country || "SG"),
+      industry: r[col("industry")] || "",
+      deliverable: BY_ID[r[col("deliverable")]] ? r[col("deliverable")] : matchDeliverable(r[col("deliverable")]),
+      qty: parseFloat(r[col("qty")]) || 0,
+      days: parseFloat(r[col("days")]) || 0,
+      price: parseFloat(String(r[col("price")]).replace(/[^\d.\-]/g, "")) || 0
+    }));
+    state.quotes = state.quotes.concat(imported);
+    renderQuotes(); buildLines(false); renderLines(); renderSummary(); save();
+    toast(`${imported.length} quote line${imported.length === 1 ? "" : "s"} imported`);
+    e.target.value = "";
+  });
+
+  function matchDeliverable(label) {
+    if (!label) return "cm_strategy";
+    const l = String(label).toLowerCase();
+    const exact = TAXONOMY.find((t) => t.name.toLowerCase() === l);
+    if (exact) return exact.id;
+    // The editable vocabulary is the right place to resolve a loose label.
+    for (const t of TAXONOMY) {
+      if ((state.vocab[t.id] || []).some((k) => l.includes(String(k).toLowerCase()))) return t.id;
+    }
+    const loose = TAXONOMY.find((t) => l.includes(t.name.toLowerCase().split(" ")[0]));
+    return loose ? loose.id : "cm_strategy";
+  }
+
+  /* =====================================================================
+     Admin — hours library, archetypes and rank mixes
+     ===================================================================== */
+
+  $("archetype-body").addEventListener("input", (e) => {
+    const a = e.target.dataset.arch, c = e.target.dataset.cx;
+    if (a) {
+      state.archetypes[a] = state.archetypes[a] || {};
+      const v = parseFloat(e.target.value);
+      if (v > 0) state.archetypes[a][c] = v; else delete state.archetypes[a][c];
+      buildLines(false); renderLibrary(); renderLines(); renderSummary(); save();
+      return;
+    }
+    const mixArch = e.target.dataset.mix, rank = e.target.dataset.rank;
+    if (!mixArch) return;
+    state.rankMix[mixArch] = { ...mixFor(mixArch), [rank]: Math.max(0, parseFloat(e.target.value) || 0) };
+    // Repaint only the row's total, so the field being typed into keeps focus.
+    const cell = e.target.closest("tr").querySelector(".mixsum");
+    const sum = mixSum(state.rankMix[mixArch]);
+    cell.textContent = sum + "%";
+    cell.classList.toggle("bad", sum !== 100);
+    buildLines(false); renderLines(); renderSummary(); save();
+  });
+
+  $("btn-mix-reset").addEventListener("click", () => {
+    if (!confirm("Reset every archetype's rank mix back to the seeded profile?")) return;
+    state.rankMix = {};
+    buildLines(false); renderLibrary(); renderLines(); renderSummary(); save();
+    toast("Rank mixes reset");
+  });
+
+  $("library-body").addEventListener("input", (e) => {
+    const tr = e.target.closest("tr"); if (!tr || tr.dataset.task === undefined) return;
+    const i = +tr.dataset.task, f = e.target.dataset.lib;
+    if (f === "on") {
+      if (e.target.checked) delete state.taskOff[i]; else state.taskOff[i] = true;
+      tr.style.opacity = e.target.checked ? "" : ".45";
+    } else if (f === "hours") {
+      const v = parseFloat(e.target.value);
+      if (v > 0) state.taskHours[i] = v; else delete state.taskHours[i];
+    }
+    buildLines(false); renderLines(); renderAssumptions(); renderSummary(); save();
+    // Refresh only the rollup line, so the row being typed into keeps focus.
+    const hpd = state.settings.hoursPerDay || 8;
+    let total = 0, n = 0;
+    CATALOG.forEach((entry) => { const lib = libraryHours(entry.id); total += lib.hours; n += lib.n; });
+    $("library-meta").textContent = `${n} of ${TASKS.length} tasks · ${days(total)} hours · ${days(total / hpd)} days if every deliverable were built once`;
+  });
+
+  $("btn-library-reset").addEventListener("click", () => {
+    if (!confirm("Reset the hours library — task hours, exclusions and the archetype matrix — back to the source workbook?")) return;
+    state.taskHours = {}; state.taskOff = {}; state.archetypes = {};
+    buildLines(false); renderLibrary(); renderLines(); renderSummary(); save();
+    toast("Hours library reset to source");
+  });
+
+  $("btn-library-export").addEventListener("click", () => {
+    const rows = [["Section", "Deliverable", "Task", "Unit", "Archetype", "Complexity", "Hours", "Included"]];
+    CATALOG.forEach((entry) => {
+      (TASKS_BY_GROUP[entry.id] || []).forEach((i) => {
+        const t = TASKS[i];
+        rows.push([entry.cat, entry.name, t.t, t.u, t.a, t.c, taskHours(i), taskEnabled(i) ? "yes" : "no"]);
+      });
+    });
+    download("cm-hours-library.csv", toCsv(rows));
+  });
+
+  /* =====================================================================
+     Admin — billing rates
+     ===================================================================== */
+
+  $("rates-body").addEventListener("input", (e) => {
+    const c = e.target.dataset.country, r = e.target.dataset.rank;
+    if (!c || !r) return;
+    state.rates[c] = state.rates[c] || {};
+    const v = parseFloat(e.target.value);
+    if (v > 0) state.rates[c][r] = v; else delete state.rates[c][r];
+    buildLines(false); renderLines(); renderSummary(); save();
+  });
+
+  $("tax-body").addEventListener("input", (e) => {
+    const c = e.target.dataset.tax;
+    if (!c) return;
+    state.taxes[c] = { rate: Math.max(0, parseFloat(e.target.value) || 0) };
+    if (c === state.country && !state.settings.taxTouched) {
+      state.settings.tax = state.taxes[c].rate;
+      $("c-tax").value = state.settings.tax;
+      renderAssumptions(); renderSummary();
+    }
+    save();
+  });
+
+  $("escalation").addEventListener("input", (e) => {
+    state.settings.escalation = parseFloat(e.target.value) || 0;
+    renderQuotes(); renderLines(); save();
+  });
+
+  $("btn-rates-reset").addEventListener("click", () => {
+    if (!confirm("Discard rate and tax edits and restore the seeded illustrative card?")) return;
+    state.rates = {}; state.taxes = {};
+    buildLines(false); renderRates(); renderLines(); renderSummary(); save();
+    toast("Rate card reset");
+  });
+
+  $("btn-export-rates").addEventListener("click", () => {
+    const rows = [["country_code", "country", "currency"].concat(RANKS.map((r) => r.id))];
+    COUNTRIES.forEach((c) => rows.push([c.id, c.name, c.currency].concat(RANKS.map((r) => rateFor(c.id, r.id)))));
+    download("billing-rates.csv", toCsv(rows));
+  });
+
+  $("btn-import-rates").addEventListener("click", () => $("rates-file").click());
+  $("rates-file").addEventListener("change", async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    const rows = parseCsv(await file.text());
+    if (rows.length < 2) { toast("No rows found in that CSV"); return; }
+    const head = rows[0].map((h) => h.trim().toLowerCase());
+    const codeCol = head.indexOf("country_code") >= 0 ? head.indexOf("country_code") : head.indexOf("country");
+    let n = 0;
+    rows.slice(1).forEach((r) => {
+      const raw = String(r[codeCol] || "").trim();
+      const c = COUNTRY_BY_ID[raw.toUpperCase()] || COUNTRIES.find((x) => x.name.toLowerCase() === raw.toLowerCase());
+      if (!c) return;
+      RANKS.forEach((rank) => {
+        const col = head.indexOf(rank.id);
+        if (col < 0) return;
+        const v = parseFloat(String(r[col]).replace(/[^\d.]/g, ""));
+        if (v > 0) { state.rates[c.id] = state.rates[c.id] || {}; state.rates[c.id][rank.id] = v; n++; }
+      });
+    });
+    buildLines(false); renderRates(); renderLines(); renderSummary(); save();
+    toast(n ? `${n} rate${n === 1 ? "" : "s"} imported` : "No matching countries or ranks in that CSV");
+    e.target.value = "";
+  });
+
+  /* =====================================================================
+     Admin — CM vocabulary
+     ===================================================================== */
+
+  $("vocab-list").addEventListener("click", (e) => {
+    const i = e.target.dataset.rm, term = e.target.dataset.term;
+    if (i === undefined) return;
+    state.vocab[term] = (state.vocab[term] || []).filter((_, n) => n !== +i);
+    renderVocab(); save();
+  });
+
+  $("vocab-list").addEventListener("keydown", (e) => {
+    if (e.key !== "Enter") return;
+    const term = e.target.dataset.add;
+    if (!term) return;
+    e.preventDefault();
+    const value = e.target.value.trim().toLowerCase();
+    if (!value) return;
+    const list = state.vocab[term] || (state.vocab[term] = []);
+    if (list.some((s) => String(s).toLowerCase() === value)) { toast("Already listed on this term"); return; }
+    list.push(value);
+    renderVocab(); save();
+    const again = document.querySelector(`.syn-add[data-add="${term}"]`);
+    if (again) again.focus();
+    toast("Synonym added — re-analyse the RFP to apply it");
+  });
+
+  $("btn-vocab-reset").addEventListener("click", () => {
+    if (!confirm("Discard vocabulary edits and restore the seeded synonyms?")) return;
+    state.vocab = seedVocab();
+    renderVocab(); save();
+    toast("Vocabulary reset to source");
+  });
+
+  $("btn-vocab-export").addEventListener("click", () => {
+    const rows = [["term_id", "canonical_term", "synonym"]];
+    TAXONOMY.forEach((t) => (state.vocab[t.id] || []).forEach((s) => rows.push([t.id, t.name, s])));
+    download("cm-vocabulary.csv", toCsv(rows));
+  });
+
+  /* =====================================================================
+     Exports
+     ===================================================================== */
+
+  $("btn-export-invoice").addEventListener("click", () => {
+    const t = totals();
+    const cur = currencyCode();
+    const c = activeCountry();
+    const rows = [["#", "Deliverable", "RFP term", "Description", "Unit", "Qty", "Days per unit", "Effort (days)", "Day rate", "Amount (" + cur + ")"]];
+    t.inc.forEach((l, i) => rows.push([i + 1, l.name, l.clientTerm || "", l.desc, l.unit, l.qty, days(l.dpu), days(l.qty * l.dpu), l.rate, Math.round(l.qty * l.dpu * l.rate)]));
+    rows.push([], ["", "Professional fees", "", "", "", "", "", days(t.effort), "", Math.round(t.fees)]);
+    if (t.contingency) rows.push(["", `Delivery buffer ${state.settings.contingency}%`, "", "", "", "", "", "", "", Math.round(t.contingency)]);
+    if (t.discount) rows.push(["", `Discount ${state.settings.discount}%`, "", "", "", "", "", "", "", -Math.round(t.discount)]);
+    if (t.expenses) rows.push(["", "Travel & expenses", "", "", "", "", "", "", "", Math.round(t.expenses)]);
+    if (t.tax) rows.push(["", `${c ? c.tax : "Tax"} ${state.settings.tax}%`, "", "", "", "", "", "", "", Math.round(t.tax)]);
+    rows.push(["", "TOTAL", "", "", "", "", "", "", "", Math.round(t.total)]);
+    if (t.opt.length) {
+      rows.push([], ["", "OPTIONAL ITEMS — priced separately, not in the total above"]);
+      t.opt.forEach((l, i) => rows.push([i + 1, l.name, l.clientTerm || "", l.desc, l.unit, l.qty, days(l.dpu), days(l.qty * l.dpu), l.rate, Math.round(l.qty * l.dpu * l.rate)]));
+      rows.push(["", "Total options", "", "", "", "", "", days(t.optEffort), "", Math.round(t.optFees)]);
+    }
+    rows.push([], ["", "Effort by rank (person-days)"]);
+    RANKS.forEach((r) => { if (t.byRank[r.id] >= 0.05) rows.push(["", r.name, "", "", "", "", "", days(t.byRank[r.id])]); });
+    download((state.settings.client || "cm-estimate").replace(/[^\w\-]+/g, "-").toLowerCase() + ".csv", toCsv(rows));
+  });
+
+  $("btn-copy-md").addEventListener("click", async () => {
+    const t = totals();
+    const cur = currencyCode();
+    const c = activeCountry();
+    let md = `## Schedule of deliverables and fees${state.settings.client ? " — " + state.settings.client : ""}\n\n`;
+    if (c) md += `Delivered in ${c.name}. All amounts in ${c.currency}.\n\n`;
+    const header = `| # | Deliverable | Unit | Qty | Days/unit | Effort (days) | Day rate (${cur}) | Amount (${cur}) |\n|---:|---|---|---:|---:|---:|---:|---:|\n`;
+    md += header;
+    t.inc.forEach((l, i) => {
+      const nm = l.clientTerm && l.clientTerm.toLowerCase() !== l.name.toLowerCase() ? `${l.clientTerm}` : l.name;
+      md += `| ${i + 1} | ${nm} | ${l.unit} | ${l.qty} | ${days(l.dpu)} | ${days(l.qty * l.dpu)} | ${moneyShort(l.rate)} | ${moneyShort(l.qty * l.dpu * l.rate)} |\n`;
+    });
+    md += `| | **Professional fees** | | | | **${days(t.effort)}** | | **${moneyShort(t.fees)}** |\n`;
+    if (t.contingency) md += `| | Delivery buffer ${state.settings.contingency}% | | | | | | ${moneyShort(t.contingency)} |\n`;
+    if (t.discount) md += `| | Discount ${state.settings.discount}% | | | | | | −${moneyShort(t.discount)} |\n`;
+    if (t.expenses) md += `| | Travel & expenses | | | | | | ${moneyShort(t.expenses)} |\n`;
+    if (t.tax) md += `| | ${c ? c.tax : "Tax"} ${state.settings.tax}% | | | | | | ${moneyShort(t.tax)} |\n`;
+    md += `| | **Total** | | | | | | **${moneyShort(t.total)}** |\n`;
+    if (t.opt.length) {
+      md += `\n**Optional items** — priced separately, not included in the total above.\n\n${header}`;
+      t.opt.forEach((l, i) => {
+        const nm = l.clientTerm && l.clientTerm.toLowerCase() !== l.name.toLowerCase() ? `${l.clientTerm}` : l.name;
+        md += `| ${i + 1} | ${nm} | ${l.unit} | ${l.qty} | ${days(l.dpu)} | ${days(l.qty * l.dpu)} | ${moneyShort(l.rate)} | ${moneyShort(l.qty * l.dpu * l.rate)} |\n`;
+      });
+      md += `| | **Total options** | | | | **${days(t.optEffort)}** | | **${moneyShort(t.optFees)}** |\n`;
+    }
+    if (t.rankedEffort > 0) {
+      md += `\n**Team shape** — ${t.fte.toFixed(1)} average FTE over ${state.drivers.months} months.\n\n| Rank | Person-days |\n|---|---:|\n`;
+      RANKS.slice().reverse().forEach((r) => { if (t.byRank[r.id] >= 0.05) md += `| ${r.name} | ${days(t.byRank[r.id])} |\n`; });
+    }
+    try { await navigator.clipboard.writeText(md); toast("Markdown table copied"); }
+    catch (e) { showCopyPanel("schedule.md", md); }
+  });
+
+  $("btn-reset").addEventListener("click", () => {
+    if (!confirm("Clear the RFP, drivers, rate edits and pricing and start again?")) return;
+    localStorage.removeItem(STORE_KEY);
+    state = defaultState();
+    hydrate();
+    toast("Reset");
+  });
+
+  /* =====================================================================
+     CSV helpers
+     ===================================================================== */
+
+  function toCsv(rows) {
+    return rows.map((r) => (r || []).map((c) => {
+      const s = String(c == null ? "" : c);
+      return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+    }).join(",")).join("\n");
+  }
+
+  function parseCsv(text) {
+    const rows = [];
+    let row = [], cell = "", q = false;
+    for (let i = 0; i < text.length; i++) {
+      const c = text[i];
+      if (q) {
+        if (c === '"' && text[i + 1] === '"') { cell += '"'; i++; }
+        else if (c === '"') q = false;
+        else cell += c;
+      } else if (c === '"') q = true;
+      else if (c === ",") { row.push(cell); cell = ""; }
+      else if (c === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+      else if (c !== "\r") cell += c;
+    }
+    if (cell || row.length) { row.push(cell); rows.push(row); }
+    return rows.filter((r) => r.some((c) => c !== ""));
+  }
+
+  // Saving a file only works when the page is opened from disk; in a shared
+  // viewer the frame cannot hand over a file, so the data goes to the clipboard
+  // — or, failing that, into a panel the reader can select and copy.
+  const CAN_SAVE_FILES = location.protocol === "file:";
+
+  async function download(filename, text) {
+    if (CAN_SAVE_FILES) {
+      const url = URL.createObjectURL(new Blob([text], { type: "text/csv;charset=utf-8" }));
+      const a = document.createElement("a");
+      a.href = url; a.download = filename;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      toast("Copied — paste into a spreadsheet and split by comma");
+    } catch (e) {
+      showCopyPanel(filename, text);
+    }
+  }
+
+  function showCopyPanel(filename, text) {
+    const wrap = $("copy-panel");
+    $("copy-panel-name").textContent = filename;
+    const box = $("copy-panel-text");
+    box.value = text;
+    wrap.hidden = false;
+    box.focus(); box.select();
+  }
+
+  $("copy-panel-close").addEventListener("click", () => { $("copy-panel").hidden = true; });
+  $("copy-panel-copy").addEventListener("click", async () => {
+    const box = $("copy-panel-text");
+    box.select();
+    try { await navigator.clipboard.writeText(box.value); toast("Copied"); }
+    catch (e) { toast("Press Ctrl+C / Cmd+C to copy the selection"); }
+  });
+
+
+
+  /* =====================================================================
+     Boot
+     ===================================================================== */
+
+  function labelExports() {
+    if (CAN_SAVE_FILES) return;
+    ["btn-export-quotes", "btn-library-export", "btn-export-invoice", "btn-export-rates", "btn-vocab-export"].forEach((id) => {
+      if ($(id)) $(id).textContent = "Copy as CSV";
+    });
+  }
+
+  function hydrate() {
+    $("rfp-text").value = state.rfpText || "";
+    $("country").value = state.country || "";
+    $("escalation").value = state.settings.escalation;
+    $("hours-per-day").value = state.settings.hoursPerDay;
+    $("c-contingency").value = state.settings.contingency;
+    $("c-discount").value = state.settings.discount;
+    $("c-expenses").value = state.settings.expenses;
+    $("c-tax").value = state.settings.tax;
+    $("client-name").value = state.settings.client || "";
+    applyRole();
+    applyTaxLabel();
+    if (!state.lines || !state.lines.length) buildLines(true);
+    labelExports();
+    renderAll();
+  }
+
+  // The viewer's own theme wins until someone picks one here.
+  try {
+    const saved = localStorage.getItem(STORE_KEY + ":theme");
+    if (saved === "light" || saved === "dark") applyTheme(saved);
+    else {
+      const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+      $("theme-light").setAttribute("aria-pressed", String(!dark));
+      $("theme-dark").setAttribute("aria-pressed", String(dark));
+    }
+  } catch (e) { /* private mode — leave the system theme in place */ }
+
+  hydrate();
+})();
+</script>
