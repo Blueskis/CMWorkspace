@@ -1,0 +1,151 @@
+<!--
+  Layout definitions for the Deloitte-palette HTML template.
+
+  Same 9 layouts, same placeholder names, as html-generic — only markup and styling
+  differ, so a proposal_plan.json validates and renders against either template
+  unchanged. See this folder's README for the palette source and the trademark caveat
+  before using this outside an internal, deck-prep context.
+
+  Each <template data-layout="..."> is one layout. Placeholders are {{name}} tokens;
+  {{#name}}...{{/name}} regions are dropped whole when that placeholder has no content.
+
+  The `.brand-mark` div is static furniture (not a placeholder) repeated in every
+  layout — the "Deloitte" wordmark with the green dot as its full stop, the fixed point
+  of the identity. Keep it in every layout if you add new ones.
+-->
+
+<template data-layout="title-slide">
+  <div class="slide-frame layout-title-slide">
+    <div class="brand-mark"><span class="word">Deloitte</span><span class="dot"></span></div>
+    <div class="slide-body">
+      <div class="client">{{client}}</div>
+      <h1>{{title}}</h1>
+      {{#subtitle}}<p class="subtitle">{{subtitle}}</p>{{/subtitle}}
+      <div class="tagline">Together makes progress<span class="dot"></span></div>
+      <div class="meta">{{meta}}</div>
+    </div>
+  </div>
+</template>
+
+<template data-layout="section-header">
+  <div class="slide-frame layout-section-header">
+    <div class="brand-mark"><span class="word">Deloitte</span><span class="dot"></span></div>
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h1>{{title}}</h1>
+      {{#body}}{{body}}{{/body}}
+    </div>
+  </div>
+</template>
+
+<template data-layout="title-and-content">
+  <div class="slide-frame">
+    <div class="brand-mark"><span class="word">Deloitte</span><span class="dot"></span></div>
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{body}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="two-content">
+  <div class="slide-frame">
+    <div class="brand-mark"><span class="word">Deloitte</span><span class="dot"></span></div>
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      <div class="cols">
+        <div>
+          {{#left_heading}}<div class="col-head">{{left_heading}}</div>{{/left_heading}}
+          {{left}}
+        </div>
+        <div>
+          {{#right_heading}}<div class="col-head">{{right_heading}}</div>{{/right_heading}}
+          {{right}}
+        </div>
+      </div>
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="case-study">
+  <div class="slide-frame">
+    <div class="brand-mark"><span class="word">Deloitte</span><span class="dot"></span></div>
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      <div class="case-grid">
+        <div>
+          <div class="panel">
+            <div class="col-head">Situation</div>
+            {{situation}}
+          </div>
+          <div class="panel">
+            <div class="col-head">What we did</div>
+            {{action}}
+          </div>
+        </div>
+        <div>
+          <div class="col-head">Outcome</div>
+          {{outcome}}
+          {{#metrics}}{{metrics}}{{/metrics}}
+        </div>
+      </div>
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="metric-row">
+  <div class="slide-frame">
+    <div class="brand-mark"><span class="word">Deloitte</span><span class="dot"></span></div>
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{#body}}{{body}}{{/body}}
+      {{metrics}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="table">
+  <div class="slide-frame">
+    <div class="brand-mark"><span class="word">Deloitte</span><span class="dot"></span></div>
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{#body}}{{body}}{{/body}}
+      {{table}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="timeline">
+  <div class="slide-frame">
+    <div class="brand-mark"><span class="word">Deloitte</span><span class="dot"></span></div>
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{#body}}{{body}}{{/body}}
+      {{phases}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="team-grid">
+  <div class="slide-frame">
+    <div class="brand-mark"><span class="word">Deloitte</span><span class="dot"></span></div>
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{members}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>

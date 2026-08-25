@@ -1,0 +1,363 @@
+/* ------------------------------------------------------------------
+   Deloitte-palette proposal theme.
+
+   Built from the firm's published Green Dot palette (hex/RGB/CMYK/Pantone
+   values supplied for this build) and the public Green Dot identity: a black
+   wordmark, the green dot as the mark's fixed point, generous white space,
+   and color used sparingly — as a signal, not a fill. Thin rules throughout;
+   no heavy color blocks, no drop shadows, no gradients.
+
+   NOT AN OFFICIAL DOWNLOAD. This was assembled from a supplied color spec
+   and general knowledge of the public identity, not the firm's licensed
+   Brand Space assets or master template. Verify against the current Brand
+   Space guidelines and get brand/legal sign-off before any external or
+   client-facing use — the same caveat html-generic carries for its own
+   stand-in status. Internal drafting and dry-runs only until then.
+
+   System fonts only (no network fetch, no CDN) so a rendered deck opens
+   identically offline, same constraint as html-generic.
+   ------------------------------------------------------------------ */
+
+:root {
+  /* Deloitte Green Dot palette */
+  --green:        #86BC25;  /* Deloitte Green — Pantone 368 — primary accent, used sparingly */
+  --green-mid:     #26890D;  /* Deloitte Mid Green — Pantone 362 */
+  --green-deep:    #046A38;  /* Deloitte Deep Green — Pantone 349 */
+  --green-dark:    #1C3D26;  /* Deloitte Dark Green — Pantone 2411 */
+  --green-bright:  #0DF200;  /* Deloitte Bright Green — Pantone 2286 — screen-only micro-accents */
+  --green-pale:    #F1F6E4;  /* Deloitte Pale Green — panel tint */
+
+  --black:      #000000;  /* Deloitte Black — wordmark, primary text */
+  --gray-dark:  #222222;  /* Deloitte Dark Gray — body text */
+  --gray-light: #E6E6E6;  /* Deloitte Light Gray — hairlines, dividers */
+  --white:      #FFFFFF;  /* Deloitte White — canvas */
+
+  /* Functional, off-palette — a [GAP] marker must never read as brand color */
+  --gap-amber:  #b45309;
+  --gap-bg:     #fef3c7;
+
+  --font-sans: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.reveal {
+  font-family: var(--font-sans);
+  font-size: 30px;
+  color: var(--gray-dark);
+}
+.reveal .slides { text-align: left; }
+
+.reveal .slides section {
+  height: 100%;
+  padding: 0;
+  top: 0 !important;
+  display: block;
+  background: var(--white);
+}
+
+/* Typography ------------------------------------------------------- */
+
+.reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+  font-family: var(--font-sans);
+  color: var(--black);
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: normal;
+  margin: 0 0 0.5em 0;
+  line-height: 1.15;
+}
+.reveal h1 { font-size: 1.9em; font-weight: 700; }
+.reveal h2 { font-size: 1.35em; font-weight: 700; }
+.reveal h3 { font-size: 1.0em;  font-weight: 700; }
+
+.reveal p { line-height: 1.45; margin: 0 0 0.7em 0; font-weight: 300; }
+.reveal strong { color: var(--black); font-weight: 700; }
+
+.reveal ul { display: block; margin: 0 0 0.6em 1.1em; }
+.reveal ul li { line-height: 1.4; margin-bottom: 0.45em; padding-left: 0.2em; font-weight: 300; }
+.reveal ul li::marker { color: var(--green); }
+
+/* Slide frame ------------------------------------------------------ */
+
+.slide-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0.7em 0.4em 0.3em;
+}
+.slide-body { flex: 1; min-height: 0; overflow: hidden; }
+
+.kicker {
+  font-family: var(--font-sans);
+  font-size: 0.5em;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green-mid);
+  margin-bottom: 0.6em;
+}
+
+.slide-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1em;
+  flex: 0 0 auto;
+  border-top: 1px solid var(--gray-light);
+  padding: 0.5em 3.2em 0 0;   /* right padding clears reveal's control arrows */
+  margin-top: 0.6em;
+  font-size: 0.36em;
+  color: #666;
+}
+.slide-foot .sources { font-family: var(--font-sans); }
+.slide-foot .sources code {
+  background: var(--green-pale);
+  border-radius: 2px;
+  padding: 0.1em 0.4em;
+  font-size: 0.95em;
+  color: var(--gray-dark);
+}
+
+/* Brand mark — "Deloitte" wordmark, green dot as its full stop ----- */
+
+.brand-mark {
+  position: absolute;
+  top: 0.5em;
+  right: 0.6em;
+  display: flex;
+  align-items: center;
+  font-size: 0.28em;
+  font-weight: 700;
+  color: var(--black);
+  letter-spacing: 0.01em;
+  z-index: 1;
+}
+.brand-mark .word { line-height: 1; }
+.brand-mark .dot,
+.tagline .dot {
+  display: inline-block;
+  width: 0.32em;
+  height: 0.32em;
+  border-radius: 50%;
+  background: var(--green);
+  margin-left: 0.12em;
+}
+.layout-section-header .brand-mark .word,
+.layout-title-slide .brand-mark .word { color: var(--black); }
+
+/* Title slide -------------------------------------------------------
+   The cover: wordmark top right (via .brand-mark), a single thin green
+   rule, generous white space, tagline set once beneath the title. */
+
+.layout-title-slide .slide-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.layout-title-slide .client {
+  font-size: 0.55em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--green-mid);
+  margin-bottom: 0.8em;
+}
+.layout-title-slide h1 {
+  font-size: 2.2em;
+  margin-bottom: 0.35em;
+  padding-top: 0.3em;
+  border-top: 2px solid var(--green);
+}
+.layout-title-slide .subtitle { font-size: 0.8em; color: var(--gray-dark); font-weight: 300; }
+.layout-title-slide .tagline {
+  display: flex;
+  align-items: center;
+  margin-top: 0.9em;
+  font-size: 0.5em;
+  font-weight: 700;
+  color: var(--green-deep);
+}
+.layout-title-slide .meta {
+  margin-top: 1.6em;
+  padding-top: 0.7em;
+  border-top: 1px solid var(--gray-light);
+  font-size: 0.45em;
+  color: #666;
+}
+
+/* Section header ----------------------------------------------------
+   White, not a color block — minimalism over impact color. A thin green
+   rule and a single oversized dot as the only graphic device. */
+
+.layout-section-header {
+  position: relative;
+  justify-content: center;
+  overflow: hidden;
+}
+.layout-section-header::after {
+  content: "";
+  position: absolute;
+  right: -2.4em;
+  bottom: -2.4em;
+  width: 7em;
+  height: 7em;
+  border-radius: 50%;
+  background: var(--green-pale);
+}
+.layout-section-header .slide-body {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-left: 3px solid var(--green);
+  padding-left: 0.8em;
+}
+.layout-section-header h1 { color: var(--black); font-size: 1.8em; }
+.layout-section-header .kicker { color: var(--green-mid); }
+.layout-section-header p { color: var(--gray-dark); font-size: 0.75em; max-width: 22em; font-weight: 300; }
+
+/* Two-column ------------------------------------------------------- */
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; height: 100%; }
+.cols > div { min-width: 0; }
+.col-head {
+  font-family: var(--font-sans);
+  font-size: 0.5em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gray-dark);
+  padding-bottom: 0.4em;
+  margin-bottom: 0.7em;
+  border-bottom: 1px solid var(--green);
+}
+
+/* Panels and case studies -------------------------------------------
+   Hairline borders, not filled tints — panels read as outlined regions. */
+
+.panel {
+  background: var(--white);
+  border: 1px solid var(--gray-light);
+  border-radius: 2px;
+  padding: 0.7em 0.85em;
+}
+.case-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 1.1em; height: 100%; }
+.case-grid .panel + .panel { margin-top: 0.6em; }
+.case-grid p, .case-grid li { font-size: 0.72em; line-height: 1.4; }
+.case-grid ul { margin-bottom: 0; }
+.case-grid li { margin-bottom: 0.4em; }
+
+/* Metrics -------------------------------------------------------------
+   White tiles, thin green top rule — no filled color, per the minimalist
+   brief; the rule is the only accent. */
+
+.metrics { display: flex; gap: 1em; }
+.metric {
+  flex: 1;
+  background: var(--white);
+  border-top: 2px solid var(--green);
+  padding: 0.8em 0.7em 0.6em;
+  text-align: center;
+}
+.metric .value {
+  font-family: var(--font-sans);
+  font-size: 1.7em;
+  font-weight: 700;
+  color: var(--black);
+  line-height: 1;
+}
+.metric .label {
+  font-size: 0.42em;
+  color: var(--gray-dark);
+  margin-top: 0.7em;
+  line-height: 1.3;
+  font-weight: 300;
+}
+
+/* Tables ------------------------------------------------------------- */
+
+.reveal table { width: 100%; border-collapse: collapse; font-size: 0.55em; }
+.reveal table th {
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 0.85em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--gray-dark);
+  border-bottom: 2px solid var(--green);
+  padding: 0.5em 0.7em;
+}
+.reveal table td {
+  border-bottom: 1px solid var(--gray-light);
+  padding: 0.55em 0.7em;
+  vertical-align: top;
+  color: var(--gray-dark);
+  font-weight: 300;
+}
+.reveal table tr:last-child td { border-bottom: none; }
+
+/* Timeline ------------------------------------------------------------ */
+
+.timeline { display: flex; gap: 0.8em; }
+.phase {
+  flex: 1;
+  border-top: 2px solid var(--green);
+  padding-top: 0.7em;
+}
+.phase .n {
+  font-family: var(--font-sans);
+  font-size: 0.4em;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--green-mid);
+  text-transform: uppercase;
+}
+.phase h3 { font-size: 0.78em; margin: 0.3em 0 0.4em; }
+.phase p, .phase ul { font-size: 0.5em; line-height: 1.4; font-weight: 300; }
+.phase ul { margin-left: 0.9em; }
+
+/* Team ------------------------------------------------------------- */
+
+.team { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 1em; }
+.member { border-top: 1px solid var(--gray-light); padding-top: 0.7em; }
+.member .name { font-family: var(--font-sans); font-size: 0.72em; font-weight: 700; color: var(--black); }
+.member-gap { border-top-color: var(--gap-amber); }
+.member-gap .name { color: var(--gap-amber); }
+.member .name .gap-tag { font-size: 0.62em; vertical-align: 0.15em; margin-right: 0.5em; }
+.member .role { font-size: 0.42em; color: var(--green-mid); font-weight: 700; margin: 0.25em 0 0.5em; }
+.member p { font-size: 0.45em; line-height: 1.4; font-weight: 300; }
+
+/* Gap markers -----------------------------------------------------
+   Kept off-palette on purpose — a [GAP] must never be mistaken for a
+   brand-color callout. */
+
+.gap {
+  background: var(--gap-bg);
+  border-left: 4px solid var(--gap-amber);
+  border-radius: 0 4px 4px 0;
+  padding: 0.6em 0.8em;
+  color: #78350f;
+  font-size: 0.62em;
+  line-height: 1.4;
+}
+.gap .gap-tag {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--gap-amber);
+  margin-right: 0.5em;
+}
+
+/* Print / PDF export ------------------------------------------------- */
+
+@media print {
+  .slide-foot { color: #666; }
+  .gap, .layout-section-header::after {
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+}
