@@ -1,0 +1,453 @@
+{
+  "template": "proposal-assets/templates/html-deloitte",
+  "kind": "html",
+  "renderer": "render_html.py",
+  "layout_count": 9,
+  "master_count": 1,
+  "example_slide_count": 0,
+  "theme_fonts": {},
+  "layouts": [
+    {
+      "part": "title-slide",
+      "name": "Title Slide",
+      "type": "html",
+      "placeholder_count": 4,
+      "placeholders": [
+        {
+          "type": "client",
+          "idx": null,
+          "name": "client",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "title",
+          "idx": null,
+          "name": "title",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "subtitle",
+          "idx": null,
+          "name": "subtitle",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "meta",
+          "idx": null,
+          "name": "meta",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    },
+    {
+      "part": "section-header",
+      "name": "Section Header",
+      "type": "html",
+      "placeholder_count": 3,
+      "placeholders": [
+        {
+          "type": "kicker",
+          "idx": null,
+          "name": "kicker",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "title",
+          "idx": null,
+          "name": "title",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "body",
+          "idx": null,
+          "name": "body",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    },
+    {
+      "part": "title-and-content",
+      "name": "Title And Content",
+      "type": "html",
+      "placeholder_count": 4,
+      "placeholders": [
+        {
+          "type": "kicker",
+          "idx": null,
+          "name": "kicker",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "title",
+          "idx": null,
+          "name": "title",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "body",
+          "idx": null,
+          "name": "body",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "footer",
+          "idx": null,
+          "name": "footer",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    },
+    {
+      "part": "two-content",
+      "name": "Two Content",
+      "type": "html",
+      "placeholder_count": 7,
+      "placeholders": [
+        {
+          "type": "kicker",
+          "idx": null,
+          "name": "kicker",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "title",
+          "idx": null,
+          "name": "title",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "left_heading",
+          "idx": null,
+          "name": "left_heading",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "left",
+          "idx": null,
+          "name": "left",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "right_heading",
+          "idx": null,
+          "name": "right_heading",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "right",
+          "idx": null,
+          "name": "right",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "footer",
+          "idx": null,
+          "name": "footer",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    },
+    {
+      "part": "case-study",
+      "name": "Case Study",
+      "type": "html",
+      "placeholder_count": 7,
+      "placeholders": [
+        {
+          "type": "kicker",
+          "idx": null,
+          "name": "kicker",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "title",
+          "idx": null,
+          "name": "title",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "situation",
+          "idx": null,
+          "name": "situation",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "action",
+          "idx": null,
+          "name": "action",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "outcome",
+          "idx": null,
+          "name": "outcome",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "metrics",
+          "idx": null,
+          "name": "metrics",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "footer",
+          "idx": null,
+          "name": "footer",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    },
+    {
+      "part": "metric-row",
+      "name": "Metric Row",
+      "type": "html",
+      "placeholder_count": 5,
+      "placeholders": [
+        {
+          "type": "kicker",
+          "idx": null,
+          "name": "kicker",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "title",
+          "idx": null,
+          "name": "title",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "body",
+          "idx": null,
+          "name": "body",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "metrics",
+          "idx": null,
+          "name": "metrics",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "footer",
+          "idx": null,
+          "name": "footer",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    },
+    {
+      "part": "table",
+      "name": "Table",
+      "type": "html",
+      "placeholder_count": 5,
+      "placeholders": [
+        {
+          "type": "kicker",
+          "idx": null,
+          "name": "kicker",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "title",
+          "idx": null,
+          "name": "title",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "body",
+          "idx": null,
+          "name": "body",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "table",
+          "idx": null,
+          "name": "table",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "footer",
+          "idx": null,
+          "name": "footer",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    },
+    {
+      "part": "timeline",
+      "name": "Timeline",
+      "type": "html",
+      "placeholder_count": 5,
+      "placeholders": [
+        {
+          "type": "kicker",
+          "idx": null,
+          "name": "kicker",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "title",
+          "idx": null,
+          "name": "title",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "body",
+          "idx": null,
+          "name": "body",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "phases",
+          "idx": null,
+          "name": "phases",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "footer",
+          "idx": null,
+          "name": "footer",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    },
+    {
+      "part": "team-grid",
+      "name": "Team Grid",
+      "type": "html",
+      "placeholder_count": 4,
+      "placeholders": [
+        {
+          "type": "kicker",
+          "idx": null,
+          "name": "kicker",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "title",
+          "idx": null,
+          "name": "title",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "members",
+          "idx": null,
+          "name": "members",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "footer",
+          "idx": null,
+          "name": "footer",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    }
+  ]
+}
