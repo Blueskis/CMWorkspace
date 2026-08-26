@@ -133,6 +133,26 @@ a rendered video, or any judgement about whether the tone lands. Output is alway
 practitioner review**, never an approved send — and a design a tool generated is never a design
 the client has approved.
 
+## Self-serve: from the artifact, without copying a prompt
+
+The comms console artifact (`comms-console.html`) lets a practitioner describe a change, pick
+channels, and submit — but a published artifact runs in a sandboxed browser page with no way to
+execute Python, so submitting still needs somewhere to send the work. Two ways to get there,
+in order of setup effort:
+
+1. **`service/`** — a small MCP server that wraps this pipeline's own scripts (it reimplements
+   nothing) plus the two stages that genuinely need a model call. Deploy it and add it as a
+   claude.ai connector named `cm-comms`, and the artifact's submit button drives the whole
+   pipeline live, returning download links inside the page. See `service/README.md` for setup,
+   the tool list, and what it does not solve (distribution — each viewer connects it under
+   their own account — and multi-client brand/knowledge-bank selection).
+2. **Install the plugin** — `/plugin marketplace add <this-repo-url>` then install
+   `cm-workspace`, and run the pipeline by describing the change to Claude directly. No
+   artifact, no server, no shared API key. This works today with nothing built.
+
+Until (1) is deployed and connected, the artifact degrades to a copy/paste request block —
+still (2) with extra steps, but inside the same page.
+
 ## Setup before real use
 
 Shared by both skills.
