@@ -557,6 +557,7 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
 .flag.warn { background: var(--amber-soft); color: var(--amber); }
 .flag.won  { background: var(--jade-soft); color: var(--jade); }
 .flag.lost { background: var(--red-soft); color: var(--red); }
+.flag.best { background: var(--accent); color: var(--accent-ink); }
 
 .empty { padding: 34px 20px; text-align: center; color: var(--muted); font-size: 13.5px; }
 .empty code { font-size: 12px; }
@@ -668,11 +669,13 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
   </section>
 
   <p class="foot">
-    The scores above are a starting shortlist, not a verdict — a past bid can be worth
-    opening even if it scored nothing, so it's always worth a look if the name fits.
-    Matching is based on keywords shared between the tender and each past bid's own tags,
-    with a bonus for a bid that was won, a penalty for one that was lost, and a further
-    penalty for anything submitted over two years ago.
+    The percentage is how much of what this tender raised a past bid covers, judged on
+    the keywords above against each bid's own tags. A keyword only a few past bids carry
+    counts for more than one they all share, so a bid is not rewarded simply for being
+    tagged generously. A bid that was won counts slightly higher and one that was lost
+    slightly lower, but only slightly — a lost bid on this subject is still worth more
+    than a won one on a different subject. It is a shortlist, not a verdict: open
+    anything whose name looks right, whatever it scored.
   </p>
 </main>
 
@@ -1194,17 +1197,95 @@ function projectFrom(record) {
   };
 }
 
-/* +3 a shared tag. A won bid is worth mining ahead of a lost one and a recent one
-   ahead of an old one — but only ±2, because a lost bid on the same subject still beats a
-   won one on a different subject, and that ordering is the whole point. */
-function scoreProject(project) {
-  const matched = project.tags.filter(t => state.tags.has(t));
-  let score = 3 * matched.length;
-  const why = matched.map(t => "tag:" + t);
-  if (project.outcome === "won") { score += 2; why.push("won"); }
-  if (project.outcome === "lost") { score -= 2; why.push("lost"); }
-  if (project.stale) { score -= 2; why.push("over two years old"); }
-  return { score, matched, why };
+/* --- relevance ----------------------------------------------------
+   How much of what this tender is about does a past bid actually cover?
+
+   Counting shared tags equally cannot answer that, for two reasons. A tag every
+   past bid carries ("training") says nothing about which one to read, while a
+   rare one ("transport") says a great deal; and a bid tagged generously beats a
+   precisely tagged one on volume alone. Both were live problems here — two
+   unrelated bids scored identically because every tag they shared was one no CM
+   proposal would lack.
+
+   So each shared tag is weighted by how rare it is across the register, and the
+   result is reported as a share of everything the tender raised: a percentage
+   that means something on its own, rather than a points tally that only means
+   something next to the row below it. */
+
+const STOPWORDS = new Set(["and", "or", "the", "of", "a", "to", "in", "for", "with", "on"]);
+
+const wordIn = (word, text) =>
+  new RegExp("[^a-z0-9]" + word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    + "(?:s|es)?[^a-z0-9]", "i").test(text);
+
+/* A tag is worth more to a tender that states it outright than to one where only
+   its significant words turn up apart ("readiness assessment" for "change
+   readiness assessment") — real evidence either way, but not equal evidence. */
+function tenderTagWeights() {
+  const vocabulary = projectTagVocabulary();
+  const weights = new Map();
+  for (const tag of state.tags) if (vocabulary.has(tag)) weights.set(tag, 1);
+  if (!state.doc) return weights;
+
+  const text = " " + state.doc.text.toLowerCase().replace(/\s+/g, " ") + " ";
+  for (const tag of vocabulary) {
+    if (weights.has(tag)) continue;
+    const words = tag.replace(/-/g, " ").split(" ")
+      .filter(w => w.length > 3 && !STOPWORDS.has(w));
+    if (words.length > 1 && words.every(w => wordIn(w, text))) weights.set(tag, 0.5);
+  }
+  return weights;
+}
+
+/* Rarity across the register. A tag on one bid in ten discriminates; a tag on
+   all ten cannot. */
+function tagRarity() {
+  const tagged = state.airtable.projects.filter(p => p.tags.length);
+  const n = tagged.length || 1;
+  const seen = new Map();
+  for (const p of tagged)
+    for (const t of new Set(p.tags)) seen.set(t, (seen.get(t) || 0) + 1);
+  const rarity = new Map();
+  for (const [t, count] of seen) rarity.set(t, Math.log(1 + n / count));
+  return rarity;
+}
+
+function relevanceContext() {
+  const weights = tenderTagWeights();
+  const rarity = tagRarity();
+  let total = 0;
+  for (const [tag, w] of weights) total += w * (rarity.get(tag) || 0);
+  return { weights, rarity, total };
+}
+
+function scoreProject(project, ctx) {
+  const { weights, rarity, total } = ctx;
+  const matched = [], related = [];
+  let earned = 0;
+
+  for (const tag of new Set(project.tags)) {
+    const w = weights.get(tag);
+    if (!w) continue;
+    earned += w * (rarity.get(tag) || 0);
+    (w === 1 ? matched : related).push(tag);
+  }
+
+  let relevance = total > 0 ? earned / total : 0;
+  // Rarest first: the tag that separates this bid from the others is the reason
+  // worth reading, and it should not be buried under the ones they all share.
+  const byRarity = (a, b) => (rarity.get(b) || 0) - (rarity.get(a) || 0);
+  const why = [...matched.sort(byRarity).map(t => "matches: " + t),
+               ...related.sort(byRarity).map(t => "related: " + t)];
+
+  // Small multipliers on purpose: a lost bid on this subject is still worth more
+  // than a won one on some other subject, so outcome nudges the order and never
+  // decides it.
+  if (project.outcome === "won") { relevance *= 1.05; why.push("won"); }
+  if (project.outcome === "lost") { relevance *= 0.95; why.push("lost"); }
+  if (project.stale) { relevance *= 0.90; why.push("over two years old"); }
+
+  const score = Math.max(0, Math.min(100, Math.round(relevance * 100)));
+  return { score, matched, related, why };
 }
 
 /* Every error code the contract defines has a different correct fix. Collapsing them
@@ -1281,13 +1362,19 @@ function renderAirtable() {
          rel="noopener noreferrer">Open ${esc(label)} directly: ${esc(file.name)}</a>`
     : `<span class="doclink none">no ${esc(label.toLowerCase())}</span>`;
 
-  const ranking = state.tags.size > 0;
-  const scored = projects.map(p => ({ ...p, ...scoreProject(p) }))
+  const ctx = relevanceContext();
+  const ranking = ctx.total > 0;
+  // Ties are common when two bids share the same generic ground, so the order is
+  // settled rather than left to whatever came back first: relevance, then the more
+  // recent bid, then the name.
+  const scored = projects.map(p => ({ ...p, ...scoreProject(p, ctx) }))
     .sort((a, b) => ranking
-      ? (b.score - a.score || (a.name || "").localeCompare(b.name || ""))
+      ? (b.score - a.score
+         || (b.submitted || "").localeCompare(a.submitted || "")
+         || (a.name || "").localeCompare(b.name || ""))
       : (a.name || "").localeCompare(b.name || ""));
   const taggable = projects.filter(p => p.tags.length).length;
-  const top = Math.max(1, ...scored.filter(p => p.score > 0).map(p => p.score));
+  const best = ranking && scored.length && scored[0].score > 0 ? scored[0].id : null;
 
   host.innerHTML =
     (filled === 0 ? `<div class="mcp-state warn"><b>${projects.length} rows, all blank</b>
@@ -1297,8 +1384,8 @@ function renderAirtable() {
        Without tags these can only be sorted by name. Tag each past bid in Airtable and
        the closest matches will rise to the top here.</div>` : "")
     + scored.map(p => {
-        const pct = ranking && p.score > 0 ? Math.round((p.score / top) * 100) : 0;
-        const val = !ranking ? "&mdash;" : (p.score > 0 ? "+" + p.score : "0");
+        const pct = ranking ? p.score : 0;
+        const val = !ranking ? "&mdash;" : p.score + "%";
         return `
       <div class="project">
         <span class="meter">
@@ -1307,6 +1394,7 @@ function renderAirtable() {
         </span>
         <span>
           <span class="name${p.name ? "" : " blank"}">${esc(p.name || "Untitled row")}</span>
+          ${p.id === best ? '<span class="row"><span class="flag best">best match</span></span>' : ""}
           <span class="row">
             ${p.outcome ? `<span class="flag ${p.outcome === "won" ? "won"
               : p.outcome === "lost" ? "lost" : ""}">${esc(p.outcome)}</span>` : ""}
@@ -1314,8 +1402,9 @@ function renderAirtable() {
             ${p.submitted ? `<span class="flag${p.stale ? " sec" : ""}">${esc(p.submitted)}</span>` : ""}
             ${p.price ? `<span class="flag">${esc(p.price)}</span>` : ""}
           </span>
-          ${p.why.length ? `<span class="row why">${p.why.map(w =>
-            `<span class="chip">${esc(w)}</span>`).join("")}</span>` : ""}
+          ${p.why.length ? `<span class="row why">${p.why.slice(0, 6).map(w =>
+            `<span class="chip">${esc(w)}</span>`).join("")}${p.why.length > 6
+              ? `<span class="chip plain">+${p.why.length - 6} more</span>` : ""}</span>` : ""}
           <span class="row">
             ${docLink(p.rfp[0], "RFP")}
             ${docLink(p.deck[0], "Deck")}
@@ -1584,8 +1673,14 @@ $("demo2").addEventListener("click", loadSample("sample-doc-2"));
 
 $("tag-form").addEventListener("submit", e => {
   e.preventDefault();
+  // Split on commas only, never whitespace: the tags in Airtable are ordinary
+  // phrases ("change readiness assessment"), so splitting a typed keyword on spaces
+  // — or hyphenating it — produced fragments that could never match one.
   const raw = $("tag-input").value.trim();
-  if (raw) { raw.split(/[,\s]+/).filter(Boolean).forEach(t => state.tags.add(slug(t))); }
+  if (raw) {
+    raw.split(",").map(t => t.toLowerCase().replace(/\s+/g, " ").trim())
+      .filter(Boolean).forEach(t => state.tags.add(t));
+  }
   $("tag-input").value = "";
   renderTags(); renderAirtable();
 });
