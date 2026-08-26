@@ -142,4 +142,10 @@ def produce(run_id: str, channel: str) -> dict:
 
 
 if __name__ == "__main__":
-    mcp.run()
+    transport = os.environ.get("CM_COMMS_TRANSPORT", "http")
+    if transport == "http":
+        # Streamable HTTP — the transport a remote claude.ai custom connector requires.
+        # stdio (fastmcp's bare mcp.run() default) only reaches a local Desktop/Code client.
+        mcp.run(transport="http", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)))
+    else:
+        mcp.run(transport=transport)

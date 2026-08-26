@@ -1,0 +1,28 @@
+# Render Blueprint for the cm-comms MCP server.
+# Deploy: push this repo somewhere Render can see it, then in the Render dashboard
+# New -> Blueprint -> point at the repo (this file is auto-discovered at any path).
+# Paths below are relative to the REPO ROOT, per Render's Docker blueprint convention —
+# not relative to this file — because the Dockerfile needs the whole repo as build context
+# (runner.py shells out to skills/ and proposal-assets/ alongside service/).
+services:
+  - type: web
+    name: cm-comms
+    runtime: docker
+    dockerContext: .
+    dockerfilePath: ./service/Dockerfile
+    plan: starter
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: BRAND_PROFILE_PATH
+        sync: false
+      - key: COMMS_WORKSPACE_ROOT
+        value: /var/data/cm-comms-runs
+      - key: ARTIFACT_BASE_URL
+        sync: false
+      - key: CM_COMMS_TRANSPORT
+        value: http
+    disk:
+      name: cm-comms-runs
+      mountPath: /var/data
+      sizeGB: 1
