@@ -319,8 +319,8 @@
   .seg button:hover:not([aria-pressed="true"]) { background: var(--surface-2); color: var(--ink); }
   .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
-  /* .step sets its own display, which would otherwise beat the UA's [hidden]. */
-  .admin-only[hidden] { display: none !important; }
+  /* These set their own display, which would otherwise beat the UA's [hidden]. */
+  .admin-only[hidden], .country-badge[hidden] { display: none !important; }
 
   .steps .divider {
     align-self: center; margin: 0 6px 0 14px; padding-left: 14px;
@@ -1393,6 +1393,24 @@
       options: [["low", "Low — starting from scratch"], ["medium", "Medium — some practice"], ["high", "High — mature CM function"]] }
   ];
 
+  const DRIVER_DEF = Object.fromEntries(DRIVERS.map((d) => [d.key, d.def]));
+
+  // A blank driver is "not stated yet", not zero. The field stays empty on
+  // screen and reads as assumed, while the maths falls back to the seeded
+  // default so a half-filled scope still produces a sane estimate.
+  function driverValue(key) {
+    const raw = state.drivers[key];
+    if (raw === "" || raw === null || raw === undefined) return DRIVER_DEF[key];
+    const d = DRIVERS.find((x) => x.key === key);
+    if (d && d.type === "select") return raw;
+    const n = parseFloat(raw);
+    return isFinite(n) ? n : DRIVER_DEF[key];
+  }
+
+  function effDrivers() {
+    return Object.fromEntries(DRIVERS.map((d) => [d.key, driverValue(d.key)]));
+  }
+
   const COMPLEXITY_MULT = { 1: 0.85, 2: 0.92, 3: 1, 4: 1.15, 5: 1.35 };
   const MATURITY_MULT = { low: 1.1, medium: 1, high: 0.92 };
 
@@ -1678,7 +1696,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     country: "",
     rfpText: "",
     fileName: "",
-    drivers: Object.fromEntries(DRIVERS.map((d) => [d.key, d.def])),
+    drivers: Object.fromEntries(DRIVERS.map((d) => [d.key, ""])),
     detected: {},          // driverKey -> {value, evidence}
     signals: {},           // rate key -> evidence snippet
     catSignals: {},        // catalogId -> evidence snippet where the RFP names the deliverable
@@ -2135,7 +2153,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   /* ---------------------------- estimate build ---------------------------- */
 
   function multipliers(entry) {
-    const d = state.drivers;
+    const d = effDrivers();
     const parts = [];
     let m = 1;
     const cx = COMPLEXITY_MULT[d.complexity] || 1;
@@ -2164,6 +2182,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
   function buildLines(reset) {
     const bm = benchmarks();
+    const drv = effDrivers();
     const previous = Object.fromEntries((state.lines || []).map((l) => [l.id, l]));
     const analysed = Object.keys(state.signals).length > 0 || Object.keys(state.catSignals || {}).length > 0;
 
@@ -2181,7 +2200,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       const dpu = resolveDays(entry, bm, level);
       const { m, parts } = multipliers(entry);
       const rule = QTY_RULES[entry.qty] || QTY_RULES.one;
-      const autoQty = Math.max(0, Math.round(rule(state.drivers, capacityF)));
+      const autoQty = Math.max(0, Math.round(rule(drv, capacityF)));
       const autoDays = Math.round(dpu.value * m * effortF * 10) / 10;
       const signal = (state.catSignals || {})[entry.id] || state.signals[entry.rateKey];
       const included = analysed ? (!!signal || !!entry.core) : !!entry.core;
@@ -2295,7 +2314,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       contingency, discount, expenses, tax, total: net + tax,
       byRank, rankedEffort: ranked,
       blended: effort > 0 ? fees / effort : 0,
-      fte: state.drivers.months > 0 ? effortWithBuffer / (state.drivers.months * 21) : 0 };
+      fte: driverValue("months") > 0 ? effortWithBuffer / (driverValue("months") * 21) : 0 };
   }
 
 
@@ -2303,15 +2322,23 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
      Rendering
      ===================================================================== */
 
+  const defLabel = (d) => {
+    const hit = (d.options || []).find(([v]) => String(v) === String(d.def));
+    return hit ? String(hit[1]).split(" — ")[0] : String(d.def);
+  };
+
   function renderDrivers() {
     $("drivers").innerHTML = DRIVERS.map((d) => {
       const det = state.detected[d.key];
-      const src = det ? `<span class="src">read from RFP</span>` : `<span class="src default">assumed</span>`;
       const val = state.drivers[d.key];
+      const blank = val === "" || val === null || val === undefined;
       const input = d.type === "select"
-        ? `<select data-driver="${d.key}">${d.options.map(([v, l]) => `<option value="${v}" ${String(v) === String(val) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`
-        : `<input type="number" data-driver="${d.key}" value="${esc(val)}" step="${d.step || 1}" min="0">`;
-      return `<div class="field"><label>${esc(d.label)}</label>${input}${d.rx || d.type === "select" ? src : ""}</div>`;
+        ? `<select data-driver="${d.key}"><option value="" ${blank ? "selected" : ""}>Not set — assumes ${esc(defLabel(d))}</option>${d.options.map(([v, l]) => `<option value="${v}" ${!blank && String(v) === String(val) ? "selected" : ""}>${esc(l)}</option>`).join("")}</select>`
+        : `<input type="number" data-driver="${d.key}" value="${blank ? "" : esc(val)}" placeholder="${esc(d.def)}" step="${d.step || 1}" min="0">`;
+      const tag = det ? `<span class="src">read from RFP</span>`
+        : blank ? `<span class="src default">not set &mdash; assumes ${esc(d.type === "select" ? defLabel(d) : d.def)}</span>`
+        : `<span class="src default">entered</span>`;
+      return `<div class="field"><label>${esc(d.label)}</label>${input}${tag}</div>`;
     }).join("");
 
     const ev = Object.entries(state.detected);
@@ -2517,6 +2544,19 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         + `</select>`
       : `<span class="mode-na">&mdash;</span>`;
 
+    if (!state.lines.length) {
+      $("lines-body").innerHTML = `<tr><td colspan="9" class="empty">
+        <strong>No estimate yet.</strong>
+        <div class="note" style="margin:6px 0 10px">Analyse an RFP on the Scope tab, or start from the standard change management scope and adjust it.</div>
+        <button class="btn primary small no-print" id="btn-start">Start from standard scope</button>
+      </td></tr>`;
+      $("lines-foot").innerHTML = "";
+      $("quote-meta").textContent = "";
+      $("quote-title").textContent = "Manday estimate";
+      $("quote-country").hidden = true;
+      return;
+    }
+
     $("lines-body").innerHTML = state.lines.map((l, i) => {
       const mandays = l.qty * l.dpu;
       const head = l.cat !== lastCat ? `<tr><td colspan="9" style="background:var(--surface-2);padding-top:9px"><span class="eyebrow">${esc(l.cat || "Other")}</span></td></tr>` : "";
@@ -2583,12 +2623,18 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       : "Manday estimate";
 
     const c = activeCountry();
-    $("quote-country").innerHTML = c ? `Delivered in <b>${esc(c.name)}</b>` : `<b>No country set</b> · effort only`;
+    const badge = $("quote-country");
+    badge.innerHTML = c ? `Delivered in <b>${esc(c.name)}</b>` : `<b>No country set</b> · effort only`;
+    badge.hidden = false;
   }
 
   function renderAssumptions() {
-    const d = state.drivers;
     const t = totals();
+    if (!state.lines.length) {
+      $("assumptions").innerHTML = `<li>Assumptions appear here once the estimate is built.</li>`;
+      return;
+    }
+    const d = effDrivers();
     const c = activeCountry();
     const modeCounts = {};
     t.inc.forEach((l) => { if (l.mode) modeCounts[l.mode] = (modeCounts[l.mode] || 0) + 1; });
@@ -2620,7 +2666,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       : "Nothing estimated yet";
 
     $("s-fte").textContent = t.fte ? t.fte.toFixed(1) : "—";
-    $("s-months").textContent = state.drivers.months || "—";
+    $("s-months").textContent = state.drivers.months === "" ? "—" : driverValue("months");
     $("s-lines").textContent = t.inc.length;
     $("s-buffer").textContent = t.bufferDays ? days(t.bufferDays) : "—";
 
@@ -2806,9 +2852,11 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     if (!key) return;
     const d = DRIVERS.find((x) => x.key === key);
     let v = e.target.value;
-    if (d.type === "number") v = Math.max(0, parseFloat(v) || 0);
+    if (v === "") v = "";                       // cleared, not zero
+    else if (d.type === "number") v = Math.max(0, parseFloat(v) || 0);
     else if (key === "complexity") v = parseInt(v, 10);
     state.drivers[key] = v;
+    if (v === "") delete state.detected[key];
     buildLines(false);
     renderLines(); renderAssumptions(); renderSummary();
     save();
@@ -2853,6 +2901,12 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   $("lines-body").addEventListener("change", onLineEdit);
 
   $("lines-body").addEventListener("click", (e) => {
+    if (e.target.id === "btn-start") {
+      buildLines(true);
+      renderLines(); renderAssumptions(); renderSummary(); save();
+      toast("Started from the standard change management scope");
+      return;
+    }
     const i = e.target.dataset.delline;
     if (i === undefined) return;
     state.lines.splice(+i, 1);
@@ -3254,7 +3308,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     const t = totals();
     const c = activeCountry();
     let md = `## Manday estimate${state.settings.client ? " — " + state.settings.client : ""}\n\n`;
-    md += `${days(t.effortWithBuffer)} mandays · ${t.fte.toFixed(1)} average FTE over ${state.drivers.months} months`;
+    md += `${days(t.effortWithBuffer)} mandays · ${t.fte.toFixed(1)} average FTE over ${driverValue("months")} months`;
     md += c ? ` · delivered in ${c.name}.\n\n` : `.\n\n`;
 
     const header = `| # | Deliverable | Unit | Qty | Complexity | Mode | Mandays |\n|---:|---|---|---:|---|---|---:|\n`;
@@ -3402,7 +3456,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $("client-name").value = state.settings.client || "";
     applyRole();
     applyTaxLabel();
-    if (!state.lines || !state.lines.length) buildLines(true);
     labelExports();
     renderAll();
   }
