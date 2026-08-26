@@ -87,7 +87,15 @@ the page a hostable URL isn't available to this account. So:
    who isn't in this chat to pull via the page's own "Download register" button (uses the
    `downloads` capability directly; degrades to a toast pointing back at the chat delivery if
    unavailable).
-3. **Strip the batch's file blobs before republishing.** `files[].base64` has done its job once
+3. **The CSV must carry As-Is and To-Be, not just scores.** The register stands in for the
+   workbook for a viewer without chat access — a row of ratings with no As-Is/To-Be says nothing
+   about what's actually changing. Minimum columns: `Impact ID, L1-L4, Stakeholder Group,
+   Headcount, As-Is, To-Be, People, Process, Technology, Overall, Rating, Confidence,
+   Resistance, Source Ref`. Caught this gap once already — the workbook had As-Is/To-Be
+   (`generate_cia.py` requires both; it's structurally impossible to omit them there), but a
+   hand-rolled CSV export left them out. Build the CSV from the same `cia_input.json` the
+   workbook came from, not from a separately-remembered field list.
+4. **Strip the batch's file blobs before republishing.** `files[].base64` has done its job once
    `ingest_sources.py` has read it; carrying it forward in `history` forever is how the artifact's
    16MB ceiling gets hit. Keep `files[].name` and `.size` for the history display, drop
    `.base64`. This is the same rule mode 1's Excel channel already follows for the same reason.
