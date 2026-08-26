@@ -3388,6 +3388,9 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
   function hydrate() {
     $("rfp-text").value = state.rfpText || "";
+    $("file-status").textContent = "";
+    $("analyse-status").textContent = "";
+    $("file").value = "";
     $("country").value = state.country || "";
     $("delivery-mode").value = state.deliveryMode || "blended";
     $("escalation").value = state.settings.escalation;
