@@ -854,7 +854,15 @@
 (function () {
   "use strict";
 
-  const STORE_KEY = "cm-estimator-v4";
+  const STORE_KEY = "cm-estimator-v5";
+
+  // Saved state from an older build of this tool describes a different app —
+  // earlier versions seeded the scope drivers and auto-built the full
+  // deliverable list, which would resurrect an estimate the user never asked
+  // for. Drop those keys so everyone starts genuinely empty.
+  ["cm-estimator-v1", "cm-estimator-v3", "cm-estimator-v4"].forEach((k) => {
+    try { localStorage.removeItem(k); } catch (e) { /* private mode */ }
+  });
   const THIS_YEAR = new Date().getFullYear();
   const $ = (id) => document.getElementById(id);
 
