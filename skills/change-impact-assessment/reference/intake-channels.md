@@ -1,22 +1,37 @@
-# Three ways content reaches the assessment
+# How content reaches the assessment
 
-Whoever holds the process knowledge for a change doesn't always have this chat open —
-a CM lead does, but the client stakeholder they're pulling detail from usually doesn't. So
-there are three channels in, and all three land in the same place: Steps 3–5 of `SKILL.md`
-(Extract, Score, Derive response), then Step 9 (push to Airtable). None of them skip that
-processing — a channel changes how content arrives, never what happens to it once it does.
+The `Change Impact Intake` artifact has **two modes**, and mode 1 has **three channels**. Every
+path — regardless of mode or channel — lands with Claude, who does the actual extraction and
+scoring; nothing here is a shortcut around that. A mode/channel changes how content arrives,
+never what happens to it once it does.
+
+| Mode | Channels | Output |
+|---|---|---|
+| **Generate a CIA process** | Free text (chat or artifact tab) · Intake form · Excel upload | Rows written into the live `Change Impacts` register in Airtable |
+| **Generate a new baseline CIA** | A transformation prompt, plus optional Word/Excel/PowerPoint/PDF/text documents | A downloadable baseline `.xlsx` workbook, delivered in chat |
+
+Whoever holds the process knowledge for a change doesn't always have this chat open — a CM lead
+does, but the client stakeholder they're pulling detail from usually doesn't, and the person
+kicking off a whole-transformation baseline may want to do it in one sitting from a scope
+document rather than a conversation. Both modes exist for that reason.
+
+## Mode 1 — Generate a CIA process
+
+One process change in, rows in the register out. Reuses Steps 3–5 of `SKILL.md` (Extract,
+Score, Derive response), then Step 9 (push to Airtable) — unchanged regardless of which channel
+supplied the content.
 
 | Channel | Where | What it gives Claude |
 |---|---|---|
-| **Free text** | Pasted directly in this chat | Exactly what's happened throughout this engagement so far — a narrative brief, read and extracted like any other source |
-| **Intake form** | The `Change Impact Intake` artifact, Form tab | Structured per-field input: L1–L4, as-is/to-be, a scoring steer, and a stakeholder group list, one card per process change |
-| **Excel upload** | The same artifact's Excel tab, or a chat attachment | A filled (or partially filled) copy of the client's own `CIA Template.xlsx`, extracted by `scripts/import_cia_excel.py` |
+| **Free text** | Pasted directly in this chat, or the artifact's Free text tab | A narrative brief, read and extracted like any other source |
+| **Intake form** | The artifact's Form tab | Structured per-field input: L1–L4, as-is/to-be, a scoring steer, and a stakeholder group list, one card per process change |
+| **Excel upload** | The artifact's Excel tab, or a chat attachment | A filled (or partially filled) copy of the client's own `CIA Template.xlsx`, extracted by `scripts/import_cia_excel.py` |
 
-## The artifact's three tabs
+### The artifact's three channel tabs (mode 1 only)
 
-The published `Change Impact Intake` page carries all three as tabs over one submission
-mechanism, so a non-technical contributor never needs to know which one is "supposed" to be
-used — they pick whichever is easiest for what they have:
+Mode 1 carries all three as tabs over one submission mechanism, so a non-technical contributor
+never needs to know which one is "supposed" to be used — they pick whichever is easiest for
+what they have:
 
 - **Form** — the original structured intake: repeatable process-change cards with nested
   stakeholder groups. Best when someone is composing the brief fresh, in the browser.
@@ -27,10 +42,25 @@ used — they pick whichever is easiest for what they have:
   entirely.
 
 Submitting any tab appends a batch to the page's `history`, tagged `channel: "form" |
-"freetext" | "excel"`, with status `submitted`. **This session runs remotely and cannot hold
-a live watch on the artifact** — nothing wakes Claude automatically when someone submits.
-Tell Claude a batch has landed; it re-reads the artifact, processes whatever's waiting, and
-republishes with the batch marked `processed` and the resulting Airtable rows listed inline.
+"freetext" | "excel"` (a mode-2 batch is tagged `mode: "baseline"` instead — see below), with
+status `submitted`. **This session runs remotely and cannot hold a live watch on the
+artifact** — nothing wakes Claude automatically when someone submits, in either mode. Tell
+Claude a batch has landed; it re-reads the artifact, processes whatever's waiting, and
+republishes with the batch marked `processed` — the resulting Airtable rows listed inline for
+mode 1, or a rating-distribution summary and a CSV download for mode 2.
+
+## Mode 2 — Generate a new baseline CIA
+
+One prompt (plus optional documents) in, a whole draft workbook out — for a client to prune and
+discuss, not an evidence-linked baseline. Read `reference/baseline-generation.md` in full before
+processing one of these; it covers coverage strategy, provenance while the Standard Change
+Library is unseeded, and why `.xlsx` can't be offered as an in-page download (the `downloads`
+capability's allowlist has no `xlsx` entry) — delivery is `SendUserFile` into chat, with a
+best-effort CSV download button on the page for a viewer who isn't in the chat.
+
+The mode switcher sits above the channel tabs, visually distinct from them — the two are
+different levels of navigation, not siblings. Switching modes doesn't touch either mode's
+draft; a half-filled baseline prompt survives switching to mode 1 and back.
 
 ### How the browser hands over an Excel file
 
@@ -42,10 +72,13 @@ file as bytes via `FileReader`, base64-encodes them, and embeds that string in t
 real `.xlsx` file when it re-reads the artifact. A client-side 8MB cap keeps this sane — a
 filled CIA template is normally well under 1MB.
 
-**Processing an Excel batch must strip the base64 blob from `history` before republishing.**
-The raw bytes have no reason to stay in the page once extracted, and leaving them piles up:
-every unprocessed upload sits in the document until it's handled, and the published page has
-a 16MB ceiling. Keep `file.name` and `file.size` for the history display; drop `file.base64`.
+**Processing any batch carrying a file blob — mode 1's Excel channel or mode 2's document
+uploads — must strip the base64 from `history` before republishing.** The raw bytes have no
+reason to stay in the page once extracted, and leaving them piles up: every unprocessed upload
+sits in the document until it's handled, and the published page has a 16MB ceiling. Keep
+`name` and `size` for the history display; drop `base64`. Mode 2 also caps this at the source:
+8MB per file, 6MB total per pending batch, enforced client-side before it ever reaches the
+published state.
 
 ## Processing an Excel batch (via the artifact or a direct chat upload)
 
@@ -73,7 +106,7 @@ exactly like a freshly extracted interview finding. Cite the file itself as the 
 a filled-in score in someone else's spreadsheet is not automatically High confidence just
 because it arrived as a number rather than a sentence.
 
-## Free text — no new tooling
+## Free text (mode 1) — no new tooling
 
 This is what's been happening in this conversation from the start: a process brief pasted or
 typed directly into chat, read and extracted the same way `reference/extraction-guide.md`

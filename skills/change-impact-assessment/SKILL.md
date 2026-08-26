@@ -49,7 +49,8 @@ lose credibility.
 | `scripts/push_to_airtable.py` | Publishes the same assessment to Airtable as a live, relational workspace. |
 | `reference/airtable-workspace.md` | Airtable route — setup, the linked-table design, views, and which copy is master. |
 | `reference/standard-change-library.md` | Reusing change patterns from past assessments — schema, how to reference them during Extract/Score without letting them override this engagement's evidence, and how to seed the library. **Read before Step 3 if a Standard Change Library table exists in the target base.** |
-| `reference/intake-channels.md` | The three ways content arrives — free text in chat, the `Change Impact Intake` artifact's form/free-text/Excel tabs, or a direct `.xlsx` chat upload — and how each funnels into the same Steps 3-5. **Read whenever someone other than the person in this chat needs to submit content.** |
+| `reference/intake-channels.md` | The `Change Impact Intake` artifact's two modes and mode 1's three channels — free text, form, Excel — and how each funnels into either Steps 3-5 (mode 1) or `baseline-generation.md` (mode 2). **Read whenever someone other than the person in this chat needs to submit content.** |
+| `reference/baseline-generation.md` | Generating a whole draft CIA workbook from one prompt plus optional documents — coverage strategy, provenance while the Standard Change Library is unseeded, and delivery (chat, not an in-page download). **Read before processing a `mode: "baseline"` batch.** |
 | `scripts/import_cia_excel.py` | Extracts impact rows from a filled (or partially filled) copy of the client's own CIA Template — the Excel intake channel. |
 | `examples/` | A complete worked example — six source documents and the 20-row `sample_cia_input.json` they produce. |
 
@@ -258,7 +259,7 @@ Some teams want the baseline as a workspace rather than a file. Read
 — easiest) or the script:
 
 **If content is coming from someone other than the person in this chat**, point them at the
-published `Change Impact Intake` artifact instead of asking for a chat paste — it has Form,
+published `Change Impact Intake` artifact instead of asking for a chat paste — mode 1 has Form,
 Free text and Excel tabs, all landing in the same place. Read `reference/intake-channels.md`.
 This session cannot hold a live watch on a remotely-published artifact, so nothing wakes
 Claude automatically when someone submits — the person who *is* in this chat needs to say so,
@@ -266,6 +267,18 @@ at which point Claude re-reads the artifact, processes whatever batches are `sub
 (running each through Steps 3-5 exactly as it would a chat-pasted brief, or through
 `scripts/import_cia_excel.py` first for an Excel batch), pushes the results to Airtable, and
 republishes the page with each batch marked `processed` and its resulting rows listed inline.
+
+### Mode 2: Generate a new baseline CIA (the same artifact, a different job)
+
+The artifact's second mode skips Airtable entirely — one prompt (plus optional Word/Excel/
+PowerPoint/PDF/text documents) becomes a comprehensive, 40–80 row draft workbook delivered
+straight to chat, for a client to prune and discuss before any interview has happened. It
+reuses Steps 4–7 unmodified; what's different is Step 3, built from a prompt rather than mined
+from a document set, and deliberately comprehensive rather than conservative. Read
+`reference/baseline-generation.md` before processing a batch tagged `mode: "baseline"` — it
+covers coverage strategy, why every row starts at Low/Medium confidence until the Standard
+Change Library is seeded, and why the workbook has to reach the user via `SendUserFile` rather
+than an in-page download (`.xlsx` isn't in the `downloads` capability's allowlist).
 
 ```bash
 export AIRTABLE_PAT=pat_xxx
