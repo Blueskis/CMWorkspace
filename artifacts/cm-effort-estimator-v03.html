@@ -435,6 +435,31 @@
     font-size: 1rem; font-weight: 600; color: var(--ink-2); margin-left: auto;
   }
 
+  /* Confirmation dialog — the artifact runs in a sandboxed frame where
+     window.confirm() is ignored, so destructive actions ask in-page. */
+  .modal-scrim {
+    position: fixed; inset: 0; z-index: 60;
+    display: flex; align-items: center; justify-content: center; padding: 24px;
+    background: rgba(18, 22, 31, .45);
+  }
+  .modal-scrim[hidden] { display: none; }
+  :root[data-theme="dark"] .modal-scrim { background: rgba(0, 0, 0, .62); }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) .modal-scrim { background: rgba(0, 0, 0, .62); }
+  }
+  .modal {
+    background: var(--surface); color: var(--ink);
+    border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: var(--shadow);
+    padding: 20px 22px; max-width: 430px; width: 100%;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px; }
+  /* --accent-ink flips per theme, so the label stays legible on the clay in
+     both: white on the dark red of light mode, near-black on the light red of dark. */
+  .btn.danger-solid { background: var(--clay); border-color: var(--clay); color: var(--accent-ink); font-weight: 600; }
+  .btn.danger-solid:hover { filter: brightness(1.08); }
+
   .rate-cell input { width: 100%; }
   .rates-scroll th.sticky-col, .rates-scroll td.sticky-col {
     position: sticky; left: 0; background: var(--surface); z-index: 1;
@@ -844,6 +869,17 @@
       <button class="btn ghost small" id="copy-panel-close">Close</button>
     </header>
     <textarea id="copy-panel-text" rows="12" readonly spellcheck="false"></textarea>
+  </div>
+</div>
+
+<div class="modal-scrim" id="confirm-scrim" hidden>
+  <div class="modal" role="alertdialog" aria-modal="true" aria-labelledby="confirm-title" aria-describedby="confirm-body">
+    <h3 id="confirm-title"></h3>
+    <p class="note" id="confirm-body"></p>
+    <div class="modal-actions">
+      <button class="btn ghost" id="confirm-no">Cancel</button>
+      <button class="btn primary danger-solid" id="confirm-yes">Confirm</button>
+    </div>
   </div>
 </div>
 
@@ -1775,6 +1811,28 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2;
   };
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+
+  // window.confirm() is ignored inside the sandboxed artifact frame — it
+  // returns false without ever showing anything, which silently turned every
+  // destructive button into a no-op. Ask in the page instead.
+  let confirmResolve = null;
+
+  function askConfirm(title, body, confirmLabel) {
+    $("confirm-title").textContent = title;
+    $("confirm-body").textContent = body;
+    $("confirm-yes").textContent = confirmLabel || "Confirm";
+    $("confirm-scrim").hidden = false;
+    $("confirm-yes").focus();
+    return new Promise((resolve) => { confirmResolve = resolve; });
+  }
+
+  function closeConfirm(answer) {
+    if (!confirmResolve) return;
+    const resolve = confirmResolve;
+    confirmResolve = null;
+    $("confirm-scrim").hidden = true;
+    resolve(answer);
+  }
 
   function toast(msg) {
     const t = $("toast");
@@ -2843,8 +2901,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     buildLines(false); renderLines(); renderAssumptions(); renderSummary(); save();
   });
 
-  $("btn-mode-reset").addEventListener("click", () => {
-    if (!confirm("Reset the virtual, blended and physical factors to their seeded values?")) return;
+  $("btn-mode-reset").addEventListener("click", async () => {
+    if (!await askConfirm("Reset mode factors?", "The virtual, blended and physical effort and capacity factors return to their seeded values.", "Reset factors")) return;
     state.modeFactors = {};
     buildLines(false); renderModes(); renderLines(); renderSummary(); save();
     toast("Mode factors reset");
@@ -2989,8 +3047,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     toast(`Added — sized as ${archetype}`);
   }
 
-  $("btn-rebuild").addEventListener("click", () => {
-    if (!confirm("Rebuild quantities, complexity and mode from the current scope? Manual edits to standard lines will be lost.")) return;
+  $("btn-rebuild").addEventListener("click", async () => {
+    if (!await askConfirm("Rebuild from scope?", "Quantities, complexity and mode are recalculated from the current scope drivers. Manual edits to standard lines are lost; deliverables you added yourself are kept.", "Rebuild")) return;
     state.lines = state.lines.filter((l) => l.custom);
     buildLines(true);
     renderLines(); renderAssumptions(); renderSummary();
@@ -3053,8 +3111,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     save();
   });
 
-  $("btn-restore-samples").addEventListener("click", () => {
-    if (!confirm("Replace the current past-quotes table with the sample data?")) return;
+  $("btn-restore-samples").addEventListener("click", async () => {
+    if (!await askConfirm("Restore sample quotes?", "The past-quotes table is replaced with the illustrative sample data. Any quotes you entered or imported are lost.", "Restore samples")) return;
     state.quotes = SAMPLE_QUOTES.map((q) => ({ ...q }));
     renderQuotes(); buildLines(false); renderLines(); renderSummary(); save();
     toast("Sample quotes restored");
@@ -3126,8 +3184,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     buildLines(false); renderLines(); renderSummary(); save();
   });
 
-  $("btn-mix-reset").addEventListener("click", () => {
-    if (!confirm("Reset every archetype's rank mix back to the seeded profile?")) return;
+  $("btn-mix-reset").addEventListener("click", async () => {
+    if (!await askConfirm("Reset rank mixes?", "Every archetype's rank mix returns to its seeded profile. Hours and exclusions are untouched.", "Reset mixes")) return;
     state.rankMix = {};
     buildLines(false); renderLibrary(); renderLines(); renderSummary(); save();
     toast("Rank mixes reset");
@@ -3151,8 +3209,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $("library-meta").textContent = `${n} of ${TASKS.length} tasks · ${days(total)} hours · ${days(total / hpd)} days if every deliverable were built once`;
   });
 
-  $("btn-library-reset").addEventListener("click", () => {
-    if (!confirm("Reset the hours library — task hours, exclusions and the archetype matrix — back to the source workbook?")) return;
+  $("btn-library-reset").addEventListener("click", async () => {
+    if (!await askConfirm("Reset the hours library?", "Task hours, task exclusions and the archetype matrix all return to the source workbook. Rank mixes are untouched.", "Reset library")) return;
     state.taskHours = {}; state.taskOff = {}; state.archetypes = {};
     buildLines(false); renderLibrary(); renderLines(); renderSummary(); save();
     toast("Hours library reset to source");
@@ -3199,8 +3257,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     renderQuotes(); renderLines(); save();
   });
 
-  $("btn-rates-reset").addEventListener("click", () => {
-    if (!confirm("Discard rate and tax edits and restore the seeded illustrative card?")) return;
+  $("btn-rates-reset").addEventListener("click", async () => {
+    if (!await askConfirm("Reset the rate card?", "Every day rate and tax rate you have edited is discarded, restoring the seeded illustrative card.", "Reset rates")) return;
     state.rates = {}; state.taxes = {};
     buildLines(false); renderRates(); renderLines(); renderSummary(); save();
     toast("Rate card reset");
@@ -3263,8 +3321,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     toast("Synonym added — re-analyse the RFP to apply it");
   });
 
-  $("btn-vocab-reset").addEventListener("click", () => {
-    if (!confirm("Discard vocabulary edits and restore the seeded synonyms?")) return;
+  $("btn-vocab-reset").addEventListener("click", async () => {
+    if (!await askConfirm("Reset the vocabulary?", "Synonyms you have added or removed are discarded, restoring the seeded CM vocabulary.", "Reset vocabulary")) return;
     state.vocab = seedVocab();
     renderVocab(); save();
     toast("Vocabulary reset to source");
@@ -3359,12 +3417,28 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     catch (e) { showCopyPanel("manday-estimate.md", md); }
   });
 
-  $("btn-reset").addEventListener("click", () => {
-    if (!confirm("Clear the RFP, drivers, rate edits and the estimate and start again?")) return;
+  $("btn-reset").addEventListener("click", async () => {
+    if (!await askConfirm("Reset everything?", "This clears the uploaded RFP, the scope drivers, the estimate, and every admin edit to rates, the hours library and the vocabulary. The tool returns to its starting state.", "Reset all")) return;
     localStorage.removeItem(STORE_KEY);
     state = defaultState();
     hydrate();
     toast("Reset");
+  });
+
+  $("confirm-yes").addEventListener("click", () => closeConfirm(true));
+  $("confirm-no").addEventListener("click", () => closeConfirm(false));
+  $("confirm-scrim").addEventListener("mousedown", (e) => {
+    if (e.target === $("confirm-scrim")) closeConfirm(false);
+  });
+  document.addEventListener("keydown", (e) => {
+    if ($("confirm-scrim").hidden) return;
+    if (e.key === "Escape") { e.preventDefault(); closeConfirm(false); }
+    // Keep focus inside the dialog while it is open.
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const yes = $("confirm-yes"), no = $("confirm-no");
+      (document.activeElement === yes ? no : yes).focus();
+    }
   });
 
   /* =====================================================================
