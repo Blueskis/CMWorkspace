@@ -1,10 +1,33 @@
-# CM Pursuit Estimator (effort estimator v0.3)
+# CM Manday Estimator (effort estimator v0.4)
 
 `cm-effort-estimator-v03.html` — a single self-contained page. Open it directly in a
 browser, or publish it as an Artifact. State lives in `localStorage` under
 `cm-estimator-v3`; nothing leaves the browser.
 
-## What v0.3 changes from v0.2
+## What v0.4 changes from v0.3
+
+- **Effort, not price, is the output.** Tab 2 is now the **Manday estimate**: no days/unit,
+  no day rate, no per-line amount. Effort is derived, not typed. Pricing survives as an
+  *indicative* collapsed block in the sidebar — the binding number comes from the pricing
+  workbench, which this will integrate with later.
+- **Complexity per deliverable.** Every line carries the Simple / Standard / Complex grading
+  from the Hours Library. Changing it re-resolves every task in that deliverable through the
+  archetype matrix at that grade. The default is the deliverable's own hours-weighted modal
+  grade, and archetypes undefined at a level (Recurring PMO / Admin has no Complex) clamp
+  toward Standard rather than dropping to zero.
+- **Virtual / blended / physical mode of conduct** on sessions, workshops, training delivery
+  and change agent cadences. Physical carries more effort *and* seats fewer people, so it
+  drives both the mandays per session and the number of sessions needed. Documents and
+  assets have no mode. Factors are admin-editable on the Hours library tab.
+- **Free-text deliverables.** Type a name, set quantity and complexity; the effort archetype
+  is inferred from the wording, shown, and correctable. Effort is the archetype's hours at
+  that complexity across the median task count of a catalogue deliverable, and the rank
+  split comes from that archetype's mix.
+- **Mandays** replaces "person-days" throughout, including both exports.
+- The country gate is gone — effort no longer depends on a country, only the indicative
+  price does.
+
+## What v0.3 changed from v0.2
 
 - **Two user tabs, four admin tabs.** Estimators see *Scope & RFP* and *Priced
   deliverables*. The Admin role toggle reveals *Past quotes*, *Hours library*,

@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>CM Pursuit Estimator</title>
+<title>CM Manday Estimator</title>
 
 <style>
   :root {
@@ -398,6 +398,43 @@
   .chip.var-hi { background: var(--clay-soft); color: var(--clay); border-color: transparent; }
   .chip.var-lo { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
 
+  /* ---------- v0.4: complexity, mode, add-line, indicative price ---------- */
+
+  .lvl, .mode-sel { font-size: .8rem; padding: 3px 6px; width: 100%; min-width: 96px; }
+  td.lvl-cell, td.mode-cell { min-width: 104px; }
+  .mode-na { color: var(--ink-3); }
+
+  .cell-mandays { font-weight: 600; }
+
+  .addline {
+    display: flex; flex-direction: column; gap: 7px;
+    border: 1px dashed var(--line-strong); border-radius: 8px;
+    padding: 12px 14px; background: var(--surface-2);
+  }
+  .addline-grid {
+    display: grid; gap: 8px;
+    grid-template-columns: minmax(0, 1fr) 82px 128px 190px auto;
+    align-items: center;
+  }
+  @media (max-width: 860px) { .addline-grid { grid-template-columns: minmax(0, 1fr); } }
+
+  details.indicative { }
+  details.indicative > summary {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+    padding: 12px 16px; cursor: pointer; list-style: none;
+  }
+  details.indicative > summary::-webkit-details-marker { display: none; }
+  details.indicative > summary::after {
+    content: "▸"; color: var(--ink-3); font-size: .8rem; order: 3;
+  }
+  details.indicative[open] > summary::after { content: "▾"; }
+  details.indicative > summary:hover { background: var(--surface-2); }
+  details.indicative > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .ind-total {
+    font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+    font-size: 1rem; font-weight: 600; color: var(--ink-2); margin-left: auto;
+  }
+
   .rate-cell input { width: 100%; }
   .rates-scroll th.sticky-col, .rates-scroll td.sticky-col {
     position: sticky; left: 0; background: var(--surface); z-index: 1;
@@ -408,8 +445,8 @@
 
 <header class="appbar">
   <div class="brand">
-    <h1>CM Pursuit Estimator</h1>
-    <small>Price a change management pursuit from RFP scope, effort archetypes and Southeast Asian rate cards</small>
+    <h1>CM Manday Estimator</h1>
+    <small>Size a change management pursuit in mandays from RFP scope, effort archetypes and complexity</small>
   </div>
   <div class="row no-print">
     <div class="seg" role="group" aria-label="Role">
@@ -426,7 +463,7 @@
 
 <nav class="steps" role="tablist" aria-label="Estimation steps">
   <button class="step" role="tab" aria-selected="true" data-panel="scope"><span class="idx">01</span> Scope &amp; RFP</button>
-  <button class="step" role="tab" aria-selected="false" data-panel="quote"><span class="idx">02</span> Priced deliverables</button>
+  <button class="step" role="tab" aria-selected="false" data-panel="quote"><span class="idx">02</span> Manday estimate</button>
   <span class="divider admin-only" hidden>Configuration</span>
   <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="quotes" hidden>Past quotes</button>
   <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="library" hidden>Hours library</button>
@@ -453,6 +490,11 @@
             <div class="field" style="min-width:220px;flex:1">
               <label for="client-name">Client / pursuit name</label>
               <input type="text" id="client-name" placeholder="e.g. Northwind Utilities &mdash; S/4HANA">
+            </div>
+            <div class="field" style="max-width:190px">
+              <label for="delivery-mode">Default mode of conduct</label>
+              <select id="delivery-mode"></select>
+              <span class="src default">Sessions and workshops</span>
             </div>
             <div class="field" style="max-width:150px">
               <label for="hours-per-day">Hours per day</label>
@@ -517,17 +559,9 @@
 
     <!-- ============ 02 PRICED DELIVERABLES ============ -->
     <section class="panel" id="panel-quote" role="tabpanel">
-      <div class="card" id="quote-gate" hidden>
-        <div class="empty-gate">
-          <h3>Choose a country of implementation first</h3>
-          <p class="note">Day rates differ by country and rank across Southeast Asia, so nothing can be priced until the delivery country is set on the Scope tab.</p>
-          <button class="btn primary" id="btn-goto-scope">Go to Scope &amp; RFP</button>
-        </div>
-      </div>
-
       <div class="card" id="quote-card">
         <header>
-          <h2 id="quote-title">Schedule of deliverables and fees</h2>
+          <h2 id="quote-title">Manday estimate</h2>
           <span class="hint" id="quote-meta"></span>
         </header>
         <div class="body">
@@ -543,34 +577,39 @@
               <thead>
                 <tr>
                   <th class="n">In</th><th>Deliverable</th><th>Unit</th>
-                  <th class="n">Qty</th><th class="n">Days / unit</th><th class="n">Effort</th>
-                  <th class="n">Day rate</th><th class="n">Amount</th><th class="n">Option</th><th class="no-print"></th>
+                  <th class="n">Qty</th><th>Complexity</th><th>Mode</th>
+                  <th class="n">Mandays</th><th class="n">Option</th><th class="no-print"></th>
                 </tr>
               </thead>
               <tbody id="lines-body"></tbody>
               <tfoot id="lines-foot"></tfoot>
             </table>
           </div>
-          <div class="row no-print">
-            <button class="btn small" id="btn-add-line">Add custom line</button>
-            <span class="note">Tick <strong>Option</strong> to move a line out of the headline total and into a separately priced options schedule.</span>
+          <div class="addline no-print">
+            <span class="eyebrow">Add a deliverable</span>
+            <div class="addline-grid">
+              <input type="text" id="add-name" placeholder="Name it as the RFP does — e.g. Union engagement roadshow">
+              <input type="number" id="add-qty" value="1" min="0" step="1" aria-label="Quantity">
+              <select id="add-level" aria-label="Complexity"></select>
+              <select id="add-arch" aria-label="Effort archetype"></select>
+              <button class="btn" id="btn-add-line">Add</button>
+            </div>
+            <span class="note" id="add-hint">The archetype is inferred from the name and sets the hours and the rank mix &mdash; correct it if the guess is wrong.</span>
           </div>
+          <p class="note no-print">Tick <strong>Option</strong> to move a line out of the headline effort and into a separately quoted options schedule.</p>
         </div>
       </div>
 
       <div class="card">
         <header>
-          <h2>Contingencies and adjustments</h2>
-          <span class="hint">Applied in order: fees &rarr; buffer &rarr; discount &rarr; expenses &rarr; tax</span>
+          <h2>Delivery buffer</h2>
+          <span class="hint">Held against scope volatility</span>
         </header>
         <div class="body">
           <div class="row">
-            <div class="field"><label for="c-contingency">Delivery buffer %</label><input type="number" id="c-contingency" step="1" min="0"></div>
-            <div class="field"><label for="c-discount">Pursuit discount %</label><input type="number" id="c-discount" step="1" min="0"></div>
-            <div class="field"><label for="c-expenses">Travel &amp; expenses</label><input type="number" id="c-expenses" step="500" min="0"></div>
-            <div class="field"><label for="c-tax"><span id="tax-label">Tax</span> %</label><input type="number" id="c-tax" step="0.5" min="0"></div>
+            <div class="field" style="max-width:180px"><label for="c-contingency">Buffer %</label><input type="number" id="c-contingency" step="1" min="0"></div>
+            <p class="note" style="flex:1;min-width:240px">Adds to the estimate as contingency mandays. Commercial adjustments &mdash; discount, expenses and tax &mdash; sit with the indicative price in the sidebar, since the binding numbers come from the pricing workbench.</p>
           </div>
-          <p class="note" id="tax-note"></p>
         </div>
       </div>
 
@@ -587,10 +626,10 @@
       <div class="card">
         <header>
           <h2>Past project quotes</h2>
-          <span class="hint">Calibrates effort and flags price variance</span>
+          <span class="hint">Calibrates effort where the hours library is silent</span>
         </header>
         <div class="body">
-          <div class="admin-note"><strong>Admin</strong><span>Since v0.3 prices from the rank rate card, this history no longer sets day rates. It calibrates days per unit where the hours library is silent, and drives the variance flag on the priced schedule.</span></div>
+          <div class="admin-note"><strong>Admin</strong><span>The estimate is built from the hours library, so this history no longer sets day rates. It calibrates mandays per unit where the library is silent, and backs the indicative price shown in the sidebar.</span></div>
           <p class="note">One row per priced line from a past proposal. <strong>Days</strong> is the total effort quoted for that line, <strong>Price</strong> the fee charged, in that country's currency. The implied day rate is derived, then indexed to today at the escalation rate on the Billing rates tab.</p>
           <div class="tablewrap">
             <table id="quotes-table">
@@ -633,6 +672,25 @@
           <div class="row">
             <button class="btn ghost small" id="btn-mix-reset">Reset rank mixes</button>
             <span class="note">Each mix must total 100%. A deliverable with no enabled tasks falls back to the default mix.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <header>
+          <h2>Mode of conduct</h2>
+          <span class="hint">What running it physically costs, and how many it seats</span>
+        </header>
+        <div class="body">
+          <div class="admin-note"><strong>Admin</strong><span>Applies to sessions, workshops, training delivery and change agent cadences &mdash; not to documents or assets. <strong>Effort</strong> scales the mandays a session takes; <strong>capacity</strong> scales how many people fit in one, so physical delivery needs more sessions to cover the same population.</span></div>
+          <div class="tablewrap">
+            <table id="mode-table">
+              <thead><tr><th>Mode</th><th class="n">Effort &times;</th><th class="n">Capacity &times;</th><th>Applies to</th></tr></thead>
+              <tbody id="mode-body"></tbody>
+            </table>
+          </div>
+          <div class="row">
+            <button class="btn ghost small" id="btn-mode-reset">Reset mode factors</button>
           </div>
         </div>
       </div>
@@ -689,7 +747,7 @@
       </div>
 
       <div class="card">
-        <header><h2>Tax and currency by country</h2><span class="hint">Seeds the tax field on the priced schedule</span></header>
+        <header><h2>Tax and currency by country</h2><span class="hint">Seeds the tax field on the indicative price</span></header>
         <div class="body">
           <div class="tablewrap">
             <table id="tax-table">
@@ -709,7 +767,7 @@
           <span class="hint" id="vocab-meta"></span>
         </header>
         <div class="body">
-          <div class="admin-note"><strong>Admin</strong><span>Synonyms decide which catalogue deliverable a phrase in the RFP maps to. They never rename anything: the priced schedule always shows the client's own wording, with our term underneath.</span></div>
+          <div class="admin-note"><strong>Admin</strong><span>Synonyms decide which catalogue deliverable a phrase in the RFP maps to. They never rename anything: the estimate always shows the client's own wording, with our term underneath.</span></div>
           <div class="row">
             <button class="btn ghost small" id="btn-vocab-reset">Reset vocabulary to source</button>
             <button class="btn ghost small" id="btn-vocab-export">Export CSV</button>
@@ -725,25 +783,19 @@
   <aside class="summary no-print">
     <div class="card">
       <div class="body">
-        <span class="eyebrow">Total price</span>
-        <span class="value zero" id="s-total">&mdash;</span>
-        <span class="note" id="s-total-note">Nothing priced yet</span>
-        <span class="country-badge" id="s-country" style="align-self:flex-start"></span>
-      </div>
-      <div class="body" style="border-top:1px solid var(--line)">
-        <div class="sumline"><span>Fees</span><span id="s-fees">&mdash;</span></div>
-        <div class="sumline muted"><span>Buffer</span><span id="s-cont">&mdash;</span></div>
-        <div class="sumline muted"><span>Discount</span><span id="s-disc">&mdash;</span></div>
-        <div class="sumline muted"><span>Expenses</span><span id="s-exp">&mdash;</span></div>
-        <div class="sumline muted"><span id="s-tax-label">Tax</span><span id="s-tax">&mdash;</span></div>
-        <div class="sumline strong"><span>Total</span><span id="s-total2">&mdash;</span></div>
-        <div class="sumline muted" id="s-opt-row" style="display:none"><span>Options, priced separately</span><span id="s-opt">&mdash;</span></div>
+        <span class="eyebrow">Total effort</span>
+        <span class="value zero" id="s-days">&mdash;</span>
+        <span class="note" id="s-days-note">Nothing estimated yet</span>
       </div>
       <div class="metrics">
-        <div class="metric"><span class="eyebrow">Effort</span><span class="v" id="s-days">&mdash;</span><span class="note">person-days</span></div>
-        <div class="metric"><span class="eyebrow">Blended</span><span class="v" id="s-blended">&mdash;</span><span class="note">per day</span></div>
         <div class="metric"><span class="eyebrow">Team size</span><span class="v" id="s-fte">&mdash;</span><span class="note">avg FTE</span></div>
         <div class="metric"><span class="eyebrow">Duration</span><span class="v" id="s-months">&mdash;</span><span class="note">months</span></div>
+        <div class="metric"><span class="eyebrow">Deliverables</span><span class="v" id="s-lines">&mdash;</span><span class="note">in estimate</span></div>
+        <div class="metric"><span class="eyebrow">Buffer</span><span class="v" id="s-buffer">&mdash;</span><span class="note">mandays</span></div>
+      </div>
+      <div class="body" style="border-top:1px solid var(--line)">
+        <div class="sumline"><span>Core scope</span><span id="s-core-days">&mdash;</span></div>
+        <div class="sumline muted" id="s-opt-row" style="display:none"><span>Options, quoted separately</span><span id="s-opt-days">&mdash;</span></div>
       </div>
     </div>
 
@@ -754,6 +806,32 @@
         <div class="ranklist" id="s-ranklist"></div>
       </div>
     </div>
+
+    <details class="card indicative" id="price-block">
+      <summary>
+        <span class="eyebrow">Indicative price</span>
+        <span class="ind-total" id="s-total">&mdash;</span>
+      </summary>
+      <div class="body">
+        <p class="note">A sanity check only &mdash; the binding number comes from the pricing workbench. Set the country on the Scope tab to price this effort.</p>
+        <span class="country-badge" id="s-country" style="align-self:flex-start"></span>
+        <div class="row" style="gap:8px">
+          <div class="field"><label for="c-discount">Discount %</label><input type="number" id="c-discount" step="1" min="0"></div>
+          <div class="field"><label for="c-expenses">Expenses</label><input type="number" id="c-expenses" step="500" min="0"></div>
+          <div class="field"><label for="c-tax"><span id="tax-label">Tax</span> %</label><input type="number" id="c-tax" step="0.5" min="0"></div>
+        </div>
+        <p class="note" id="tax-note"></p>
+      </div>
+      <div class="body" style="border-top:1px solid var(--line)">
+        <div class="sumline"><span>Fees</span><span id="s-fees">&mdash;</span></div>
+        <div class="sumline muted"><span>Buffer</span><span id="s-cont">&mdash;</span></div>
+        <div class="sumline muted"><span>Discount</span><span id="s-disc">&mdash;</span></div>
+        <div class="sumline muted"><span>Expenses</span><span id="s-exp">&mdash;</span></div>
+        <div class="sumline muted"><span id="s-tax-label">Tax</span><span id="s-tax">&mdash;</span></div>
+        <div class="sumline strong"><span>Total</span><span id="s-total2">&mdash;</span></div>
+        <div class="sumline muted" id="s-optp-row" style="display:none"><span>Options</span><span id="s-opt">&mdash;</span></div>
+      </div>
+    </details>
   </aside>
 </div>
 
@@ -776,13 +854,13 @@
 (function () {
   "use strict";
 
-  const STORE_KEY = "cm-estimator-v3";
+  const STORE_KEY = "cm-estimator-v4";
   const THIS_YEAR = new Date().getFullYear();
   const $ = (id) => document.getElementById(id);
 
   /* =====================================================================
      Deliverable taxonomy — the vocabulary shared by past quotes, the rate
-     card and the priced schedule.
+     card and the manday estimate.
      ===================================================================== */
 
   const TAXONOMY = [
@@ -1162,13 +1240,17 @@
     extra_languages: (d) => Math.max(0, d.modules * Math.max(0, d.languages - 1)),
     comms_cadence: (d) => Math.max(6, d.months * 2),
     hypercare_double: (d) => Math.max(2, d.hypercareMonths * 2),
-    trainer_sessions: (d) => Math.max(1, Math.ceil(Math.ceil(d.headcount / 50) / 12)),
-    training_sessions: (d) => Math.max(1, Math.ceil(d.headcount / Math.max(1, d.sessionSize || 20)))
+    // Session counts take the mode's capacity factor: a physical class seats
+    // fewer people than the same class run virtually, so it takes more runs.
+    trainer_sessions: (d, cap) => Math.max(1, Math.ceil(Math.ceil(d.headcount / 50) / Math.max(1, 12 * cap))),
+    training_sessions: (d, cap) => Math.max(1, Math.ceil(d.headcount / Math.max(1, (d.sessionSize || 20) * cap)))
   };
 
   const CAT_BY_ID = Object.fromEntries(CATALOG.map((c) => [c.id, c]));
 
   /* ---- Hours library: task hours resolve through the archetype matrix ---- */
+
+  const LEVELS = ["Simple", "Standard", "Complex"];
 
   function archetypeHours(archetype, complexity) {
     const ov = (state.archetypes || {})[archetype] || {};
@@ -1177,25 +1259,109 @@
     return row[complexity] > 0 ? row[complexity] : null;
   }
 
-  function taskHours(i) {
+  // Some archetypes are not defined at every level — "Recurring PMO / Admin" has
+  // no Complex, and an admin can blank any cell. Step toward Standard until the
+  // matrix has something to say rather than dropping the task's hours to zero.
+  function archetypeHoursClamped(archetype, level) {
+    const order = level === "Complex" ? ["Complex", "Standard", "Simple"]
+      : level === "Simple" ? ["Simple", "Standard", "Complex"]
+      : ["Standard", "Complex", "Simple"];
+    for (const l of order) {
+      const h = archetypeHours(archetype, l);
+      if (h != null) return { hours: h, level: l };
+    }
+    return null;
+  }
+
+  // level === null means "leave each task at its own graded complexity".
+  function taskHoursAt(i, level) {
     const t = TASKS[i];
     const ov = (state.taskHours || {})[i];
-    if (ov > 0) return +ov;
-    const fromMatrix = archetypeHours(t.a, t.c);
-    return fromMatrix != null ? fromMatrix : t.h;
+    if (ov > 0) return +ov;                       // an admin pin is a pin
+    const hit = archetypeHoursClamped(t.a, level || t.c);
+    return hit ? hit.hours : t.h;
   }
+
+  function taskHours(i) { return taskHoursAt(i, null); }
 
   function taskEnabled(i) { return !(state.taskOff || {})[i]; }
 
-  function libraryHours(groupId) {
+  function libraryHours(groupId, level) {
     const idx = TASKS_BY_GROUP[groupId] || [];
     let hours = 0, n = 0;
-    idx.forEach((i) => { if (taskEnabled(i)) { hours += taskHours(i); n++; } });
+    idx.forEach((i) => { if (taskEnabled(i)) { hours += taskHoursAt(i, level || null); n++; } });
     return { hours, n, total: idx.length };
   }
 
   function libraryTaskNames(groupId) {
     return (TASKS_BY_GROUP[groupId] || []).filter(taskEnabled).map((i) => TASKS[i].t);
+  }
+
+  // A deliverable's natural grade: the level its own tasks are mostly written at,
+  // weighted by hours so a single trivial checklist item cannot outvote the
+  // substantive work. Deliverables built mostly from Complex tasks default to
+  // Complex rather than being flattened to Standard.
+  function baselineLevel(groupId) {
+    const weight = { Simple: 0, Standard: 0, Complex: 0 };
+    (TASKS_BY_GROUP[groupId] || []).forEach((i) => {
+      if (!taskEnabled(i)) return;
+      const t = TASKS[i];
+      if (weight[t.c] === undefined) return;
+      weight[t.c] += taskHoursAt(i, null);
+    });
+    let best = "Standard", top = -1;
+    LEVELS.forEach((l) => { if (weight[l] > top) { top = weight[l]; best = l; } });
+    return top > 0 ? best : "Standard";
+  }
+
+  // The typical size of a catalogue deliverable, in tasks. Used to scale a
+  // free-text line, where there is no task list to add up.
+  function medianTaskCount() {
+    const counts = CATALOG.map((c) => libraryHours(c.id).n).filter((n) => n > 0).sort((a, b) => a - b);
+    if (!counts.length) return 4;
+    const m = Math.floor(counts.length / 2);
+    return counts.length % 2 ? counts[m] : Math.round((counts[m - 1] + counts[m]) / 2);
+  }
+
+  /* =====================================================================
+     Mode of conduct — a physical workshop is a different job from a virtual
+     one. It costs more effort (travel, venue, printed materials, setup) and
+     it seats fewer people, so a physical rollout also needs more sessions.
+     ===================================================================== */
+
+  const MODES = [
+    { id: "virtual", name: "Virtual", short: "Virtual" },
+    { id: "blended", name: "Blended", short: "Blended" },
+    { id: "physical", name: "Physical", short: "Physical" }
+  ];
+
+  const MODE_FACTORS = {
+    virtual:  { effort: 0.85, capacity: 1.00 },
+    blended:  { effort: 1.00, capacity: 0.85 },
+    physical: { effort: 1.15, capacity: 0.75 }
+  };
+
+  // Deliverables where how it is conducted is a genuine choice. Everything else
+  // is a document or an asset, and the control is hidden rather than defaulted.
+  const MODE_APPLIES = new Set([
+    "stakeholder_sessions", "change_network", "briefings", "adoption_clinics",
+    "expert_groups", "peer_groups", "t3", "eu_training", "local_training",
+    "uat_training", "orientation", "steerco", "working_group"
+  ]);
+
+  function modeFactor(modeId, kind) {
+    const ov = (state.modeFactors || {})[modeId] || {};
+    if (ov[kind] > 0) return +ov[kind];
+    return (MODE_FACTORS[modeId] || MODE_FACTORS.blended)[kind];
+  }
+
+  function lineMode(id) {
+    if (!MODE_APPLIES.has(id)) return null;
+    return (state.lineMode || {})[id] || state.deliveryMode || "blended";
+  }
+
+  function lineLevel(id) {
+    return (state.lineComplexity || {})[id] || baselineLevel(id);
   }
 
   /* =====================================================================
@@ -1521,6 +1687,10 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     clientTerms: {},       // catalogId -> the client's own wording for this deliverable
     quotes: SAMPLE_QUOTES.map((q) => ({ ...q })),
     overrides: {},         // catalogId -> {days, rate}
+    deliveryMode: "blended",   // programme default mode of conduct
+    lineComplexity: {},    // catalogId -> Simple | Standard | Complex
+    lineMode: {},          // catalogId -> virtual | blended | physical
+    modeFactors: {},       // modeId -> {effort, capacity} overrides
     taskHours: {},         // task index -> hours, overriding the archetype matrix
     taskOff: {},           // task index -> true when excluded from the library rollup
     archetypes: {},        // archetype -> {Simple, Standard, Complex} hour overrides
@@ -1860,7 +2030,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     const n = Object.keys(state.signals).length;
     const dn = Object.keys(state.detected).length;
     $("analyse-status").textContent = `${n} deliverable${n === 1 ? "" : "s"} signalled · ${dn} scope driver${dn === 1 ? "" : "s"} read from the document`;
-    toast("Scope analysed — priced schedule rebuilt");
+    toast("Scope analysed — manday estimate rebuilt");
     save();
   }
 
@@ -1919,12 +2089,12 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   }
 
   // Person-hours by rank for one deliverable, at its library composition.
-  function rankHours(entry) {
+  function rankHours(entry, level) {
     const out = emptyMix();
     let total = 0;
     (TASKS_BY_GROUP[entry.id] || []).forEach((i) => {
       if (!taskEnabled(i)) return;
-      const h = taskHours(i);
+      const h = taskHoursAt(i, level || null);
       const mix = mixFor(TASKS[i].a);
       const sum = mixSum(mix);
       if (!(sum > 0)) return;
@@ -1942,7 +2112,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     if (!country) return { value: 0, basis: "nocountry" };
     const hpd = state.settings.hoursPerDay || 8;
 
-    const rh = rankHours(entry);
+    const rh = rankHours(entry, lineLevel(entry.id));
     if (rh.total > 0) {
       const cost = RANKS.reduce((s, r) => s + rh.byRank[r.id] * (rateFor(country, r.id) / hpd), 0);
       return { value: cost / (rh.total / hpd), basis: "mix", mix: rh.byRank, hours: rh.total };
@@ -1952,14 +2122,14 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     return { value: mixHourlyCost({ ...DEFAULT_MIX }, country, hpd) * hpd, basis: "defaultmix" };
   }
 
-  function resolveDays(entry, bm) {
+  function resolveDays(entry, bm, level) {
     const ov = state.overrides[entry.id] || {};
-    if (ov.days > 0) return { value: +ov.days, basis: "override" };
-    const lib = libraryHours(entry.id);
-    if (lib.hours > 0) return { value: lib.hours / (state.settings.hoursPerDay || 8), basis: "library", n: lib.n, hours: lib.hours };
+    if (ov.days > 0) return { value: +ov.days, basis: "override", level };
+    const lib = libraryHours(entry.id, level);
+    if (lib.hours > 0) return { value: lib.hours / (state.settings.hoursPerDay || 8), basis: "library", n: lib.n, hours: lib.hours, level };
     const q = bm[entry.rateKey];
-    if (q && q.dpu > 0) return { value: q.dpu, basis: "benchmark", n: q.n };
-    return { value: 5, basis: "default" };
+    if (q && q.dpu > 0) return { value: q.dpu, basis: "benchmark", n: q.n, level };
+    return { value: 5, basis: "default", level };
   }
 
   /* ---------------------------- estimate build ---------------------------- */
@@ -2000,16 +2170,23 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     state.lines = CATALOG.map((entry) => {
       // A rebuild drops manual edits; every other recalculation preserves them.
       const prev = reset ? null : previous[entry.id];
+      if (reset) { delete (state.lineComplexity || {})[entry.id]; delete (state.lineMode || {})[entry.id]; }
+
+      const level = lineLevel(entry.id);
+      const mode = lineMode(entry.id);
+      const effortF = mode ? modeFactor(mode, "effort") : 1;
+      const capacityF = mode ? modeFactor(mode, "capacity") : 1;
+
       const rate = resolveRate(entry, bm);
-      const dpu = resolveDays(entry, bm);
+      const dpu = resolveDays(entry, bm, level);
       const { m, parts } = multipliers(entry);
       const rule = QTY_RULES[entry.qty] || QTY_RULES.one;
-      const autoQty = Math.max(0, Math.round(rule(state.drivers)));
-      const autoDays = Math.round(dpu.value * m * 10) / 10;
+      const autoQty = Math.max(0, Math.round(rule(state.drivers, capacityF)));
+      const autoDays = Math.round(dpu.value * m * effortF * 10) / 10;
       const signal = (state.catSignals || {})[entry.id] || state.signals[entry.rateKey];
       const included = analysed ? (!!signal || !!entry.core) : !!entry.core;
       const tasks = libraryTaskNames(entry.id);
-      const rh = rankHours(entry);
+      const rh = rankHours(entry, level);
 
       return {
         id: entry.id,
@@ -2019,16 +2196,16 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         unit: entry.unit,
         cat: entry.cat,
         rateKey: entry.rateKey,
+        level, mode, effortF, capacityF,
+        baseLevel: baselineLevel(entry.id),
         include: prev && prev.editedInclude ? prev.include : included,
         // Tenders routinely ask for parts of the scope to be priced as options.
         optional: prev && prev.editedOptional ? prev.optional : isOptional(entry),
         editedOptional: prev ? !!prev.editedOptional : false,
         qty: prev && prev.editedQty ? prev.qty : autoQty,
-        dpu: prev && prev.editedDpu ? prev.dpu : autoDays,
-        rate: prev && prev.editedRate ? prev.rate : Math.round(rate.value),
+        dpu: autoDays,
+        rate: Math.round(rate.value),
         editedQty: prev ? !!prev.editedQty : false,
-        editedDpu: prev ? !!prev.editedDpu : false,
-        editedRate: prev ? !!prev.editedRate : false,
         editedInclude: prev ? !!prev.editedInclude : false,
         rateBasis: rate.basis,
         daysBasis: dpu.basis, daysN: dpu.n, libHours: dpu.hours,
@@ -2037,9 +2214,36 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         detected: !!signal,
         custom: false
       };
-    }).concat((state.lines || []).filter((l) => l.custom));
+    }).concat((state.lines || []).filter((l) => l.custom).map(rebuildCustom));
 
     save();
+  }
+
+  // Free-text lines have no task list, so they are sized as a typical
+  // deliverable of their archetype: the archetype's hours at the chosen
+  // complexity, times the median number of tasks a catalogue deliverable holds.
+  function rebuildCustom(l) {
+    const hpd = state.settings.hoursPerDay || 8;
+    const level = l.level || "Standard";
+    const hit = archetypeHoursClamped(l.archetype, level);
+    const perTask = hit ? hit.hours : 6;
+    const tasks = medianTaskCount();
+    const hours = perTask * tasks;
+    const mode = l.mode || null;
+    const effortF = mode ? modeFactor(mode, "effort") : 1;
+    const { m, parts } = multipliers({ geo: false });
+    const mix = mixFor(l.archetype);
+    const sum = mixSum(mix);
+    const byRank = emptyMix();
+    if (sum > 0) RANKS.forEach((r) => { byRank[r.id] = hours * ((+mix[r.id] || 0) / sum); });
+    const rate = state.country ? Math.round(mixHourlyCost(mix, state.country, hpd) * hpd) : 0;
+    return { ...l,
+      dpu: Math.round((hours / hpd) * m * effortF * 10) / 10,
+      baseDpu: Math.round((hours / hpd) * 10) / 10,
+      libHours: hours, customTasks: tasks, customPerTask: perTask,
+      effortF, rate, rateBasis: "mix", daysBasis: "custom",
+      rankShare: sum > 0 ? byRank : null, rankTotalHours: hours,
+      multParts: parts };
   }
 
   // How the derived price compares with what this deliverable actually sold for
@@ -2069,7 +2273,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     const net = beforeDiscount - discount + expenses;
     const tax = net * (+s.tax || 0) / 100;
 
-    // Person-days by rank across the included lines, scaled from each line's
+    // Mandays by rank across the included lines, scaled from each line's
     // library composition up to its actual quantity and edited days per unit.
     const byRank = emptyMix();
     let ranked = 0;
@@ -2082,10 +2286,16 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       ranked += lineDays;
     });
 
-    return { inc, opt, optFees, optEffort, fees, effort, contingency, discount, expenses, tax, total: net + tax,
+    // The buffer is held in mandays first — it is a contingency on the work,
+    // not a mark-up on the price — and the fee contingency follows from it.
+    const bufferDays = effort * (+s.contingency || 0) / 100;
+    const effortWithBuffer = effort + bufferDays;
+
+    return { inc, opt, optFees, optEffort, fees, effort, bufferDays, effortWithBuffer,
+      contingency, discount, expenses, tax, total: net + tax,
       byRank, rankedEffort: ranked,
       blended: effort > 0 ? fees / effort : 0,
-      fte: state.drivers.months > 0 ? effort / (state.drivers.months * 21) : 0 };
+      fte: state.drivers.months > 0 ? effortWithBuffer / (state.drivers.months * 21) : 0 };
   }
 
 
@@ -2245,6 +2455,16 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
   /* ---- CM vocabulary ---- */
 
+  function renderModes() {
+    const applies = CATALOG.filter((c) => MODE_APPLIES.has(c.id)).map((c) => c.name);
+    $("mode-body").innerHTML = MODES.map((m, i) => `<tr data-mode="${m.id}">
+      <td><strong>${esc(m.name)}</strong></td>
+      <td class="n" style="width:110px"><input type="number" data-modef="effort" data-mode="${m.id}" value="${modeFactor(m.id, "effort")}" step="0.05" min="0" aria-label="${esc(m.name)} effort factor"></td>
+      <td class="n" style="width:110px"><input type="number" data-modef="capacity" data-mode="${m.id}" value="${modeFactor(m.id, "capacity")}" step="0.05" min="0" aria-label="${esc(m.name)} capacity factor"></td>
+      ${i === 0 ? `<td rowspan="3" class="note" style="vertical-align:top">${esc(applies.join(" · "))}</td>` : ""}
+    </tr>`).join("");
+  }
+
   function renderVocab() {
     // A synonym that maps to two canonical terms makes the analyser's choice
     // arbitrary, so it is worth flagging where it sits.
@@ -2279,7 +2499,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $("vocab-meta").textContent = `${TAXONOMY.length} canonical terms · ${total} synonyms${dupes.size ? ` · ${dupes.size} mapped more than once` : ""}`;
   }
 
-  /* ---- Priced deliverables ---- */
+  /* ---- Manday estimate ---- */
 
   function renderLines() {
     const t = totals();
@@ -2287,38 +2507,38 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     let n = 0;
     let lastCat = null;
 
+    const levelSel = (l) => `<select class="lvl" data-l="level" aria-label="Complexity for ${esc(l.name)}">`
+      + LEVELS.map((v) => `<option value="${v}" ${v === l.level ? "selected" : ""}>${v}${v === l.baseLevel ? " ·" : ""}</option>`).join("")
+      + `</select>`;
+
+    const modeSel = (l) => l.mode
+      ? `<select class="mode-sel" data-l="mode" aria-label="Mode of conduct for ${esc(l.name)}">`
+        + MODES.map((m) => `<option value="${m.id}" ${m.id === l.mode ? "selected" : ""}>${m.name}</option>`).join("")
+        + `</select>`
+      : `<span class="mode-na">&mdash;</span>`;
+
     $("lines-body").innerHTML = state.lines.map((l, i) => {
-      const amount = l.qty * l.dpu * l.rate;
-      const head = l.cat !== lastCat ? `<tr><td colspan="10" style="background:var(--surface-2);padding-top:9px"><span class="eyebrow">${esc(l.cat || "Other")}</span></td></tr>` : "";
+      const mandays = l.qty * l.dpu;
+      const head = l.cat !== lastCat ? `<tr><td colspan="9" style="background:var(--surface-2);padding-top:9px"><span class="eyebrow">${esc(l.cat || "Other")}</span></td></tr>` : "";
       lastCat = l.cat;
       if (l.include && !l.optional) n++;
 
       const effortSource = l.daysBasis === "library"
-        ? `· ${days(l.libHours)} h from ${l.daysN} library task${l.daysN === 1 ? "" : "s"} ÷ ${hpd} h/day`
-        : l.daysBasis === "benchmark" ? `· effort benchmarked on ${l.daysN} past quote line${l.daysN === 1 ? "" : "s"}`
-        : l.daysBasis === "override" ? `· effort pinned by an admin` : `· standard effort assumption`;
-
-      const mixNote = l.rankShare && l.rankTotalHours > 0
-        ? "· rank mix " + RANKS.filter((r) => l.rankShare[r.id] / l.rankTotalHours >= 0.05)
-            .map((r) => `${r.short} ${Math.round(100 * l.rankShare[r.id] / l.rankTotalHours)}%`).join(" / ")
-        : "";
-
-      const rateSource = l.rateBasis === "mix" ? `· blended from the ${esc((activeCountry() || {}).name || "")} rate card ${mixNote}`
-        : l.rateBasis === "override" ? `· rate pinned by an admin`
-        : l.rateBasis === "defaultmix" ? `· default rank mix on the ${esc((activeCountry() || {}).name || "")} rate card`
-        : `· no country selected`;
+        ? `${days(l.libHours)} h from ${l.daysN} library task${l.daysN === 1 ? "" : "s"} at ${l.level} ÷ ${hpd} h/day`
+        : l.daysBasis === "custom"
+          ? `${days(l.customPerTask)} h per task at ${l.level} × ${l.customTasks} tasks (the median size of a catalogue deliverable) ÷ ${hpd} h/day`
+        : l.daysBasis === "benchmark" ? `effort benchmarked on ${l.daysN} past quote line${l.daysN === 1 ? "" : "s"}`
+        : l.daysBasis === "override" ? `effort pinned by an admin` : `standard effort assumption`;
 
       const formula = [
-        `${l.qty} ${l.unit}${l.qty === 1 ? "" : "s"} × ${days(l.dpu)} days`,
-        l.multParts && l.multParts.length ? `(base ${days(l.baseDpu)} d/unit, ${l.multParts.join(", ")})` : "",
-        `→ ${days(l.qty * l.dpu)} days × ${moneyShort(l.rate)}/day`,
-        effortSource, rateSource
+        effortSource,
+        `→ ${days(l.baseDpu)} mandays per ${l.unit}`,
+        l.multParts && l.multParts.length ? `× ${l.multParts.join(" × ")}` : "",
+        l.mode && l.effortF !== 1 ? `× ${l.mode} delivery ×${l.effortF}` : "",
+        `= ${days(l.dpu)} mandays per ${l.unit} × ${l.qty} ${l.unit}${l.qty === 1 ? "" : "s"}`,
+        l.mode && l.capacityF !== 1 && !l.editedQty ? `· ${l.mode} delivery seats ×${l.capacityF} per session, so more sessions are needed` : "",
+        `= ${days(mandays)} mandays`
       ].filter(Boolean).join(" ");
-
-      const v = variance(l);
-      const varChip = v
-        ? `<span class="chip ${v.delta > 0 ? "var-hi" : "var-lo"}" title="Past quotes in this country imply ${moneyShort(v.quoted)} a day across ${v.n} line${v.n === 1 ? "" : "s"}">${v.delta > 0 ? "+" : "−"}${Math.round(Math.abs(v.delta) * 100)}% vs history</span>`
-        : "";
 
       const clientLine = l.clientTerm && l.clientTerm.toLowerCase() !== l.name.toLowerCase()
         ? `<div class="note" title="The RFP's own wording — use this name in the proposal">RFP calls this &ldquo;${esc(l.clientTerm)}&rdquo;</div>` : "";
@@ -2328,56 +2548,62 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         <td class="cat-stripe">
           <strong>${esc(l.name)}</strong>
           ${l.detected ? `<span class="chip detected" style="margin-left:6px">in RFP</span>` : ""}
-          ${varChip}
+          ${l.custom ? `<span class="chip" style="margin-left:6px">${esc(l.archetype)}</span>` : ""}
           ${clientLine}
           <div class="note">${esc(l.desc)}</div>
           <details class="calc no-print"><summary>how this was estimated</summary><div class="formula">${esc(formula)}</div></details>
         </td>
         <td>${esc(l.unit)}</td>
         <td class="n" style="width:78px"><input type="number" data-l="qty" value="${esc(l.qty)}" step="1" min="0"></td>
-        <td class="n" style="width:88px"><input type="number" data-l="dpu" value="${esc(l.dpu)}" step="0.5" min="0"></td>
-        <td class="n cell-effort">${days(l.qty * l.dpu)}</td>
-        <td class="n" style="width:112px"><input type="number" data-l="rate" value="${esc(l.rate)}" step="50" min="0"></td>
-        <td class="n cell-amount"><strong>${money(amount)}</strong></td>
-        <td class="n"><input type="checkbox" data-l="optional" ${l.optional ? "checked" : ""} aria-label="Price ${esc(l.name)} as an option" title="${esc((state.optionalCat || {})[l.id] || (state.optionalSignals || {})[l.rateKey] || "Price this line as an option, outside the headline total")}"></td>
+        <td class="lvl-cell">${levelSel(l)}</td>
+        <td class="mode-cell">${modeSel(l)}</td>
+        <td class="n cell-mandays">${days(mandays)}</td>
+        <td class="n"><input type="checkbox" data-l="optional" ${l.optional ? "checked" : ""} aria-label="Quote ${esc(l.name)} as an option" title="${esc((state.optionalCat || {})[l.id] || (state.optionalSignals || {})[l.rateKey] || "Quote this line as an option, outside the headline effort")}"></td>
         <td class="no-print">${l.custom ? `<button class="btn ghost small danger" data-delline="${i}">✕</button>` : ""}</td>
       </tr>`;
     }).join("");
 
     $("lines-foot").innerHTML = `<tr>
-      <td></td><td>Total professional fees</td><td></td><td></td><td></td>
-      <td class="n" id="foot-days">${days(t.effort)}</td><td class="n" id="foot-rate">${moneyShort(t.blended)}</td>
-      <td class="n" id="foot-fees">${money(t.fees)}</td><td></td><td class="no-print"></td>
-    </tr>` + (t.opt.length ? `<tr>
-      <td></td><td style="font-weight:500;color:var(--ink-2)">Optional items, priced separately</td><td></td><td></td><td></td>
-      <td class="n" id="foot-opt-days" style="font-weight:500;color:var(--ink-2)">${days(t.optEffort)}</td><td></td>
-      <td class="n" id="foot-opt-fees" style="font-weight:500;color:var(--ink-2)">${money(t.optFees)}</td><td></td><td class="no-print"></td>
+      <td></td><td>Total core effort</td><td></td><td></td><td></td><td></td>
+      <td class="n cell-mandays" id="foot-days">${days(t.effort)}</td><td></td><td class="no-print"></td>
+    </tr>` + (t.bufferDays > 0 ? `<tr>
+      <td></td><td style="color:var(--ink-2)">Delivery buffer ${state.settings.contingency}%</td><td></td><td></td><td></td><td></td>
+      <td class="n" style="color:var(--ink-2)" id="foot-buffer">${days(t.bufferDays)}</td><td></td><td class="no-print"></td>
+    </tr><tr>
+      <td></td><td><strong>Total with buffer</strong></td><td></td><td></td><td></td><td></td>
+      <td class="n cell-mandays" id="foot-total">${days(t.effortWithBuffer)}</td><td></td><td class="no-print"></td>
+    </tr>` : "") + (t.opt.length ? `<tr>
+      <td></td><td style="font-weight:500;color:var(--ink-2)">Options, quoted separately</td><td></td><td></td><td></td><td></td>
+      <td class="n" style="font-weight:500;color:var(--ink-2)" id="foot-opt-days">${days(t.optEffort)}</td><td></td><td class="no-print"></td>
     </tr>` : "");
 
-    $("quote-meta").textContent = `${n} priced line${n === 1 ? "" : "s"} · ${days(t.effort)} person-days · prepared ${new Date().toLocaleDateString()}`;
+    $("quote-meta").textContent = `${n} deliverable${n === 1 ? "" : "s"} · ${days(t.effortWithBuffer)} mandays · prepared ${new Date().toLocaleDateString()}`;
     $("quote-title").textContent = state.settings.client
-      ? `Schedule of deliverables and fees — ${state.settings.client}`
-      : "Schedule of deliverables and fees";
+      ? `Manday estimate — ${state.settings.client}`
+      : "Manday estimate";
 
     const c = activeCountry();
-    $("quote-country").innerHTML = c ? `Delivered in <b>${esc(c.name)}</b> · priced in <b>${esc(c.currency)}</b>` : "";
+    $("quote-country").innerHTML = c ? `Delivered in <b>${esc(c.name)}</b>` : `<b>No country set</b> · effort only`;
   }
 
   function renderAssumptions() {
     const d = state.drivers;
     const t = totals();
     const c = activeCountry();
+    const modeCounts = {};
+    t.inc.forEach((l) => { if (l.mode) modeCounts[l.mode] = (modeCounts[l.mode] || 0) + 1; });
+    const modeSummary = Object.entries(modeCounts).map(([m, n]) => `${n} ${m}`).join(", ");
+
     const items = [
-      c ? `Services are delivered in ${c.name} and priced in ${c.currency} at the ${c.name} rate card; rates for other countries do not apply to this schedule.` : null,
-      `Pricing covers ${(+d.headcount || 0).toLocaleString()} impacted people across ${d.units} business unit${d.units === 1 ? "" : "s"} and ${d.geos} location${d.geos === 1 ? "" : "s"}, in ${d.languages} language${d.languages === 1 ? "" : "s"}.`,
-      `Programme duration of ${d.months} months with ${d.waves} deployment wave${d.waves === 1 ? "" : "s"}; effort is spread evenly at an average of ${t.fte.toFixed(1)} FTE.`,
+      `Total effort of ${days(t.effortWithBuffer)} mandays across ${t.inc.length} deliverable${t.inc.length === 1 ? "" : "s"}, spread evenly at an average of ${t.fte.toFixed(1)} FTE over ${d.months} months.`,
+      `Effort is built bottom-up from the itemised task library at ${state.settings.hoursPerDay || 8} hours per day. Each deliverable is graded Simple, Standard or Complex, and every task in it is costed at that grade through the effort archetype matrix.`,
+      modeSummary ? `Sessions and workshops are assumed to run as ${modeSummary}. Physical delivery carries more effort per session and seats fewer people, so it also requires more sessions to cover the same population.` : null,
+      `Pricing covers ${(+d.headcount || 0).toLocaleString()} impacted people across ${d.units} business unit${d.units === 1 ? "" : "s"} and ${d.geos} location${d.geos === 1 ? "" : "s"}, in ${d.languages} language${d.languages === 1 ? "" : "s"}, with ${d.waves} deployment wave${d.waves === 1 ? "" : "s"}.`,
       `Complexity rated ${d.complexity}/5 and client change maturity ${d.maturity} — effort multipliers are applied on this basis and should be revisited after scoping calls.`,
-      `Effort is built bottom-up from the itemised task library at ${state.settings.hoursPerDay || 8} hours per day. Day rates are blended from the rank mix each deliverable actually requires, costed against the ${c ? c.name : "selected country"} rate card.`,
-      `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately priced.`,
-      state.settings.expenses > 0 ? `Travel and expenses budgeted at ${money(state.settings.expenses)}, billed at cost against approved receipts.` : `Travel and expenses are excluded and will be billed at cost.`,
-      state.settings.contingency > 0 ? `A ${state.settings.contingency}% delivery buffer is held against scope volatility and is drawn down only on agreed change requests.` : null,
-      c && state.settings.tax > 0 ? `${c.tax} of ${state.settings.tax}% is shown separately and is payable in addition to the fees.` : null,
-      t.opt.length ? `${t.opt.length} line${t.opt.length === 1 ? " is" : "s are"} priced as option${t.opt.length === 1 ? "" : "s"} totalling ${money(t.optFees)}, exercisable by the client and excluded from the headline total.` : null
+      `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately quoted.`,
+      state.settings.contingency > 0 ? `A ${state.settings.contingency}% delivery buffer — ${days(t.bufferDays)} mandays — is held against scope volatility and drawn down only on agreed change requests.` : null,
+      t.opt.length ? `${t.opt.length} line${t.opt.length === 1 ? " is" : "s are"} quoted as option${t.opt.length === 1 ? "" : "s"} totalling ${days(t.optEffort)} mandays, exercisable by the client and excluded from the headline effort.` : null,
+      c ? `Any price shown is indicative only, blended from the ${c.name} rate card at the rank mix each deliverable requires. The binding commercial number comes from the pricing workbench.` : `No delivery country is set, so no indicative price is shown. Effort is independent of country.`
     ].filter(Boolean);
     $("assumptions").innerHTML = items.map((i) => `<li>${esc(i)}</li>`).join("");
   }
@@ -2385,15 +2611,27 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   function renderSummary() {
     const t = totals();
     const c = activeCountry();
-    const has = t.total > 0;
+    const hasEffort = t.effortWithBuffer > 0;
 
-    $("s-total").textContent = has ? money(t.total) : "—";
-    $("s-total").classList.toggle("zero", !has);
-    $("s-total-note").textContent = has
-      ? `${t.inc.length} deliverable${t.inc.length === 1 ? "" : "s"} priced`
-      : c ? "Nothing priced yet" : "Select a country to price";
+    $("s-days").textContent = hasEffort ? days(t.effortWithBuffer) : "—";
+    $("s-days").classList.toggle("zero", !hasEffort);
+    $("s-days-note").textContent = hasEffort
+      ? `mandays across ${t.inc.length} deliverable${t.inc.length === 1 ? "" : "s"}`
+      : "Nothing estimated yet";
+
+    $("s-fte").textContent = t.fte ? t.fte.toFixed(1) : "—";
+    $("s-months").textContent = state.drivers.months || "—";
+    $("s-lines").textContent = t.inc.length;
+    $("s-buffer").textContent = t.bufferDays ? days(t.bufferDays) : "—";
+
+    $("s-core-days").textContent = hasEffort ? days(t.effort) + " md" : "—";
+    $("s-opt-row").style.display = t.opt.length ? "" : "none";
+    $("s-opt-days").textContent = days(t.optEffort) + " md";
+
+    // Indicative price — subordinate to the effort figures above.
+    const hasPrice = t.total > 0;
+    $("s-total").textContent = hasPrice ? money(t.total) : c ? "—" : "no country";
     $("s-country").innerHTML = c ? `<b>${esc(c.name)}</b> · ${esc(c.currency)}` : `No country selected`;
-
     $("s-fees").textContent = money(t.fees);
     $("s-cont").textContent = t.contingency ? "+" + money(t.contingency) : "—";
     $("s-disc").textContent = t.discount ? "−" + money(t.discount) : "—";
@@ -2401,13 +2639,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $("s-tax-label").textContent = c ? c.tax : "Tax";
     $("s-tax").textContent = t.tax ? "+" + money(t.tax) : "—";
     $("s-total2").textContent = money(t.total);
-    $("s-opt-row").style.display = t.opt.length ? "" : "none";
+    $("s-optp-row").style.display = t.opt.length ? "" : "none";
     $("s-opt").textContent = money(t.optFees);
-
-    $("s-days").textContent = days(t.effort);
-    $("s-blended").textContent = t.blended ? moneyShort(t.blended) : "—";
-    $("s-fte").textContent = t.fte ? t.fte.toFixed(1) : "—";
-    $("s-months").textContent = state.drivers.months || "—";
 
     const ranked = t.rankedEffort;
     if (ranked > 0) {
@@ -2416,23 +2649,17 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         return pct > 0 ? `<span style="width:${pct}%;background:${RANK_COLOR[r.id]}" title="${esc(r.name)} ${pct.toFixed(0)}%"></span>` : "";
       }).join("");
       $("s-ranklist").innerHTML = RANKS.filter((r) => t.byRank[r.id] >= 0.05).reverse().map((r) =>
-        `<div class="rankrow"><span class="sw" style="background:${RANK_COLOR[r.id]}"></span><span class="nm">${esc(r.name)}</span><span class="dv">${days(t.byRank[r.id])} d</span></div>`
+        `<div class="rankrow"><span class="sw" style="background:${RANK_COLOR[r.id]}"></span><span class="nm">${esc(r.name)}</span><span class="dv">${days(t.byRank[r.id])} md</span></div>`
       ).join("");
     } else {
       $("s-rankbar").innerHTML = "";
-      $("s-ranklist").innerHTML = `<span class="note">Price some deliverables to see the team shape.</span>`;
+      $("s-ranklist").innerHTML = `<span class="note">Include some deliverables to see the team shape.</span>`;
     }
-  }
-
-  function renderGate() {
-    const gated = !state.country;
-    $("quote-gate").hidden = !gated;
-    $("quote-card").style.display = gated ? "none" : "";
   }
 
   function renderAll() {
     renderDrivers(); renderSignals(); renderQuotes(); renderLibrary(); renderRates();
-    renderVocab(); renderLines(); renderAssumptions(); renderSummary(); renderGate();
+    renderModes(); renderVocab(); renderLines(); renderAssumptions(); renderSummary();
   }
 
 
@@ -2473,7 +2700,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   $("theme-light").addEventListener("click", () => applyTheme("light"));
   $("theme-dark").addEventListener("click", () => applyTheme("dark"));
 
-  $("btn-goto-scope").addEventListener("click", () => showPanel("scope"));
 
   /* =====================================================================
      Tab 1 — engagement and document intake
@@ -2547,6 +2773,29 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   $("rfp-text").addEventListener("input", (e) => { state.rfpText = e.target.value; save(); });
   $("btn-analyse").addEventListener("click", analyse);
   $("client-name").addEventListener("input", (e) => { state.settings.client = e.target.value; renderLines(); save(); });
+  $("delivery-mode").innerHTML = MODES.map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
+  $("delivery-mode").addEventListener("change", (e) => {
+    state.deliveryMode = e.target.value;
+    buildLines(false); renderLines(); renderAssumptions(); renderSummary(); save();
+    toast(`Sessions default to ${e.target.value} delivery`);
+  });
+
+  $("mode-body").addEventListener("input", (e) => {
+    const m = e.target.dataset.mode, kind = e.target.dataset.modef;
+    if (!m || !kind) return;
+    state.modeFactors[m] = state.modeFactors[m] || {};
+    const v = parseFloat(e.target.value);
+    if (v > 0) state.modeFactors[m][kind] = v; else delete state.modeFactors[m][kind];
+    buildLines(false); renderLines(); renderAssumptions(); renderSummary(); save();
+  });
+
+  $("btn-mode-reset").addEventListener("click", () => {
+    if (!confirm("Reset the virtual, blended and physical factors to their seeded values?")) return;
+    state.modeFactors = {};
+    buildLines(false); renderModes(); renderLines(); renderSummary(); save();
+    toast("Mode factors reset");
+  });
+
   $("hours-per-day").addEventListener("input", (e) => {
     state.settings.hoursPerDay = Math.max(1, parseFloat(e.target.value) || 8);
     renderLibrary(); buildLines(false); renderLines(); renderSummary(); save();
@@ -2569,31 +2818,39 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
      Tab 2 — priced deliverables
      ===================================================================== */
 
-  $("lines-body").addEventListener("input", (e) => {
+  function onLineEdit(e) {
     const tr = e.target.closest("tr"); if (!tr || tr.dataset.i === undefined) return;
     const l = state.lines[+tr.dataset.i], f = e.target.dataset.l;
     if (!f) return;
+
     if (f === "optional") {
       l.optional = e.target.checked; l.editedOptional = true;
       renderLines(); renderAssumptions(); renderSummary(); save();
       return;
     }
-    if (f === "include") { l.include = e.target.checked; l.editedInclude = true; }
-    else {
-      l[f] = Math.max(0, parseFloat(e.target.value) || 0);
-      l[f === "qty" ? "editedQty" : f === "dpu" ? "editedDpu" : "editedRate"] = true;
+    // Complexity and mode change the effort build-up, so the row is rebuilt.
+    if (f === "level" || f === "mode") {
+      const store = f === "level" ? "lineComplexity" : "lineMode";
+      if (l.custom) { l[f] = e.target.value; }
+      else { state[store][l.id] = e.target.value; }
+      buildLines(false);
+      renderLines(); renderAssumptions(); renderSummary(); save();
+      return;
     }
-    // Update the row's derived cells without a full re-render, so focus is kept.
-    tr.querySelector(".cell-effort").textContent = days(l.qty * l.dpu);
-    tr.querySelector(".cell-amount").innerHTML = `<strong>${money(l.qty * l.dpu * l.rate)}</strong>`;
+    if (f === "include") { l.include = e.target.checked; l.editedInclude = true; }
+    else if (f === "qty") { l.qty = Math.max(0, parseFloat(e.target.value) || 0); l.editedQty = true; }
+
+    // Update the row's derived cell without a full re-render, so focus is kept.
+    tr.querySelector(".cell-mandays").textContent = days(l.qty * l.dpu);
     tr.style.opacity = l.include ? "" : ".45";
     const t = totals();
     $("foot-days").textContent = days(t.effort);
-    $("foot-rate").textContent = moneyShort(t.blended);
-    $("foot-fees").textContent = money(t.fees);
-    if ($("foot-opt-days")) { $("foot-opt-days").textContent = days(t.optEffort); $("foot-opt-fees").textContent = money(t.optFees); }
+    if ($("foot-buffer")) { $("foot-buffer").textContent = days(t.bufferDays); $("foot-total").textContent = days(t.effortWithBuffer); }
+    if ($("foot-opt-days")) $("foot-opt-days").textContent = days(t.optEffort);
     renderSummary(); save();
-  });
+  }
+  $("lines-body").addEventListener("input", onLineEdit);
+  $("lines-body").addEventListener("change", onLineEdit);
 
   $("lines-body").addEventListener("click", (e) => {
     const i = e.target.dataset.delline;
@@ -2602,21 +2859,76 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     renderLines(); renderSummary(); save();
   });
 
-  $("btn-add-line").addEventListener("click", () => {
-    const name = prompt("Name of the custom deliverable:");
-    if (!name) return;
-    const hpd = state.settings.hoursPerDay || 8;
-    const rate = state.country ? Math.round(mixHourlyCost({ ...DEFAULT_MIX }, state.country, hpd) * hpd) : 0;
-    state.lines.push({ id: "custom_" + Date.now(), name, clientTerm: "", desc: "Custom line added for this pursuit.", unit: "item",
-      cat: "Custom", include: true, optional: false, qty: 1, dpu: 5, rate,
-      editedQty: true, editedDpu: true, editedRate: true, editedInclude: true, editedOptional: true,
-      rateBasis: "defaultmix", daysBasis: "default", rankShare: null, rankTotalHours: 0,
-      multParts: [], baseDpu: 5, detected: false, custom: true });
-    renderLines(); renderSummary(); save();
+  /* ---- Free-text deliverables ---------------------------------------- */
+
+  // What a deliverable's name tells us about how it gets built. The archetype
+  // decides both the hours and the rank mix, so guessing it well matters — but
+  // the guess is always shown and always correctable.
+  const ARCHETYPE_HINTS = {
+    "Strategic Plans & Models": ["plan", "strategy", "approach", "framework", "model", "roadmap", "governance", "structure", "operating model", "blueprint", "charter"],
+    "Facilitation & Sessions": ["workshop", "session", "roadshow", "briefing", "clinic", "forum", "townhall", "town hall", "meeting", "facilitat", "coaching", "focus group", "walkthrough"],
+    "Surveys, Reports & Analytics": ["survey", "assessment", "analysis", "report", "diagnostic", "measurement", "metrics", "dashboard", "review", "evaluation", "pulse", "audit", "readiness"],
+    "Written Comms & Guides": ["guide", "faq", "article", "newsletter", "email", "letter", "manual", "handbook", "job aid", "quick reference", "qrg", "script", "narrative", "message", "toolkit"],
+    "Decks & Visual Assets": ["deck", "slide", "presentation", "poster", "banner", "infographic", "visual", "one-pager", "onepager", "storyboard", "collateral", "flyer"],
+    "Video & Digital Assets": ["video", "animation", "e-learning", "elearning", "microlearning", "micro-learning", "podcast", "recording", "simulation", "interactive", "sharepoint", "intranet", "portal"],
+    "Trackers & Registers": ["tracker", "register", "log", "matrix", "raid", "inventory", "checklist", "database", "repository"],
+    "Recurring PMO / Admin": ["admin", "scheduling", "logistics", "coordination", "minutes", "version control", "status update", "housekeeping", "attendance"]
+  };
+
+  function inferArchetype(name) {
+    const l = String(name || "").toLowerCase();
+    if (!l.trim()) return "Strategic Plans & Models";
+    let best = null, bestScore = 0;
+    Object.entries(ARCHETYPE_HINTS).forEach(([arch, words]) => {
+      let score = 0;
+      words.forEach((w) => { if (l.includes(w)) score += w.length; });
+      if (score > bestScore) { bestScore = score; best = arch; }
+    });
+    if (best) return best;
+    // Nothing matched on shape — fall back to the CM vocabulary, which knows
+    // what our deliverables are called, and take that deliverable's archetype.
+    const rateKey = matchDeliverable(l);
+    const cat = CATALOG.find((c) => c.rateKey === rateKey);
+    if (cat) {
+      const idx = (TASKS_BY_GROUP[cat.id] || []).filter(taskEnabled);
+      if (idx.length) return TASKS[idx[0]].a;
+    }
+    return "Strategic Plans & Models";
+  }
+
+  $("add-level").innerHTML = LEVELS.map((v) => `<option value="${v}" ${v === "Standard" ? "selected" : ""}>${v}</option>`).join("");
+  $("add-arch").innerHTML = Object.keys(ARCHETYPE_HOURS).map((a) => `<option value="${esc(a)}">${esc(a)}</option>`).join("");
+
+  let archTouched = false;
+  $("add-arch").addEventListener("change", () => { archTouched = true; });
+  $("add-name").addEventListener("input", (e) => {
+    if (archTouched) return;
+    $("add-arch").value = inferArchetype(e.target.value);
   });
+  $("add-name").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addCustomLine(); } });
+  $("btn-add-line").addEventListener("click", addCustomLine);
+
+  function addCustomLine() {
+    const name = $("add-name").value.trim();
+    if (!name) { $("add-name").focus(); toast("Give the deliverable a name first"); return; }
+    const archetype = $("add-arch").value;
+    state.lines.push(rebuildCustom({
+      id: "custom_" + Date.now(), name, clientTerm: "",
+      desc: `Added for this pursuit · sized as a ${archetype.toLowerCase()} deliverable.`,
+      unit: "item", cat: "Added for this pursuit", rateKey: "",
+      archetype, level: $("add-level").value, mode: null,
+      include: true, optional: false,
+      qty: Math.max(0, parseFloat($("add-qty").value) || 1),
+      editedQty: true, editedInclude: true, editedOptional: true,
+      detected: false, custom: true
+    }));
+    $("add-name").value = ""; $("add-qty").value = "1"; archTouched = false;
+    renderLines(); renderAssumptions(); renderSummary(); save();
+    toast(`Added — sized as ${archetype}`);
+  }
 
   $("btn-rebuild").addEventListener("click", () => {
-    if (!confirm("Rebuild quantities, effort and rates from the current scope? Manual edits to standard lines will be lost.")) return;
+    if (!confirm("Rebuild quantities, complexity and mode from the current scope? Manual edits to standard lines will be lost.")) return;
     state.lines = state.lines.filter((l) => l.custom);
     buildLines(true);
     renderLines(); renderAssumptions(); renderSummary();
@@ -2627,6 +2939,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $(id).addEventListener("input", (e) => {
       state.settings[id.slice(2)] = parseFloat(e.target.value) || 0;
       if (id === "c-tax") state.settings.taxTouched = true;
+      // The buffer is mandays, so it shows in the table foot as well as the sidebar.
+      if (id === "c-contingency") renderLines();
       renderAssumptions(); renderSummary(); save();
     });
   });
@@ -2906,62 +3220,85 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
   $("btn-export-invoice").addEventListener("click", () => {
     const t = totals();
-    const cur = currencyCode();
     const c = activeCountry();
-    const rows = [["#", "Deliverable", "RFP term", "Description", "Unit", "Qty", "Days per unit", "Effort (days)", "Day rate", "Amount (" + cur + ")"]];
-    t.inc.forEach((l, i) => rows.push([i + 1, l.name, l.clientTerm || "", l.desc, l.unit, l.qty, days(l.dpu), days(l.qty * l.dpu), l.rate, Math.round(l.qty * l.dpu * l.rate)]));
-    rows.push([], ["", "Professional fees", "", "", "", "", "", days(t.effort), "", Math.round(t.fees)]);
-    if (t.contingency) rows.push(["", `Delivery buffer ${state.settings.contingency}%`, "", "", "", "", "", "", "", Math.round(t.contingency)]);
-    if (t.discount) rows.push(["", `Discount ${state.settings.discount}%`, "", "", "", "", "", "", "", -Math.round(t.discount)]);
-    if (t.expenses) rows.push(["", "Travel & expenses", "", "", "", "", "", "", "", Math.round(t.expenses)]);
-    if (t.tax) rows.push(["", `${c ? c.tax : "Tax"} ${state.settings.tax}%`, "", "", "", "", "", "", "", Math.round(t.tax)]);
-    rows.push(["", "TOTAL", "", "", "", "", "", "", "", Math.round(t.total)]);
+    const rows = [["#", "Deliverable", "RFP term", "Description", "Unit", "Qty", "Complexity", "Mode", "Mandays per unit", "Mandays"]];
+    t.inc.forEach((l, i) => rows.push([i + 1, l.name, l.clientTerm || "", l.desc, l.unit, l.qty, l.level, l.mode || "n/a", days(l.dpu), days(l.qty * l.dpu)]));
+    rows.push([], ["", "Core effort", "", "", "", "", "", "", "", days(t.effort)]);
+    if (t.bufferDays) rows.push(["", `Delivery buffer ${state.settings.contingency}%`, "", "", "", "", "", "", "", days(t.bufferDays)]);
+    rows.push(["", "TOTAL MANDAYS", "", "", "", "", "", "", "", days(t.effortWithBuffer)]);
+
     if (t.opt.length) {
-      rows.push([], ["", "OPTIONAL ITEMS — priced separately, not in the total above"]);
-      t.opt.forEach((l, i) => rows.push([i + 1, l.name, l.clientTerm || "", l.desc, l.unit, l.qty, days(l.dpu), days(l.qty * l.dpu), l.rate, Math.round(l.qty * l.dpu * l.rate)]));
-      rows.push(["", "Total options", "", "", "", "", "", days(t.optEffort), "", Math.round(t.optFees)]);
+      rows.push([], ["", "OPTIONAL ITEMS — quoted separately, not in the total above"]);
+      t.opt.forEach((l, i) => rows.push([i + 1, l.name, l.clientTerm || "", l.desc, l.unit, l.qty, l.level, l.mode || "n/a", days(l.dpu), days(l.qty * l.dpu)]));
+      rows.push(["", "Total options", "", "", "", "", "", "", "", days(t.optEffort)]);
     }
-    rows.push([], ["", "Effort by rank (person-days)"]);
-    RANKS.forEach((r) => { if (t.byRank[r.id] >= 0.05) rows.push(["", r.name, "", "", "", "", "", days(t.byRank[r.id])]); });
-    download((state.settings.client || "cm-estimate").replace(/[^\w\-]+/g, "-").toLowerCase() + ".csv", toCsv(rows));
+
+    rows.push([], ["", "EFFORT BY RANK (mandays)"]);
+    RANKS.slice().reverse().forEach((r) => { if (t.byRank[r.id] >= 0.05) rows.push(["", r.name, "", "", "", "", "", "", "", days(t.byRank[r.id])]); });
+    rows.push(["", "Average FTE", "", "", "", "", "", "", "", t.fte.toFixed(1)]);
+
+    if (t.total > 0) {
+      rows.push([], ["", `INDICATIVE PRICE — sanity check only, priced in ${c ? c.name : "the selected country"} (${cur()})`]);
+      rows.push(["", "Fees", "", "", "", "", "", "", "", Math.round(t.fees)]);
+      if (t.contingency) rows.push(["", `Buffer ${state.settings.contingency}%`, "", "", "", "", "", "", "", Math.round(t.contingency)]);
+      if (t.discount) rows.push(["", `Discount ${state.settings.discount}%`, "", "", "", "", "", "", "", -Math.round(t.discount)]);
+      if (t.expenses) rows.push(["", "Travel & expenses", "", "", "", "", "", "", "", Math.round(t.expenses)]);
+      if (t.tax) rows.push(["", `${c ? c.tax : "Tax"} ${state.settings.tax}%`, "", "", "", "", "", "", "", Math.round(t.tax)]);
+      rows.push(["", "Indicative total", "", "", "", "", "", "", "", Math.round(t.total)]);
+    }
+    function cur() { return currencyCode(); }
+    download((state.settings.client || "cm-manday-estimate").replace(/[^\w\-]+/g, "-").toLowerCase() + ".csv", toCsv(rows));
   });
 
   $("btn-copy-md").addEventListener("click", async () => {
     const t = totals();
-    const cur = currencyCode();
     const c = activeCountry();
-    let md = `## Schedule of deliverables and fees${state.settings.client ? " — " + state.settings.client : ""}\n\n`;
-    if (c) md += `Delivered in ${c.name}. All amounts in ${c.currency}.\n\n`;
-    const header = `| # | Deliverable | Unit | Qty | Days/unit | Effort (days) | Day rate (${cur}) | Amount (${cur}) |\n|---:|---|---|---:|---:|---:|---:|---:|\n`;
+    let md = `## Manday estimate${state.settings.client ? " — " + state.settings.client : ""}\n\n`;
+    md += `${days(t.effortWithBuffer)} mandays · ${t.fte.toFixed(1)} average FTE over ${state.drivers.months} months`;
+    md += c ? ` · delivered in ${c.name}.\n\n` : `.\n\n`;
+
+    const header = `| # | Deliverable | Unit | Qty | Complexity | Mode | Mandays |\n|---:|---|---|---:|---|---|---:|\n`;
+    const line = (l, i) => {
+      const nm = l.clientTerm && l.clientTerm.toLowerCase() !== l.name.toLowerCase() ? l.clientTerm : l.name;
+      return `| ${i + 1} | ${nm} | ${l.unit} | ${l.qty} | ${l.level} | ${l.mode || "—"} | ${days(l.qty * l.dpu)} |\n`;
+    };
+
     md += header;
-    t.inc.forEach((l, i) => {
-      const nm = l.clientTerm && l.clientTerm.toLowerCase() !== l.name.toLowerCase() ? `${l.clientTerm}` : l.name;
-      md += `| ${i + 1} | ${nm} | ${l.unit} | ${l.qty} | ${days(l.dpu)} | ${days(l.qty * l.dpu)} | ${moneyShort(l.rate)} | ${moneyShort(l.qty * l.dpu * l.rate)} |\n`;
-    });
-    md += `| | **Professional fees** | | | | **${days(t.effort)}** | | **${moneyShort(t.fees)}** |\n`;
-    if (t.contingency) md += `| | Delivery buffer ${state.settings.contingency}% | | | | | | ${moneyShort(t.contingency)} |\n`;
-    if (t.discount) md += `| | Discount ${state.settings.discount}% | | | | | | −${moneyShort(t.discount)} |\n`;
-    if (t.expenses) md += `| | Travel & expenses | | | | | | ${moneyShort(t.expenses)} |\n`;
-    if (t.tax) md += `| | ${c ? c.tax : "Tax"} ${state.settings.tax}% | | | | | | ${moneyShort(t.tax)} |\n`;
-    md += `| | **Total** | | | | | | **${moneyShort(t.total)}** |\n`;
-    if (t.opt.length) {
-      md += `\n**Optional items** — priced separately, not included in the total above.\n\n${header}`;
-      t.opt.forEach((l, i) => {
-        const nm = l.clientTerm && l.clientTerm.toLowerCase() !== l.name.toLowerCase() ? `${l.clientTerm}` : l.name;
-        md += `| ${i + 1} | ${nm} | ${l.unit} | ${l.qty} | ${days(l.dpu)} | ${days(l.qty * l.dpu)} | ${moneyShort(l.rate)} | ${moneyShort(l.qty * l.dpu * l.rate)} |\n`;
-      });
-      md += `| | **Total options** | | | | **${days(t.optEffort)}** | | **${moneyShort(t.optFees)}** |\n`;
+    t.inc.forEach((l, i) => { md += line(l, i); });
+    md += `| | **Core effort** | | | | | **${days(t.effort)}** |\n`;
+    if (t.bufferDays) {
+      md += `| | Delivery buffer ${state.settings.contingency}% | | | | | ${days(t.bufferDays)} |\n`;
+      md += `| | **Total mandays** | | | | | **${days(t.effortWithBuffer)}** |\n`;
     }
+
+    if (t.opt.length) {
+      md += `\n**Optional items** — quoted separately, not included in the total above.\n\n${header}`;
+      t.opt.forEach((l, i) => { md += line(l, i); });
+      md += `| | **Total options** | | | | | **${days(t.optEffort)}** |\n`;
+    }
+
     if (t.rankedEffort > 0) {
-      md += `\n**Team shape** — ${t.fte.toFixed(1)} average FTE over ${state.drivers.months} months.\n\n| Rank | Person-days |\n|---|---:|\n`;
+      md += `\n**Team shape**\n\n| Rank | Mandays |\n|---|---:|\n`;
       RANKS.slice().reverse().forEach((r) => { if (t.byRank[r.id] >= 0.05) md += `| ${r.name} | ${days(t.byRank[r.id])} |\n`; });
     }
-    try { await navigator.clipboard.writeText(md); toast("Markdown table copied"); }
-    catch (e) { showCopyPanel("schedule.md", md); }
+
+    if (t.total > 0) {
+      md += `\n**Indicative price** — a sanity check only; the binding number comes from the pricing workbench.\n\n`;
+      md += `| Item | ${currencyCode()} |\n|---|---:|\n`;
+      md += `| Fees | ${moneyShort(t.fees)} |\n`;
+      if (t.contingency) md += `| Buffer ${state.settings.contingency}% | ${moneyShort(t.contingency)} |\n`;
+      if (t.discount) md += `| Discount ${state.settings.discount}% | −${moneyShort(t.discount)} |\n`;
+      if (t.expenses) md += `| Travel & expenses | ${moneyShort(t.expenses)} |\n`;
+      if (t.tax) md += `| ${c ? c.tax : "Tax"} ${state.settings.tax}% | ${moneyShort(t.tax)} |\n`;
+      md += `| **Indicative total** | **${moneyShort(t.total)}** |\n`;
+    }
+
+    try { await navigator.clipboard.writeText(md); toast("Manday estimate copied as Markdown"); }
+    catch (e) { showCopyPanel("manday-estimate.md", md); }
   });
 
   $("btn-reset").addEventListener("click", () => {
-    if (!confirm("Clear the RFP, drivers, rate edits and pricing and start again?")) return;
+    if (!confirm("Clear the RFP, drivers, rate edits and the estimate and start again?")) return;
     localStorage.removeItem(STORE_KEY);
     state = defaultState();
     hydrate();
@@ -3052,6 +3389,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   function hydrate() {
     $("rfp-text").value = state.rfpText || "";
     $("country").value = state.country || "";
+    $("delivery-mode").value = state.deliveryMode || "blended";
     $("escalation").value = state.settings.escalation;
     $("hours-per-day").value = state.settings.hoursPerDay;
     $("c-contingency").value = state.settings.contingency;
