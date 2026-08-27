@@ -1,0 +1,47 @@
+# Render Blueprint for the cm-comms MCP server.
+#
+# This lives at the REPO ROOT on purpose: Render's Blueprint auto-discovery and the one-click
+# render.com/deploy?repo=... link both look here. (Subdirectory Blueprints work too, but only
+# if you set the custom path by hand when creating the Blueprint — which defeats one-click.)
+#
+# Deploy: https://render.com/deploy?repo=https://github.com/Blueskis/CMWorkspace
+# Then copy the assigned URL and append /mcp — that path, not the bare host, is the MCP
+# endpoint, and a connector pointed at the bare host will not work.
+services:
+  - type: web
+    name: cm-comms
+    runtime: docker
+    # Build context is the repo root, not service/: runner.py shells out to
+    # skills/cm-comms-generator/scripts/ and reads proposal-assets/knowledge-bank/.
+    dockerContext: .
+    dockerfilePath: ./service/Dockerfile
+    plan: free
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: BRAND_PROFILE_PATH
+        sync: false
+      - key: ARTIFACT_BASE_URL
+        sync: false
+      - key: CM_COMMS_TRANSPORT
+        value: http
+      # Ephemeral on the free plan — see the note below.
+      - key: COMMS_WORKSPACE_ROOT
+        value: /tmp/cm-comms-runs
+
+# WHAT THE FREE PLAN COSTS YOU: a free web service spins down after 15 minutes without
+# traffic and loses its filesystem when it does. Within one generation that is harmless —
+# intake_change -> plan_channel -> audit_comm -> produce run seconds apart and keep the
+# service awake. A run left half-finished for 15+ minutes loses its run_id state and has to
+# be started again. The first request after a spin-down also takes ~50s to wake.
+#
+# To remove both limits, switch `plan: free` to `plan: starter` ($7/mo) and add a disk —
+# free services cannot attach one:
+#
+#     plan: starter
+#     disk:
+#       name: cm-comms-runs
+#       mountPath: /var/data
+#       sizeGB: 1
+#
+# ...and set COMMS_WORKSPACE_ROOT to /var/data/cm-comms-runs so runs survive a restart.

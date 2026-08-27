@@ -36,11 +36,14 @@ python server.py
 ```
 
 `server.py`'s `__main__` block reads `CM_COMMS_TRANSPORT` (default `http`) and serves
-Streamable HTTP on `PORT` (default 8000) — the transport a **remote** claude.ai custom
-connector requires. Set `CM_COMMS_TRANSPORT=stdio` instead for a local Claude Desktop/Code MCP
-config, where stdio is what's expected. Don't run `fastmcp run server.py` for a remote
-deployment — that CLI defaults to stdio regardless of this env var; run `python server.py`
-directly so the `__main__` block's transport selection actually takes effect.
+Streamable HTTP on `PORT` (default 8000) at the path **`/mcp`** — the transport a **remote**
+claude.ai custom connector requires. Set `CM_COMMS_TRANSPORT=stdio` instead for a local Claude
+desktop MCP config, where stdio is what's expected. Don't run `fastmcp run server.py` for a
+remote deployment — that CLI defaults to stdio regardless of this env var; run
+`python server.py` directly so the `__main__` block's transport selection takes effect.
+
+Verified on fastmcp 3.4.7: the server boots, registers all five tools, binds
+`http://0.0.0.0:$PORT/mcp`, and completes an MCP `initialize` handshake there.
 
 **`BRAND_PROFILE_PATH` is the one thing you must set per real deployment.** It defaults to the
 Northwind example so the server runs out of the box, but that is fictional client demo data —
@@ -54,39 +57,63 @@ container, whatever the deployment already has. `storage.py` copies finished art
 Left unset, `produce` still runs correctly but hands back a local path instead of a URL — fine
 for exercising the pipeline, not for handing a link to someone else.
 
-## Deploying to Render
+## Two ways to run it — and only one of them reaches the artifact
 
-`render.yaml` in this directory is a Render Blueprint; `Dockerfile` builds from the **repo
-root** (it needs `skills/` and `proposal-assets/` alongside `service/`, not just this
-directory).
+| | Local (stdio) | Deployed (HTTP) |
+|---|---|---|
+| Needs | Claude desktop app, server on your machine | A deployed HTTPS URL |
+| Costs | Nothing | Render free tier, or $7/mo always-on |
+| **Drives the console artifact** | **No** — see below | **Yes** |
+| Good for | Talking to Claude directly with the tools available | The artifact's submit button; sharing with others |
 
-1. Push this repo somewhere Render can see it (a GitHub/GitLab repo Render has access to).
-2. Render dashboard → **New** → **Blueprint** → point at the repo. Render finds
-   `service/render.yaml` and reads it — the Dockerfile path inside it is already relative to
-   the repo root, so no extra configuration is needed there.
-3. Render will prompt for the `sync: false` env vars the blueprint declares:
-   `ANTHROPIC_API_KEY`, `BRAND_PROFILE_PATH` (a real path baked into the image, or one you
-   mount — see the note above about demo data), `ARTIFACT_BASE_URL` (leave blank until you have
-   real object storage; `produce` still works, just without public download links).
-4. Deploy. Render assigns a `https://cm-comms-<hash>.onrender.com` URL (or attach a custom
-   domain). That's the remote MCP endpoint — Streamable HTTP, courtesy of
-   `CM_COMMS_TRANSPORT=http` in the blueprint.
-5. The blueprint also provisions a 1GB persistent disk mounted at `/var/data` — needed because
-   `COMMS_WORKSPACE_ROOT` holds in-flight run state between the five tool calls of one
-   generation (`intake_change` → `plan_channel` → `audit_comm` → `produce`, once per channel).
-   Without it, a restart mid-run loses that state.
+**Why local does not drive the artifact.** The `mcp` capability defines `host:<name>` servers —
+an MCP server on the viewer's own machine, bridged by the desktop app, needing no hosting at
+all. That would have been the zero-cost path. It is **not granted on this account**: publishing
+a page that declares `host:cm-comms` is refused outright with `capabilities.mcp: unavailable`,
+while the same page declaring only `cm-comms` publishes fine. Verified by isolating the two.
+So the artifact needs a deployed URL; there is no free local shortcut for it.
 
-## Adding it as a connector
+Local stdio is still worth setting up for the *other* front door — using the pipeline by
+talking to Claude in the desktop app, no artifact involved:
 
-In claude.ai: **Settings → Connectors → Add custom connector**, paste the Render URL from step
-4, and name the connector **exactly `cm-comms`** — the artifact's manifest and `MCP_SERVER` in
-its script hardcode that display name, so a different name won't be found by
-`listTools()`. (Claude Desktop/Code instead take an MCP server entry in their own config,
-pointed at this same URL for `http`/`streamable-http` transport, or a local `stdio` command if
-you're running the server locally with `CM_COMMS_TRANSPORT=stdio`.)
+```json
+{
+  "mcpServers": {
+    "cm-comms": {
+      "command": "python",
+      "args": ["/absolute/path/to/CMWorkspace/service/server.py"],
+      "env": { "ANTHROPIC_API_KEY": "sk-ant-...", "CM_COMMS_TRANSPORT": "stdio" }
+    }
+  }
+}
+```
 
-Once added, the artifact's `window.claude.mcp.listTools()` call finds it and the submit button
-drives the five tools below instead of falling back to copy/paste.
+### Deploy to Render — the route that makes the artifact work
+
+`render.yaml` is at the **repo root** (Render's Blueprint discovery and the one-click link both
+look there); `service/Dockerfile` builds from the repo root because `runner.py` shells out to
+`skills/` and `proposal-assets/`.
+
+1. One-click: **https://render.com/deploy?repo=https://github.com/Blueskis/CMWorkspace**
+   — or Render dashboard → **New** → **Blueprint** → point at the repo.
+2. Render prompts for the `sync: false` vars: `ANTHROPIC_API_KEY`, `BRAND_PROFILE_PATH` (see
+   the demo-data note above), and `ARTIFACT_BASE_URL` (leave blank until you have real object
+   storage — `produce` still works, just without public download links).
+3. Deploy, then take the assigned URL and **append `/mcp`**:
+
+   ```
+   https://cm-comms-<hash>.onrender.com/mcp
+   ```
+
+   That path is the MCP endpoint. A connector pointed at the bare host will not work.
+4. claude.ai → **Settings → Connectors → Add custom connector** → paste that URL → name it
+   **exactly `cm-comms`**, since the artifact matches on the connector's display name.
+
+The blueprint deploys on Render's **free** plan, which spins down after 15 minutes without
+traffic and loses its filesystem when it does. Within one generation that's harmless — the four
+calls run seconds apart and keep it awake — but a run abandoned for 15+ minutes loses its
+`run_id` state, and the first request after a spin-down takes ~50s. `render.yaml` carries the
+commented `plan: starter` + disk block that removes both limits.
 
 ## Tools
 

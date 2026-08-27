@@ -141,11 +141,13 @@ execute Python, so submitting still needs somewhere to send the work. Two ways t
 in order of setup effort:
 
 1. **`service/`** — a small MCP server that wraps this pipeline's own scripts (it reimplements
-   nothing) plus the two stages that genuinely need a model call. Deploy it and add it as a
-   claude.ai connector named `cm-comms`, and the artifact's submit button drives the whole
-   pipeline live, returning download links inside the page. See `service/README.md` for setup,
-   the tool list, and what it does not solve (distribution — each viewer connects it under
-   their own account — and multi-client brand/knowledge-bank selection).
+   nothing) plus the two stages that genuinely need a model call. Connect it and the artifact's
+   submit button drives the whole pipeline live, returning download links inside the page.
+   Deploy it — one-click to Render via the root `render.yaml` — then add the resulting
+   **`…/mcp`** URL (that path, not the bare host) as a claude.ai custom connector named exactly
+   `cm-comms`. Running it locally on stdio also works for using the pipeline by talking to
+   Claude in the desktop app, but it cannot drive the artifact: `host:` MCP servers are not
+   granted on this account. See `service/README.md`.
 2. **Install the plugin** — `/plugin marketplace add <this-repo-url>` then install
    `cm-workspace`, and run the pipeline by describing the change to Claude directly. No
    artifact, no server, no shared API key. This works today with nothing built.
