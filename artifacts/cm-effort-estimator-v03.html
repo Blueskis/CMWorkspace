@@ -353,16 +353,31 @@
   }
   .empty-gate h3 { color: var(--ink); }
 
-  /* rank mix editor */
+  /* team editor: which ranks are on this work, and how many of each */
   .mixgrid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
-  .mixgrid label {
-    display: flex; flex-direction: column; gap: 2px;
-    font-family: var(--font-mono); font-size: .6rem; letter-spacing: .06em;
-    text-transform: uppercase; color: var(--ink-3);
+  .rankpick {
+    display: flex; flex-direction: column; gap: 3px;
+    border: 1px solid var(--line); border-radius: 6px; padding: 4px 5px;
+    background: var(--paper); opacity: .55;
   }
-  .mixgrid input { width: 100%; padding: 3px 5px; font-size: .8rem; text-align: right; }
-  .mixsum { font-family: var(--font-mono); font-size: .74rem; color: var(--jade); white-space: nowrap; }
-  .mixsum.bad { color: var(--clay); font-weight: 600; }
+  .rankpick.on { opacity: 1; background: var(--accent-soft); border-color: transparent; }
+  .rp-head {
+    display: flex; align-items: center; gap: 4px;
+    font-family: var(--font-mono); font-size: .6rem; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--ink-2); cursor: pointer;
+  }
+  .rankpick.on .rp-head { color: var(--accent); font-weight: 600; }
+  .rp-head input { margin: 0; cursor: pointer; }
+  .rankpick .rp-n { width: 100%; padding: 2px 4px; font-size: .8rem; text-align: center; }
+  .rankpick .rp-n:disabled { opacity: .4; }
+
+  .mixshare {
+    margin-top: 6px; font-family: var(--font-mono); font-size: .68rem;
+    color: var(--ink-3); letter-spacing: .02em;
+  }
+  .mixshare.bad { color: var(--clay); }
+  .mixsum { font-family: var(--font-mono); font-size: 1rem; font-weight: 600; color: var(--ink); }
+  .mixsum.bad { color: var(--clay); }
 
   /* rank effort breakdown bar */
   .rankbar { display: flex; height: 7px; border-radius: 4px; overflow: hidden; background: var(--surface-2); }
@@ -619,7 +634,7 @@
               <select id="add-arch" aria-label="Effort archetype"></select>
               <button class="btn" id="btn-add-line">Add</button>
             </div>
-            <span class="note" id="add-hint">The archetype is inferred from the name and sets the hours and the rank mix &mdash; correct it if the guess is wrong.</span>
+            <span class="note" id="add-hint">The archetype is inferred from the name and sets both the hours and the team &mdash; correct it if the guess is wrong.</span>
           </div>
           <p class="note no-print">Tick <strong>Option</strong> to move a line out of the headline effort and into a separately quoted options schedule.</p>
         </div>
@@ -684,19 +699,19 @@
       <div class="card">
         <header>
           <h2>Effort archetypes</h2>
-          <span class="hint">Generic hours by complexity, and the rank mix that builds them</span>
+          <span class="hint">Generic hours by complexity, and the team that staffs them</span>
         </header>
         <div class="body">
-          <div class="admin-note"><strong>Admin</strong><span>Every task in the library resolves its hours through this matrix, and its cost through the rank mix on the same row. Editing a row reprices every deliverable built from that archetype.</span></div>
+          <div class="admin-note"><strong>Admin</strong><span>Every task in the library resolves its hours through this matrix, and its team through the ranks on the same row. Headcounts are relative weights on the work &mdash; two analysts to one director splits the effort two-to-one &mdash; so a small team and a large one in the same proportions give the same answer.</span></div>
           <div class="tablewrap">
             <table id="archetype-table">
-              <thead><tr><th>Archetype</th><th class="n">Simple</th><th class="n">Standard</th><th class="n">Complex</th><th>Rank mix %</th><th class="n">Sum</th></tr></thead>
+              <thead><tr><th>Archetype</th><th class="n">Simple</th><th class="n">Standard</th><th class="n">Complex</th><th>Who staffs it &mdash; tick a rank, then set how many</th><th class="n">Team</th></tr></thead>
               <tbody id="archetype-body"></tbody>
             </table>
           </div>
           <div class="row">
-            <button class="btn ghost small" id="btn-mix-reset">Reset rank mixes</button>
-            <span class="note">Each mix must total 100%. A deliverable with no enabled tasks falls back to the default mix.</span>
+            <button class="btn ghost small" id="btn-mix-reset">Reset teams</button>
+            <span class="note">Tick only the ranks actually resourced on this pursuit. An archetype left with nobody on it falls back to the default team.</span>
           </div>
         </div>
       </div>
@@ -890,13 +905,13 @@
 (function () {
   "use strict";
 
-  const STORE_KEY = "cm-estimator-v5";
+  const STORE_KEY = "cm-estimator-v6";
 
   // Saved state from an older build of this tool describes a different app —
   // earlier versions seeded the scope drivers and auto-built the full
   // deliverable list, which would resurrect an estimate the user never asked
   // for. Drop those keys so everyone starts genuinely empty.
-  ["cm-estimator-v1", "cm-estimator-v3", "cm-estimator-v4"].forEach((k) => {
+  ["cm-estimator-v1", "cm-estimator-v3", "cm-estimator-v4", "cm-estimator-v5"].forEach((k) => {
     try { localStorage.removeItem(k); } catch (e) { /* private mode */ }
   });
   const THIS_YEAR = new Date().getFullYear();
@@ -1656,26 +1671,51 @@ Anonymised extract of a public-sector requirement specification, used as the sam
   // Who actually does the work. Keyed by archetype, because every task in the
   // hours library already carries one — so a deliverable's rank profile falls
   // out of its task composition instead of being maintained 53 times over.
+  // Who staffs this kind of work, as a headcount per rank. Counts are relative
+  // weights on the effort: two analysts to one director means the work splits
+  // two-to-one. A rank at zero is simply not on that team.
   const RANK_MIX = {
-    "Strategic Plans & Models":     { analyst: 5,  consultant: 20, senior_consultant: 30, manager: 25, senior_manager: 12, director: 6, partner: 2 },
-    "Facilitation & Sessions":      { analyst: 5,  consultant: 15, senior_consultant: 25, manager: 30, senior_manager: 17, director: 6, partner: 2 },
-    "Surveys, Reports & Analytics": { analyst: 20, consultant: 35, senior_consultant: 25, manager: 15, senior_manager: 5,  director: 0, partner: 0 },
-    "Written Comms & Guides":       { analyst: 25, consultant: 40, senior_consultant: 25, manager: 10, senior_manager: 0,  director: 0, partner: 0 },
-    "Decks & Visual Assets":        { analyst: 25, consultant: 40, senior_consultant: 20, manager: 10, senior_manager: 5,  director: 0, partner: 0 },
-    "Video & Digital Assets":       { analyst: 30, consultant: 40, senior_consultant: 20, manager: 10, senior_manager: 0,  director: 0, partner: 0 },
-    "Trackers & Registers":         { analyst: 45, consultant: 35, senior_consultant: 15, manager: 5,  senior_manager: 0,  director: 0, partner: 0 },
-    "Recurring PMO / Admin":        { analyst: 50, consultant: 35, senior_consultant: 10, manager: 5,  senior_manager: 0,  director: 0, partner: 0 }
+    "Strategic Plans & Models":     { analyst: 0, consultant: 2, senior_consultant: 3, manager: 2, senior_manager: 1, director: 0, partner: 0 },
+    "Facilitation & Sessions":      { analyst: 0, consultant: 1, senior_consultant: 2, manager: 2, senior_manager: 1, director: 0, partner: 0 },
+    "Surveys, Reports & Analytics": { analyst: 2, consultant: 3, senior_consultant: 2, manager: 1, senior_manager: 0, director: 0, partner: 0 },
+    "Written Comms & Guides":       { analyst: 2, consultant: 3, senior_consultant: 2, manager: 1, senior_manager: 0, director: 0, partner: 0 },
+    "Decks & Visual Assets":        { analyst: 2, consultant: 3, senior_consultant: 2, manager: 1, senior_manager: 0, director: 0, partner: 0 },
+    "Video & Digital Assets":       { analyst: 3, consultant: 4, senior_consultant: 2, manager: 1, senior_manager: 0, director: 0, partner: 0 },
+    "Trackers & Registers":         { analyst: 4, consultant: 3, senior_consultant: 1, manager: 0, senior_manager: 0, director: 0, partner: 0 },
+    "Recurring PMO / Admin":        { analyst: 4, consultant: 3, senior_consultant: 1, manager: 0, senior_manager: 0, director: 0, partner: 0 }
   };
 
-  // Used where a deliverable has no enabled tasks to profile.
-  const DEFAULT_MIX = { analyst: 15, consultant: 30, senior_consultant: 25, manager: 18, senior_manager: 8, director: 3, partner: 1 };
+  // Used where a deliverable has no enabled tasks to profile, and as the
+  // fallback when an archetype has been left with nobody on it.
+  const DEFAULT_MIX = { analyst: 1, consultant: 2, senior_consultant: 2, manager: 1, senior_manager: 1, director: 0, partner: 0 };
 
   const emptyMix = () => Object.fromEntries(RANKS.map((r) => [r.id, 0]));
 
+  // The team an archetype is staffed with. An override wins, but a team with
+  // nobody on it would silently drop the work out of the rank breakdown, so it
+  // falls back rather than vanishing — the editor flags it instead.
   function mixFor(archetype) {
     const ov = (state.rankMix || {})[archetype];
-    const base = RANK_MIX[archetype] || DEFAULT_MIX;
-    return { ...emptyMix(), ...base, ...(ov || {}) };
+    if (ov) {
+      const team = { ...emptyMix(), ...ov };
+      if (mixSum(team) > 0) return team;
+    }
+    const base = RANK_MIX[archetype];
+    return { ...emptyMix(), ...(base && mixSum(base) > 0 ? base : DEFAULT_MIX) };
+  }
+
+  // The raw override, empty team included — what the editor should show.
+  function mixRaw(archetype) {
+    const ov = (state.rankMix || {})[archetype];
+    if (ov) return { ...emptyMix(), ...ov };
+    return { ...emptyMix(), ...(RANK_MIX[archetype] || DEFAULT_MIX) };
+  }
+
+  // The share of the work each rank carries, given the headcounts.
+  function mixShare(mix) {
+    const sum = mixSum(mix);
+    if (!(sum > 0)) return emptyMix();
+    return Object.fromEntries(RANKS.map((r) => [r.id, (+mix[r.id] || 0) / sum]));
   }
 
   function mixSum(mix) { return RANKS.reduce((s, r) => s + (+mix[r.id] || 0), 0); }
@@ -1756,7 +1796,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     taskHours: {},         // task index -> hours, overriding the archetype matrix
     taskOff: {},           // task index -> true when excluded from the library rollup
     archetypes: {},        // archetype -> {Simple, Standard, Complex} hour overrides
-    rankMix: {},           // archetype -> {rankId: percent} overrides
+    rankMix: {},           // archetype -> {rankId: headcount} overrides
     rates: {},             // countryId -> {rankId: day rate} overrides
     taxes: {},             // countryId -> {rate} overrides
     vocab: seedVocab(),    // rate key -> synonyms the analyser matches on
@@ -2159,12 +2199,12 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
      Pricing engine
 
      Effort is built bottom-up from the hours library, exactly as in v0.2.
-     Price is new: each task's hours are costed at its archetype's rank mix
+     Price is new: each task's hours are costed at its archetype's team
      against the selected country's rate card, and the deliverable's blended
      day rate falls out of the total cost over the total effort.
      ===================================================================== */
 
-  // Cost one hour of work done under a given rank mix, in the country's currency.
+  // Cost one hour of work done by a given team, in the country's currency.
   function mixHourlyCost(mix, countryId, hpd) {
     const sum = mixSum(mix);
     if (!(sum > 0)) return 0;
@@ -2493,7 +2533,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     }).join("");
   }
 
-  /* ---- Hours library and the rank mix that costs it ---- */
+  /* ---- Hours library and the teams that staff it ---- */
 
   function renderLibrary() {
     const hpd = state.settings.hoursPerDay || 8;
@@ -2506,15 +2546,33 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         if (src == null && !ov) return `<td class="n" style="color:var(--ink-3)">not used</td>`;
         return `<td class="n" style="width:104px"><input type="number" data-arch="${esc(a)}" data-cx="${c}" value="${ov || src}" step="0.5" min="0"></td>`;
       }).join("");
-      const mix = mixFor(a);
+      const mix = mixRaw(a);
       const sum = mixSum(mix);
-      const mixCells = RANKS.map((r) =>
-        `<label>${esc(r.short)}<input type="number" data-mix="${esc(a)}" data-rank="${r.id}" value="${+mix[r.id] || 0}" step="5" min="0" max="100" aria-label="${esc(r.name)} share for ${esc(a)}"></label>`
-      ).join("");
+      const share = mixShare(mixFor(a));
+      const mixCells = RANKS.map((r) => {
+        const n = +mix[r.id] || 0;
+        return `<label class="rankpick ${n > 0 ? "on" : ""}">
+          <span class="rp-head">
+            <input type="checkbox" data-mixon="${esc(a)}" data-rank="${r.id}" ${n > 0 ? "checked" : ""} aria-label="${esc(r.name)} on the ${esc(a)} team">
+            ${esc(r.short)}
+          </span>
+          <input type="number" class="rp-n" data-mix="${esc(a)}" data-rank="${r.id}" value="${n}" step="1" min="0" ${n > 0 ? "" : "disabled"} aria-label="Number of ${esc(r.name)}s on the ${esc(a)} team">
+        </label>`;
+      }).join("");
+      const shareText = sum > 0
+        ? RANKS.filter((r) => share[r.id] > 0).map((r) => `${r.short} ${Math.round(share[r.id] * 100)}%`).join(" · ")
+        : "nobody on this team — using the default";
       return `<tr>
         <td><strong>${esc(a)}</strong></td>${cells}
-        <td style="min-width:290px"><div class="mixgrid">${mixCells}</div></td>
-        <td class="n"><span class="mixsum ${sum === 100 ? "" : "bad"}">${sum}%</span></td>
+        <td style="min-width:330px">
+          <div class="mixgrid">${mixCells}</div>
+          <div class="mixshare ${sum > 0 ? "" : "bad"}">${esc(shareText)}</div>
+        </td>
+        <td class="n">
+          <span class="mixsum ${sum > 0 ? "" : "bad"}">${sum}</span>
+          <div class="note" style="font-size:.7rem">${sum === 1 ? "person" : "people"}</div>
+          <button class="btn ghost small no-print" data-mixall="${esc(a)}" title="Use this team for every archetype" style="margin-top:4px">Apply to all</button>
+        </td>
       </tr>`;
     }).join("");
 
@@ -2715,7 +2773,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately quoted.`,
       state.settings.contingency > 0 ? `A ${state.settings.contingency}% delivery buffer — ${days(t.bufferDays)} mandays — is held against scope volatility and drawn down only on agreed change requests.` : null,
       t.opt.length ? `${t.opt.length} line${t.opt.length === 1 ? " is" : "s are"} quoted as option${t.opt.length === 1 ? "" : "s"} totalling ${days(t.optEffort)} mandays, exercisable by the client and excluded from the headline effort.` : null,
-      c ? `Any price shown is indicative only, blended from the ${c.name} rate card at the rank mix each deliverable requires. The binding commercial number comes from the pricing workbench.` : `No delivery country is set, so no indicative price is shown. Effort is independent of country.`
+      c ? `Any price shown is indicative only, blended from the ${c.name} rate card at the team each deliverable requires. The binding commercial number comes from the pricing workbench.` : `No delivery country is set, so no indicative price is shown. Effort is independent of country.`
     ].filter(Boolean);
     $("assumptions").innerHTML = items.map((i) => `<li>${esc(i)}</li>`).join("");
   }
@@ -2982,7 +3040,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   /* ---- Free-text deliverables ---------------------------------------- */
 
   // What a deliverable's name tells us about how it gets built. The archetype
-  // decides both the hours and the rank mix, so guessing it well matters — but
+  // decides both the hours and the team, so guessing it well matters — but
   // the guess is always shown and always correctable.
   const ARCHETYPE_HINTS = {
     "Strategic Plans & Models": ["plan", "strategy", "approach", "framework", "model", "roadmap", "governance", "structure", "operating model", "blueprint", "charter"],
@@ -3161,7 +3219,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   }
 
   /* =====================================================================
-     Admin — hours library, archetypes and rank mixes
+     Admin — hours library, archetypes and teams
      ===================================================================== */
 
   $("archetype-body").addEventListener("input", (e) => {
@@ -3175,20 +3233,68 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     }
     const mixArch = e.target.dataset.mix, rank = e.target.dataset.rank;
     if (!mixArch) return;
-    state.rankMix[mixArch] = { ...mixFor(mixArch), [rank]: Math.max(0, parseFloat(e.target.value) || 0) };
-    // Repaint only the row's total, so the field being typed into keeps focus.
-    const cell = e.target.closest("tr").querySelector(".mixsum");
-    const sum = mixSum(state.rankMix[mixArch]);
-    cell.textContent = sum + "%";
-    cell.classList.toggle("bad", sum !== 100);
-    buildLines(false); renderLines(); renderSummary(); save();
+    const count = Math.max(0, Math.round(parseFloat(e.target.value) || 0));
+    setTeam(mixArch, rank, count);
+    // Repaint the row in place, so the field being typed into keeps focus.
+    refreshTeamRow(e.target.closest("tr"), mixArch);
+    buildLines(false); renderLines(); renderAssumptions(); renderSummary(); save();
   });
 
+  // Ticking a rank puts one of them on the team; unticking takes them all off.
+  $("archetype-body").addEventListener("change", (e) => {
+    const a = e.target.dataset.mixon, rank = e.target.dataset.rank;
+    if (!a) return;
+    setTeam(a, rank, e.target.checked ? 1 : 0);
+    renderLibrary();
+    buildLines(false); renderLines(); renderAssumptions(); renderSummary(); save();
+  });
+
+  $("archetype-body").addEventListener("click", (e) => {
+    const a = e.target.dataset.mixall;
+    if (!a) return;
+    const team = mixRaw(a);
+    if (!(mixSum(team) > 0)) { toast("Put someone on this team first"); return; }
+    Object.keys(ARCHETYPE_HOURS).forEach((other) => { state.rankMix[other] = { ...team }; });
+    renderLibrary();
+    buildLines(false); renderLines(); renderAssumptions(); renderSummary(); save();
+    toast(`Every archetype now staffed like ${a}`);
+  });
+
+  function setTeam(archetype, rank, count) {
+    state.rankMix[archetype] = { ...mixRaw(archetype), [rank]: count };
+  }
+
+  function refreshTeamRow(tr, archetype) {
+    if (!tr) return;
+    const raw = mixRaw(archetype);
+    const sum = mixSum(raw);
+    const share = mixShare(mixFor(archetype));
+    const sumCell = tr.querySelector(".mixsum");
+    sumCell.textContent = sum;
+    sumCell.classList.toggle("bad", !(sum > 0));
+    sumCell.nextElementSibling.textContent = sum === 1 ? "person" : "people";
+    const shareCell = tr.querySelector(".mixshare");
+    shareCell.textContent = sum > 0
+      ? RANKS.filter((r) => share[r.id] > 0).map((r) => `${r.short} ${Math.round(share[r.id] * 100)}%`).join(" · ")
+      : "nobody on this team — using the default";
+    shareCell.classList.toggle("bad", !(sum > 0));
+    // A count typed down to zero takes that rank off the team.
+    RANKS.forEach((r) => {
+      const box = tr.querySelector(`input[data-mixon][data-rank="${r.id}"]`);
+      const num = tr.querySelector(`input[data-mix][data-rank="${r.id}"]`);
+      if (!box || !num) return;
+      const on = (+raw[r.id] || 0) > 0;
+      box.checked = on;
+      num.disabled = !on;
+      num.closest(".rankpick").classList.toggle("on", on);
+    });
+  }
+
   $("btn-mix-reset").addEventListener("click", async () => {
-    if (!await askConfirm("Reset rank mixes?", "Every archetype's rank mix returns to its seeded profile. Hours and exclusions are untouched.", "Reset mixes")) return;
+    if (!await askConfirm("Reset the teams?", "Every archetype returns to its seeded team of ranks and headcounts. Hours and task exclusions are untouched.", "Reset teams")) return;
     state.rankMix = {};
     buildLines(false); renderLibrary(); renderLines(); renderSummary(); save();
-    toast("Rank mixes reset");
+    toast("Teams reset");
   });
 
   $("library-body").addEventListener("input", (e) => {
@@ -3210,7 +3316,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   });
 
   $("btn-library-reset").addEventListener("click", async () => {
-    if (!await askConfirm("Reset the hours library?", "Task hours, task exclusions and the archetype matrix all return to the source workbook. Rank mixes are untouched.", "Reset library")) return;
+    if (!await askConfirm("Reset the hours library?", "Task hours, task exclusions and the archetype matrix all return to the source workbook. Teams are untouched.", "Reset library")) return;
     state.taskHours = {}; state.taskOff = {}; state.archetypes = {};
     buildLines(false); renderLibrary(); renderLines(); renderSummary(); save();
     toast("Hours library reset to source");
