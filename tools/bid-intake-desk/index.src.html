@@ -1124,6 +1124,16 @@ function cellText(value) {
   return "";
 }
 
+/* The register's price column turned out to be a real Number/Currency field, not the
+   plain text the docs once assumed — cellText renders that as a bare "1000000". Format
+   only when the raw cell actually is a number; leave any other shape as cellText found
+   it, since a renamed or retyped column must not throw here. */
+function formatPrice(value) {
+  return typeof value === "number"
+    ? "$" + value.toLocaleString("en-US")
+    : cellText(value);
+}
+
 function cellFiles(value) {
   if (!Array.isArray(value)) return [];
   return value
@@ -1184,7 +1194,7 @@ function projectFrom(record) {
     url: recordUrl(AIRTABLE.tableId, record.id),
     name: cellText(get("name")),
     location: cellText(get("location")),
-    price: cellText(get("price")),
+    price: formatPrice(get("price")),
     rfp: cellFiles(get("rfp")),
     deck: cellFiles(get("deck")),
     tags: extra.tags,
@@ -1356,7 +1366,11 @@ function renderAirtable() {
     return;
   }
 
-  const filled = projects.filter(p => !p.empty).length;
+  // A row with every field blank cannot be ranked, named or opened — nothing to show,
+  // so it is dropped from the list rather than rendered as a row that says "Untitled".
+  const visible = projects.filter(p => !p.empty);
+  const blank = projects.length - visible.length;
+  const filled = visible.length;
   const docLink = (file, label) => file
     ? `<a class="doclink" href="${esc(file.url || "#")}" target="_blank"
          rel="noopener noreferrer">Open ${esc(label)} directly: ${esc(file.name)}</a>`
@@ -1367,19 +1381,22 @@ function renderAirtable() {
   // Ties are common when two bids share the same generic ground, so the order is
   // settled rather than left to whatever came back first: relevance, then the more
   // recent bid, then the name.
-  const scored = projects.map(p => ({ ...p, ...scoreProject(p, ctx) }))
+  const scored = visible.map(p => ({ ...p, ...scoreProject(p, ctx) }))
     .sort((a, b) => ranking
       ? (b.score - a.score
          || (b.submitted || "").localeCompare(a.submitted || "")
          || (a.name || "").localeCompare(b.name || ""))
       : (a.name || "").localeCompare(b.name || ""));
-  const taggable = projects.filter(p => p.tags.length).length;
+  const taggable = visible.filter(p => p.tags.length).length;
   const best = ranking && scored.length && scored[0].score > 0 ? scored[0].id : null;
 
   host.innerHTML =
     (filled === 0 ? `<div class="mcp-state warn"><b>${projects.length} rows, all blank</b>
        The rows exist but no fields are filled in, so there is nothing to match a tender
        against yet.</div>` : "")
+    + (filled && blank ? `<div class="mcp-state"><b>${blank} blank row${blank === 1 ? "" : "s"}
+       hidden</b>Every field was empty, so there was nothing to rank or open. Fill one in
+       and it appears here on the next refresh.</div>` : "")
     + (filled && !taggable ? `<div class="mcp-state warn"><b>No tags on any row</b>
        Without tags these can only be sorted by name. Tag each past bid in Airtable and
        the closest matches will rise to the top here.</div>` : "")
