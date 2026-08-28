@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "training_plan.schema.json",
+  "title": "Training Plan",
+  "description": "The slide-by-slide build plan. Stage 2 writes the module outline, learning objectives and topic map; Stage 3 fills in content, images, diagrams and questions; Stage 4 builds from it; Stage 5 audits against it and the source index.",
+  "type": "object",
+  "required": ["run_id", "source_index_ref", "template", "learning_objectives", "modules"],
+  "properties": {
+    "run_id": { "type": "string", "description": "e.g. 'po-module-20260828'" },
+    "source_index_ref": { "type": "string", "description": "Path to the source_index.json this plan draws on" },
+    "system": { "type": "string", "description": "The system being trained on, in the client's own words" },
+    "course_title": { "type": "string" },
+    "release": { "type": "string", "description": "Build or release the material describes — training goes stale against a moving system" },
+    "template": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string", "description": "Template directory (HTML) or approved .potx/.pptx" },
+        "kind": { "enum": ["html", "pptx"] },
+        "profile_ref": { "type": "string", "description": "Path to template_profile.json from profile_template.py" }
+      }
+    },
+    "learning_objectives": {
+      "type": "array",
+      "minItems": 1,
+      "description": "Written before any slide is selected. Observable and task-shaped ('raise a PO against a blanket agreement'), never 'understand the PO module'.",
+      "items": {
+        "type": "object",
+        "required": ["id", "text"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^LO[0-9]+$" },
+          "text": { "type": "string" },
+          "sources": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "deferred_topics": {
+      "type": "array",
+      "description": "Topic IDs from the source index deliberately not taught, each with a reason. A topic that is neither taught nor listed here fails Stage 5 — dropping content has to be a decision, not an oversight.",
+      "items": {
+        "type": "object",
+        "required": ["topic_id", "reason"],
+        "properties": {
+          "topic_id": { "type": "string", "pattern": "^T[0-9]+$" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "excluded_assets": {
+      "type": "array",
+      "description": "Placement-class assets deliberately not used, each with a reason (duplicate, superseded screen, unusable resolution). Same rule as deferred topics: a screenshot cannot be silently dropped.",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "reason"],
+        "properties": {
+          "asset_id": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "slide_budget": {
+      "type": "object",
+      "properties": {
+        "limit": { "type": ["integer", "null"], "description": "A session-length cap, where one is set" },
+        "planned": { "type": "integer" },
+        "cut_for_length": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["module_id", "title", "order", "objective_ids", "topic_ids", "slides"],
+        "properties": {
+          "module_id": { "type": "string", "description": "Key from reference/module-library.md, e.g. 'system-walkthrough-po-create'" },
+          "title": { "type": "string", "description": "Learner-facing title, using the system's own screen and transaction names verbatim" },
+          "order": { "type": "integer" },
+          "objective_ids": {
+            "type": "array",
+            "description": "Objectives this module serves. Union across modules must cover every LO.",
+            "items": { "type": "string", "pattern": "^LO[0-9]+$" }
+          },
+          "topic_ids": {
+            "type": "array",
+            "description": "Source-index topics this module teaches.",
+            "items": { "type": "string", "pattern": "^T[0-9]+$" }
+          },
+          "audiences": {
+            "type": "array",
+            "description": "Recorded but IGNORED by the v0.1 build. Reserved so audience curation (v0.2) is a renderer flag rather than a schema migration and a re-run.",
+            "items": { "type": "string" }
+          },
+          "duration_minutes": { "type": ["integer", "null"] },
+          "slides": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["slide_id", "layout", "title", "blocks"],
+              "properties": {
+                "slide_id": { "type": "string", "description": "e.g. 'po-create-3'" },
+                "layout": { "type": "string", "description": "Layout name from template_profile.json — must exist in the template" },
+                "title": { "type": "string" },
+                "objective_ids": { "type": "array", "items": { "type": "string", "pattern": "^LO[0-9]+$" } },
+                "audiences": { "type": "array", "items": { "type": "string" } },
+                "blocks": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/block" }
+                },
+                "speaker_notes": {
+                  "type": "string",
+                  "description": "Trainer-facing. On a knowledge-check slide the answer key is generated into the notes from the question blocks — do not hand-write answers onto the slide."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "block": {
+      "type": "object",
+      "required": ["placeholder", "kind", "content", "sources"],
+      "properties": {
+        "placeholder": { "type": "string", "description": "Placeholder name from the template profile" },
+        "kind": {
+          "enum": ["text", "heading", "paragraph", "bullets", "steps", "table", "image", "diagram", "callouts", "questions", "notes"],
+          "description": "'steps' and 'callouts' take arrays of strings and render numbered, so a screenshot's callouts sit beside the image rather than being burned onto it. 'questions' takes the knowledge_check question array. Use 'text' for placeholders the layout already wraps in an element of its own."
+        },
+        "content": {
+          "description": "String for prose, array for bullets/steps/callouts/questions, object for table/image/diagram.",
+          "type": ["string", "array", "object"]
+        },
+        "sources": {
+          "type": "array",
+          "description": "Source-index anchors this content came from. MUST be non-empty unless gap is true — no third state. A diagram carries the anchors of the text it was drawn from: an interpretation without a citation is exactly what this pipeline exists to prevent.",
+          "items": { "type": "string" }
+        },
+        "gap": {
+          "type": "boolean",
+          "default": false,
+          "description": "True when the documents do not cover it. Renders as a visible [GAP] marker; never substitute generated filler. On a business rule, a [GAP] means the spec does not say — a question for the process owner, not a sentence for us to write."
+        },
+        "gap_note": { "type": "string", "description": "Required when gap is true — what is missing and which objective it leaves exposed" },
+        "asset_id": { "type": "string", "description": "image blocks — the source-index asset placed here" },
+        "asset_path": { "type": "string", "description": "image blocks — path to the original bytes; embedded as a data URI by the HTML renderer, inserted as a picture on the .pptx path" },
+        "alt": { "type": "string", "description": "image blocks — alt text" },
+        "diagram": {
+          "type": "object",
+          "description": "diagram blocks — Mermaid source is the stored form: reviewable, diffable and regenerable. The HTML target renders it client-side; the .pptx target rasterises it via render_diagram.py.",
+          "required": ["pattern", "mermaid"],
+          "properties": {
+            "pattern": { "enum": ["process-flow", "decision-tree", "swimlane", "landscape", "state-transition"] },
+            "mermaid": { "type": "string" },
+            "caption": { "type": "string" },
+            "rendered_path": { "type": ["string", "null"], "description": "Set by render_diagram.py for the .pptx path" }
+          }
+        },
+        "questions": {
+          "type": "array",
+          "description": "questions blocks — exactly 5, mixed mcq and true_false. See knowledge_check.schema.json.",
+          "minItems": 5,
+          "maxItems": 5
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "gap": { "const": true } }, "required": ["gap"] },
+          "then": { "required": ["gap_note"] },
+          "else": { "properties": { "sources": { "minItems": 1 } } }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "image" } }, "required": ["kind"] },
+          "then": { "required": ["asset_id", "asset_path"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "diagram" } }, "required": ["kind"] },
+          "then": { "required": ["diagram"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "questions" } }, "required": ["kind"] },
+          "then": { "required": ["questions"] }
+        }
+      ]
+    }
+  }
+}

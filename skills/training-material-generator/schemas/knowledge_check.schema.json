@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "knowledge_check.schema.json",
+  "title": "Knowledge Check",
+  "description": "One module's check. Always exactly 5 questions, always a mix of multiple-choice and True/False. The answer, the rationale and the source anchor travel with the question and are rendered into the speaker notes, so a participant copy of the deck carries the questions without the key.",
+  "type": "object",
+  "required": ["check_id", "module_id", "questions"],
+  "properties": {
+    "check_id": { "type": "string", "description": "e.g. 'check-po-creation'" },
+    "module_id": { "type": "string" },
+    "questions": {
+      "type": "array",
+      "minItems": 5,
+      "maxItems": 5,
+      "description": "Exactly 5. If the module cannot yield 5 real questions it is too thin — merge it into its neighbour at Stage 2 rather than padding here.",
+      "items": { "$ref": "#/$defs/question" }
+    }
+  },
+  "$defs": {
+    "question": {
+      "type": "object",
+      "required": ["question_id", "type", "stem", "rationale", "sources"],
+      "properties": {
+        "question_id": { "type": "string" },
+        "type": { "enum": ["mcq", "true_false"] },
+        "stem": {
+          "type": "string",
+          "description": "For true_false, the statement to judge. No negative stems in either type — 'which of these is NOT...' tests reading, not knowledge."
+        },
+        "options": {
+          "type": "array",
+          "description": "MCQ only. Distractors must be plausible-but-wrong drawn from the spec itself — the neighbouring status value, the adjacent threshold. Never 'all of the above'.",
+          "items": { "type": "string" },
+          "minItems": 3,
+          "maxItems": 4
+        },
+        "answer_index": { "type": "integer", "description": "MCQ only — the single correct option, zero-based", "minimum": 0 },
+        "answer": { "type": "boolean", "description": "true_false only — whether the statement is true" },
+        "rationale": {
+          "type": "string",
+          "description": "Why the answer is right, in the words a trainer would use. For a false statement, what the rule actually says."
+        },
+        "sources": {
+          "type": "array",
+          "description": "Source-index anchors proving the answer. A question whose answer is not in the documents is not asked, so this is never empty — there is no [GAP] escape hatch for a question.",
+          "items": { "type": "string" },
+          "minItems": 1
+        },
+        "objective_ids": {
+          "type": "array",
+          "description": "Learning objectives this question tests. Stage 5 checks every objective is tested by at least one question.",
+          "items": { "type": "string", "pattern": "^LO[0-9]+$" }
+        },
+        "cognitive_level": {
+          "enum": ["recall", "apply"],
+          "default": "apply",
+          "description": "Prefer 'apply'. A check made entirely of 'recall' tests whether they read the slide, not whether they can do the task."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "mcq" } }, "required": ["type"] },
+          "then": {
+            "required": ["options", "answer_index"],
+            "properties": { "answer": false }
+          }
+        },
+        {
+          "if": { "properties": { "type": { "const": "true_false" } }, "required": ["type"] },
+          "then": {
+            "required": ["answer"],
+            "properties": { "options": false, "answer_index": false }
+          }
+        }
+      ]
+    }
+  }
+}

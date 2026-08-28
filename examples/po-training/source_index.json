@@ -1,0 +1,702 @@
+{
+  "run_id": "po-module-20260828",
+  "generated": "2026-08-28T05:33:28",
+  "documents": [
+    {
+      "doc_id": "POFSD",
+      "path": "examples/po-training/inputs/PO-FSD.docx",
+      "kind": "docx",
+      "title": "PO-FSD",
+      "images_extracted": true,
+      "chunk_count": 14,
+      "asset_count": 4
+    },
+    {
+      "doc_id": "POSTATUS",
+      "path": "examples/po-training/inputs/PO-Status-Matrix.xlsx",
+      "kind": "xlsx",
+      "title": "PO-Status-Matrix",
+      "images_extracted": true,
+      "chunk_count": 1,
+      "asset_count": 0
+    }
+  ],
+  "chunks": [
+    {
+      "anchor": "POFSD#po-fsd",
+      "doc_id": "POFSD",
+      "heading_path": [],
+      "clause": null,
+      "text": "",
+      "ordinal": 0,
+      "page": 1,
+      "word_count": 0,
+      "tables": [],
+      "asset_ids": [
+        "POFSD-img01"
+      ]
+    },
+    {
+      "anchor": "POFSD#purchase-order-module-functional-specification",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "Purchase Order Module \u2014 Functional Specification"
+      ],
+      "clause": null,
+      "text": "This specification describes the Purchase Order (PO) module of the Procure-to-Pay system for Release R3. It is the source of record for PO creation, approval routing and downstream posting.",
+      "ordinal": 2,
+      "page": 1,
+      "word_count": 29,
+      "tables": [],
+      "asset_ids": []
+    },
+    {
+      "anchor": "POFSD#1.1",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "1. Introduction",
+        "1.1 Purpose"
+      ],
+      "clause": "1.1",
+      "text": "The PO module allows a requisitioner to raise a purchase order against an approved supplier, route it for approval according to value thresholds, and transmit the approved order to the supplier. It replaces the spreadsheet-based ordering process used in Release R2 and earlier.",
+      "ordinal": 5,
+      "page": 1,
+      "word_count": 43,
+      "tables": [],
+      "asset_ids": []
+    },
+    {
+      "anchor": "POFSD#1.2",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "1. Introduction",
+        "1.2 Document Control"
+      ],
+      "clause": "1.2",
+      "text": "Owner: Procurement Systems. Reviewed quarterly.",
+      "ordinal": 7,
+      "page": 1,
+      "word_count": 5,
+      "tables": [],
+      "asset_ids": [
+        "POFSD-img01"
+      ]
+    },
+    {
+      "anchor": "POFSD#2",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "2. Process Overview"
+      ],
+      "clause": "2",
+      "text": "A purchase order moves through five states. A requisitioner creates the order in Draft. Submitting it runs a budget check; if the budget check passes the order moves to Pending Approval, and if it fails the order returns to Draft with a validation message. An approver either approves the order, moving it to Approved, or rejects it, returning it to Draft with mandatory rejection comments. An Approved order is transmitted to the supplier overnight and moves to Issued. An order may be cancelled from any state before Issued.\nFigure 1: End-to-end purchase order process flow.",
+      "ordinal": 11,
+      "page": 2,
+      "word_count": 95,
+      "tables": [],
+      "asset_ids": [
+        "POFSD-img02"
+      ]
+    },
+    {
+      "anchor": "POFSD#3",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "3. Roles and Responsibilities"
+      ],
+      "clause": "3",
+      "text": "Three roles operate the module. Role assignment is managed in the identity system and is not maintained within the PO module itself.",
+      "ordinal": 15,
+      "page": 2,
+      "word_count": 22,
+      "tables": [
+        {
+          "table_id": "POFSD#3-tbl1",
+          "caption": null,
+          "header": [
+            "Role",
+            "Can do",
+            "Cannot do"
+          ],
+          "rows": [
+            [
+              "PO Creator",
+              "Create, edit and submit a draft order; cancel own draft",
+              "Approve any order, including own"
+            ],
+            [
+              "PO Approver",
+              "Approve or reject orders within their threshold; add comments",
+              "Edit the line items of an order under approval"
+            ],
+            [
+              "Procurement Admin",
+              "Maintain supplier records; reopen an Issued order",
+              "Change approval thresholds"
+            ]
+          ],
+          "sheet": null
+        }
+      ],
+      "asset_ids": [
+        "POFSD-img01"
+      ]
+    },
+    {
+      "anchor": "POFSD#4.1",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "4. Purchase Order Creation",
+        "4.1 Create Purchase Order screen"
+      ],
+      "clause": "4.1",
+      "text": "The Create Purchase Order screen is reached from Procurement > Orders > New. The header captures supplier, delivery date and cost centre; the lines grid captures one row per item ordered. The order total is calculated from the lines and cannot be typed directly.\nFigure 2: The Create Purchase Order screen, header and lines grid.",
+      "ordinal": 21,
+      "page": 3,
+      "word_count": 55,
+      "tables": [],
+      "asset_ids": [
+        "POFSD-img03"
+      ]
+    },
+    {
+      "anchor": "POFSD#4.2",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "4. Purchase Order Creation",
+        "4.2 Field rules"
+      ],
+      "clause": "4.2",
+      "text": "The following rules apply to the header fields.",
+      "ordinal": 25,
+      "page": 3,
+      "word_count": 8,
+      "tables": [
+        {
+          "table_id": "POFSD#4.2-tbl1",
+          "caption": null,
+          "header": [
+            "Field",
+            "Mandatory",
+            "Rule"
+          ],
+          "rows": [
+            [
+              "Supplier",
+              "Yes",
+              "Must be an active supplier; blocked suppliers are not selectable"
+            ],
+            [
+              "Delivery Date",
+              "Yes",
+              "Must be today or later; back-dating is rejected"
+            ],
+            [
+              "Cost Centre",
+              "Yes",
+              "Defaults from the requisitioner's profile; may be overridden"
+            ],
+            [
+              "Internal Reference",
+              "No",
+              "Free text, 30 characters"
+            ],
+            [
+              "Order Total",
+              "No",
+              "Calculated from the lines; read-only"
+            ]
+          ],
+          "sheet": null
+        }
+      ],
+      "asset_ids": []
+    },
+    {
+      "anchor": "POFSD#4.3",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "4. Purchase Order Creation",
+        "4.3 Business rules"
+      ],
+      "clause": "4.3",
+      "text": "A purchase order must contain at least one line before it can be submitted. A line quantity must be greater than zero. The system runs a budget check on submission, not on save, so a draft may be saved that would fail the budget check. An order that fails the budget check returns to Draft and the requisitioner is shown the shortfall amount.",
+      "ordinal": 28,
+      "page": 3,
+      "word_count": 63,
+      "tables": [],
+      "asset_ids": [
+        "POFSD-img01"
+      ]
+    },
+    {
+      "anchor": "POFSD#5.1",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "5. Purchase Order Approval",
+        "5.1 Approval thresholds"
+      ],
+      "clause": "5.1",
+      "text": "Approval routing is determined by the order total. Where an order exceeds the approver's threshold it routes to the next level; it is never split.",
+      "ordinal": 33,
+      "page": 4,
+      "word_count": 25,
+      "tables": [
+        {
+          "table_id": "POFSD#5.1-tbl1",
+          "caption": null,
+          "header": [
+            "Order total",
+            "Approver level",
+            "Service level"
+          ],
+          "rows": [
+            [
+              "Up to 5,000",
+              "Line Manager",
+              "2 working days"
+            ],
+            [
+              "5,001 to 50,000",
+              "Department Head",
+              "3 working days"
+            ],
+            [
+              "Above 50,000",
+              "Finance Director",
+              "5 working days"
+            ]
+          ],
+          "sheet": null
+        }
+      ],
+      "asset_ids": []
+    },
+    {
+      "anchor": "POFSD#5.2",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "5. Purchase Order Approval",
+        "5.2 Approve Purchase Order screen"
+      ],
+      "clause": "5.2",
+      "text": "The approver opens the order from their approval queue. The screen shows the order header, the lines, and the budget check result. Approve and Reject are both available; Reject requires a comment of at least ten characters.\nFigure 3: The Approve Purchase Order screen with the approval queue.",
+      "ordinal": 36,
+      "page": 4,
+      "word_count": 48,
+      "tables": [],
+      "asset_ids": [
+        "POFSD-img04"
+      ]
+    },
+    {
+      "anchor": "POFSD#5.3",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "5. Purchase Order Approval",
+        "5.3 Exceptions and error handling"
+      ],
+      "clause": "5.3",
+      "text": "If an approver is absent, an order remains in their queue until reassigned by a Procurement Admin; there is no automatic escalation in Release R3. If the supplier is blocked after the order was created but before approval, approval is refused with the message 'Supplier is blocked'. If transmission to the supplier fails, the order stays in Approved and appears on the overnight exception report.",
+      "ordinal": 40,
+      "page": 4,
+      "word_count": 65,
+      "tables": [],
+      "asset_ids": []
+    },
+    {
+      "anchor": "POFSD#6",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "6. Integrations"
+      ],
+      "clause": "6",
+      "text": "On reaching Issued, the order is posted to the finance ledger as a commitment. Goods receipt is recorded in the warehouse system and matched back to the order line. A cancelled order releases its commitment on the next ledger run.",
+      "ordinal": 42,
+      "page": 4,
+      "word_count": 40,
+      "tables": [],
+      "asset_ids": []
+    },
+    {
+      "anchor": "POFSD#7",
+      "doc_id": "POFSD",
+      "heading_path": [
+        "7. Revision History"
+      ],
+      "clause": "7",
+      "text": "",
+      "ordinal": 44,
+      "page": 4,
+      "word_count": 0,
+      "tables": [
+        {
+          "table_id": "POFSD#7-tbl1",
+          "caption": null,
+          "header": [
+            "Version",
+            "Date",
+            "Change"
+          ],
+          "rows": [
+            [
+              "1.0",
+              "2026-02-11",
+              "Initial issue"
+            ],
+            [
+              "1.1",
+              "2026-05-03",
+              "Approval thresholds updated for R3"
+            ]
+          ],
+          "sheet": null
+        }
+      ],
+      "asset_ids": []
+    },
+    {
+      "anchor": "POSTATUS#po-statuses",
+      "doc_id": "POSTATUS",
+      "heading_path": [
+        "PO Statuses"
+      ],
+      "clause": null,
+      "text": "Worksheet 'PO Statuses': 5 row(s) under columns Status, Set by, Next states, Editable.",
+      "ordinal": 1,
+      "page": null,
+      "word_count": 13,
+      "tables": [
+        {
+          "table_id": "POSTATUS#po-statuses-tbl1",
+          "caption": "PO Statuses",
+          "header": [
+            "Status",
+            "Set by",
+            "Next states",
+            "Editable"
+          ],
+          "rows": [
+            [
+              "Draft",
+              "PO Creator",
+              "Pending Approval, Cancelled",
+              "Yes"
+            ],
+            [
+              "Pending Approval",
+              "System on submit",
+              "Approved, Draft, Cancelled",
+              "No"
+            ],
+            [
+              "Approved",
+              "PO Approver",
+              "Issued, Cancelled",
+              "No"
+            ],
+            [
+              "Issued",
+              "Overnight transmission",
+              "Closed",
+              "No"
+            ],
+            [
+              "Cancelled",
+              "PO Creator or Admin",
+              "None",
+              "No"
+            ]
+          ],
+          "sheet": "PO Statuses"
+        }
+      ],
+      "asset_ids": []
+    }
+  ],
+  "assets": [
+    {
+      "asset_id": "POFSD-img01",
+      "doc_id": "POFSD",
+      "path": "examples/po-training/assets/POFSD-img01.png",
+      "media_type": "image/png",
+      "asset_kind": "logo",
+      "caption": null,
+      "alt_text": "Company logo",
+      "heading_path": [],
+      "anchor": "POFSD#po-fsd",
+      "ordinal": 1,
+      "width_px": 120,
+      "height_px": 40,
+      "bytes": 157,
+      "sha256": "7a765dead578de295147673e76250db4a29d884941545a7bcd5b9298e2250cb0",
+      "occurrences": 4,
+      "sheet_ref": null,
+      "classification_reasons": [
+        "named as a logo or watermark"
+      ]
+    },
+    {
+      "asset_id": "POFSD-img02",
+      "doc_id": "POFSD",
+      "path": "examples/po-training/assets/POFSD-img02.png",
+      "media_type": "image/png",
+      "asset_kind": "diagram",
+      "caption": "Figure 1: End-to-end purchase order process flow.",
+      "alt_text": "Purchase order process flow",
+      "heading_path": [
+        "2. Process Overview"
+      ],
+      "anchor": "POFSD#2",
+      "ordinal": 13,
+      "width_px": 700,
+      "height_px": 300,
+      "bytes": 1320,
+      "sha256": "cad1030f0564e716b78949187e1b9a60a61e0f7a5cd697e420c155ff3ee3bca2",
+      "occurrences": 1,
+      "sheet_ref": null,
+      "classification_reasons": [
+        "caption or name describes a diagram"
+      ]
+    },
+    {
+      "asset_id": "POFSD-img03",
+      "doc_id": "POFSD",
+      "path": "examples/po-training/assets/POFSD-img03.png",
+      "media_type": "image/png",
+      "asset_kind": "screenshot",
+      "caption": "Figure 2: The Create Purchase Order screen, header and lines grid.",
+      "alt_text": "Create Purchase Order screen",
+      "heading_path": [
+        "4. Purchase Order Creation",
+        "4.1 Create Purchase Order screen"
+      ],
+      "anchor": "POFSD#4.1",
+      "ordinal": 23,
+      "width_px": 900,
+      "height_px": 520,
+      "bytes": 2949,
+      "sha256": "653e855ada3dc6b8beaa109b9fb513e4b93d10aad9cc646e30257b2ee6414d30",
+      "occurrences": 1,
+      "sheet_ref": null,
+      "classification_reasons": [
+        "caption or name describes a screen"
+      ]
+    },
+    {
+      "asset_id": "POFSD-img04",
+      "doc_id": "POFSD",
+      "path": "examples/po-training/assets/POFSD-img04.png",
+      "media_type": "image/png",
+      "asset_kind": "screenshot",
+      "caption": "Figure 3: The Approve Purchase Order screen with the approval queue.",
+      "alt_text": "Approve Purchase Order screen",
+      "heading_path": [
+        "5. Purchase Order Approval",
+        "5.2 Approve Purchase Order screen"
+      ],
+      "anchor": "POFSD#5.2",
+      "ordinal": 38,
+      "width_px": 880,
+      "height_px": 460,
+      "bytes": 2574,
+      "sha256": "e72d22931f4a6632e995878b2f8d3fa5cf5774d20e1059f322a733ca6baf0efe",
+      "occurrences": 1,
+      "sheet_ref": null,
+      "classification_reasons": [
+        "caption or name describes a screen"
+      ]
+    }
+  ],
+  "topics": [
+    {
+      "id": "T1",
+      "title": "POFSD#po-fsd",
+      "anchor": "POFSD#po-fsd",
+      "heading_path": [],
+      "word_count": 0,
+      "asset_ids": [
+        "POFSD-img01"
+      ],
+      "in_scope": false,
+      "scope_note": "heading with no substantive body text, table or image"
+    },
+    {
+      "id": "T2",
+      "title": "Purchase Order Module \u2014 Functional Specification",
+      "anchor": "POFSD#purchase-order-module-functional-specification",
+      "heading_path": [
+        "Purchase Order Module \u2014 Functional Specification"
+      ],
+      "word_count": 29,
+      "asset_ids": [],
+      "in_scope": true
+    },
+    {
+      "id": "T3",
+      "title": "1.1 Purpose",
+      "anchor": "POFSD#1.1",
+      "heading_path": [
+        "1. Introduction",
+        "1.1 Purpose"
+      ],
+      "word_count": 43,
+      "asset_ids": [],
+      "in_scope": true
+    },
+    {
+      "id": "T4",
+      "title": "1.2 Document Control",
+      "anchor": "POFSD#1.2",
+      "heading_path": [
+        "1. Introduction",
+        "1.2 Document Control"
+      ],
+      "word_count": 5,
+      "asset_ids": [
+        "POFSD-img01"
+      ],
+      "in_scope": false,
+      "scope_note": "document furniture, not teachable content"
+    },
+    {
+      "id": "T5",
+      "title": "2. Process Overview",
+      "anchor": "POFSD#2",
+      "heading_path": [
+        "2. Process Overview"
+      ],
+      "word_count": 95,
+      "asset_ids": [
+        "POFSD-img02"
+      ],
+      "in_scope": true
+    },
+    {
+      "id": "T6",
+      "title": "3. Roles and Responsibilities",
+      "anchor": "POFSD#3",
+      "heading_path": [
+        "3. Roles and Responsibilities"
+      ],
+      "word_count": 22,
+      "asset_ids": [
+        "POFSD-img01"
+      ],
+      "in_scope": true
+    },
+    {
+      "id": "T7",
+      "title": "4.1 Create Purchase Order screen",
+      "anchor": "POFSD#4.1",
+      "heading_path": [
+        "4. Purchase Order Creation",
+        "4.1 Create Purchase Order screen"
+      ],
+      "word_count": 55,
+      "asset_ids": [
+        "POFSD-img03"
+      ],
+      "in_scope": true
+    },
+    {
+      "id": "T8",
+      "title": "4.2 Field rules",
+      "anchor": "POFSD#4.2",
+      "heading_path": [
+        "4. Purchase Order Creation",
+        "4.2 Field rules"
+      ],
+      "word_count": 8,
+      "asset_ids": [],
+      "in_scope": true
+    },
+    {
+      "id": "T9",
+      "title": "4.3 Business rules",
+      "anchor": "POFSD#4.3",
+      "heading_path": [
+        "4. Purchase Order Creation",
+        "4.3 Business rules"
+      ],
+      "word_count": 63,
+      "asset_ids": [
+        "POFSD-img01"
+      ],
+      "in_scope": true
+    },
+    {
+      "id": "T10",
+      "title": "5.1 Approval thresholds",
+      "anchor": "POFSD#5.1",
+      "heading_path": [
+        "5. Purchase Order Approval",
+        "5.1 Approval thresholds"
+      ],
+      "word_count": 25,
+      "asset_ids": [],
+      "in_scope": true
+    },
+    {
+      "id": "T11",
+      "title": "5.2 Approve Purchase Order screen",
+      "anchor": "POFSD#5.2",
+      "heading_path": [
+        "5. Purchase Order Approval",
+        "5.2 Approve Purchase Order screen"
+      ],
+      "word_count": 48,
+      "asset_ids": [
+        "POFSD-img04"
+      ],
+      "in_scope": true
+    },
+    {
+      "id": "T12",
+      "title": "5.3 Exceptions and error handling",
+      "anchor": "POFSD#5.3",
+      "heading_path": [
+        "5. Purchase Order Approval",
+        "5.3 Exceptions and error handling"
+      ],
+      "word_count": 65,
+      "asset_ids": [],
+      "in_scope": true
+    },
+    {
+      "id": "T13",
+      "title": "6. Integrations",
+      "anchor": "POFSD#6",
+      "heading_path": [
+        "6. Integrations"
+      ],
+      "word_count": 40,
+      "asset_ids": [],
+      "in_scope": true
+    },
+    {
+      "id": "T14",
+      "title": "7. Revision History",
+      "anchor": "POFSD#7",
+      "heading_path": [
+        "7. Revision History"
+      ],
+      "word_count": 0,
+      "asset_ids": [],
+      "in_scope": false,
+      "scope_note": "document furniture, not teachable content"
+    },
+    {
+      "id": "T15",
+      "title": "PO Statuses",
+      "anchor": "POSTATUS#po-statuses",
+      "heading_path": [
+        "PO Statuses"
+      ],
+      "word_count": 13,
+      "asset_ids": [],
+      "in_scope": true
+    }
+  ],
+  "warnings": []
+}

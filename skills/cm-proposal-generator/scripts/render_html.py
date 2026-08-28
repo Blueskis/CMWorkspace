@@ -6,7 +6,8 @@
 
 Reuses build_deck.py's validation and sequencing, so a plan is checked against the
 template's layouts and placeholders exactly as it would be for the .pptx path — then
-renders each slide through the matching layout in the template's layouts.html.
+renders each slide through the matching layout in the template's layouts.html. Both come
+from lib/deckkit, shared with the training-material generator.
 
 Output is one standalone .html file with CSS and JS inlined, so it opens from disk with
 no server and no network. Arrow keys or space to advance; `?print-pdf` appended to the
@@ -27,24 +28,13 @@ end to end before the firm's approved template is available.
 import argparse
 import html
 import json
-import re
 import sys
 from datetime import date
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from build_deck import build  # noqa: E402  (same-directory sibling module)
-
-COMMENT_RE = re.compile(r"<!--.*?-->", re.DOTALL)
-TEMPLATE_BLOCK_RE = re.compile(
-    r'<template\s+data-layout="([^"]+)"\s*>(.*?)</template>', re.DOTALL
-)
-OPTIONAL_RE = re.compile(r"\{\{#([a-z_]+)\}\}(.*?)\{\{/\1\}\}", re.DOTALL)
-TOKEN_RE = re.compile(r"\{\{([a-z_]+)\}\}")
-
-
-def esc(value):
-    return html.escape(str(value), quote=False)
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
+from deckkit.htmlkit import esc, fill_layout, load_layouts  # noqa: E402
+from deckkit.manifest import build  # noqa: E402
 
 
 # --- block rendering -------------------------------------------------------
@@ -137,25 +127,6 @@ def render_block(block):
         return ""  # handled separately as speaker notes
 
     return f"<p>{esc(content)}</p>"
-
-
-# --- layout filling --------------------------------------------------------
-
-
-def fill_layout(layout_html, values):
-    """Substitute {{tokens}}, dropping {{#optional}} regions with no value."""
-
-    def drop_or_keep(match):
-        name, inner = match.group(1), match.group(2)
-        return inner if values.get(name) else ""
-
-    filled = OPTIONAL_RE.sub(drop_or_keep, layout_html)
-    return TOKEN_RE.sub(lambda m: values.get(m.group(1), ""), filled)
-
-
-def load_layouts(template_dir):
-    source = COMMENT_RE.sub("", (template_dir / "layouts.html").read_text(encoding="utf-8"))
-    return dict(TEMPLATE_BLOCK_RE.findall(source))
 
 
 def slide_footer(step, plan, mode, position, total):

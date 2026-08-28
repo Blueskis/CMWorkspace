@@ -1,0 +1,487 @@
+/* ------------------------------------------------------------------
+   Generic system-training theme — PoC stand-in for the client's template.
+
+   Deliberately neutral: system fonts (no network fetch, so the deck opens
+   identically offline), a restrained palette, and layouts that mirror the
+   module library's slide types.
+
+   Two decisions that are about training rather than taste:
+
+     * Screenshots get the most space on the slide and the steps beside them
+       are numbered, because a walkthrough slide is read by someone following
+       along in the system.
+     * Knowledge-check questions are sized to fit five of them without
+       shrinking to unreadable — the check is a slide, not an appendix.
+
+   REPLACE THIS when the client's approved training template is available.
+   Everything template-specific lives in this file and layouts.html — the
+   renderer and the plan format stay unchanged.
+   ------------------------------------------------------------------ */
+
+:root {
+  --ink:        #14213d;   /* headings, primary text */
+  --ink-soft:   #43506b;   /* body text */
+  --muted:      #8a94a6;   /* captions, metadata */
+  --accent:     #0f7b6c;   /* single accent — used sparingly */
+  --accent-dim: #e3f3f0;
+  --rule:       #dde3ec;
+  --canvas:     #ffffff;
+  --panel:      #f5f7fa;
+  --gap-amber:  #b45309;
+  --gap-bg:     #fef3c7;
+
+  --font-sans: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-serif: Cambria, Georgia, "Times New Roman", serif;
+  --font-mono: "SF Mono", "Cascadia Mono", Consolas, "Liberation Mono", monospace;
+}
+
+.reveal {
+  font-family: var(--font-sans);
+  font-size: 30px;
+  color: var(--ink-soft);
+}
+.reveal .slides { text-align: left; }
+
+/* Deck is initialised with center:false, so a section occupies the full
+   1280x720 stage and .slide-frame can lay out against a real height. */
+.reveal .slides section {
+  height: 100%;
+  padding: 0;
+  top: 0 !important;
+  display: block;
+}
+
+/* Typography ------------------------------------------------------- */
+
+.reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+  font-family: var(--font-serif);
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: normal;
+  margin: 0 0 0.5em 0;
+  line-height: 1.15;
+}
+.reveal h1 { font-size: 1.9em; font-weight: 600; }
+.reveal h2 { font-size: 1.3em; font-weight: 600; }
+.reveal h3 { font-size: 1.0em; font-weight: 600; }
+
+.reveal p { line-height: 1.45; margin: 0 0 0.7em 0; }
+.reveal strong { color: var(--ink); font-weight: 600; }
+.reveal em { font-style: normal; font-weight: 600; color: var(--accent); }
+
+.reveal ul, .reveal ol { display: block; margin: 0 0 0.6em 1.1em; }
+.reveal ul li, .reveal ol li { line-height: 1.4; margin-bottom: 0.45em; padding-left: 0.2em; }
+.reveal ul li::marker { color: var(--accent); }
+
+/* A field label or button name quoted from the spec. Screen labels are
+   reproduced verbatim, so they are set apart from prose rather than being
+   silently reworded into the sentence. */
+.reveal code, .ui {
+  font-family: var(--font-mono);
+  font-size: 0.88em;
+  background: var(--panel);
+  border-radius: 3px;
+  padding: 0.05em 0.35em;
+  color: var(--ink);
+}
+
+/* Slide frame ------------------------------------------------------ */
+
+.slide-frame {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+  padding: 0.7em 0.4em 0.3em;
+}
+.slide-body { flex: 1; min-height: 0; overflow: hidden; }
+
+.kicker {
+  font-family: var(--font-sans);
+  font-size: 0.5em;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.6em;
+}
+.lead { font-size: 0.62em; color: var(--muted); margin-bottom: 0.8em; }
+
+.slide-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1em;
+  flex: 0 0 auto;
+  border-top: 1px solid var(--rule);
+  padding: 0.5em 3.2em 0 0;   /* right padding clears reveal's control arrows */
+  margin-top: 0.6em;
+  font-size: 0.36em;
+  color: var(--muted);
+}
+.slide-foot .sources { font-family: var(--font-sans); }
+.slide-foot .sources code {
+  background: var(--panel);
+  border-radius: 3px;
+  padding: 0.1em 0.4em;
+  font-size: 0.95em;
+  color: var(--ink-soft);
+}
+
+/* Title slide ------------------------------------------------------ */
+
+.layout-title-slide .slide-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.layout-title-slide .course {
+  font-size: 0.55em;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.8em;
+}
+.layout-title-slide h1 { font-size: 2.1em; margin-bottom: 0.35em; }
+.layout-title-slide .subtitle { font-size: 0.78em; color: var(--ink-soft); }
+.layout-title-slide .meta {
+  margin-top: 2em;
+  padding-top: 0.7em;
+  border-top: 2px solid var(--ink);
+  font-size: 0.45em;
+  color: var(--muted);
+}
+
+/* Section header --------------------------------------------------- */
+
+/* Full-bleed: overrides .slide-frame's padding so the dark panel reaches every
+   slide edge rather than floating inside the content margin. */
+.layout-section-header {
+  position: absolute;
+  inset: 0;
+  background: var(--ink);
+  padding: 2.2em 1.6em;
+  justify-content: center;
+}
+.layout-section-header .slide-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.layout-section-header h1 { color: #fff; font-size: 1.8em; }
+.layout-section-header .kicker { color: #79c9bb; }
+.layout-section-header p { color: #c7d2e4; font-size: 0.75em; max-width: 22em; }
+
+/* Objectives and agenda -------------------------------------------- */
+
+.layout-objectives ol, .layout-objectives ul { font-size: 0.7em; margin-left: 1.3em; }
+.layout-objectives li { margin-bottom: 0.6em; }
+
+.agenda { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5em 1.4em; }
+.agenda .item {
+  display: flex;
+  gap: 0.7em;
+  align-items: baseline;
+  border-bottom: 1px solid var(--rule);
+  padding: 0.45em 0;
+  font-size: 0.6em;
+}
+.agenda .item .n {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  color: var(--accent);
+  font-weight: 700;
+  flex: 0 0 1.6em;
+}
+.agenda .item .dur { margin-left: auto; color: var(--muted); font-size: 0.85em; }
+
+/* Two-column ------------------------------------------------------- */
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2em; height: 100%; }
+.cols > div { min-width: 0; }
+.col-head {
+  font-family: var(--font-sans);
+  font-size: 0.5em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 0.4em;
+  margin-bottom: 0.7em;
+  border-bottom: 1px solid var(--rule);
+}
+.panel { background: var(--panel); border-radius: 6px; padding: 0.7em 0.85em; }
+
+/* Screenshots ------------------------------------------------------ */
+
+/* The image column is the wider one: a UI capture shrunk to fit a text column
+   is a picture of a screen nobody can read. */
+.shot-grid {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 1.2em;
+  height: 100%;
+  align-items: start;
+}
+.shot { margin: 0; min-width: 0; }
+.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 13.4em;
+  object-fit: contain;
+  object-position: top left;
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  background: #fff;
+}
+.shot-wide img { max-height: 10.5em; margin: 0 auto; width: auto; max-width: 100%; }
+.shot figcaption {
+  font-size: 0.4em;
+  color: var(--muted);
+  margin-top: 0.6em;
+  line-height: 1.35;
+}
+
+/* Numbered callouts sit BESIDE the screenshot, never burned onto it — the
+   image stays an unmodified artifact of the spec, and the steps stay
+   editable, translatable and readable by a screen reader. */
+.reveal ul.steps, .reveal ol.steps {
+  list-style: none;
+  margin: 0;
+  counter-reset: step;
+}
+.reveal .steps li {
+  position: relative;
+  counter-increment: step;
+  padding-left: 2.1em;
+  margin-bottom: 0.7em;
+  font-size: 0.6em;
+  line-height: 1.4;
+}
+.reveal .steps li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: -0.05em;
+  width: 1.5em;
+  height: 1.5em;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 0.85em;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.reveal .shot-steps .steps li { font-size: 0.58em; }
+/* The walkthrough intro is a one-line orientation, not a heading. */
+.shot-steps > p { font-size: 0.55em; color: var(--muted); margin-bottom: 0.9em; }
+
+/* Diagrams --------------------------------------------------------- */
+
+.diagram { text-align: center; margin-top: 0.4em; }
+
+/* Two things fight the diagram's size, and both are fixed here rather than in the
+   renderer, so a template can retune it without touching Python:
+
+     1. Mermaid writes an inline `max-width: NNNpx` sized to the diagram's natural
+        extent, which on a 1280px stage leaves a postage stamp mid-slide.
+     2. Sizing the <svg> in `em` is a trap — em on an SVG resolves against the SVG's
+        own font-size (mermaid sets 15px), not the slide's, so `height: 10.5em` comes
+        out about a third of the intended size.
+
+   So the box is sized in em on the container, where em means what it looks like it
+   means, and the SVG simply fills it. The viewBox keeps the aspect ratio. */
+.diagram .mermaid {
+  display: block;
+  height: 10.2em;
+  width: 100%;
+}
+.diagram .mermaid svg {
+  max-width: 100% !important;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.diagram figcaption {
+  font-size: 0.4em;
+  color: var(--muted);
+  margin-top: 0.5em;
+  text-align: center;
+}
+/* Shown when mermaid.min.js is not vendored: the deck degrades to a visible,
+   labelled panel of the diagram source rather than to a blank space. */
+.diagram-source {
+  background: var(--panel);
+  border: 1px dashed var(--muted);
+  border-radius: 4px;
+  padding: 0.7em 0.9em;
+  text-align: left;
+}
+.diagram-source .tag {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.42em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 0.5em;
+}
+.diagram-source pre {
+  font-family: var(--font-mono);
+  font-size: 0.4em;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  margin: 0;
+  white-space: pre-wrap;
+}
+
+/* Tables ----------------------------------------------------------- */
+
+.reveal table { width: 100%; border-collapse: collapse; font-size: 0.52em; }
+.reveal table th {
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: 0.85em;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 2px solid var(--ink);
+  padding: 0.5em 0.7em;
+}
+.reveal table td {
+  border-bottom: 1px solid var(--rule);
+  padding: 0.5em 0.7em;
+  vertical-align: top;
+  color: var(--ink-soft);
+}
+.reveal table tr:last-child td { border-bottom: none; }
+.reveal table .yes { color: var(--accent); font-weight: 700; }
+
+/* Knowledge check -------------------------------------------------- */
+
+/* Five questions have to fit and stay readable, so the check runs two columns
+   and a step smaller than body text. If a check still overflows, the questions
+   are too wordy — tighten the stems rather than shrinking this further. */
+/* The check's one-line framing, above the questions. */
+.layout-knowledge-check .slide-body > p { font-size: 0.55em; color: var(--muted); }
+
+.questions {
+  columns: 2;
+  column-gap: 1.4em;
+  font-size: 0.52em;
+  margin-top: 0.3em;
+}
+.question {
+  break-inside: avoid;
+  margin-bottom: 0.9em;
+  padding-left: 1.9em;
+  position: relative;
+}
+.question .qn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--accent);
+}
+.question .stem { line-height: 1.35; margin-bottom: 0.35em; }
+.question .type {
+  display: inline-block;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-left: 0.5em;
+}
+.question ol.options {
+  list-style: upper-alpha;
+  margin: 0 0 0 1.3em;
+  font-size: 0.92em;
+}
+.question ol.options li { margin-bottom: 0.15em; line-height: 1.3; }
+.question .tf {
+  display: flex;
+  gap: 1.2em;
+  margin-left: 0.1em;
+  font-size: 0.92em;
+  color: var(--ink-soft);
+}
+.question .tf span::before {
+  content: "";
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  border: 1.5px solid var(--muted);
+  border-radius: 2px;
+  margin-right: 0.4em;
+  vertical-align: -0.05em;
+}
+
+/* Recap and support ------------------------------------------------ */
+
+.layout-recap .slide-body { display: flex; flex-direction: column; justify-content: center; }
+.layout-recap ul { font-size: 0.72em; }
+.layout-support table { font-size: 0.55em; }
+
+/* Gap markers ------------------------------------------------------ */
+
+.gap {
+  background: var(--gap-bg);
+  border-left: 4px solid var(--gap-amber);
+  border-radius: 0 4px 4px 0;
+  padding: 0.6em 0.8em;
+  color: #78350f;
+  font-size: 0.62em;
+  line-height: 1.4;
+}
+.gap .gap-tag {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 0.8em;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--gap-amber);
+  margin-right: 0.5em;
+}
+
+/* Print / PDF export ----------------------------------------------- */
+
+@media print {
+  .slide-foot { color: #666; }
+  .gap { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .shot img { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+/* A diagram that did not render keeps its source on the slide and says so, rather
+   than leaving a blank panel or mermaid's own error box. */
+.mermaid.diagram-failed {
+  display: block;
+  text-align: left;
+  background: var(--gap-bg);
+  border-left: 4px solid var(--gap-amber);
+  border-radius: 0 4px 4px 0;
+  padding: 0.7em 0.9em;
+  font-family: var(--font-mono);
+  font-size: 0.4em;
+  line-height: 1.4;
+  color: #78350f;
+  white-space: pre-wrap;
+}
+.mermaid.diagram-failed::before {
+  content: "DIAGRAM DID NOT RENDER — source shown";
+  display: block;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.6em;
+  color: var(--gap-amber);
+}

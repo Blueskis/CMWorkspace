@@ -1,0 +1,206 @@
+<!--
+  Layout definitions for the generic training HTML template.
+
+  Each <template data-layout="..."> is one layout, equivalent to a slideLayout
+  in a .potx. Placeholders are {{name}} tokens; the names here MUST match the
+  placeholder names in template_profile.json, since that profile is what
+  build_deck.py validates a training plan against.
+
+  Optional regions wrap in {{#name}}...{{/name}} — the renderer drops the whole
+  block when that placeholder has no content, so a layout degrades cleanly
+  rather than leaving an empty panel behind.
+
+  Two layouts carry the shape this template exists for:
+
+    * screenshot-walkthrough — numbered steps beside the screen capture. The
+      callouts are text in their own column, NOT burned onto the image, so the
+      screenshot stays an unmodified artifact of the spec and the steps stay
+      editable and translatable.
+    * knowledge-check — the five questions. Answers never appear here; they are
+      generated into the speaker notes.
+
+  Editing a layout here changes every deck built from this template. No Python
+  changes needed — but re-run profile_template.py afterwards so the profile
+  stays in step.
+-->
+
+<template data-layout="title-slide">
+  <div class="slide-frame layout-title-slide">
+    <div class="slide-body">
+      <div class="course">{{course}}</div>
+      <h1>{{title}}</h1>
+      {{#subtitle}}<p class="subtitle">{{subtitle}}</p>{{/subtitle}}
+      <div class="meta">{{meta}}</div>
+    </div>
+  </div>
+</template>
+
+<template data-layout="section-header">
+  <div class="slide-frame layout-section-header">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h1>{{title}}</h1>
+      {{#body}}{{body}}{{/body}}
+    </div>
+  </div>
+</template>
+
+<template data-layout="objectives">
+  <div class="slide-frame layout-objectives">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      <p class="lead">By the end of this session you will be able to:</p>
+      {{objectives}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="agenda">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{agenda}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="title-and-content">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{body}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="two-content">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      <div class="cols">
+        <div>
+          {{#left_heading}}<div class="col-head">{{left_heading}}</div>{{/left_heading}}
+          {{left}}
+        </div>
+        <div>
+          {{#right_heading}}<div class="col-head">{{right_heading}}</div>{{/right_heading}}
+          {{right}}
+        </div>
+      </div>
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="screenshot-walkthrough">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      <div class="shot-grid">
+        <div class="shot-steps">
+          {{#intro}}{{intro}}{{/intro}}
+          {{steps}}
+        </div>
+        <figure class="shot">
+          {{image}}
+          {{#caption}}<figcaption>{{caption}}</figcaption>{{/caption}}
+        </figure>
+      </div>
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="screenshot-full">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      <figure class="shot shot-wide">
+        {{image}}
+        {{#caption}}<figcaption>{{caption}}</figcaption>{{/caption}}
+      </figure>
+      {{#steps}}{{steps}}{{/steps}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="diagram">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{#body}}{{body}}{{/body}}
+      {{diagram}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="table">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{#body}}{{body}}{{/body}}
+      {{table}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="role-grid">
+  <div class="slide-frame">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{#body}}{{body}}{{/body}}
+      {{roles}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="knowledge-check">
+  <div class="slide-frame layout-knowledge-check">
+    <div class="slide-body">
+      <div class="kicker">Knowledge check</div>
+      <h2>{{title}}</h2>
+      {{#intro}}{{intro}}{{/intro}}
+      {{questions}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="recap">
+  <div class="slide-frame layout-recap">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{body}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>
+
+<template data-layout="support">
+  <div class="slide-frame layout-support">
+    <div class="slide-body">
+      {{#kicker}}<div class="kicker">{{kicker}}</div>{{/kicker}}
+      <h2>{{title}}</h2>
+      {{#body}}{{body}}{{/body}}
+      {{#table}}{{table}}{{/table}}
+    </div>
+    {{#footer}}{{footer}}{{/footer}}
+  </div>
+</template>

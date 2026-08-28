@@ -1,0 +1,680 @@
+{
+  "run_id": "po-module-20260828",
+  "source_index_ref": "examples/po-training/source_index.json",
+  "system": "Procure-to-Pay — Purchase Order module",
+  "course_title": "Raising and Approving Purchase Orders",
+  "release": "R3",
+  "template": {
+    "path": "training-assets/templates/html-training",
+    "kind": "html",
+    "profile_ref": "training-assets/templates/html-training/template_profile.json"
+  },
+  "learning_objectives": [
+    {
+      "id": "LO1",
+      "text": "Raise a purchase order against an active supplier and submit it for approval",
+      "sources": ["POFSD#4.1", "POFSD#1.1"]
+    },
+    {
+      "id": "LO2",
+      "text": "Complete the header fields correctly, distinguishing mandatory from optional",
+      "sources": ["POFSD#4.2"]
+    },
+    {
+      "id": "LO3",
+      "text": "Explain what the budget check does and when it runs",
+      "sources": ["POFSD#4.3"]
+    },
+    {
+      "id": "LO4",
+      "text": "Identify which approval level an order routes to from its value",
+      "sources": ["POFSD#5.1"]
+    },
+    {
+      "id": "LO5",
+      "text": "Handle a blocked supplier, an absent approver and a failed transmission",
+      "sources": ["POFSD#5.3"]
+    }
+  ],
+  "deferred_topics": [],
+  "excluded_assets": [
+    {
+      "asset_id": "POFSD-img02",
+      "reason": "The specification's own process-flow picture is redrawn as a diagram block on the same slide, so it stays legible at slide size and can be updated when the process changes. Content unchanged — see POFSD#2."
+    }
+  ],
+  "slide_budget": { "limit": 24, "planned": 17, "cut_for_length": [] },
+  "modules": [
+    {
+      "module_id": "course-opening",
+      "title": "Welcome and objectives",
+      "order": 1,
+      "objective_ids": ["LO1", "LO2", "LO3", "LO4", "LO5"],
+      "topic_ids": ["T2", "T3"],
+      "audiences": ["po-creator", "po-approver"],
+      "duration_minutes": 5,
+      "slides": [
+        {
+          "slide_id": "opening-1",
+          "layout": "title-slide",
+          "title": "Raising and Approving Purchase Orders",
+          "blocks": [
+            { "placeholder": "course", "kind": "text", "content": "Procure-to-Pay · Release R3", "sources": ["POFSD#purchase-order-module-functional-specification"] },
+            { "placeholder": "subtitle", "kind": "text", "content": "The Purchase Order module, end to end", "sources": ["POFSD#purchase-order-module-functional-specification"] },
+            { "placeholder": "meta", "kind": "text", "content": "Draft for trainer review · Written against Release R3", "sources": ["POFSD#purchase-order-module-functional-specification"] }
+          ],
+          "speaker_notes": "Set expectations: this session covers raising an order through to approval. It does not cover goods receipt or invoice matching."
+        },
+        {
+          "slide_id": "opening-2",
+          "layout": "objectives",
+          "title": "What you will be able to do",
+          "objective_ids": ["LO1", "LO2", "LO3", "LO4", "LO5"],
+          "blocks": [
+            {
+              "placeholder": "objectives",
+              "kind": "bullets",
+              "content": [
+                "Raise a purchase order against an active supplier and submit it",
+                "Complete the header fields, knowing which are mandatory",
+                "Explain what the budget check does and when it runs",
+                "Identify which approval level an order routes to from its value",
+                "Handle a blocked supplier, an absent approver and a failed transmission"
+              ],
+              "sources": ["POFSD#1.1", "POFSD#4.1", "POFSD#4.2", "POFSD#4.3", "POFSD#5.1", "POFSD#5.3"]
+            }
+          ],
+          "speaker_notes": "Read these out. Come back to them at the recap so people can check themselves against each one."
+        },
+        {
+          "slide_id": "opening-3",
+          "layout": "agenda",
+          "title": "How the session runs",
+          "blocks": [
+            {
+              "placeholder": "agenda",
+              "kind": "agenda",
+              "content": [
+                { "title": "Why the PO module changed", "duration": "5 min" },
+                { "title": "The purchase order process", "duration": "10 min" },
+                { "title": "Who does what", "duration": "5 min" },
+                { "title": "Creating a purchase order", "duration": "20 min" },
+                { "title": "Approving a purchase order", "duration": "20 min" },
+                { "title": "What happens downstream", "duration": "5 min" },
+                { "title": "Recap and where to get help", "duration": "5 min" }
+              ],
+              "sources": ["POFSD#1.1"]
+            }
+          ],
+          "speaker_notes": "Two knowledge checks, one after creation and one after approval. Flag that now so nobody is surprised."
+        }
+      ]
+    },
+    {
+      "module_id": "process-context",
+      "title": "The purchase order process",
+      "order": 2,
+      "objective_ids": ["LO1"],
+      "topic_ids": ["T5", "T15"],
+      "audiences": ["po-creator", "po-approver"],
+      "duration_minutes": 10,
+      "slides": [
+        {
+          "slide_id": "process-1",
+          "layout": "diagram",
+          "title": "An order moves through five states",
+          "objective_ids": ["LO1"],
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "paragraph",
+              "content": "Submitting an order runs a budget check. If it passes, the order goes to the approver. If it fails, it comes straight back to you.",
+              "sources": ["POFSD#2"]
+            },
+            {
+              "placeholder": "diagram",
+              "kind": "diagram",
+              "content": "",
+              "sources": ["POFSD#2", "POSTATUS#po-statuses"],
+              "diagram": {
+                "pattern": "state-transition",
+                "caption": "Purchase order states and the events that move an order between them.",
+                "mermaid": "stateDiagram-v2\n    direction LR\n    [*] --> Draft: Creator raises order\n    Draft --> PendingApproval: Budget check passes\n    Draft --> Draft: Budget check fails\n    PendingApproval --> Approved: Approve\n    PendingApproval --> Draft: Reject, comment required\n    Approved --> Issued: Overnight transmission\n    Draft --> Cancelled\n    PendingApproval --> Cancelled\n    Approved --> Cancelled\n    Issued --> [*]"
+              }
+            }
+          ],
+          "speaker_notes": "Walk the happy path first, then the two loops back to Draft. Most support calls are people who do not realise a failed budget check returns the order to Draft rather than holding it."
+        },
+        {
+          "slide_id": "process-2",
+          "layout": "table",
+          "title": "What you can change in each state",
+          "objective_ids": ["LO1"],
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "paragraph",
+              "content": "An order is only editable in Draft. Once submitted, changes mean cancelling and raising a new order.",
+              "sources": ["POSTATUS#po-statuses"]
+            },
+            {
+              "placeholder": "table",
+              "kind": "table",
+              "content": {
+                "header": ["Status", "Set by", "Next states", "Editable"],
+                "rows": [
+                  ["Draft", "PO Creator", "Pending Approval, Cancelled", "Yes"],
+                  ["Pending Approval", "System on submit", "Approved, Draft, Cancelled", "No"],
+                  ["Approved", "PO Approver", "Issued, Cancelled", "No"],
+                  ["Issued", "Overnight transmission", "Closed", "No"],
+                  ["Cancelled", "PO Creator or Admin", "None", "No"]
+                ]
+              },
+              "sources": ["POSTATUS#po-statuses"]
+            }
+          ],
+          "speaker_notes": "The Editable column is the one people need. Point out that Pending Approval is not editable even by the person who raised it."
+        }
+      ]
+    },
+    {
+      "module_id": "roles-and-responsibilities",
+      "title": "Who does what",
+      "order": 3,
+      "objective_ids": ["LO1", "LO4"],
+      "topic_ids": ["T6"],
+      "audiences": ["po-creator", "po-approver"],
+      "duration_minutes": 5,
+      "slides": [
+        {
+          "slide_id": "roles-1",
+          "layout": "role-grid",
+          "title": "Three roles operate the module",
+          "objective_ids": ["LO1", "LO4"],
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "paragraph",
+              "content": "Roles are assigned in the identity system, not in the PO module. If your role is wrong, that is a request to your manager, not a change you can make here.",
+              "sources": ["POFSD#3"]
+            },
+            {
+              "placeholder": "roles",
+              "kind": "table",
+              "content": {
+                "header": ["Role", "Can do", "Cannot do"],
+                "rows": [
+                  ["PO Creator", "Create, edit and submit a draft order; cancel own draft", "Approve any order, including own"],
+                  ["PO Approver", "Approve or reject orders within their threshold; add comments", "Edit the line items of an order under approval"],
+                  ["Procurement Admin", "Maintain supplier records; reopen an Issued order", "Change approval thresholds"]
+                ]
+              },
+              "sources": ["POFSD#3"]
+            }
+          ],
+          "speaker_notes": "The Cannot column matters most. Nobody approves their own order, and an approver who wants a line changed has to reject it back."
+        }
+      ]
+    },
+    {
+      "module_id": "system-walkthrough-create",
+      "title": "Creating a purchase order",
+      "order": 4,
+      "objective_ids": ["LO1", "LO2", "LO3"],
+      "topic_ids": ["T7", "T8", "T9"],
+      "audiences": ["po-creator"],
+      "duration_minutes": 20,
+      "slides": [
+        {
+          "slide_id": "create-1",
+          "layout": "screenshot-walkthrough",
+          "title": "The Create Purchase Order screen",
+          "objective_ids": ["LO1"],
+          "blocks": [
+            {
+              "placeholder": "intro",
+              "kind": "paragraph",
+              "content": "Reached from Procurement > Orders > New.",
+              "sources": ["POFSD#4.1"]
+            },
+            {
+              "placeholder": "steps",
+              "kind": "steps",
+              "content": [
+                "Select the Supplier. Blocked suppliers do not appear in the list.",
+                "Set the Delivery Date. It must be today or later.",
+                "Check the Cost Centre — it defaults from your profile, and you can override it.",
+                "Add one line per item in the lines grid. Every order needs at least one line.",
+                "Save the draft, then Submit when you are ready for approval."
+              ],
+              "sources": ["POFSD#4.1", "POFSD#4.2", "POFSD#4.3"]
+            },
+            {
+              "placeholder": "image",
+              "kind": "image",
+              "content": "",
+              "sources": ["POFSD#4.1"],
+              "asset_id": "POFSD-img03",
+              "asset_path": "examples/po-training/assets/POFSD-img03.png",
+              "alt": "The Create Purchase Order screen, showing the header fields above the lines grid."
+            },
+            {
+              "placeholder": "caption",
+              "kind": "text",
+              "content": "Create Purchase Order — header above, lines grid below. Order Total is calculated and cannot be typed.",
+              "sources": ["POFSD#4.1"]
+            }
+          ],
+          "speaker_notes": "Have them follow along in the training system. The Order Total being read-only is the thing people try first and get stuck on."
+        },
+        {
+          "slide_id": "create-2",
+          "layout": "table",
+          "title": "Header field rules",
+          "objective_ids": ["LO2"],
+          "blocks": [
+            {
+              "placeholder": "table",
+              "kind": "table",
+              "content": {
+                "header": ["Field", "Mandatory", "Rule"],
+                "rows": [
+                  ["Supplier", "Yes", "Must be an active supplier; blocked suppliers are not selectable"],
+                  ["Delivery Date", "Yes", "Must be today or later; back-dating is rejected"],
+                  ["Cost Centre", "Yes", "Defaults from the requisitioner's profile; may be overridden"],
+                  ["Internal Reference", "No", "Free text, 30 characters"],
+                  ["Order Total", "No", "Calculated from the lines; read-only"]
+                ]
+              },
+              "sources": ["POFSD#4.2"]
+            }
+          ],
+          "speaker_notes": "Three mandatory, two not. Internal Reference is the one teams use for their own tracking — worth a local convention."
+        },
+        {
+          "slide_id": "create-3",
+          "layout": "title-and-content",
+          "title": "The budget check runs on submit, not on save",
+          "objective_ids": ["LO3"],
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "bullets",
+              "content": [
+                "You can save a draft that would fail the budget check — saving does not test it",
+                "Submitting runs the check; passing sends the order to the approver",
+                "Failing returns the order to Draft and shows you the shortfall amount",
+                "A line quantity must be greater than zero",
+                "An order needs at least one line before it can be submitted"
+              ],
+              "sources": ["POFSD#4.3"]
+            }
+          ],
+          "speaker_notes": "This catches people out: they save happily all afternoon, then submit and find the budget was never going to allow it."
+        },
+        {
+          "slide_id": "create-4",
+          "layout": "knowledge-check",
+          "title": "Creating an order",
+          "objective_ids": ["LO1", "LO2", "LO3"],
+          "blocks": [
+            {
+              "placeholder": "intro",
+              "kind": "paragraph",
+              "content": "Five questions on what we have just covered.",
+              "sources": ["POFSD#4.1"]
+            },
+            {
+              "placeholder": "questions",
+              "kind": "questions",
+              "content": [],
+              "sources": ["POFSD#4.1", "POFSD#4.2", "POFSD#4.3"],
+              "questions": [
+                {
+                  "question_id": "create-q1",
+                  "type": "mcq",
+                  "stem": "You set a Delivery Date of yesterday and try to save. What happens?",
+                  "options": [
+                    "The date is rejected — it must be today or later",
+                    "The date is accepted but flagged for the approver",
+                    "The date is silently reset to today"
+                  ],
+                  "answer_index": 0,
+                  "rationale": "Delivery Date is mandatory and must be today or later; back-dating is rejected outright.",
+                  "sources": ["POFSD#4.2"],
+                  "objective_ids": ["LO2"],
+                  "cognitive_level": "apply"
+                },
+                {
+                  "question_id": "create-q2",
+                  "type": "true_false",
+                  "stem": "A draft order can be saved even when there is not enough budget for it.",
+                  "answer": true,
+                  "rationale": "True. The budget check runs on submit, not on save, so a draft that would fail can still be saved.",
+                  "sources": ["POFSD#4.3"],
+                  "objective_ids": ["LO3"],
+                  "cognitive_level": "apply"
+                },
+                {
+                  "question_id": "create-q3",
+                  "type": "mcq",
+                  "stem": "Which of these header fields can you leave empty?",
+                  "options": [
+                    "Supplier",
+                    "Internal Reference",
+                    "Cost Centre",
+                    "Delivery Date"
+                  ],
+                  "answer_index": 1,
+                  "rationale": "Internal Reference is the only optional field of the four; Supplier, Cost Centre and Delivery Date are all mandatory.",
+                  "sources": ["POFSD#4.2"],
+                  "objective_ids": ["LO2"],
+                  "cognitive_level": "recall"
+                },
+                {
+                  "question_id": "create-q4",
+                  "type": "true_false",
+                  "stem": "You can type the Order Total directly if the calculated figure looks wrong.",
+                  "answer": false,
+                  "rationale": "False. Order Total is calculated from the lines and is read-only — correct the lines instead.",
+                  "sources": ["POFSD#4.1", "POFSD#4.2"],
+                  "objective_ids": ["LO1"],
+                  "cognitive_level": "apply"
+                },
+                {
+                  "question_id": "create-q5",
+                  "type": "mcq",
+                  "stem": "Your order fails the budget check on submit. Where does it go?",
+                  "options": [
+                    "It stays in Pending Approval until budget is released",
+                    "It returns to Draft and shows the shortfall amount",
+                    "It routes to the Finance Director for an exception decision"
+                  ],
+                  "answer_index": 1,
+                  "rationale": "A failed budget check returns the order to Draft, and the requisitioner is shown the shortfall.",
+                  "sources": ["POFSD#4.3"],
+                  "objective_ids": ["LO3", "LO1"],
+                  "cognitive_level": "apply"
+                }
+              ]
+            }
+          ],
+          "speaker_notes": "Give them two minutes, then take answers aloud. Q2 and Q5 are the pair that together explain the budget check."
+        }
+      ]
+    },
+    {
+      "module_id": "system-walkthrough-approve",
+      "title": "Approving a purchase order",
+      "order": 5,
+      "objective_ids": ["LO4", "LO5"],
+      "topic_ids": ["T10", "T11", "T12"],
+      "audiences": ["po-approver"],
+      "duration_minutes": 20,
+      "slides": [
+        {
+          "slide_id": "approve-1",
+          "layout": "table",
+          "title": "Approval level follows the order total",
+          "objective_ids": ["LO4"],
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "paragraph",
+              "content": "An order that exceeds your threshold routes to the next level. It is never split to keep it under a limit.",
+              "sources": ["POFSD#5.1"]
+            },
+            {
+              "placeholder": "table",
+              "kind": "table",
+              "content": {
+                "header": ["Order total", "Approver level", "Service level"],
+                "rows": [
+                  ["Up to 5,000", "Line Manager", "2 working days"],
+                  ["5,001 to 50,000", "Department Head", "3 working days"],
+                  ["Above 50,000", "Finance Director", "5 working days"]
+                ]
+              },
+              "sources": ["POFSD#5.1"]
+            }
+          ],
+          "speaker_notes": "Watch the boundary: 5,000 exactly is Line Manager, 5,001 is Department Head."
+        },
+        {
+          "slide_id": "approve-2",
+          "layout": "screenshot-walkthrough",
+          "title": "The Approve Purchase Order screen",
+          "objective_ids": ["LO4"],
+          "blocks": [
+            {
+              "placeholder": "intro",
+              "kind": "paragraph",
+              "content": "Open the order from your approval queue.",
+              "sources": ["POFSD#5.2"]
+            },
+            {
+              "placeholder": "steps",
+              "kind": "steps",
+              "content": [
+                "Open the order from the approval queue.",
+                "Check the header, the lines and the budget check result.",
+                "Approve, or Reject with a comment of at least ten characters.",
+                "A rejected order returns to the creator as a Draft."
+              ],
+              "sources": ["POFSD#5.2", "POFSD#2"]
+            },
+            {
+              "placeholder": "image",
+              "kind": "image",
+              "content": "",
+              "sources": ["POFSD#5.2"],
+              "asset_id": "POFSD-img04",
+              "asset_path": "examples/po-training/assets/POFSD-img04.png",
+              "alt": "The Approve Purchase Order screen, showing the approval queue and the budget check result."
+            },
+            {
+              "placeholder": "caption",
+              "kind": "text",
+              "content": "Approve Purchase Order — the budget check result sits with the order header.",
+              "sources": ["POFSD#5.2"]
+            }
+          ],
+          "speaker_notes": "You cannot edit lines here. If a line is wrong, reject with a comment saying which line and why — that comment is all the creator gets."
+        },
+        {
+          "slide_id": "approve-3",
+          "layout": "title-and-content",
+          "title": "When something goes wrong",
+          "objective_ids": ["LO5"],
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "bullets",
+              "content": [
+                "Approver absent — the order stays in their queue until a Procurement Admin reassigns it. There is no automatic escalation in R3.",
+                "Supplier blocked after the order was raised — approval is refused with 'Supplier is blocked'.",
+                "Transmission fails — the order stays Approved and appears on the overnight exception report."
+              ],
+              "sources": ["POFSD#5.3"]
+            },
+            {
+              "placeholder": "footer",
+              "kind": "text",
+              "content": "",
+              "sources": ["POFSD#5.3"]
+            }
+          ],
+          "speaker_notes": "The absent-approver case is the one that generates chasing emails. Tell them who their Procurement Admin is."
+        },
+        {
+          "slide_id": "approve-4",
+          "layout": "knowledge-check",
+          "title": "Approving an order",
+          "objective_ids": ["LO4", "LO5"],
+          "blocks": [
+            {
+              "placeholder": "intro",
+              "kind": "paragraph",
+              "content": "Five questions on approval and exceptions.",
+              "sources": ["POFSD#5.1"]
+            },
+            {
+              "placeholder": "questions",
+              "kind": "questions",
+              "content": [],
+              "sources": ["POFSD#5.1", "POFSD#5.2", "POFSD#5.3"],
+              "questions": [
+                {
+                  "question_id": "approve-q1",
+                  "type": "mcq",
+                  "stem": "An order totalling 48,000 is submitted. Who approves it?",
+                  "options": [
+                    "Line Manager",
+                    "Department Head",
+                    "Finance Director",
+                    "Line Manager, then Department Head"
+                  ],
+                  "answer_index": 1,
+                  "rationale": "48,000 falls in the 5,001 to 50,000 band, which routes to the Department Head. Orders route to one level, not through several.",
+                  "sources": ["POFSD#5.1"],
+                  "objective_ids": ["LO4"],
+                  "cognitive_level": "apply"
+                },
+                {
+                  "question_id": "approve-q2",
+                  "type": "true_false",
+                  "stem": "An order that exceeds your approval threshold can be split into two smaller orders to keep it within your limit.",
+                  "answer": false,
+                  "rationale": "False. An order that exceeds a threshold routes to the next level; the specification states it is never split.",
+                  "sources": ["POFSD#5.1"],
+                  "objective_ids": ["LO4"],
+                  "cognitive_level": "apply"
+                },
+                {
+                  "question_id": "approve-q3",
+                  "type": "mcq",
+                  "stem": "You want to approve an order but one line has the wrong quantity. What can you do on the approval screen?",
+                  "options": [
+                    "Edit the line quantity, then approve",
+                    "Approve with a comment noting the correction",
+                    "Reject with a comment saying which line is wrong"
+                  ],
+                  "answer_index": 2,
+                  "rationale": "An approver cannot edit the line items of an order under approval. Rejecting with a comment sends it back to the creator as a Draft.",
+                  "sources": ["POFSD#3", "POFSD#5.2"],
+                  "objective_ids": ["LO5"],
+                  "cognitive_level": "apply"
+                },
+                {
+                  "question_id": "approve-q4",
+                  "type": "true_false",
+                  "stem": "If an approver is on leave, the order sits in their queue until a Procurement Admin reassigns it.",
+                  "answer": true,
+                  "rationale": "True. There is no automatic escalation in Release R3 — reassignment by a Procurement Admin is the only way the order moves.",
+                  "sources": ["POFSD#5.3"],
+                  "objective_ids": ["LO5"],
+                  "cognitive_level": "apply"
+                },
+                {
+                  "question_id": "approve-q5",
+                  "type": "mcq",
+                  "stem": "An approved order fails to transmit to the supplier overnight. What is its status the next morning?",
+                  "options": [
+                    "Approved, and listed on the overnight exception report",
+                    "Issued, with a transmission warning",
+                    "Returned to Draft for the creator to resubmit"
+                  ],
+                  "answer_index": 0,
+                  "rationale": "A failed transmission leaves the order in Approved and puts it on the overnight exception report; it does not reach Issued.",
+                  "sources": ["POFSD#5.3", "POFSD#2"],
+                  "objective_ids": ["LO5"],
+                  "cognitive_level": "apply"
+                }
+              ]
+            }
+          ],
+          "speaker_notes": "Q3 is the one approvers most often get wrong in practice — they expect to be able to fix a line rather than reject."
+        }
+      ]
+    },
+    {
+      "module_id": "integrations",
+      "title": "What happens downstream",
+      "order": 6,
+      "objective_ids": ["LO1"],
+      "topic_ids": ["T13"],
+      "audiences": ["po-creator", "po-approver"],
+      "duration_minutes": 5,
+      "slides": [
+        {
+          "slide_id": "downstream-1",
+          "layout": "title-and-content",
+          "title": "An issued order commits budget",
+          "objective_ids": ["LO1"],
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "bullets",
+              "content": [
+                "On reaching Issued, the order posts to the finance ledger as a commitment",
+                "Goods receipt is recorded in the warehouse system and matched back to the order line",
+                "Cancelling an order releases its commitment on the next ledger run"
+              ],
+              "sources": ["POFSD#6"]
+            }
+          ],
+          "speaker_notes": "The delay on releasing a commitment is why cancelled orders can still show against budget for a day."
+        }
+      ]
+    },
+    {
+      "module_id": "recap-and-support",
+      "title": "Recap and where to get help",
+      "order": 7,
+      "objective_ids": ["LO1", "LO2", "LO3", "LO4", "LO5"],
+      "topic_ids": [],
+      "audiences": ["po-creator", "po-approver"],
+      "duration_minutes": 5,
+      "slides": [
+        {
+          "slide_id": "recap-1",
+          "layout": "recap",
+          "title": "The five things to take away",
+          "objective_ids": ["LO1", "LO2", "LO3", "LO4", "LO5"],
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "bullets",
+              "content": [
+                "Supplier, Delivery Date and Cost Centre are mandatory; Order Total is calculated",
+                "The budget check runs on submit, not on save",
+                "A failed budget check returns the order to Draft with the shortfall shown",
+                "Approval level follows the order total, and an order is never split",
+                "An absent approver needs a Procurement Admin — nothing escalates on its own"
+              ],
+              "sources": ["POFSD#4.2", "POFSD#4.3", "POFSD#5.1", "POFSD#5.3"]
+            }
+          ],
+          "speaker_notes": "Put the objectives slide back up beside this and ask whether anyone is unsure of one."
+        },
+        {
+          "slide_id": "support-1",
+          "layout": "support",
+          "title": "Where to get help",
+          "objective_ids": ["LO5"],
+          "blocks": [
+            {
+              "placeholder": "body",
+              "kind": "paragraph",
+              "content": "[GAP]",
+              "sources": [],
+              "gap": true,
+              "gap_note": "The specification does not name a support route, a service desk queue or a Procurement Admin contact. Needed before this deck is used, since two of the exception paths (absent approver, blocked supplier) end with 'contact a Procurement Admin' and nobody is told who that is. Leaves LO5 exposed."
+            }
+          ],
+          "speaker_notes": "Do not run this session without filling this in — the exceptions module sends people to a Procurement Admin we have not named."
+        }
+      ]
+    }
+  ]
+}

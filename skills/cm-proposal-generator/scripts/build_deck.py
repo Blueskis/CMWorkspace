@@ -17,6 +17,9 @@ needs the pptx skill's own tooling (add_slide.py, clean.py, validate.py) driving
 a half-working assembler that silently drops a placeholder is worse than a manifest a
 human can follow. Where the manifest can't express a slide, build that slide by hand
 through the pptx skill — never degrade the plan to fit the tooling.
+
+The validation and sequencing live in lib/deckkit/manifest.py, shared with the
+training-material generator; this file is the proposal-side CLI over it.
 """
 
 import argparse
@@ -24,84 +27,8 @@ import json
 import sys
 from pathlib import Path
 
-
-def layout_lookup(profile):
-    """Map both layout part-stem (slideLayout3) and human name to the layout record."""
-    table = {}
-    for layout in profile.get("layouts", []):
-        table[Path(layout["part"]).stem] = layout
-        if layout.get("name"):
-            table[layout["name"]] = layout
-    return table
-
-
-def placeholder_keys(layout):
-    keys = set()
-    for ph in layout.get("placeholders", []):
-        for value in (ph.get("name"), ph.get("idx"), ph.get("type")):
-            if value is not None:
-                keys.add(str(value))
-    return keys
-
-
-def build(plan, profile):
-    layouts = layout_lookup(profile)
-    steps, errors = [], []
-    slide_no = 0
-
-    for section in sorted(plan.get("sections", []), key=lambda s: s.get("order", 0)):
-        for slide in section.get("slides", []):
-            slide_no += 1
-            layout_ref = str(slide["layout"])
-            layout = layouts.get(layout_ref)
-
-            if layout is None:
-                errors.append(
-                    f"{slide['slide_id']}: layout '{layout_ref}' is not in the approved "
-                    f"template. Available: {', '.join(sorted(layouts))}"
-                )
-                continue
-
-            keys = placeholder_keys(layout)
-            fills = []
-            for block in slide.get("blocks", []):
-                target = str(block["placeholder"])
-                if target not in keys:
-                    errors.append(
-                        f"{slide['slide_id']}: placeholder '{target}' not on layout "
-                        f"'{layout_ref}'. Available: {', '.join(sorted(keys))}"
-                    )
-                    continue
-                is_gap = bool(block.get("gap"))
-                fills.append(
-                    {
-                        "placeholder": target,
-                        "kind": block["kind"],
-                        # For a gap, content carries the marker so the pptx path can be
-                        # followed by hand from the manifest alone; gap_note is passed
-                        # through separately for renderers that present it themselves.
-                        "content": "[GAP] " + block.get("gap_note", "") if is_gap
-                        else block["content"],
-                        "gap": is_gap,
-                        "gap_note": block.get("gap_note") if is_gap else None,
-                        "sources": block.get("sources", []),
-                    }
-                )
-
-            steps.append(
-                {
-                    "position": slide_no,
-                    "slide_id": slide["slide_id"],
-                    "section_id": section["section_id"],
-                    "layout_part": layout["part"],
-                    "layout_name": layout.get("name"),
-                    "title": slide["title"],
-                    "fills": fills,
-                    "speaker_notes": slide.get("speaker_notes"),
-                }
-            )
-
-    return steps, errors
+sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "lib"))
+from deckkit.manifest import build  # noqa: E402  (re-exported for render_html.py)
 
 
 def main():

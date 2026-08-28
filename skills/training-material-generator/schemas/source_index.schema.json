@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "source_index.schema.json",
+  "title": "Source Index",
+  "description": "Stage 1 output. Everything the uploaded documents contain, addressable by anchor: text chunks, tables, extracted images, and the topic list the deck must cover. Every source citation anywhere downstream resolves to an anchor in this file, which is what makes a claim in the deck checkable against the spec.",
+  "type": "object",
+  "required": ["run_id", "generated", "documents", "chunks", "assets", "topics"],
+  "properties": {
+    "run_id": { "type": "string", "description": "e.g. 'po-module-20260828'" },
+    "generated": { "type": "string", "description": "ISO timestamp" },
+    "documents": {
+      "type": "array",
+      "description": "One record per ingested file.",
+      "items": {
+        "type": "object",
+        "required": ["doc_id", "path", "kind", "images_extracted"],
+        "properties": {
+          "doc_id": { "type": "string", "description": "Short stable handle used in anchors, e.g. 'FSD'" },
+          "path": { "type": "string" },
+          "kind": { "enum": ["docx", "xlsx", "pdf", "txt", "md"] },
+          "title": { "type": ["string", "null"] },
+          "images_extracted": {
+            "type": "boolean",
+            "description": "False for kinds this pipeline reads text-only (pdf, txt, md). Stage 5 uses it so a document whose images were never looked for is not reported as having none."
+          },
+          "chunk_count": { "type": "integer" },
+          "asset_count": { "type": "integer" }
+        }
+      }
+    },
+    "chunks": {
+      "type": "array",
+      "description": "Heading-anchored units of text. A chunk is the smallest thing a slide can cite.",
+      "items": {
+        "type": "object",
+        "required": ["anchor", "doc_id", "heading_path", "text", "ordinal"],
+        "properties": {
+          "anchor": {
+            "type": "string",
+            "description": "Stable citation, '<doc_id>#<clause-or-slug>' with an optional '@p<n>'. This is the string that appears in a plan block's sources array."
+          },
+          "doc_id": { "type": "string" },
+          "heading_path": {
+            "type": "array",
+            "description": "Ancestor headings, outermost first — the chunk's position in the document.",
+            "items": { "type": "string" }
+          },
+          "clause": { "type": ["string", "null"], "description": "Numbered clause if the heading carried one, e.g. '4.2.1'" },
+          "text": { "type": "string" },
+          "ordinal": { "type": "integer", "description": "Document order. Drives which screenshot belongs to which step." },
+          "page": { "type": ["integer", "null"], "description": "Page estimate; null when the format has no pages" },
+          "word_count": { "type": "integer" },
+          "tables": {
+            "type": "array",
+            "description": "Tables appearing inside this chunk, kept as rows. Flattening a field-rules table to prose loses the mandatory/optional column, which is exactly the content training must get right.",
+            "items": {
+              "type": "object",
+              "required": ["table_id", "header", "rows"],
+              "properties": {
+                "table_id": { "type": "string" },
+                "caption": { "type": ["string", "null"] },
+                "header": { "type": "array", "items": { "type": "string" } },
+                "rows": { "type": "array", "items": { "type": "array", "items": { "type": "string" } } },
+                "sheet": { "type": ["string", "null"], "description": "Worksheet name, for xlsx sources" }
+              }
+            }
+          },
+          "asset_ids": {
+            "type": "array",
+            "description": "Assets anchored inside this chunk.",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "assets": {
+      "type": "array",
+      "description": "Images extracted from the documents, written to the run's assets/ directory as original bytes.",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "doc_id", "path", "asset_kind", "ordinal", "sha256"],
+        "properties": {
+          "asset_id": { "type": "string", "description": "e.g. 'FSD-img03'" },
+          "doc_id": { "type": "string" },
+          "path": { "type": "string", "description": "Path on disk, relative to the run workspace" },
+          "media_type": { "type": "string", "description": "e.g. 'image/png'" },
+          "asset_kind": {
+            "enum": ["screenshot", "diagram", "chart", "icon", "logo", "unknown"],
+            "description": "Classified on ingest by cheap heuristics, corrected by the model at Stage 3. Only screenshot/diagram/chart are candidates for placement and subject to the Stage 5 triage check, so a repeated header logo cannot end up on a slide or be reported as a dropped screenshot."
+          },
+          "caption": { "type": ["string", "null"], "description": "Figure caption, when the document carried one" },
+          "alt_text": { "type": ["string", "null"], "description": "From the drawing's descr/name attributes" },
+          "heading_path": { "type": "array", "items": { "type": "string" } },
+          "anchor": { "type": "string", "description": "The chunk anchor this image sat under" },
+          "ordinal": { "type": "integer", "description": "Document order, shared with chunks" },
+          "width_px": { "type": ["integer", "null"] },
+          "height_px": { "type": ["integer", "null"] },
+          "bytes": { "type": "integer" },
+          "sha256": { "type": "string", "description": "De-duplicates the logo that repeats in every page header" },
+          "occurrences": { "type": "integer", "description": "How many times these exact bytes appear across the documents" },
+          "sheet_ref": { "type": ["string", "null"], "description": "Sheet and cell anchor, for xlsx sources" },
+          "classification_reasons": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "topics": {
+      "type": "array",
+      "description": "Candidate teachable topics, one per in-scope heading. These are to this pipeline what requirement IDs are to the proposal generator: Stage 2 maps them to modules and Stage 5 checks none went missing without a reason.",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "anchor"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^T[0-9]+$" },
+          "title": { "type": "string" },
+          "anchor": { "type": "string" },
+          "heading_path": { "type": "array", "items": { "type": "string" } },
+          "word_count": { "type": "integer", "description": "How much the document dwells on it — Stage 2 sizes modules by this, never by invented emphasis" },
+          "asset_ids": { "type": "array", "items": { "type": "string" } },
+          "in_scope": {
+            "type": "boolean",
+            "default": true,
+            "description": "Set false for document furniture — revision history, sign-off tables, distribution lists. Out-of-scope topics are exempt from the coverage check."
+          },
+          "scope_note": { "type": "string", "description": "Required when in_scope is false — why this is not teachable content" }
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "description": "Non-fatal ingest problems, surfaced rather than swallowed.",
+      "items": { "type": "string" }
+    }
+  }
+}
