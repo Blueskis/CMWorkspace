@@ -475,6 +475,43 @@
   .btn.danger-solid { background: var(--clay); border-color: var(--clay); color: var(--accent-ink); font-weight: 600; }
   .btn.danger-solid:hover { filter: brightness(1.08); }
 
+  /* ---------- streams, involvement, subtotals ---------- */
+
+  .stream-tag {
+    display: inline-block; font-family: var(--font-mono); font-size: .64rem;
+    letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
+    padding: 2px 8px; border-radius: 4px; vertical-align: middle;
+  }
+  .stream-tag.global { background: var(--accent-soft); color: var(--accent); }
+  .stream-tag.local { background: var(--jade-soft); color: var(--jade); }
+  .stream-card > header h2 { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+  .stream-card > header h2 > span:last-child { font-size: .95rem; color: var(--ink-2); font-weight: 400; }
+
+  tfoot tr.ft-rule td { border-top: 1px solid var(--line-strong); }
+  tfoot tr.ft-total td { border-top: 1px solid var(--line-strong); font-weight: 600; }
+
+  .involve {
+    display: flex; flex-direction: column; gap: 8px;
+    border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px 14px; background: var(--surface-2);
+  }
+  .involve[hidden] { display: none; }
+  .involve-grid { display: flex; flex-direction: column; gap: 9px; }
+  .involve-row {
+    display: grid; grid-template-columns: 140px minmax(120px, 260px) 1fr;
+    gap: 12px; align-items: center;
+  }
+  @media (max-width: 700px) { .involve-row { grid-template-columns: minmax(0, 1fr); } }
+  .involve-row label { font-size: .85rem; color: var(--ink-2); }
+  .involve-row input[type="range"] { width: 100%; accent-color: var(--accent); }
+  .involve-read { font-family: var(--font-mono); font-size: .78rem; color: var(--ink-2); }
+  .involve-read b { color: var(--ink); }
+
+  .archbar { height: 7px; border-radius: 4px; background: var(--surface-2); min-width: 70px; overflow: hidden; }
+  .archbar span { display: block; height: 100%; background: var(--accent); }
+
+  #grand-body td { padding-top: 9px; padding-bottom: 9px; }
+
   .rate-cell input { width: 100%; }
   .rates-scroll th.sticky-col, .rates-scroll td.sticky-col {
     position: sticky; left: 0; background: var(--surface); z-index: 1;
@@ -536,10 +573,36 @@
               <select id="delivery-mode"></select>
               <span class="src default">Sessions and workshops</span>
             </div>
+          </div>
+          <div class="row">
+            <div class="field" style="max-width:230px">
+              <label for="scope-type">Scope of the rollout</label>
+              <select id="scope-type">
+                <option value="">Select a scope&hellip;</option>
+                <option value="global">Global only</option>
+                <option value="local">Local only</option>
+                <option value="both">Global and local</option>
+              </select>
+              <span class="src default">Sets the sections on the estimate</span>
+            </div>
+            <div class="field" style="max-width:200px">
+              <label for="review-cycles">Review cycles</label>
+              <select id="review-cycles">
+                <option value="1">1 cycle</option>
+                <option value="2">2 cycles</option>
+                <option value="3">3 cycles</option>
+              </select>
+              <span class="src default" id="review-note"></span>
+            </div>
             <div class="field" style="max-width:150px">
               <label for="hours-per-day">Hours per day</label>
               <input type="number" id="hours-per-day" min="1" max="24" step="0.5">
             </div>
+          </div>
+          <div class="involve" id="involve-wrap" hidden>
+            <span class="eyebrow">Who does the work</span>
+            <div class="involve-grid" id="involve-grid"></div>
+            <span class="note">Only our share is carried into the estimate. Review cycles are ours to run either way, so they sit on top of the whole build.</span>
           </div>
         </div>
       </div>
@@ -599,7 +662,83 @@
 
     <!-- ============ 02 PRICED DELIVERABLES ============ -->
     <section class="panel" id="panel-quote" role="tabpanel">
-      <div class="card" id="quote-card">
+      <div class="card" id="scope-gate" hidden>
+        <div class="empty-gate">
+          <h3>Choose the scope of the rollout first</h3>
+          <p class="note">Global work is built once centrally; local work adapts it per market. The estimate is sectioned accordingly, so it needs to know which applies.</p>
+          <button class="btn primary" id="btn-goto-scope">Go to Scope &amp; RFP</button>
+        </div>
+      </div>
+
+      <div class="card stream-card" id="sec-global" data-stream="global" hidden>
+        <header>
+          <h2><span class="stream-tag global">Global</span> <span id="stream-title-global"></span></h2>
+          <span class="hint" id="stream-meta-global"></span>
+        </header>
+        <div class="body">
+          <p class="note" id="stream-blurb-global"></p>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="n">In</th><th>Deliverable</th><th>Unit</th>
+                  <th class="n">Qty</th><th>Complexity</th><th>Mode</th>
+                  <th class="n">Mandays</th><th class="n">Option</th><th class="no-print"></th>
+                </tr>
+              </thead>
+              <tbody id="lines-body-global"></tbody>
+              <tfoot id="lines-foot-global"></tfoot>
+            </table>
+          </div>
+          <div class="addline no-print">
+            <span class="eyebrow">Add a global deliverable</span>
+            <div class="addline-grid">
+              <input type="text" data-add="name" data-stream="global" placeholder="Name it as the RFP does">
+              <input type="number" data-add="qty" data-stream="global" value="1" min="0" step="1" aria-label="Quantity">
+              <select data-add="level" data-stream="global" aria-label="Complexity"></select>
+              <select data-add="arch" data-stream="global" aria-label="Effort archetype"></select>
+              <button class="btn" data-add="go" data-stream="global">Add</button>
+            </div>
+            <span class="note">The archetype is inferred from the name and sets both the hours and the team &mdash; correct it if the guess is wrong.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card stream-card" id="sec-local" data-stream="local" hidden>
+        <header>
+          <h2><span class="stream-tag local">Local</span> <span id="stream-title-local"></span></h2>
+          <span class="hint" id="stream-meta-local"></span>
+        </header>
+        <div class="body">
+          <p class="note" id="stream-blurb-local"></p>
+          <div class="tablewrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="n">In</th><th>Deliverable</th><th>Unit</th>
+                  <th class="n">Qty</th><th>Complexity</th><th>Mode</th>
+                  <th class="n">Mandays</th><th class="n">Option</th><th class="no-print"></th>
+                </tr>
+              </thead>
+              <tbody id="lines-body-local"></tbody>
+              <tfoot id="lines-foot-local"></tfoot>
+            </table>
+          </div>
+          <div class="addline no-print">
+            <span class="eyebrow">Add a local deliverable</span>
+            <div class="addline-grid">
+              <input type="text" data-add="name" data-stream="local" placeholder="Name it as the RFP does">
+              <input type="number" data-add="qty" data-stream="local" value="1" min="0" step="1" aria-label="Quantity">
+              <select data-add="level" data-stream="local" aria-label="Complexity"></select>
+              <select data-add="arch" data-stream="local" aria-label="Effort archetype"></select>
+              <button class="btn" data-add="go" data-stream="local">Add</button>
+            </div>
+            <span class="note">The archetype is inferred from the name and sets both the hours and the team &mdash; correct it if the guess is wrong.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="grand-card" hidden>
         <header>
           <h2 id="quote-title">Manday estimate</h2>
           <span class="hint" id="quote-meta"></span>
@@ -613,30 +752,25 @@
             <button class="btn primary" id="btn-print">Print / PDF</button>
           </div>
           <div class="tablewrap">
-            <table id="lines-table">
-              <thead>
-                <tr>
-                  <th class="n">In</th><th>Deliverable</th><th>Unit</th>
-                  <th class="n">Qty</th><th>Complexity</th><th>Mode</th>
-                  <th class="n">Mandays</th><th class="n">Option</th><th class="no-print"></th>
-                </tr>
-              </thead>
-              <tbody id="lines-body"></tbody>
-              <tfoot id="lines-foot"></tfoot>
+            <table><tbody id="grand-body"></tbody></table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="arch-card" hidden>
+        <header>
+          <h2>Deliverables by archetype</h2>
+          <span class="hint" id="arch-meta"></span>
+        </header>
+        <div class="body">
+          <p class="note">What the client receives, grouped by the kind of work it is. Counts are deliverable units across the streams in scope; mandays are our share of the build, before review and buffer.</p>
+          <div class="tablewrap">
+            <table id="arch-table">
+              <thead><tr><th>Archetype</th><th class="n">Deliverables</th><th class="n">Optional</th><th class="n">Mandays</th><th class="n">Share</th></tr></thead>
+              <tbody id="arch-body"></tbody>
+              <tfoot id="arch-foot"></tfoot>
             </table>
           </div>
-          <div class="addline no-print">
-            <span class="eyebrow">Add a deliverable</span>
-            <div class="addline-grid">
-              <input type="text" id="add-name" placeholder="Name it as the RFP does — e.g. Union engagement roadshow">
-              <input type="number" id="add-qty" value="1" min="0" step="1" aria-label="Quantity">
-              <select id="add-level" aria-label="Complexity"></select>
-              <select id="add-arch" aria-label="Effort archetype"></select>
-              <button class="btn" id="btn-add-line">Add</button>
-            </div>
-            <span class="note" id="add-hint">The archetype is inferred from the name and sets both the hours and the team &mdash; correct it if the guess is wrong.</span>
-          </div>
-          <p class="note no-print">Tick <strong>Option</strong> to move a line out of the headline effort and into a separately quoted options schedule.</p>
         </div>
       </div>
 
@@ -731,6 +865,22 @@
           </div>
           <div class="row">
             <button class="btn ghost small" id="btn-mode-reset">Reset mode factors</button>
+          </div>
+          <div class="row" style="border-top:1px solid var(--line); padding-top:12px">
+            <div class="field" style="max-width:210px">
+              <label for="loc-factor">Localisation effort %</label>
+              <input type="number" id="loc-factor" min="1" max="200" step="5">
+              <span class="src default">of the global build, per market</span>
+            </div>
+            <div class="field" style="max-width:190px">
+              <label for="rev-client">Client review % per cycle</label>
+              <input type="number" id="rev-client" min="0" max="100" step="0.5">
+            </div>
+            <div class="field" style="max-width:190px">
+              <label for="rev-ours">Our review % per cycle</label>
+              <input type="number" id="rev-ours" min="0" max="100" step="1">
+            </div>
+            <p class="note" style="flex:1;min-width:200px">Adapting a deliverable for a market costs a share of building it. A review cycle is one round with the client plus one round of our own QA, each a share of the build effort it reviews.</p>
           </div>
         </div>
       </div>
@@ -835,6 +985,7 @@
       </div>
       <div class="body" style="border-top:1px solid var(--line)">
         <div class="sumline"><span>Core scope</span><span id="s-core-days">&mdash;</span></div>
+        <div class="sumline muted" id="s-client-row" style="display:none"><span>Client effort</span><span id="s-client-days">&mdash;</span></div>
         <div class="sumline muted" id="s-opt-row" style="display:none"><span>Options, quoted separately</span><span id="s-opt-days">&mdash;</span></div>
       </div>
     </div>
@@ -905,13 +1056,13 @@
 (function () {
   "use strict";
 
-  const STORE_KEY = "cm-estimator-v6";
+  const STORE_KEY = "cm-estimator-v7";
 
   // Saved state from an older build of this tool describes a different app —
   // earlier versions seeded the scope drivers and auto-built the full
   // deliverable list, which would resurrect an estimate the user never asked
   // for. Drop those keys so everyone starts genuinely empty.
-  ["cm-estimator-v1", "cm-estimator-v3", "cm-estimator-v4", "cm-estimator-v5"].forEach((k) => {
+  ["cm-estimator-v1", "cm-estimator-v3", "cm-estimator-v4", "cm-estimator-v5", "cm-estimator-v6"].forEach((k) => {
     try { localStorage.removeItem(k); } catch (e) { /* private mode */ }
   });
   const THIS_YEAR = new Date().getFullYear();
@@ -1400,6 +1551,54 @@
     physical: { effort: 1.15, capacity: 0.75 }
   };
 
+  /* =====================================================================
+     Globalisation and localisation
+
+     A global rollout builds the change material once, centrally, then adapts
+     it market by market. The two streams carry different quantities and
+     different effort, so they are estimated separately and shown separately.
+     ===================================================================== */
+
+  const STREAMS = [
+    { id: "global", name: "Global", verb: "Globalisation",
+      blurb: "Built once, centrally — the master set of change deliverables." },
+    { id: "local", name: "Local", verb: "Localisation",
+      blurb: "The global set adapted per market — translation, local process, local delivery." }
+  ];
+
+  // Adapting a deliverable for a market costs a fraction of building it.
+  const LOCALISATION_FACTOR = 0.35;
+
+  // One review cycle is a round with the client plus a round of our own QA,
+  // each expressed as a share of the build effort it reviews.
+  const REVIEW_CLIENT_PCT = 2.5;
+  const REVIEW_OURS_PCT = 25;
+
+  const activeStreams = () =>
+    STREAMS.filter((st) => state.scopeType === "both" || state.scopeType === st.id);
+
+  const streamActive = (id) => state.scopeType === "both" || state.scopeType === id;
+
+  function localisationFactor() {
+    const v = state.localisationFactor;
+    return v > 0 ? v / 100 : LOCALISATION_FACTOR;
+  }
+
+  function reviewPct(who) {
+    const ov = (state.reviewPct || {})[who];
+    if (ov >= 0 && ov !== "" && ov !== null) return +ov / 100;
+    return (who === "client" ? REVIEW_CLIENT_PCT : REVIEW_OURS_PCT) / 100;
+  }
+
+  const reviewCycles = () => Math.min(3, Math.max(1, +state.reviewCycles || 1));
+
+  // Deloitte's share of a stream; the client carries the rest.
+  function ourShare(streamId) {
+    const v = (state.involvement || {})[streamId];
+    const pct = (v === "" || v === null || v === undefined) ? 100 : +v;
+    return Math.min(100, Math.max(0, pct)) / 100;
+  }
+
   // Deliverables where how it is conducted is a genuine choice. Everything else
   // is a document or an asset, and the control is hidden rather than defaulted.
   const MODE_APPLIES = new Set([
@@ -1414,13 +1613,17 @@
     return (MODE_FACTORS[modeId] || MODE_FACTORS.blended)[kind];
   }
 
-  function lineMode(id) {
-    if (!MODE_APPLIES.has(id)) return null;
-    return (state.lineMode || {})[id] || state.deliveryMode || "blended";
+  // Lines are keyed by stream, so the same deliverable can be graded and
+  // staffed differently globally and locally.
+  const lineKey = (stream, catId) => stream + ":" + catId;
+
+  function lineMode(catId, key) {
+    if (!MODE_APPLIES.has(catId)) return null;
+    return (state.lineMode || {})[key] || state.deliveryMode || "blended";
   }
 
-  function lineLevel(id) {
-    return (state.lineComplexity || {})[id] || baselineLevel(id);
+  function lineLevel(catId, key) {
+    return (state.lineComplexity || {})[key] || baselineLevel(catId);
   }
 
   /* =====================================================================
@@ -1789,9 +1992,14 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     clientTerms: {},       // catalogId -> the client's own wording for this deliverable
     quotes: SAMPLE_QUOTES.map((q) => ({ ...q })),
     overrides: {},         // catalogId -> {days, rate}
+    scopeType: "",             // global | local | both
+    involvement: { global: 100, local: 100 },  // Deloitte's share of each stream, %
+    reviewCycles: 1,           // 1–3 rounds of client + our review
+    reviewPct: {},             // {client, ours} overrides, % of build
+    localisationFactor: 0,     // % of build effort to adapt per market; 0 = seeded
     deliveryMode: "blended",   // programme default mode of conduct
-    lineComplexity: {},    // catalogId -> Simple | Standard | Complex
-    lineMode: {},          // catalogId -> virtual | blended | physical
+    lineComplexity: {},    // stream:catalogId -> Simple | Standard | Complex
+    lineMode: {},          // stream:catalogId -> virtual | blended | physical
     modeFactors: {},       // modeId -> {effort, capacity} overrides
     taskHours: {},         // task index -> hours, overriding the archetype matrix
     taskOff: {},           // task index -> true when excluded from the library rollup
@@ -1819,6 +2027,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         ...base, ...parsed,
         drivers: { ...base.drivers, ...(parsed.drivers || {}) },
         settings: { ...base.settings, ...(parsed.settings || {}) },
+        involvement: { ...base.involvement, ...(parsed.involvement || {}) },
         vocab: { ...base.vocab, ...(parsed.vocab || {}) }
       };
     } catch (e) { return null; }
@@ -2228,7 +2437,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     return { byRank: out, total };
   }
 
-  function resolveRate(entry, bm) {
+  function resolveRate(entry, bm, level) {
     const ov = state.overrides[entry.id] || {};
     if (ov.rate > 0) return { value: +ov.rate, basis: "override" };
 
@@ -2236,7 +2445,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     if (!country) return { value: 0, basis: "nocountry" };
     const hpd = state.settings.hoursPerDay || 8;
 
-    const rh = rankHours(entry, lineLevel(entry.id));
+    const rh = rankHours(entry, level);
     if (rh.total > 0) {
       const cost = RANKS.reduce((s, r) => s + rh.byRank[r.id] * (rateFor(country, r.id) / hpd), 0);
       return { value: cost / (rh.total / hpd), basis: "mix", mix: rh.byRank, hours: rh.total };
@@ -2258,7 +2467,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
   /* ---------------------------- estimate build ---------------------------- */
 
-  function multipliers(entry) {
+  function multipliers(entry, skipGeo) {
     const d = effDrivers();
     const parts = [];
     let m = 1;
@@ -2268,7 +2477,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     if (mat !== 1) { m *= mat; parts.push(`${d.maturity} maturity ×${mat}`); }
     // Localisation and per-market delivery carry their own quantities, so only
     // deliverables coordinated across sites take a location multiplier.
-    if (entry.geo && d.geos > 1) {
+    if (entry.geo && d.geos > 1 && !skipGeo) {
       const g = Math.min(1.5, 1 + 0.07 * (d.geos - 1));
       m *= g; parts.push(`${d.geos} locations ×${g.toFixed(2)}`);
     }
@@ -2291,57 +2500,97 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     const drv = effDrivers();
     const previous = Object.fromEntries((state.lines || []).map((l) => [l.id, l]));
     const analysed = Object.keys(state.signals).length > 0 || Object.keys(state.catSignals || {}).length > 0;
+    const markets = Math.max(1, driverValue("geos"));
+    const locF = localisationFactor();
 
-    state.lines = CATALOG.map((entry) => {
-      // A rebuild drops manual edits; every other recalculation preserves them.
-      const prev = reset ? null : previous[entry.id];
-      if (reset) { delete (state.lineComplexity || {})[entry.id]; delete (state.lineMode || {})[entry.id]; }
+    const built = [];
+    STREAMS.forEach((st) => {
+      if (!streamActive(st.id)) return;
+      const local = st.id === "local";
 
-      const level = lineLevel(entry.id);
-      const mode = lineMode(entry.id);
-      const effortF = mode ? modeFactor(mode, "effort") : 1;
-      const capacityF = mode ? modeFactor(mode, "capacity") : 1;
+      CATALOG.forEach((entry) => {
+        const key = lineKey(st.id, entry.id);
+        // A rebuild drops manual edits; every other recalculation preserves them.
+        const prev = reset ? null : previous[key];
+        if (reset) { delete (state.lineComplexity || {})[key]; delete (state.lineMode || {})[key]; }
 
-      const rate = resolveRate(entry, bm);
-      const dpu = resolveDays(entry, bm, level);
-      const { m, parts } = multipliers(entry);
-      const rule = QTY_RULES[entry.qty] || QTY_RULES.one;
-      const autoQty = Math.max(0, Math.round(rule(drv, capacityF)));
-      const autoDays = Math.round(dpu.value * m * effortF * 10) / 10;
-      const signal = (state.catSignals || {})[entry.id] || state.signals[entry.rateKey];
-      const included = analysed ? (!!signal || !!entry.core) : !!entry.core;
-      const tasks = libraryTaskNames(entry.id);
-      const rh = rankHours(entry, level);
+        const level = lineLevel(entry.id, key);
+        const mode = lineMode(entry.id, key);
+        const effortF = mode ? modeFactor(mode, "effort") : 1;
+        const capacityF = mode ? modeFactor(mode, "capacity") : 1;
 
-      return {
-        id: entry.id,
-        name: entry.name,
-        clientTerm: (state.clientTerms || {})[entry.id] || "",
-        desc: tasks.length ? tasks.join(" · ") : "No tasks enabled in the hours library for this deliverable.",
-        unit: entry.unit,
-        cat: entry.cat,
-        rateKey: entry.rateKey,
-        level, mode, effortF, capacityF,
-        baseLevel: baselineLevel(entry.id),
-        include: prev && prev.editedInclude ? prev.include : included,
-        // Tenders routinely ask for parts of the scope to be priced as options.
-        optional: prev && prev.editedOptional ? prev.optional : isOptional(entry),
-        editedOptional: prev ? !!prev.editedOptional : false,
-        qty: prev && prev.editedQty ? prev.qty : autoQty,
-        dpu: autoDays,
-        rate: Math.round(rate.value),
-        editedQty: prev ? !!prev.editedQty : false,
-        editedInclude: prev ? !!prev.editedInclude : false,
-        rateBasis: rate.basis,
-        daysBasis: dpu.basis, daysN: dpu.n, libHours: dpu.hours,
-        rankShare: rh.total > 0 ? rh.byRank : null, rankTotalHours: rh.total,
-        multParts: parts, baseDpu: Math.round(dpu.value * 10) / 10,
-        detected: !!signal,
-        custom: false
-      };
-    }).concat((state.lines || []).filter((l) => l.custom).map(rebuildCustom));
+        const rate = resolveRate(entry, bm, level);
+        const dpu = resolveDays(entry, bm, level);
+        // Markets are explicit in the local quantity, so the cross-site
+        // coordination multiplier would double-count there.
+        const { m, parts } = multipliers(entry, local);
+        const rule = QTY_RULES[entry.qty] || QTY_RULES.one;
+        let autoQty = Math.max(0, Math.round(rule(drv, capacityF)));
+        // Localisation happens once per market — except where the quantity
+        // rule already counts markets.
+        if (local && entry.qty !== "geos") autoQty = autoQty * markets;
 
+        const perUnit = dpu.value * (local ? locF : 1);
+        const autoDays = Math.round(perUnit * m * effortF * 10) / 10;
+
+        const signal = (state.catSignals || {})[entry.id] || state.signals[entry.rateKey];
+        const included = analysed ? (!!signal || !!entry.core) : !!entry.core;
+        const tasks = libraryTaskNames(entry.id);
+        const rh = rankHours(entry, level);
+
+        built.push({
+          id: key, catId: entry.id, stream: st.id,
+          name: entry.name,
+          clientTerm: (state.clientTerms || {})[entry.id] || "",
+          desc: tasks.length ? tasks.join(" · ") : "No tasks enabled in the hours library for this deliverable.",
+          unit: entry.unit,
+          cat: entry.cat,
+          archetype: dominantArchetype(entry.id),
+          rateKey: entry.rateKey,
+          level, mode, effortF, capacityF,
+          localF: local ? locF : 1, markets: local ? markets : 1,
+          baseLevel: baselineLevel(entry.id),
+          include: prev && prev.editedInclude ? prev.include : included,
+          // Tenders routinely ask for parts of the scope to be priced as options.
+          optional: prev && prev.editedOptional ? prev.optional : isOptional(entry),
+          editedOptional: prev ? !!prev.editedOptional : false,
+          qty: prev && prev.editedQty ? prev.qty : autoQty,
+          dpu: autoDays,
+          rate: Math.round(rate.value),
+          editedQty: prev ? !!prev.editedQty : false,
+          editedInclude: prev ? !!prev.editedInclude : false,
+          rateBasis: rate.basis,
+          daysBasis: dpu.basis, daysN: dpu.n, libHours: dpu.hours,
+          rankShare: rh.total > 0 ? rh.byRank : null, rankTotalHours: rh.total,
+          multParts: parts, baseDpu: Math.round(dpu.value * 10) / 10,
+          detected: !!signal,
+          custom: false
+        });
+      });
+    });
+
+    // Custom lines belong to whichever stream they were added on, and survive
+    // as long as that stream is still in scope.
+    const customs = (state.lines || [])
+      .filter((l) => l.custom && streamActive(l.stream || "global"))
+      .map(rebuildCustom);
+
+    state.lines = built.concat(customs);
     save();
+  }
+
+  // A deliverable spans several task archetypes; the one carrying the most
+  // hours is the honest label for it in a subtotal.
+  function dominantArchetype(catId) {
+    const weight = {};
+    (TASKS_BY_GROUP[catId] || []).forEach((i) => {
+      if (!taskEnabled(i)) return;
+      const t = TASKS[i];
+      weight[t.a] = (weight[t.a] || 0) + taskHoursAt(i, null);
+    });
+    let best = "", top = 0;
+    Object.entries(weight).forEach(([a, w]) => { if (w > top) { top = w; best = a; } });
+    return best || "Strategic Plans & Models";
   }
 
   // Free-text lines have no task list, so they are sized as a typical
@@ -2350,20 +2599,22 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   function rebuildCustom(l) {
     const hpd = state.settings.hoursPerDay || 8;
     const level = l.level || "Standard";
+    const local = (l.stream || "global") === "local";
     const hit = archetypeHoursClamped(l.archetype, level);
     const perTask = hit ? hit.hours : 6;
     const tasks = medianTaskCount();
     const hours = perTask * tasks;
     const mode = l.mode || null;
     const effortF = mode ? modeFactor(mode, "effort") : 1;
-    const { m, parts } = multipliers({ geo: false });
+    const { m, parts } = multipliers({ geo: false }, local);
     const mix = mixFor(l.archetype);
     const sum = mixSum(mix);
     const byRank = emptyMix();
     if (sum > 0) RANKS.forEach((r) => { byRank[r.id] = hours * ((+mix[r.id] || 0) / sum); });
     const rate = state.country ? Math.round(mixHourlyCost(mix, state.country, hpd) * hpd) : 0;
     return { ...l,
-      dpu: Math.round((hours / hpd) * m * effortF * 10) / 10,
+      stream: l.stream || "global",
+      dpu: Math.round((hours / hpd) * m * effortF * (local ? localisationFactor() : 1) * 10) / 10,
       baseDpu: Math.round((hours / hpd) * 10) / 10,
       libHours: hours, customTasks: tasks, customPerTask: perTask,
       effortF, rate, rateBasis: "mix", daysBasis: "custom",
@@ -2383,13 +2634,46 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     return { delta, quoted: q.rate, n: q.rateN };
   }
 
+  // Effort for one stream: the build, split between us and the client by the
+  // involvement setting, plus the review cycles that sit on top of it.
+  function streamTotals(streamId) {
+    const lines = state.lines.filter((l) => l.stream === streamId);
+    const inc = lines.filter((l) => l.include && !l.optional);
+    const opt = lines.filter((l) => l.include && l.optional);
+    const build = inc.reduce((s, l) => s + l.qty * l.dpu, 0);
+    const optBuild = opt.reduce((s, l) => s + l.qty * l.dpu, 0);
+
+    const share = ourShare(streamId);
+    const cycles = reviewCycles();
+    const ourBuild = build * share;
+    const clientBuild = build - ourBuild;
+    // A review cycle covers the whole deliverable set, whoever drafted it.
+    const ourReview = build * reviewPct("ours") * cycles;
+    const clientReview = build * reviewPct("client") * cycles;
+
+    return { streamId, lines, inc, opt, build, optBuild,
+      share, cycles, ourBuild, clientBuild, ourReview, clientReview,
+      ourTotal: ourBuild + ourReview,
+      clientTotal: clientBuild + clientReview,
+      ourOpt: optBuild * share + optBuild * reviewPct("ours") * cycles };
+  }
+
   function totals() {
-    const inc = state.lines.filter((l) => l.include && !l.optional);
-    const opt = state.lines.filter((l) => l.include && l.optional);
-    const fees = inc.reduce((s, l) => s + l.qty * l.dpu * l.rate, 0);
-    const effort = inc.reduce((s, l) => s + l.qty * l.dpu, 0);
+    const streams = activeStreams().map((st) => streamTotals(st.id));
+    const byStream = Object.fromEntries(streams.map((t) => [t.streamId, t]));
+
+    const inc = streams.flatMap((t) => t.inc);
+    const opt = streams.flatMap((t) => t.opt);
+    const build = streams.reduce((s, t) => s + t.build, 0);
+    const effort = streams.reduce((s, t) => s + t.ourTotal, 0);
+    const clientEffort = streams.reduce((s, t) => s + t.clientTotal, 0);
+    const ourReview = streams.reduce((s, t) => s + t.ourReview, 0);
+    const clientReview = streams.reduce((s, t) => s + t.clientReview, 0);
+    const optEffort = streams.reduce((s, t) => s + t.ourOpt, 0);
+
+    const fees = inc.reduce((s, l) => s + l.qty * l.dpu * l.rate, 0) * (effort > 0 && build > 0 ? effort / build : 1);
     const optFees = opt.reduce((s, l) => s + l.qty * l.dpu * l.rate, 0);
-    const optEffort = opt.reduce((s, l) => s + l.qty * l.dpu, 0);
+
     const s = state.settings;
     const contingency = fees * (+s.contingency || 0) / 100;
     const beforeDiscount = fees + contingency;
@@ -2399,30 +2683,50 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     const tax = net * (+s.tax || 0) / 100;
 
     // Mandays by rank across the included lines, scaled from each line's
-    // library composition up to its actual quantity and edited days per unit.
+    // library composition up to its actual quantity, then to our share.
     const byRank = emptyMix();
     let ranked = 0;
     inc.forEach((l) => {
-      const lineDays = l.qty * l.dpu;
+      const lineDays = l.qty * l.dpu * ourShare(l.stream);
       if (!(lineDays > 0)) return;
       const share = l.rankShare;
       if (!share || !(l.rankTotalHours > 0)) return;
       RANKS.forEach((r) => { byRank[r.id] += lineDays * (share[r.id] / l.rankTotalHours); });
       ranked += lineDays;
     });
+    // Review effort follows the same team shape as the work it reviews.
+    if (ranked > 0 && ourReview > 0) {
+      const scale = ourReview / ranked;
+      RANKS.forEach((r) => { byRank[r.id] += byRank[r.id] * scale; });
+      ranked += ourReview;
+    }
 
-    // The buffer is held in mandays first — it is a contingency on the work,
-    // not a mark-up on the price — and the fee contingency follows from it.
     const bufferDays = effort * (+s.contingency || 0) / 100;
     const effortWithBuffer = effort + bufferDays;
 
-    return { inc, opt, optFees, optEffort, fees, effort, bufferDays, effortWithBuffer,
+    return { streams, byStream, inc, opt, build, clientEffort, ourReview, clientReview,
+      optFees, optEffort, fees, effort, bufferDays, effortWithBuffer,
       contingency, discount, expenses, tax, total: net + tax,
       byRank, rankedEffort: ranked,
       blended: effort > 0 ? fees / effort : 0,
       fte: driverValue("months") > 0 ? effortWithBuffer / (driverValue("months") * 21) : 0 };
   }
 
+  // Deliverables and effort grouped by effort archetype — what the client is
+  // actually getting, in the same language the hours library uses.
+  function archetypeSubtotals() {
+    const rows = {};
+    state.lines.filter((l) => l.include).forEach((l) => {
+      const a = l.archetype || "Other";
+      const r = rows[a] || (rows[a] = { archetype: a, units: 0, lines: 0, mandays: 0, optional: 0 });
+      const days = l.qty * l.dpu * ourShare(l.stream);
+      r.lines += 1;
+      if (l.optional) { r.optional += l.qty; return; }
+      r.units += l.qty;
+      r.mandays += days;
+    });
+    return Object.values(rows).sort((x, y) => y.mandays - x.mandays);
+  }
 
   /* =====================================================================
      Rendering
@@ -2652,60 +2956,106 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
   /* ---- Manday estimate ---- */
 
-  function renderLines() {
+  function renderInvolvement() {
+    const wrap = $("involve-wrap");
+    const streams = activeStreams();
+    wrap.hidden = streams.length === 0;
+    if (!streams.length) { $("involve-grid").innerHTML = ""; return; }
+    $("involve-grid").innerHTML = streams.map((st) => {
+      const ours = Math.round(ourShare(st.id) * 100);
+      return `<div class="involve-row">
+        <label for="inv-${st.id}">${esc(st.verb)}</label>
+        <input type="range" id="inv-${st.id}" data-inv="${st.id}" min="0" max="100" step="5" value="${ours}">
+        <span class="involve-read"><b>Deloitte ${ours}%</b> · Client ${100 - ours}%</span>
+      </div>`;
+    }).join("");
+  }
+
+  function renderStreams() {
     const t = totals();
     const hpd = state.settings.hoursPerDay || 8;
-    let n = 0;
-    let lastCat = null;
+    const gate = !state.scopeType;
+    $("scope-gate").hidden = !gate;
+    $("grand-card").hidden = gate;
+    $("arch-card").hidden = gate || !state.lines.length;
 
+    STREAMS.forEach((st) => {
+      const card = $("sec-" + st.id);
+      card.hidden = gate || !streamActive(st.id);
+      if (card.hidden) {
+        // Leave nothing stale behind in a section that is out of scope.
+        $("lines-body-" + st.id).innerHTML = "";
+        $("lines-foot-" + st.id).innerHTML = "";
+        return;
+      }
+      renderStreamTable(st, t.byStream[st.id]);
+    });
+
+    renderGrand(t);
+    renderArchetypes(t);
+  }
+
+  function renderStreamTable(st, ts) {
+    const body = $("lines-body-" + st.id);
+    const foot = $("lines-foot-" + st.id);
+    const lines = state.lines.filter((l) => l.stream === st.id);
+    const markets = Math.max(1, driverValue("geos"));
+
+    $("stream-title-" + st.id).textContent = st.id === "local"
+      ? `deliverables, across ${markets} market${markets === 1 ? "" : "s"}`
+      : "deliverables";
+    $("stream-blurb-" + st.id).textContent = st.id === "local"
+      ? `${st.blurb} Quantities default to the global count times ${markets} market${markets === 1 ? "" : "s"}, at ${Math.round(localisationFactor() * 100)}% of the build effort.`
+      : st.blurb;
+
+    if (!lines.length) {
+      body.innerHTML = `<tr><td colspan="9" class="empty">
+        <strong>Nothing in this section yet.</strong>
+        <div class="note" style="margin:6px 0 10px">Analyse an RFP on the Scope tab, or start from the standard change management scope.</div>
+        <button class="btn primary small no-print" data-start="1">Start from standard scope</button>
+      </td></tr>`;
+      foot.innerHTML = "";
+      $("stream-meta-" + st.id).textContent = "";
+      return;
+    }
+
+    let n = 0, lastCat = null;
     const levelSel = (l) => `<select class="lvl" data-l="level" aria-label="Complexity for ${esc(l.name)}">`
       + LEVELS.map((v) => `<option value="${v}" ${v === l.level ? "selected" : ""}>${v}${v === l.baseLevel ? " ·" : ""}</option>`).join("")
       + `</select>`;
-
     const modeSel = (l) => l.mode
       ? `<select class="mode-sel" data-l="mode" aria-label="Mode of conduct for ${esc(l.name)}">`
         + MODES.map((m) => `<option value="${m.id}" ${m.id === l.mode ? "selected" : ""}>${m.name}</option>`).join("")
         + `</select>`
       : `<span class="mode-na">&mdash;</span>`;
 
-    if (!state.lines.length) {
-      $("lines-body").innerHTML = `<tr><td colspan="9" class="empty">
-        <strong>No estimate yet.</strong>
-        <div class="note" style="margin:6px 0 10px">Analyse an RFP on the Scope tab, or start from the standard change management scope and adjust it.</div>
-        <button class="btn primary small no-print" id="btn-start">Start from standard scope</button>
-      </td></tr>`;
-      $("lines-foot").innerHTML = "";
-      $("quote-meta").textContent = "";
-      $("quote-title").textContent = "Manday estimate";
-      $("quote-country").hidden = true;
-      return;
-    }
-
-    $("lines-body").innerHTML = state.lines.map((l, i) => {
+    body.innerHTML = lines.map((l) => {
+      const i = state.lines.indexOf(l);
       const mandays = l.qty * l.dpu;
       const head = l.cat !== lastCat ? `<tr><td colspan="9" style="background:var(--surface-2);padding-top:9px"><span class="eyebrow">${esc(l.cat || "Other")}</span></td></tr>` : "";
       lastCat = l.cat;
       if (l.include && !l.optional) n++;
 
       const effortSource = l.daysBasis === "library"
-        ? `${days(l.libHours)} h from ${l.daysN} library task${l.daysN === 1 ? "" : "s"} at ${l.level} ÷ ${hpd} h/day`
+        ? `${days(l.libHours)} h from ${l.daysN} library task${l.daysN === 1 ? "" : "s"} at ${l.level} ÷ ${state.settings.hoursPerDay || 8} h/day`
         : l.daysBasis === "custom"
-          ? `${days(l.customPerTask)} h per task at ${l.level} × ${l.customTasks} tasks (the median size of a catalogue deliverable) ÷ ${hpd} h/day`
+          ? `${days(l.customPerTask)} h per task at ${l.level} × ${l.customTasks} tasks ÷ ${state.settings.hoursPerDay || 8} h/day`
         : l.daysBasis === "benchmark" ? `effort benchmarked on ${l.daysN} past quote line${l.daysN === 1 ? "" : "s"}`
-        : l.daysBasis === "override" ? `effort pinned by an admin` : `standard effort assumption`;
+        : `standard effort assumption`;
 
       const formula = [
         effortSource,
         `→ ${days(l.baseDpu)} mandays per ${l.unit}`,
+        l.localF !== 1 ? `× ${Math.round(l.localF * 100)}% to adapt rather than build` : "",
         l.multParts && l.multParts.length ? `× ${l.multParts.join(" × ")}` : "",
         l.mode && l.effortF !== 1 ? `× ${l.mode} delivery ×${l.effortF}` : "",
         `= ${days(l.dpu)} mandays per ${l.unit} × ${l.qty} ${l.unit}${l.qty === 1 ? "" : "s"}`,
-        l.mode && l.capacityF !== 1 && !l.editedQty ? `· ${l.mode} delivery seats ×${l.capacityF} per session, so more sessions are needed` : "",
+        l.stream === "local" && !l.editedQty && l.markets > 1 ? `(${l.markets} markets)` : "",
         `= ${days(mandays)} mandays`
       ].filter(Boolean).join(" ");
 
       const clientLine = l.clientTerm && l.clientTerm.toLowerCase() !== l.name.toLowerCase()
-        ? `<div class="note" title="The RFP's own wording — use this name in the proposal">RFP calls this &ldquo;${esc(l.clientTerm)}&rdquo;</div>` : "";
+        ? `<div class="note">RFP calls this &ldquo;${esc(l.clientTerm)}&rdquo;</div>` : "";
 
       return head + `<tr data-i="${i}" style="${l.include ? "" : "opacity:.45"}">
         <td class="n"><input type="checkbox" data-l="include" ${l.include ? "checked" : ""} aria-label="Include ${esc(l.name)}"></td>
@@ -2722,35 +3072,91 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         <td class="lvl-cell">${levelSel(l)}</td>
         <td class="mode-cell">${modeSel(l)}</td>
         <td class="n cell-mandays">${days(mandays)}</td>
-        <td class="n"><input type="checkbox" data-l="optional" ${l.optional ? "checked" : ""} aria-label="Quote ${esc(l.name)} as an option" title="${esc((state.optionalCat || {})[l.id] || (state.optionalSignals || {})[l.rateKey] || "Quote this line as an option, outside the headline effort")}"></td>
+        <td class="n"><input type="checkbox" data-l="optional" ${l.optional ? "checked" : ""} aria-label="Quote ${esc(l.name)} as an option"></td>
         <td class="no-print">${l.custom ? `<button class="btn ghost small danger" data-delline="${i}">✕</button>` : ""}</td>
       </tr>`;
     }).join("");
 
-    $("lines-foot").innerHTML = `<tr>
-      <td></td><td>Total core effort</td><td></td><td></td><td></td><td></td>
-      <td class="n cell-mandays" id="foot-days">${days(t.effort)}</td><td></td><td class="no-print"></td>
-    </tr>` + (t.bufferDays > 0 ? `<tr>
-      <td></td><td style="color:var(--ink-2)">Delivery buffer ${state.settings.contingency}%</td><td></td><td></td><td></td><td></td>
-      <td class="n" style="color:var(--ink-2)" id="foot-buffer">${days(t.bufferDays)}</td><td></td><td class="no-print"></td>
-    </tr><tr>
-      <td></td><td><strong>Total with buffer</strong></td><td></td><td></td><td></td><td></td>
-      <td class="n cell-mandays" id="foot-total">${days(t.effortWithBuffer)}</td><td></td><td class="no-print"></td>
-    </tr>` : "") + (t.opt.length ? `<tr>
-      <td></td><td style="font-weight:500;color:var(--ink-2)">Options, quoted separately</td><td></td><td></td><td></td><td></td>
-      <td class="n" style="font-weight:500;color:var(--ink-2)" id="foot-opt-days">${days(t.optEffort)}</td><td></td><td class="no-print"></td>
-    </tr>` : "");
+    const pct = (v) => Math.round(v * 100);
+    foot.innerHTML = `<tr class="ft-rule">
+      <td></td><td>Build effort, all parties</td><td></td><td></td><td></td><td></td>
+      <td class="n">${days(ts.build)}</td><td></td><td class="no-print"></td>
+    </tr>
+    <tr><td></td><td style="color:var(--ink-2)">Client share &mdash; ${100 - pct(ts.share)}%</td><td></td><td></td><td></td><td></td>
+      <td class="n" style="color:var(--ink-2)">−${days(ts.clientBuild)}</td><td></td><td class="no-print"></td>
+    </tr>
+    <tr><td></td><td>Our build &mdash; ${pct(ts.share)}%</td><td></td><td></td><td></td><td></td>
+      <td class="n">${days(ts.ourBuild)}</td><td></td><td class="no-print"></td>
+    </tr>
+    <tr><td></td><td style="color:var(--ink-2)">Our review &mdash; ${ts.cycles} cycle${ts.cycles === 1 ? "" : "s"} × ${Math.round(reviewPct("ours") * 100)}% of build</td><td></td><td></td><td></td><td></td>
+      <td class="n" style="color:var(--ink-2)">${days(ts.ourReview)}</td><td></td><td class="no-print"></td>
+    </tr>
+    <tr class="ft-total"><td></td><td><strong>${esc(STREAMS.find((x) => x.id === st.id).name)} total &mdash; ours</strong></td><td></td><td></td><td></td><td></td>
+      <td class="n cell-mandays">${days(ts.ourTotal)}</td><td></td><td class="no-print"></td>
+    </tr>` + (ts.opt.length ? `<tr><td></td><td style="color:var(--ink-2)">Options, quoted separately</td><td></td><td></td><td></td><td></td>
+      <td class="n" style="color:var(--ink-2)">${days(ts.ourOpt)}</td><td></td><td class="no-print"></td></tr>` : "");
 
-    $("quote-meta").textContent = `${n} deliverable${n === 1 ? "" : "s"} · ${days(t.effortWithBuffer)} mandays · prepared ${new Date().toLocaleDateString()}`;
-    $("quote-title").textContent = state.settings.client
-      ? `Manday estimate — ${state.settings.client}`
-      : "Manday estimate";
+    $("stream-meta-" + st.id).textContent =
+      `${n} deliverable${n === 1 ? "" : "s"} · ${days(ts.ourTotal)} mandays ours · client also puts in ${days(ts.clientTotal)}`;
+  }
 
+  function renderGrand(t) {
+    const cycles = reviewCycles();
+    const rows = t.streams.map((ts) => {
+      const st = STREAMS.find((x) => x.id === ts.streamId);
+      return `<tr><td><span class="stream-tag ${ts.streamId}">${esc(st.name)}</span></td>
+        <td class="note">${days(ts.build)} build · ${Math.round(ts.share * 100)}% ours · ${days(ts.ourReview)} review</td>
+        <td class="n cell-mandays">${days(ts.ourTotal)}</td></tr>`;
+    }).join("");
+
+    $("grand-body").innerHTML = rows + `<tr class="ft-rule">
+      <td><strong>Our total effort</strong></td>
+      <td class="note">${cycles} review cycle${cycles === 1 ? "" : "s"}${t.bufferDays > 0 ? ` · ${days(t.bufferDays)} buffer` : ""}</td>
+      <td class="n cell-mandays"><strong>${days(t.effortWithBuffer)}</strong></td></tr>
+    <tr><td class="note">Client effort</td>
+      <td class="note">their share of the build, plus ${Math.round(reviewPct("client") * 1000) / 10}% review per cycle</td>
+      <td class="n note">${days(t.clientEffort)}</td></tr>`;
+
+    $("quote-meta").textContent = `${t.inc.length} deliverable${t.inc.length === 1 ? "" : "s"} · ${days(t.effortWithBuffer)} mandays · prepared ${new Date().toLocaleDateString()}`;
+    $("quote-title").textContent = state.settings.client ? `Manday estimate — ${state.settings.client}` : "Manday estimate";
     const c = activeCountry();
     const badge = $("quote-country");
     badge.innerHTML = c ? `Delivered in <b>${esc(c.name)}</b>` : `<b>No country set</b> · effort only`;
     badge.hidden = false;
   }
+
+  function renderArchetypes(t) {
+    const rows = archetypeSubtotals();
+    const totalDays = rows.reduce((s, r) => s + r.mandays, 0);
+    const totalUnits = rows.reduce((s, r) => s + r.units, 0);
+    $("arch-body").innerHTML = rows.length ? rows.map((r) => {
+      const pct = totalDays > 0 ? (r.mandays / totalDays) * 100 : 0;
+      return `<tr>
+        <td><strong>${esc(r.archetype)}</strong></td>
+        <td class="n">${r.units}</td>
+        <td class="n">${r.optional || "—"}</td>
+        <td class="n cell-mandays">${days(r.mandays)}</td>
+        <td><div class="archbar"><span style="width:${pct}%"></span></div></td>
+      </tr>`;
+    }).join("") : `<tr><td colspan="5" class="empty">Nothing included yet.</td></tr>`;
+    // The table covers the build only, so reconcile it up to the headline
+    // rather than leaving two different totals on the page unexplained.
+    $("arch-foot").innerHTML = rows.length ? `<tr class="ft-rule">
+        <td><strong>Build effort, ours</strong></td><td class="n"><strong>${totalUnits}</strong></td><td></td>
+        <td class="n cell-mandays"><strong>${days(totalDays)}</strong></td><td></td></tr>
+      <tr><td class="note">Review — ${t.streams.length ? reviewCycles() : 0} cycle${reviewCycles() === 1 ? "" : "s"}</td><td></td><td></td>
+        <td class="n note">${days(t.ourReview)}</td><td></td></tr>` +
+      (t.bufferDays > 0 ? `<tr><td class="note">Delivery buffer</td><td></td><td></td>
+        <td class="n note">${days(t.bufferDays)}</td><td></td></tr>` : "") +
+      `<tr class="ft-total"><td><strong>Our total effort</strong></td><td></td><td></td>
+        <td class="n cell-mandays"><strong>${days(t.effortWithBuffer)}</strong></td><td></td></tr>` : "";
+    $("arch-meta").textContent = rows.length
+      ? `${rows.length} archetype${rows.length === 1 ? "" : "s"} · ${totalUnits} deliverable unit${totalUnits === 1 ? "" : "s"} across the streams in scope`
+      : "";
+  }
+
+  // Kept as the single entry point the rest of the app calls.
+  function renderLines() { renderStreams(); }
 
   function renderAssumptions() {
     const t = totals();
@@ -2760,19 +3166,31 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     }
     const d = effDrivers();
     const c = activeCountry();
+    const cycles = reviewCycles();
+    const markets = Math.max(1, driverValue("geos"));
     const modeCounts = {};
     t.inc.forEach((l) => { if (l.mode) modeCounts[l.mode] = (modeCounts[l.mode] || 0) + 1; });
     const modeSummary = Object.entries(modeCounts).map(([m, n]) => `${n} ${m}`).join(", ");
+    const scopeWord = state.scopeType === "both" ? "globalisation and localisation"
+      : state.scopeType === "local" ? "localisation only" : "globalisation only";
 
     const items = [
-      `Total effort of ${days(t.effortWithBuffer)} mandays across ${t.inc.length} deliverable${t.inc.length === 1 ? "" : "s"}, spread evenly at an average of ${t.fte.toFixed(1)} FTE over ${d.months} months.`,
+      `Scope covers ${scopeWord}. Our effort totals ${days(t.effortWithBuffer)} mandays, at an average of ${t.fte.toFixed(1)} FTE over ${d.months} months.`,
+      ...t.streams.map((ts) => {
+        const st = STREAMS.find((x) => x.id === ts.streamId);
+        return `${st.verb}: ${days(ts.build)} mandays of build, of which we carry ${Math.round(ts.share * 100)}% (${days(ts.ourBuild)} mandays) and the client ${100 - Math.round(ts.share * 100)}% (${days(ts.clientBuild)} mandays), plus ${days(ts.ourReview)} mandays of our review.`;
+      }),
+      state.scopeType !== "global"
+        ? `Localised deliverables are adapted for ${markets} market${markets === 1 ? "" : "s"} at ${Math.round(localisationFactor() * 100)}% of the effort it takes to build the global master.`
+        : null,
+      `${cycles} review cycle${cycles === 1 ? "" : "s"} ${cycles === 1 ? "is" : "are"} assumed, each one round of client review at ${Math.round(reviewPct("client") * 1000) / 10}% of build effort and one round of our own quality assurance at ${Math.round(reviewPct("ours") * 100)}%. Review covers the whole deliverable set regardless of who drafted it.`,
       `Effort is built bottom-up from the itemised task library at ${state.settings.hoursPerDay || 8} hours per day. Each deliverable is graded Simple, Standard or Complex, and every task in it is costed at that grade through the effort archetype matrix.`,
-      modeSummary ? `Sessions and workshops are assumed to run as ${modeSummary}. Physical delivery carries more effort per session and seats fewer people, so it also requires more sessions to cover the same population.` : null,
-      `Pricing covers ${(+d.headcount || 0).toLocaleString()} impacted people across ${d.units} business unit${d.units === 1 ? "" : "s"} and ${d.geos} location${d.geos === 1 ? "" : "s"}, in ${d.languages} language${d.languages === 1 ? "" : "s"}, with ${d.waves} deployment wave${d.waves === 1 ? "" : "s"}.`,
+      modeSummary ? `Sessions and workshops are assumed to run as ${modeSummary}. Physical delivery carries more effort per session and seats fewer people, so it also requires more sessions.` : null,
+      `Scope covers ${(+d.headcount || 0).toLocaleString()} impacted people across ${d.units} business unit${d.units === 1 ? "" : "s"} and ${markets} location${markets === 1 ? "" : "s"}, in ${d.languages} language${d.languages === 1 ? "" : "s"}, with ${d.waves} deployment wave${d.waves === 1 ? "" : "s"}.`,
       `Complexity rated ${d.complexity}/5 and client change maturity ${d.maturity} — effort multipliers are applied on this basis and should be revisited after scoping calls.`,
       `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately quoted.`,
-      state.settings.contingency > 0 ? `A ${state.settings.contingency}% delivery buffer — ${days(t.bufferDays)} mandays — is held against scope volatility and drawn down only on agreed change requests.` : null,
-      t.opt.length ? `${t.opt.length} line${t.opt.length === 1 ? " is" : "s are"} quoted as option${t.opt.length === 1 ? "" : "s"} totalling ${days(t.optEffort)} mandays, exercisable by the client and excluded from the headline effort.` : null,
+      state.settings.contingency > 0 ? `A ${state.settings.contingency}% delivery buffer — ${days(t.bufferDays)} mandays — is held against scope volatility.` : null,
+      t.opt.length ? `${t.opt.length} line${t.opt.length === 1 ? " is" : "s are"} quoted as option${t.opt.length === 1 ? "" : "s"} totalling ${days(t.optEffort)} mandays, excluded from the headline effort.` : null,
       c ? `Any price shown is indicative only, blended from the ${c.name} rate card at the team each deliverable requires. The binding commercial number comes from the pricing workbench.` : `No delivery country is set, so no indicative price is shown. Effort is independent of country.`
     ].filter(Boolean);
     $("assumptions").innerHTML = items.map((i) => `<li>${esc(i)}</li>`).join("");
@@ -2795,6 +3213,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $("s-buffer").textContent = t.bufferDays ? days(t.bufferDays) : "—";
 
     $("s-core-days").textContent = hasEffort ? days(t.effort) + " md" : "—";
+    $("s-client-row").style.display = t.clientEffort > 0 ? "" : "none";
+    $("s-client-days").textContent = days(t.clientEffort) + " md";
     $("s-opt-row").style.display = t.opt.length ? "" : "none";
     $("s-opt-days").textContent = days(t.optEffort) + " md";
 
@@ -2829,7 +3249,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
   function renderAll() {
     renderDrivers(); renderSignals(); renderQuotes(); renderLibrary(); renderRates();
-    renderModes(); renderVocab(); renderLines(); renderAssumptions(); renderSummary();
+    renderModes(); renderVocab(); renderInvolvement(); renderStreams(); renderAssumptions(); renderSummary();
   }
 
 
@@ -2943,6 +3363,37 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   $("rfp-text").addEventListener("input", (e) => { state.rfpText = e.target.value; save(); });
   $("btn-analyse").addEventListener("click", analyse);
   $("client-name").addEventListener("input", (e) => { state.settings.client = e.target.value; renderLines(); save(); });
+  $("scope-type").addEventListener("change", (e) => {
+    state.scopeType = e.target.value;
+    // Lines belong to a stream, so changing the scope rebuilds the sections.
+    state.lines = (state.lines || []).filter((l) => l.custom && streamActive(l.stream));
+    if (state.scopeType && (state.rfpText || Object.keys(state.detected).length)) buildLines(false);
+    renderInvolvement(); renderStreams(); renderAssumptions(); renderSummary(); save();
+  });
+
+  $("review-cycles").addEventListener("change", (e) => {
+    state.reviewCycles = Math.min(3, Math.max(1, parseInt(e.target.value, 10) || 1));
+    applyReviewNote();
+    renderStreams(); renderAssumptions(); renderSummary(); save();
+  });
+
+  function applyReviewNote() {
+    const n = reviewCycles();
+    $("review-note").textContent =
+      `${n} × (client ${Math.round(reviewPct("client") * 100)}% + ours ${Math.round(reviewPct("ours") * 100)}%)`;
+  }
+
+  $("involve-grid").addEventListener("input", (e) => {
+    const st = e.target.dataset.inv;
+    if (!st) return;
+    state.involvement[st] = Math.min(100, Math.max(0, parseInt(e.target.value, 10) || 0));
+    // Repaint the readout in place so the slider keeps focus.
+    const read = e.target.parentElement.querySelector(".involve-read");
+    const ours = state.involvement[st];
+    read.innerHTML = `<b>Deloitte ${ours}%</b> · Client ${100 - ours}%`;
+    renderStreams(); renderAssumptions(); renderSummary(); save();
+  });
+
   $("delivery-mode").innerHTML = MODES.map((m) => `<option value="${m.id}">${esc(m.name)}</option>`).join("");
   $("delivery-mode").addEventListener("change", (e) => {
     state.deliveryMode = e.target.value;
@@ -2957,6 +3408,20 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     const v = parseFloat(e.target.value);
     if (v > 0) state.modeFactors[m][kind] = v; else delete state.modeFactors[m][kind];
     buildLines(false); renderLines(); renderAssumptions(); renderSummary(); save();
+  });
+
+  $("loc-factor").addEventListener("input", (e) => {
+    state.localisationFactor = Math.max(0, parseFloat(e.target.value) || 0);
+    buildLines(false); renderStreams(); renderAssumptions(); renderSummary(); save();
+  });
+  [["rev-client", "client"], ["rev-ours", "ours"]].forEach(([id, who]) => {
+    $(id).addEventListener("input", (e) => {
+      const v = parseFloat(e.target.value);
+      state.reviewPct = state.reviewPct || {};
+      if (isFinite(v) && v >= 0) state.reviewPct[who] = v; else delete state.reviewPct[who];
+      applyReviewNote();
+      renderStreams(); renderAssumptions(); renderSummary(); save();
+    });
   });
 
   $("btn-mode-reset").addEventListener("click", async () => {
@@ -2993,20 +3458,19 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   function onLineEdit(e) {
     const tr = e.target.closest("tr"); if (!tr || tr.dataset.i === undefined) return;
     const l = state.lines[+tr.dataset.i], f = e.target.dataset.l;
-    if (!f) return;
+    if (!l || !f) return;
 
     if (f === "optional") {
       l.optional = e.target.checked; l.editedOptional = true;
-      renderLines(); renderAssumptions(); renderSummary(); save();
+      renderStreams(); renderAssumptions(); renderSummary(); save();
       return;
     }
-    // Complexity and mode change the effort build-up, so the row is rebuilt.
     if (f === "level" || f === "mode") {
       const store = f === "level" ? "lineComplexity" : "lineMode";
       if (l.custom) { l[f] = e.target.value; }
       else { state[store][l.id] = e.target.value; }
       buildLines(false);
-      renderLines(); renderAssumptions(); renderSummary(); save();
+      renderStreams(); renderAssumptions(); renderSummary(); save();
       return;
     }
     if (f === "include") { l.include = e.target.checked; l.editedInclude = true; }
@@ -3016,25 +3480,32 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     tr.querySelector(".cell-mandays").textContent = days(l.qty * l.dpu);
     tr.style.opacity = l.include ? "" : ".45";
     const t = totals();
-    $("foot-days").textContent = days(t.effort);
-    if ($("foot-buffer")) { $("foot-buffer").textContent = days(t.bufferDays); $("foot-total").textContent = days(t.effortWithBuffer); }
-    if ($("foot-opt-days")) $("foot-opt-days").textContent = days(t.optEffort);
-    renderSummary(); save();
+    const ts = t.byStream[l.stream];
+    if (ts) renderStreamFootOnly(l.stream, ts);
+    renderGrand(t); renderArchetypes(t); renderSummary(); save();
   }
-  $("lines-body").addEventListener("input", onLineEdit);
-  $("lines-body").addEventListener("change", onLineEdit);
 
-  $("lines-body").addEventListener("click", (e) => {
-    if (e.target.id === "btn-start") {
+  // Repaint just one section's subtotals, leaving the edited field focused.
+  function renderStreamFootOnly(streamId, ts) {
+    const st = STREAMS.find((x) => x.id === streamId);
+    if (st) renderStreamTable(st, ts);
+  }
+
+  const estimatePanel = $("panel-quote");
+  estimatePanel.addEventListener("input", onLineEdit);
+  estimatePanel.addEventListener("change", onLineEdit);
+
+  estimatePanel.addEventListener("click", (e) => {
+    if (e.target.dataset.start !== undefined) {
       buildLines(true);
-      renderLines(); renderAssumptions(); renderSummary(); save();
+      renderStreams(); renderAssumptions(); renderSummary(); save();
       toast("Started from the standard change management scope");
       return;
     }
     const i = e.target.dataset.delline;
     if (i === undefined) return;
     state.lines.splice(+i, 1);
-    renderLines(); renderSummary(); save();
+    renderStreams(); renderAssumptions(); renderSummary(); save();
   });
 
   /* ---- Free-text deliverables ---------------------------------------- */
@@ -3074,35 +3545,48 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     return "Strategic Plans & Models";
   }
 
-  $("add-level").innerHTML = LEVELS.map((v) => `<option value="${v}" ${v === "Standard" ? "selected" : ""}>${v}</option>`).join("");
-  $("add-arch").innerHTML = Object.keys(ARCHETYPE_HOURS).map((a) => `<option value="${esc(a)}">${esc(a)}</option>`).join("");
-
-  let archTouched = false;
-  $("add-arch").addEventListener("change", () => { archTouched = true; });
-  $("add-name").addEventListener("input", (e) => {
-    if (archTouched) return;
-    $("add-arch").value = inferArchetype(e.target.value);
+  STREAMS.forEach((st) => {
+    const lvl = document.querySelector(`select[data-add="level"][data-stream="${st.id}"]`);
+    const arch = document.querySelector(`select[data-add="arch"][data-stream="${st.id}"]`);
+    lvl.innerHTML = LEVELS.map((v) => `<option value="${v}" ${v === "Standard" ? "selected" : ""}>${v}</option>`).join("");
+    arch.innerHTML = Object.keys(ARCHETYPE_HOURS).map((a) => `<option value="${esc(a)}">${esc(a)}</option>`).join("");
   });
-  $("add-name").addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); addCustomLine(); } });
-  $("btn-add-line").addEventListener("click", addCustomLine);
 
-  function addCustomLine() {
-    const name = $("add-name").value.trim();
-    if (!name) { $("add-name").focus(); toast("Give the deliverable a name first"); return; }
-    const archetype = $("add-arch").value;
+  const archTouched = {};
+  estimatePanel.addEventListener("input", (e) => {
+    if (e.target.dataset.add !== "name") return;
+    const st = e.target.dataset.stream;
+    if (archTouched[st]) return;
+    document.querySelector(`select[data-add="arch"][data-stream="${st}"]`).value = inferArchetype(e.target.value);
+  });
+  estimatePanel.addEventListener("change", (e) => {
+    if (e.target.dataset.add === "arch") archTouched[e.target.dataset.stream] = true;
+  });
+  estimatePanel.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && e.target.dataset.add === "name") { e.preventDefault(); addCustomLine(e.target.dataset.stream); }
+  });
+  estimatePanel.addEventListener("click", (e) => {
+    if (e.target.dataset.add === "go") addCustomLine(e.target.dataset.stream);
+  });
+
+  function addCustomLine(stream) {
+    const q = (what) => document.querySelector(`[data-add="${what}"][data-stream="${stream}"]`);
+    const name = q("name").value.trim();
+    if (!name) { q("name").focus(); toast("Give the deliverable a name first"); return; }
+    const archetype = q("arch").value;
     state.lines.push(rebuildCustom({
-      id: "custom_" + Date.now(), name, clientTerm: "",
+      id: "custom_" + Date.now(), catId: "", stream, name, clientTerm: "",
       desc: `Added for this pursuit · sized as a ${archetype.toLowerCase()} deliverable.`,
       unit: "item", cat: "Added for this pursuit", rateKey: "",
-      archetype, level: $("add-level").value, mode: null,
+      archetype, level: q("level").value, mode: null,
       include: true, optional: false,
-      qty: Math.max(0, parseFloat($("add-qty").value) || 1),
+      qty: Math.max(0, parseFloat(q("qty").value) || 1),
       editedQty: true, editedInclude: true, editedOptional: true,
       detected: false, custom: true
     }));
-    $("add-name").value = ""; $("add-qty").value = "1"; archTouched = false;
-    renderLines(); renderAssumptions(); renderSummary(); save();
-    toast(`Added — sized as ${archetype}`);
+    q("name").value = ""; q("qty").value = "1"; archTouched[stream] = false;
+    renderStreams(); renderAssumptions(); renderSummary(); save();
+    toast(`Added to ${stream} — sized as ${archetype}`);
   }
 
   $("btn-rebuild").addEventListener("click", async () => {
@@ -3447,32 +3931,42 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   $("btn-export-invoice").addEventListener("click", () => {
     const t = totals();
     const c = activeCountry();
-    const rows = [["#", "Deliverable", "RFP term", "Description", "Unit", "Qty", "Complexity", "Mode", "Mandays per unit", "Mandays"]];
-    t.inc.forEach((l, i) => rows.push([i + 1, l.name, l.clientTerm || "", l.desc, l.unit, l.qty, l.level, l.mode || "n/a", days(l.dpu), days(l.qty * l.dpu)]));
-    rows.push([], ["", "Core effort", "", "", "", "", "", "", "", days(t.effort)]);
-    if (t.bufferDays) rows.push(["", `Delivery buffer ${state.settings.contingency}%`, "", "", "", "", "", "", "", days(t.bufferDays)]);
-    rows.push(["", "TOTAL MANDAYS", "", "", "", "", "", "", "", days(t.effortWithBuffer)]);
+    const rows = [["#", "Stream", "Deliverable", "RFP term", "Unit", "Qty", "Complexity", "Mode", "Mandays per unit", "Mandays"]];
+    let i = 0;
+    t.streams.forEach((ts) => {
+      const st = STREAMS.find((x) => x.id === ts.streamId);
+      ts.inc.forEach((l) => rows.push([++i, st.name, l.name, l.clientTerm || "", l.unit, l.qty, l.level, l.mode || "n/a", days(l.dpu), days(l.qty * l.dpu)]));
+      rows.push(["", st.name, "Build effort, all parties", "", "", "", "", "", "", days(ts.build)]);
+      rows.push(["", st.name, `Client share ${100 - Math.round(ts.share * 100)}%`, "", "", "", "", "", "", days(ts.clientBuild)]);
+      rows.push(["", st.name, `Our build ${Math.round(ts.share * 100)}%`, "", "", "", "", "", "", days(ts.ourBuild)]);
+      rows.push(["", st.name, `Our review, ${ts.cycles} cycle(s)`, "", "", "", "", "", "", days(ts.ourReview)]);
+      rows.push(["", st.name, "SUBTOTAL — ours", "", "", "", "", "", "", days(ts.ourTotal)]);
+      rows.push([]);
+    });
+    if (t.bufferDays) rows.push(["", "", `Delivery buffer ${state.settings.contingency}%`, "", "", "", "", "", "", days(t.bufferDays)]);
+    rows.push(["", "", "TOTAL MANDAYS — OURS", "", "", "", "", "", "", days(t.effortWithBuffer)]);
+    rows.push(["", "", "Client effort", "", "", "", "", "", "", days(t.clientEffort)]);
 
     if (t.opt.length) {
-      rows.push([], ["", "OPTIONAL ITEMS — quoted separately, not in the total above"]);
-      t.opt.forEach((l, i) => rows.push([i + 1, l.name, l.clientTerm || "", l.desc, l.unit, l.qty, l.level, l.mode || "n/a", days(l.dpu), days(l.qty * l.dpu)]));
-      rows.push(["", "Total options", "", "", "", "", "", "", "", days(t.optEffort)]);
+      rows.push([], ["", "", "OPTIONAL ITEMS — quoted separately"]);
+      t.opt.forEach((l, n) => rows.push([n + 1, l.stream, l.name, l.clientTerm || "", l.unit, l.qty, l.level, l.mode || "n/a", days(l.dpu), days(l.qty * l.dpu)]));
     }
 
-    rows.push([], ["", "EFFORT BY RANK (mandays)"]);
-    RANKS.slice().reverse().forEach((r) => { if (t.byRank[r.id] >= 0.05) rows.push(["", r.name, "", "", "", "", "", "", "", days(t.byRank[r.id])]); });
-    rows.push(["", "Average FTE", "", "", "", "", "", "", "", t.fte.toFixed(1)]);
+    rows.push([], ["", "", "DELIVERABLES BY ARCHETYPE"], ["", "", "Archetype", "", "", "Deliverables", "", "", "", "Mandays (ours, build)"]);
+    archetypeSubtotals().forEach((r) => rows.push(["", "", r.archetype, "", "", r.units, "", "", "", days(r.mandays)]));
+
+    rows.push([], ["", "", "EFFORT BY RANK (mandays)"]);
+    RANKS.slice().reverse().forEach((r) => { if (t.byRank[r.id] >= 0.05) rows.push(["", "", r.name, "", "", "", "", "", "", days(t.byRank[r.id])]); });
+    rows.push(["", "", "Average FTE", "", "", "", "", "", "", t.fte.toFixed(1)]);
 
     if (t.total > 0) {
-      rows.push([], ["", `INDICATIVE PRICE — sanity check only, priced in ${c ? c.name : "the selected country"} (${cur()})`]);
-      rows.push(["", "Fees", "", "", "", "", "", "", "", Math.round(t.fees)]);
-      if (t.contingency) rows.push(["", `Buffer ${state.settings.contingency}%`, "", "", "", "", "", "", "", Math.round(t.contingency)]);
-      if (t.discount) rows.push(["", `Discount ${state.settings.discount}%`, "", "", "", "", "", "", "", -Math.round(t.discount)]);
-      if (t.expenses) rows.push(["", "Travel & expenses", "", "", "", "", "", "", "", Math.round(t.expenses)]);
-      if (t.tax) rows.push(["", `${c ? c.tax : "Tax"} ${state.settings.tax}%`, "", "", "", "", "", "", "", Math.round(t.tax)]);
-      rows.push(["", "Indicative total", "", "", "", "", "", "", "", Math.round(t.total)]);
+      rows.push([], ["", "", `INDICATIVE PRICE — sanity check only, ${c ? c.name : ""} (${currencyCode()})`]);
+      rows.push(["", "", "Fees", "", "", "", "", "", "", Math.round(t.fees)]);
+      if (t.discount) rows.push(["", "", `Discount ${state.settings.discount}%`, "", "", "", "", "", "", -Math.round(t.discount)]);
+      if (t.expenses) rows.push(["", "", "Travel & expenses", "", "", "", "", "", "", Math.round(t.expenses)]);
+      if (t.tax) rows.push(["", "", `${c ? c.tax : "Tax"} ${state.settings.tax}%`, "", "", "", "", "", "", Math.round(t.tax)]);
+      rows.push(["", "", "Indicative total", "", "", "", "", "", "", Math.round(t.total)]);
     }
-    function cur() { return currencyCode(); }
     download((state.settings.client || "cm-manday-estimate").replace(/[^\w\-]+/g, "-").toLowerCase() + ".csv", toCsv(rows));
   });
 
@@ -3480,7 +3974,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     const t = totals();
     const c = activeCountry();
     let md = `## Manday estimate${state.settings.client ? " — " + state.settings.client : ""}\n\n`;
-    md += `${days(t.effortWithBuffer)} mandays · ${t.fte.toFixed(1)} average FTE over ${driverValue("months")} months`;
+    md += `**${days(t.effortWithBuffer)} mandays** · ${t.fte.toFixed(1)} average FTE over ${driverValue("months")} months`;
     md += c ? ` · delivered in ${c.name}.\n\n` : `.\n\n`;
 
     const header = `| # | Deliverable | Unit | Qty | Complexity | Mode | Mandays |\n|---:|---|---|---:|---|---|---:|\n`;
@@ -3489,30 +3983,42 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       return `| ${i + 1} | ${nm} | ${l.unit} | ${l.qty} | ${l.level} | ${l.mode || "—"} | ${days(l.qty * l.dpu)} |\n`;
     };
 
-    md += header;
-    t.inc.forEach((l, i) => { md += line(l, i); });
-    md += `| | **Core effort** | | | | | **${days(t.effort)}** |\n`;
-    if (t.bufferDays) {
-      md += `| | Delivery buffer ${state.settings.contingency}% | | | | | ${days(t.bufferDays)} |\n`;
-      md += `| | **Total mandays** | | | | | **${days(t.effortWithBuffer)}** |\n`;
-    }
+    t.streams.forEach((ts) => {
+      const st = STREAMS.find((x) => x.id === ts.streamId);
+      md += `### ${st.name} — ${st.verb}\n\n${header}`;
+      ts.inc.forEach((l, i) => { md += line(l, i); });
+      md += `| | **Build, all parties** | | | | | **${days(ts.build)}** |\n`;
+      md += `| | Client share ${100 - Math.round(ts.share * 100)}% | | | | | ${days(ts.clientBuild)} |\n`;
+      md += `| | Our build ${Math.round(ts.share * 100)}% | | | | | ${days(ts.ourBuild)} |\n`;
+      md += `| | Our review, ${ts.cycles} cycle${ts.cycles === 1 ? "" : "s"} | | | | | ${days(ts.ourReview)} |\n`;
+      md += `| | **${st.name} total — ours** | | | | | **${days(ts.ourTotal)}** |\n\n`;
+    });
+
+    if (t.bufferDays) md += `Delivery buffer ${state.settings.contingency}%: ${days(t.bufferDays)} mandays.\n\n`;
+    md += `**Our total effort: ${days(t.effortWithBuffer)} mandays.** Client effort: ${days(t.clientEffort)} mandays.\n\n`;
 
     if (t.opt.length) {
-      md += `\n**Optional items** — quoted separately, not included in the total above.\n\n${header}`;
+      md += `**Optional items** — quoted separately.\n\n${header}`;
       t.opt.forEach((l, i) => { md += line(l, i); });
-      md += `| | **Total options** | | | | | **${days(t.optEffort)}** |\n`;
+      md += `\n`;
+    }
+
+    const arch = archetypeSubtotals();
+    if (arch.length) {
+      md += `### Deliverables by archetype\n\n| Archetype | Deliverables | Mandays |\n|---|---:|---:|\n`;
+      arch.forEach((r) => { md += `| ${r.archetype} | ${r.units} | ${days(r.mandays)} |\n`; });
+      md += `\n`;
     }
 
     if (t.rankedEffort > 0) {
-      md += `\n**Team shape**\n\n| Rank | Mandays |\n|---|---:|\n`;
+      md += `### Team shape\n\n| Rank | Mandays |\n|---|---:|\n`;
       RANKS.slice().reverse().forEach((r) => { if (t.byRank[r.id] >= 0.05) md += `| ${r.name} | ${days(t.byRank[r.id])} |\n`; });
+      md += `\n`;
     }
 
     if (t.total > 0) {
-      md += `\n**Indicative price** — a sanity check only; the binding number comes from the pricing workbench.\n\n`;
-      md += `| Item | ${currencyCode()} |\n|---|---:|\n`;
-      md += `| Fees | ${moneyShort(t.fees)} |\n`;
-      if (t.contingency) md += `| Buffer ${state.settings.contingency}% | ${moneyShort(t.contingency)} |\n`;
+      md += `**Indicative price** — a sanity check only; the binding number comes from the pricing workbench.\n\n`;
+      md += `| Item | ${currencyCode()} |\n|---|---:|\n| Fees | ${moneyShort(t.fees)} |\n`;
       if (t.discount) md += `| Discount ${state.settings.discount}% | −${moneyShort(t.discount)} |\n`;
       if (t.expenses) md += `| Travel & expenses | ${moneyShort(t.expenses)} |\n`;
       if (t.tax) md += `| ${c ? c.tax : "Tax"} ${state.settings.tax}% | ${moneyShort(t.tax)} |\n`;
@@ -3635,6 +4141,13 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $("file").value = "";
     $("country").value = state.country || "";
     $("delivery-mode").value = state.deliveryMode || "blended";
+    $("scope-type").value = state.scopeType || "";
+    $("review-cycles").value = reviewCycles();
+    $("loc-factor").value = Math.round(localisationFactor() * 100);
+    $("rev-client").value = Math.round(reviewPct("client") * 1000) / 10;
+    $("rev-ours").value = Math.round(reviewPct("ours") * 100);
+    applyReviewNote();
+    renderInvolvement();
     $("escalation").value = state.settings.escalation;
     $("hours-per-day").value = state.settings.hoursPerDay;
     $("c-contingency").value = state.settings.contingency;
