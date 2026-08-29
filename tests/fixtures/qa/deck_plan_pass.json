@@ -1,0 +1,43 @@
+{
+  "run_id": "test-run",
+  "brief_ref": "training_brief.json",
+  "template": {"path": "proposal-assets/templates/html-generic/"},
+  "unused_assets": [
+    {"asset_id": "sample-fsd-img-002", "reason": "low-res duplicate of img-001, not needed"}
+  ],
+  "modules": [
+    {
+      "module_id": "approval",
+      "title": "Approval",
+      "order": 1,
+      "objective_ids": ["LO1"],
+      "slides": [
+        {
+          "slide_id": "approval-1",
+          "layout": "title-and-content",
+          "title": "Approval Steps",
+          "blocks": [
+            {"placeholder": "body", "kind": "bullets", "content": ["Submit", "Approve"], "sources": ["sample-fsd#4.2.1"]},
+            {"placeholder": "body", "kind": "image", "content": {"asset_id": "sample-fsd-img-001", "caption": "Screen"}, "sources": ["sample-fsd#4.2.1"]}
+          ]
+        }
+      ]
+    },
+    {
+      "module_id": "create",
+      "title": "Create PO",
+      "order": 2,
+      "objective_ids": ["LO2"],
+      "slides": [
+        {
+          "slide_id": "create-1",
+          "layout": "title-and-content",
+          "title": "Create a PO",
+          "blocks": [
+            {"placeholder": "body", "kind": "bullets", "content": ["Fill form"], "sources": ["sample-fsd#4.1"]}
+          ]
+        }
+      ]
+    }
+  ]
+}
