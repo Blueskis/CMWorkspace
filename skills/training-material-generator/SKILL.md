@@ -272,7 +272,12 @@ Two non-negotiables, inherited from `cm-proposal-generator` and equally true her
 
 If the practitioner asks for a `.pptx` and there's no approved template available, stop
 and ask for one rather than building an approximation — "on the client's approved
-template" is the whole requirement, and a lookalike fails it.
+template" is the whole requirement, and a lookalike fails it. Only if the practitioner
+explicitly accepts a placeholder for a first pass, generate one with
+`scripts/make_placeholder_template.py` — six plain, undecorated layouts (title, section
+header, title-and-content, two-content, picture-with-caption, diagram-full) covering
+every block kind the pipeline needs, so nothing downstream has to special-case a missing
+template. State plainly at handover that it isn't the real one.
 
 ## Stage 5 — QA
 
@@ -329,7 +334,7 @@ skills/training-material-generator/
 │                         #   question_bank contracts
 └── scripts/              # map_source, extract_assets, index_chunks, retrieve_chunks,
                           #   render_diagram, inject_slide_xml, build_training_deck,
-                          #   qa_training
+                          #   qa_training, make_placeholder_template
 lib/
 ├── profile_template.py   # shared with cm-proposal-generator — profiles a .potx/.pptx
 │                         #   or an HTML template's layouts, placeholders, theme

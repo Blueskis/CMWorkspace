@@ -150,7 +150,7 @@ def layout_swimlane(spec, bx, by, bw, bh):
 
     role_index = {r: i for i, r in enumerate(roles)}
     box_h = min(1.0, lane_h * 0.7)
-    prev_center = None
+    prev_exit = None
     for c, item in enumerate(steps):
         role = item["role"]
         if role not in role_index:
@@ -158,11 +158,16 @@ def layout_swimlane(spec, bx, by, bw, bh):
         r = role_index[role]
         cx = bx + label_w + c * col_w
         cy = by + r * lane_h + (lane_h - box_h) / 2
-        scene.append(make_box(cx + 0.1, cy, col_w - 0.2, box_h, item["step"], PALETTE_CYCLE[r % len(PALETTE_CYCLE)]))
-        center = (cx + col_w / 2, cy + box_h / 2)
-        if prev_center:
-            scene.append(make_arrow(prev_center[0], prev_center[1], center[0], center[1]))
-        prev_center = center
+        box_x, box_w = cx + 0.1, col_w - 0.2
+        scene.append(make_box(box_x, cy, box_w, box_h, item["step"], PALETTE_CYCLE[r % len(PALETTE_CYCLE)]))
+        # Connect box EDGES, not centers — a center-to-center line on a cross-lane step
+        # cuts straight through the intervening box text. Edge-to-edge confines the
+        # connector to the (empty) gap between columns instead.
+        entry = (box_x, cy + box_h / 2)
+        exit_ = (box_x + box_w, cy + box_h / 2)
+        if prev_exit:
+            scene.append(make_arrow(prev_exit[0], prev_exit[1], entry[0], entry[1]))
+        prev_exit = exit_
     return scene
 
 
