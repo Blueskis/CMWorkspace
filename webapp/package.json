@@ -1,0 +1,19 @@
+{
+  "name": "training-material-generator-webapp",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser port of the training-material-generator pipeline. Modules here are inlined into the published artifact by build.js, and tested in Node by test/run.js before they ship.",
+  "scripts": {
+    "test": "node test/run.js",
+    "build": "node build.js"
+  },
+  "dependencies": {
+    "@xmldom/xmldom": "^0.9.12",
+    "jszip": "^3.10.1",
+    "pdfjs-dist": "^3.11.174"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
