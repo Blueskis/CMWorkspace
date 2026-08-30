@@ -16,7 +16,7 @@ email/comms_plan.json              run 1 — email to A1 (all colleagues)       
 article/comms_plan.json            run 2 — intranet article to A1                -> .docx
 briefing_deck/comms_plan.json      run 3 — manager cascade deck to A2             -> .pptx
 banner/comms_plan.json             run 4 — intranet banner to A1                 -> Canva
-explainer_video/comms_plan.json    run 5 — portal walkthrough for A1             -> Synthesia (reserved)
+explainer_video/comms_plan.json    run 5 — portal walkthrough for A1             -> ElevenLabs (narration only)
 ```
 
 Five channel runs off **one** brief. That is the structural point: the brief is authored once
@@ -82,7 +82,7 @@ check and tell you if it is missing.
 | `article` | 11 | 13 | 0 | 1 | `skill:docx` — 4 steps |
 | `briefing_deck` | 9 | 23 | 0 | 1 | `skill:pptx` — 3 steps |
 | `banner` | 5 | 5 | 0 | 0 | `mcp:Canva` — handoff only |
-| `explainer_video` | 6 | 10 | 0 | 0 | `mcp:Synthesia` — handoff only |
+| `explainer_video` | 6 | 10 | 0 | 0 | `mcp:ElevenLabs` — handoff only, narration lane |
 
 Every channel exits 0. The two `.docx` builds pass the `docx` skill's own OOXML validator and
 `verify_docx.py`. `apply_brand.py` prints five contrast ratios, all passing Northwind's 4.5:1
@@ -128,7 +128,7 @@ here, so the deck and the banner both carry
 the artifacts still need client sign-off before anything is published.
 
 **Two lanes with no producer, still delivering.** The banner and explainer video route to
-connectors that are unreachable — Canva needs authorizing, and no Synthesia connector exists.
+connectors that are unreachable — Canva needs authorizing, and ElevenLabs is disabled in chat.
 Both exit 0 and produce a real handoff artifact: a design brief with per-field copy and canvas
 dimensions, and a video spec with a scene table, VO timing and a WebVTT caption file.
 

@@ -8,11 +8,13 @@ Writes the scene table, the voiceover script with per-scene timing, the on-scree
 a WebVTT caption file, and the direction a producer needs — aspect ratio, avatar, and
 whether each scene is talking head or screen capture.
 
-Neither video lane has a reachable producer in v0.2:
+Both video lanes route to ElevenLabs for the NARRATION TRACK only, and neither is
+reachable in v0.2:
 
-  short_form_video  ElevenLabs — installed but disabled in chat, and the tools it exposes
-                    are voice-agent management rather than TTS or video rendering
-  explainer_video   Synthesia — no connector exists in the Claude connector directory
+  short_form_video  ElevenLabs — installed but disabled in chat, and every tool the
+                    connector directory lists is voice-agent management, not TTS
+  explainer_video   ElevenLabs for narration; the picture has no producer at all —
+                    no avatar-video connector exists in the directory
 
 So this spec IS the deliverable today, and it is written to be handed to a person or an
 app without further translation. When either connector arrives, the same file is the

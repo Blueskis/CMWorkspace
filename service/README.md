@@ -140,6 +140,6 @@ showing the findings first is the point of having a QA stage at all.
   `BRAND_PROFILE_PATH` and one knowledge bank per deployment. Serving several clients from one
   server means extending `intake_change`/`plan_channel` to take a client identifier and resolve
   paths per call — not done here, since no second client profile exists yet to build it against.
-- **Canva, ElevenLabs, Synthesia execution.** Those still go through the caller's own connector
+- **Canva and ElevenLabs execution.** Those still go through the caller's own connector
   tools, called with the brief/spec this server hands back — see `route_channel.py`'s
   `blocked_by` reporting for why that stays a human-in-the-loop step in v0.3.

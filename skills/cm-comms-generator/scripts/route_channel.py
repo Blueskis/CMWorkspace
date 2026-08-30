@@ -55,7 +55,7 @@ HARD_PRECONDITIONS = {"brand_approved"}
 # Preconditions that report an external CONNECTOR's reachability rather than a local
 # fact. Named separately because they gate the outcome even off a "live" entry — see
 # route().
-CONNECTOR_PRECONDITIONS = {"canva_connected", "elevenlabs_connected", "synthesia_connected"}
+CONNECTOR_PRECONDITIONS = {"canva_connected", "elevenlabs_connected"}
 
 
 def check_brand_approved(ctx):
@@ -116,7 +116,6 @@ PRECONDITION_CHECKS = {
     "potx_available": check_potx,
     "canva_connected": check_connector("Canva"),
     "elevenlabs_connected": check_connector("ElevenLabs"),
-    "synthesia_connected": check_connector("Synthesia"),
 }
 
 
@@ -187,7 +186,7 @@ def commands_for(channel, entry, ctx):
              "copy has passed QA."),
         ]
 
-    if producer in ("mcp:ElevenLabs", "mcp:Synthesia"):
+    if producer == "mcp:ElevenLabs":
         return [
             ("Write the production spec",
              f"python skills/cm-comms-generator/scripts/video_spec.py {plan_path} "

@@ -30,13 +30,7 @@
       "kind": "mcp",
       "server": "ElevenLabs",
       "tools": [],
-      "note": "Installed on the account but disabled in chat. The tools it exposes are voice-agent management (create_agent, duplicate_agent, get_agent_link), not TTS or video rendering — re-check the surface once enabled before wiring."
-    },
-    "mcp:Synthesia": {
-      "kind": "mcp",
-      "server": "Synthesia",
-      "tools": [],
-      "note": "No Synthesia connector exists in the Claude connector directory as of 2026-08. Requires either a first-party connector or a custom MCP server."
+      "note": "Verified 2026-08 via the connector registry: installed on the account but DISABLED IN CHAT, and every tool name the directory lists is voice-AGENT management (create_agent, duplicate_agent, get_agent_link, calculate_agent_llm_usage) with three more not shown. No text-to-speech tool is visible. Scope here is the NARRATION TRACK only - the VO script and captions video_spec.py already emits - never the picture. Unblocking is two steps and the second may fail: enable the connector in the chat's connector settings, then re-check whether the tool surface actually exposes TTS."
     }
   },
   "channels": {
@@ -197,11 +191,12 @@
       "format": "scene outline + VO script",
       "producer": "mcp:ElevenLabs",
       "status": "planned",
-      "blocked_by": "The ElevenLabs connector is installed but disabled in this chat, and the tools it exposes are voice-agent management rather than TTS or video rendering. Enable it and re-check the tool surface before wiring this lane.",
+      "blocked_by": "ElevenLabs is installed but disabled in this chat, so its tools are not callable. Enable it in the chat's connector settings, then re-check the tool surface: every tool the directory lists today is voice-agent management rather than TTS, so this lane may still have no producer after enabling.",
       "planned_for": "v0.3",
       "handoff": "video_spec.json + captions.vtt",
       "preconditions": [
-        "brand_approved"
+        "brand_approved",
+        "elevenlabs_connected"
       ],
       "part_kinds": [
         "scene"
@@ -216,14 +211,15 @@
     },
     "explainer_video": {
       "label": "Explainer video",
-      "format": "scene outline + avatar/screen direction",
-      "producer": "mcp:Synthesia",
+      "format": "scene outline + VO script + screen direction",
+      "producer": "mcp:ElevenLabs",
       "status": "planned",
-      "blocked_by": "No Synthesia connector exists in the Claude connector directory. Adding one — first-party or a custom MCP server — is a prerequisite for this lane.",
+      "blocked_by": "Same as short_form_video: ElevenLabs is disabled in this chat and may not expose TTS even once enabled. Note this lane is only PARTLY served either way - ElevenLabs can narrate, but scene assembly and any presenter avatar remain a human production step. No avatar-video connector exists in the directory: Synthesia has none at all, and the nearest neighbours (HyperFrames by HeyGen, Tella) are different vendors and not installed.",
       "planned_for": "v0.3",
       "handoff": "video_spec.json + captions.vtt",
       "preconditions": [
-        "brand_approved"
+        "brand_approved",
+        "elevenlabs_connected"
       ],
       "part_kinds": [
         "scene",

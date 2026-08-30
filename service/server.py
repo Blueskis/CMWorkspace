@@ -109,7 +109,7 @@ def produce(run_id: str, channel: str) -> dict:
     """Stage 3b. Route the channel to its producer and build what can be built. Re-runs QA
     itself (same as route_channel.py) and refuses to produce anything while a hard failure
     stands. Three outcomes: 'route' with a downloadable artifact URL, 'handoff_only' with a
-    brief/spec URL when the producer (Canva, ElevenLabs, Synthesia) is unreachable — this is a
+    brief/spec URL when the producer (Canva, ElevenLabs) is unreachable — this is a
     successful run, not a failure — or 'qa_failed'/'precondition_failed' with no artifact."""
     cdir = _channel_dir(run_id, channel)
     plan_path = cdir / "comms_plan.json"

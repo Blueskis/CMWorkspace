@@ -19,7 +19,7 @@ python skills/cm-comms-generator/scripts/route_channel.py --list
 | `newsletter` | Canva design | Canva MCP | live — needs the connector authorized for this run |
 | `banner` | Canva design | Canva MCP | live — needs the connector authorized for this run |
 | `short_form_video` | scene outline + VO script | ElevenLabs MCP | planned, v0.3 |
-| `explainer_video` | scene outline + avatar direction | Synthesia MCP | planned, v0.3 |
+| `explainer_video` | scene outline + screen direction | ElevenLabs MCP (narration only) | planned, v0.3 |
 
 **"live" means an automated build chain exists, not that it is guaranteed reachable this
 run.** `docx`/`pptx` depend on a local npm package; `banner`/`newsletter` depend on the Canva
@@ -175,8 +175,10 @@ string naming exactly what is missing:
 - **`short_form_video` → ElevenLabs.** Installed on the account but disabled in this chat,
   and the tools it exposes are voice-*agent* management (`create_agent`, `get_agent_link`),
   not TTS or video rendering. Enable it and re-check the tool surface before wiring.
-- **`explainer_video` → Synthesia.** No Synthesia connector exists in the Claude connector
-  directory. A first-party connector or a custom MCP server is a prerequisite.
+- **`explainer_video` → ElevenLabs, for narration only.** Same connector and same blocker as
+  above. This lane is only ever partly served: scene assembly and any presenter avatar remain a
+  human production step. No avatar-video connector exists in the directory — Synthesia has none,
+  and the nearest neighbours (HyperFrames by HeyGen, Tella) are different vendors, not installed.
 
 Until then the spec and captions are the deliverable, written to be handed to a person or an
 app without further translation. When a connector arrives, the same file is the adapter's

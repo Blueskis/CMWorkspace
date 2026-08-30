@@ -207,7 +207,7 @@ add a channel, is in `reference/channel-routing.md`.
 | `briefing_deck` | `.pptx` | `pptx` skill | live |
 | `newsletter`, `banner` | Canva design | Canva MCP | live — needs the connector authorized this run |
 | `short_form_video` | scene spec + captions | ElevenLabs MCP | planned, v0.3 |
-| `explainer_video` | scene spec + captions | Synthesia MCP | planned, v0.3 |
+| `explainer_video` | scene spec + captions | ElevenLabs MCP (narration only) | planned, v0.3 |
 
 **Nothing is produced until QA passes.** The router exits non-zero and emits no route while a
 hard failure stands. Production is where a comm becomes expensive and externally visible; the
@@ -272,11 +272,18 @@ python skills/cm-comms-generator/scripts/video_spec.py <plan> --brand <brand> \
     -o <run>/video_spec.json
 ```
 
-Writes the scene table, VO script with timing, on-screen text and a WebVTT caption file. Neither
-lane has a reachable producer: ElevenLabs is installed but disabled in chat and currently
-exposes voice-*agent* tools rather than TTS or rendering; no Synthesia connector exists in the
-Claude connector directory at all. The router reports each `blocked_by` verbatim. The spec and
-captions are the deliverable until a connector arrives.
+Writes the scene table, VO script with timing, on-screen text and a WebVTT caption file.
+
+Both lanes route to **ElevenLabs, for the narration track only** — never the picture. Neither is
+reachable today: ElevenLabs is installed but disabled in chat, and every tool the connector
+directory lists is voice-*agent* management rather than TTS, so enabling it is necessary but may
+not be sufficient. Re-check the tool surface once it is on.
+
+`explainer_video` is only ever **partly** served this way: even with narration, scene assembly
+and any presenter avatar stay a human production step. No avatar-video connector exists in the
+directory — Synthesia has none, and the nearest neighbours (HyperFrames by HeyGen, Tella) are
+different vendors and not installed. The router reports each `blocked_by` verbatim, and the spec
+plus captions remain the deliverable.
 
 ## Stage 4 — QA
 
