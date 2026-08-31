@@ -140,20 +140,22 @@ channels, and submit — but a published artifact runs in a sandboxed browser pa
 execute Python, so submitting still needs somewhere to send the work. Two ways to get there,
 in order of setup effort:
 
-1. **`service/`** — a small MCP server that wraps this pipeline's own scripts (it reimplements
-   nothing) plus the two stages that genuinely need a model call. Connect it and the artifact's
-   submit button drives the whole pipeline live, returning download links inside the page.
-   Deploy it — one-click to Render via the root `render.yaml` — then add the resulting
-   **`…/mcp`** URL (that path, not the bare host) as a claude.ai custom connector named exactly
-   `cm-comms`. Running it locally on stdio also works for using the pipeline by talking to
-   Claude in the desktop app, but it cannot drive the artifact: `host:` MCP servers are not
-   granted on this account. See `service/README.md`.
+1. **Generate in the artifact, via Gamma** — the console now drafts email, article, newsletter
+   and briefing decks straight through the viewer's own **Gamma** connector. Nothing to deploy:
+   Gamma is hosted, the viewer adds it once in claude.ai, and the deck lane exports to `.pptx`.
+   **But Gamma writes the copy**, so those drafts have no QA gate and no provenance — in testing
+   it invented a portal URL that was never in the input. Treat them as fast first drafts to
+   react to, never as checked comms.
+
 2. **Install the plugin** — `/plugin marketplace add <this-repo-url>` then install
    `cm-workspace`, and run the pipeline by describing the change to Claude directly. No
    artifact, no server, no shared API key. This works today with nothing built.
 
-Until (1) is deployed and connected, the artifact degrades to a copy/paste request block —
-still (2) with extra steps, but inside the same page.
+If Gamma isn't connected, the artifact degrades to a copy/paste request block — route (2) with
+extra steps, but inside the same page. `service/` (the `cm-comms` MCP server) is still in the
+tree and still the only route that puts the **checked** pipeline behind the page: deploy it and
+the artifact can be pointed back at it. It is correct, verified-booting code; it simply has
+never been hosted.
 
 ## Setup before real use
 

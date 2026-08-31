@@ -1,5 +1,12 @@
 # cm-comms MCP server
 
+> **Status: not wired to the artifact.** The comms console now generates its first drafts through
+> the viewer's own **Gamma** connector, because Gamma is hosted and needs no deployment, whereas
+> this server has never been hosted anywhere. That trade buys convenience and loses the QA gate
+> and provenance — Gamma writes the copy. Deploying this server is still the way to get the
+> checked pipeline behind the page; the code below boots and serves correctly, it just needs a
+> host.
+
 Turns the comms console artifact's submit button (and any other MCP client — Claude Desktop,
 Claude Code) into a real run of the `cm-comms-generator` pipeline, without anyone copying a
 prompt back into a chat window.
