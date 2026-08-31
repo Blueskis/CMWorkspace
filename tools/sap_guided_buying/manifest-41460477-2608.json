@@ -1,0 +1,562 @@
+{
+ "title": "Guided Buying: Finding Items and Making Purchases",
+ "shortdesc": "How to find and purchase goods or services, including what to do if you run into errors or how to get help from a purchasing expert in your organization. The information in this guide only applies to sites enabled for the guided buying capability.",
+ "product_url": "buying-invoicing",
+ "deliverable_url": "guided-buying-finding-items-and-making-purchases",
+ "deliverable_id": 41460477,
+ "deliverable_loio": "a50ade649ecd478ba2f086d9a7be387c",
+ "version": "2608",
+ "build_no": 565,
+ "language": "en-US",
+ "retrieved": "2026-08-31",
+ "source_url": "https://help.sap.com/docs/buying-invoicing/guided-buying-finding-items-and-making-purchases/guided-buying-finding-items-and-making-purchases?version=2608",
+ "cache_dir": "cache/41460477-2608",
+ "topics": [
+  {
+   "level": 1,
+   "title": "Guided Buying: Finding Items and Making Purchases",
+   "file_path": "dc93178f0a6f4f4cb3e29c38deb9df5a.html",
+   "loio": "dc93178f0a6f4f4cb3e29c38deb9df5a"
+  },
+  {
+   "level": 1,
+   "title": "Overview of Your Dashboard",
+   "file_path": "bc920f9a64e740d39a32aede3628ca30.html",
+   "loio": "bc920f9a64e740d39a32aede3628ca30"
+  },
+  {
+   "level": 2,
+   "title": "Browsing the Categories on Your Dashboard",
+   "file_path": "f33dcc0887c642f0a755aa50a07e2c28.html",
+   "loio": "f33dcc0887c642f0a755aa50a07e2c28"
+  },
+  {
+   "level": 1,
+   "title": "Managing Your User Profile",
+   "file_path": "5864897b837c470e8932ff7ec6b4b64e.html",
+   "loio": "5864897b837c470e8932ff7ec6b4b64e"
+  },
+  {
+   "level": 2,
+   "title": "Viewing Your User Profile",
+   "file_path": "6d3dd3fe821a4bfabc3d1225fb09bcc8.html",
+   "loio": "6d3dd3fe821a4bfabc3d1225fb09bcc8"
+  },
+  {
+   "level": 2,
+   "title": "Changing Your User Profile",
+   "file_path": "826ab312824b4f5d854984c4cd2dd002.html",
+   "loio": "826ab312824b4f5d854984c4cd2dd002"
+  },
+  {
+   "level": 2,
+   "title": "Creating a Personal Address",
+   "file_path": "6679821014fc42a1bb50a49b43cd25c1.html",
+   "loio": "6679821014fc42a1bb50a49b43cd25c1"
+  },
+  {
+   "level": 1,
+   "title": "Accessibility",
+   "file_path": "27f5f8c65c5a4e7bbe5fcb6dca92b824.html",
+   "loio": "27f5f8c65c5a4e7bbe5fcb6dca92b824"
+  },
+  {
+   "level": 2,
+   "title": "Switching Page Control Groups by Keyboard",
+   "file_path": "7173760b63494355996ea4eabe10f702.html",
+   "loio": "7173760b63494355996ea4eabe10f702"
+  },
+  {
+   "level": 2,
+   "title": "Using Carousels by Keyboard",
+   "file_path": "c53a36b6b9e146fe96180d93f3548d65.html",
+   "loio": "c53a36b6b9e146fe96180d93f3548d65"
+  },
+  {
+   "level": 2,
+   "title": "Using the Calendar by Keyboard",
+   "file_path": "7502a86652a54047a437793802bd18bb.html",
+   "loio": "7502a86652a54047a437793802bd18bb"
+  },
+  {
+   "level": 2,
+   "title": "Shortcut Keys Supported by Guided Buying",
+   "file_path": "0dfbf0a5b819413184d0b9976af4941c.html",
+   "loio": "0dfbf0a5b819413184d0b9976af4941c"
+  },
+  {
+   "level": 1,
+   "title": "Reading Announcements on the Home Page",
+   "file_path": "7b462b881be343f7a42f8e6e8404bccc.html",
+   "loio": "7b462b881be343f7a42f8e6e8404bccc"
+  },
+  {
+   "level": 2,
+   "title": "Reading Announcements from the Notifications Menu",
+   "file_path": "7192d47051874138a4436006b8e502aa.html",
+   "loio": "7192d47051874138a4436006b8e502aa"
+  },
+  {
+   "level": 1,
+   "title": "Finding an Item or Service",
+   "file_path": "fcb05aec05d64eba9642a96869cd9ae9.html",
+   "loio": "fcb05aec05d64eba9642a96869cd9ae9"
+  },
+  {
+   "level": 2,
+   "title": "Landing Pages",
+   "file_path": "2c6ebb03a4d44a9ba94eaaa11f473e5d.html",
+   "loio": "2c6ebb03a4d44a9ba94eaaa11f473e5d"
+  },
+  {
+   "level": 2,
+   "title": "Search Results",
+   "file_path": "8aa2b96106e743fdb5c784480eed865e.html",
+   "loio": "8aa2b96106e743fdb5c784480eed865e"
+  },
+  {
+   "level": 2,
+   "title": "Suppliers",
+   "file_path": "e2a0f3ecf6f64198966ee10d6c803ac7.html",
+   "loio": "e2a0f3ecf6f64198966ee10d6c803ac7"
+  },
+  {
+   "level": 2,
+   "title": "Forms",
+   "file_path": "5721968282f347b9a05a1621f1c82791.html",
+   "loio": "5721968282f347b9a05a1621f1c82791"
+  },
+  {
+   "level": 2,
+   "title": "Comparing Items",
+   "file_path": "6ac82c051d77475f9d4c197210c72d47.html",
+   "loio": "6ac82c051d77475f9d4c197210c72d47"
+  },
+  {
+   "level": 1,
+   "title": "Purchasing an Item",
+   "file_path": "bc4029647db14165abbe86f78aedd6ec.html",
+   "loio": "bc4029647db14165abbe86f78aedd6ec"
+  },
+  {
+   "level": 2,
+   "title": "Warnings and Errors on Requests",
+   "file_path": "163dcbeca7ec42f89a8c49303f64acf4.html",
+   "loio": "163dcbeca7ec42f89a8c49303f64acf4"
+  },
+  {
+   "level": 2,
+   "title": "Accounting",
+   "file_path": "c39461df451d4438ab5daaa3d18c51fc.html",
+   "loio": "c39461df451d4438ab5daaa3d18c51fc"
+  },
+  {
+   "level": 2,
+   "title": "Shipping",
+   "file_path": "5636f9b6197249ae8e61db9a11ab40c9.html",
+   "loio": "5636f9b6197249ae8e61db9a11ab40c9"
+  },
+  {
+   "level": 2,
+   "title": "Comments",
+   "file_path": "fb22c60f44b04b55b379e18d18e5d574.html",
+   "loio": "fb22c60f44b04b55b379e18d18e5d574"
+  },
+  {
+   "level": 2,
+   "title": "Attachments",
+   "file_path": "636d16c266764b74b39c0444e3936139.html",
+   "loio": "636d16c266764b74b39c0444e3936139"
+  },
+  {
+   "level": 2,
+   "title": "Others",
+   "file_path": "1698f43fcec34afbb6396faa4881051b.html",
+   "loio": "1698f43fcec34afbb6396faa4881051b"
+  },
+  {
+   "level": 2,
+   "title": "Adding Approvers and Watchers",
+   "file_path": "7417adf3a6464fd5a4a999633c673214.html",
+   "loio": "7417adf3a6464fd5a4a999633c673214"
+  },
+  {
+   "level": 1,
+   "title": "Inventory Items",
+   "file_path": "397db596f9a94e89a34f0d8dd1f980c2.html",
+   "loio": "397db596f9a94e89a34f0d8dd1f980c2"
+  },
+  {
+   "level": 1,
+   "title": "Requesting a Non-Catalog Item or Service",
+   "file_path": "ef3b514729764dae87fc1871b74bab85.html",
+   "loio": "ef3b514729764dae87fc1871b74bab85"
+  },
+  {
+   "level": 2,
+   "title": "Mitigating Risk for Non-Catalog Purchases",
+   "file_path": "b12a15a2eb7344d1b3af291aaa7a4859.html",
+   "loio": "b12a15a2eb7344d1b3af291aaa7a4859"
+  },
+  {
+   "level": 2,
+   "title": "Workflow for Non-Catalog Engagement Requests",
+   "file_path": "d848c425286f4058830b6786383472de.html",
+   "loio": "d848c425286f4058830b6786383472de"
+  },
+  {
+   "level": 2,
+   "title": "Requesting a Non-Catalog Item with an Ad Hoc Vendor",
+   "file_path": "6a405bfb22ea4772a08fcccb3be9f1e9.html",
+   "loio": "6a405bfb22ea4772a08fcccb3be9f1e9"
+  },
+  {
+   "level": 2,
+   "title": "Requesting a Service Hierarchy Item",
+   "file_path": "69fc1bcbe69c4caba3ffab15d1ee1c1c.html",
+   "loio": "69fc1bcbe69c4caba3ffab15d1ee1c1c"
+  },
+  {
+   "level": 1,
+   "title": "Creating a Request for Limit Items",
+   "file_path": "9bc4c91df217423e9d7a150206bb22a9.html",
+   "loio": "9bc4c91df217423e9d7a150206bb22a9"
+  },
+  {
+   "level": 1,
+   "title": "Creating a Standing Order",
+   "file_path": "7c954c81cd404f8d815f26b02f8dab9d.html",
+   "loio": "7c954c81cd404f8d815f26b02f8dab9d"
+  },
+  {
+   "level": 1,
+   "title": "Favorite Items",
+   "file_path": "fc228e80918540bbaebc8f63168ed838.html",
+   "loio": "fc228e80918540bbaebc8f63168ed838"
+  },
+  {
+   "level": 2,
+   "title": "Adding an Item to a Favorites List",
+   "file_path": "691f6922f5a64a14a5f3058f98390c59.html",
+   "loio": "691f6922f5a64a14a5f3058f98390c59"
+  },
+  {
+   "level": 2,
+   "title": "Choosing an Item from a Favorites List",
+   "file_path": "f006d4cc2ade4834b8e83e256332dda9.html",
+   "loio": "f006d4cc2ade4834b8e83e256332dda9"
+  },
+  {
+   "level": 1,
+   "title": "Making a Repeat Purchase by Copying a Request",
+   "file_path": "89a15deec2a247d8ac8edd5c01a728fa.html",
+   "loio": "89a15deec2a247d8ac8edd5c01a728fa"
+  },
+  {
+   "level": 1,
+   "title": "Copying and Saving Items on a Request",
+   "file_path": "ab1d3c1a17aa4a31b633460941bf82d3.html",
+   "loio": "ab1d3c1a17aa4a31b633460941bf82d3"
+  },
+  {
+   "level": 1,
+   "title": "Requesting Quotes from Suppliers",
+   "file_path": "244261a89fde4f63a9b3f243a4a1cad7.html",
+   "loio": "244261a89fde4f63a9b3f243a4a1cad7"
+  },
+  {
+   "level": 2,
+   "title": "Saving an RFQ in Composing State",
+   "file_path": "e489ca15ab8843c58a3220ab046cffaf.html",
+   "loio": "e489ca15ab8843c58a3220ab046cffaf"
+  },
+  {
+   "level": 2,
+   "title": "Changing an RFQ",
+   "file_path": "aa6a42b3d6b34b4ca9f61c35c48d8ff3.html",
+   "loio": "aa6a42b3d6b34b4ca9f61c35c48d8ff3"
+  },
+  {
+   "level": 2,
+   "title": "Comparing Bids and Awarding Quotes",
+   "file_path": "f8fc823c08604c7f99c33b05298feb6e.html",
+   "loio": "f8fc823c08604c7f99c33b05298feb6e"
+  },
+  {
+   "level": 2,
+   "title": "Duplicating an RFQ",
+   "file_path": "eb64f34b82e6402390774c5cfbb4802b.html",
+   "loio": "eb64f34b82e6402390774c5cfbb4802b"
+  },
+  {
+   "level": 2,
+   "title": "Cancelling an RFQ",
+   "file_path": "5926194c01b14995a8b9b59c9d1c028d.html",
+   "loio": "5926194c01b14995a8b9b59c9d1c028d"
+  },
+  {
+   "level": 1,
+   "title": "Buying on Behalf of Another User, Company Code, Purchasing Unit, or Plant",
+   "file_path": "39def78391d04280b452bc8e100f0d80.html",
+   "loio": "39def78391d04280b452bc8e100f0d80"
+  },
+  {
+   "level": 1,
+   "title": "Approving Someone Else's Request, Document, or Task",
+   "file_path": "64a1838f6ab84f56bec3345820804d1d.html",
+   "loio": "64a1838f6ab84f56bec3345820804d1d"
+  },
+  {
+   "level": 2,
+   "title": "Delegating Your Approval Authority",
+   "file_path": "cbeb638b4d2041a59ac8acab8b9d966a.html",
+   "loio": "cbeb638b4d2041a59ac8acab8b9d966a"
+  },
+  {
+   "level": 1,
+   "title": "Transferring Ownership of Documents",
+   "file_path": "adaf9d94d92a4be481d56bf32e0a45fd.html",
+   "loio": "adaf9d94d92a4be481d56bf32e0a45fd"
+  },
+  {
+   "level": 2,
+   "title": "Editing Transfer of Ownership Requests",
+   "file_path": "fe04664b017b43aa8c2ff85d3cbecb8c.html",
+   "loio": "fe04664b017b43aa8c2ff85d3cbecb8c"
+  },
+  {
+   "level": 2,
+   "title": "Approving a Transfer of Ownership Request",
+   "file_path": "6d38fe83423b44aba28583ec7021b561.html",
+   "loio": "6d38fe83423b44aba28583ec7021b561"
+  },
+  {
+   "level": 1,
+   "title": "Finding the Status of Your Requests",
+   "file_path": "77dcef906e6947eb947524bf5cb07434.html",
+   "loio": "77dcef906e6947eb947524bf5cb07434"
+  },
+  {
+   "level": 2,
+   "title": "RFQ Statuses",
+   "file_path": "b0dd63c92d49414696534aaf067785aa.html",
+   "loio": "b0dd63c92d49414696534aaf067785aa"
+  },
+  {
+   "level": 2,
+   "title": "Requisition Statuses",
+   "file_path": "f4c13416c77e43e694e1183d7bd52769.html",
+   "loio": "f4c13416c77e43e694e1183d7bd52769"
+  },
+  {
+   "level": 1,
+   "title": "Working with Purchase Orders",
+   "file_path": "d03fc6c6faa94a6398d87d54c0fca5f7.html",
+   "loio": "d03fc6c6faa94a6398d87d54c0fca5f7"
+  },
+  {
+   "level": 2,
+   "title": "Finding POs",
+   "file_path": "71470a525cca492396a0b829511470c8.html",
+   "loio": "71470a525cca492396a0b829511470c8"
+  },
+  {
+   "level": 2,
+   "title": "Changing Requests or POs",
+   "file_path": "2a2d923936614836ad85239723be5300.html",
+   "loio": "2a2d923936614836ad85239723be5300"
+  },
+  {
+   "level": 2,
+   "title": "Canceling Requests or POs",
+   "file_path": "4656e7c61da143dba3496ed62947bb90.html",
+   "loio": "4656e7c61da143dba3496ed62947bb90"
+  },
+  {
+   "level": 1,
+   "title": "Managing Invoices in Guided Buying",
+   "file_path": "c77ddb1b1024402398baaeed020bedef.html",
+   "loio": "c77ddb1b1024402398baaeed020bedef"
+  },
+  {
+   "level": 2,
+   "title": "Approving Invoices in Guided Buying",
+   "file_path": "875c2baef19b4e97bdfc886eb73e4374.html",
+   "loio": "875c2baef19b4e97bdfc886eb73e4374"
+  },
+  {
+   "level": 2,
+   "title": "Changing Invoices in Guided Buying",
+   "file_path": "c447ba7eab9e4935b6e150eaeedfe421.html",
+   "loio": "c447ba7eab9e4935b6e150eaeedfe421"
+  },
+  {
+   "level": 2,
+   "title": "Checking Invoice Reconciliation Details in SAP Ariba Buying and Invoicing",
+   "file_path": "b764c51cce8a4245880cf9f062e2e337.html",
+   "loio": "b764c51cce8a4245880cf9f062e2e337"
+  },
+  {
+   "level": 2,
+   "title": "Resolving Errors on Invoices in Guided Buying",
+   "file_path": "0d2362cc563e4bf98928d40536c72206.html",
+   "loio": "0d2362cc563e4bf98928d40536c72206"
+  },
+  {
+   "level": 1,
+   "title": "Managing Simple Non-PO Invoices",
+   "file_path": "3f520ce64b914e6f8a1e53512f4f28c9.html",
+   "loio": "3f520ce64b914e6f8a1e53512f4f28c9"
+  },
+  {
+   "level": 2,
+   "title": "Creating a Simple Non-PO Invoice",
+   "file_path": "f41e05aa8a4643d6ab240c811e473a98.html",
+   "loio": "f41e05aa8a4643d6ab240c811e473a98"
+  },
+  {
+   "level": 2,
+   "title": "Changing, Deleting, or Copying Simple Non-PO Invoices",
+   "file_path": "220886bd72134ba28a2caef0f3b0e634.html",
+   "loio": "220886bd72134ba28a2caef0f3b0e634"
+  },
+  {
+   "level": 1,
+   "title": "Filling Out and Submitting an Externally Managed Form",
+   "file_path": "34fa2a205bc34ba0b06f1aea4367eda8.html",
+   "loio": "34fa2a205bc34ba0b06f1aea4367eda8"
+  },
+  {
+   "level": 1,
+   "title": "Working with Procurement Workspace Projects",
+   "file_path": "49acfe1e32874cff87a8af28f88ffd45.html",
+   "loio": "49acfe1e32874cff87a8af28f88ffd45"
+  },
+  {
+   "level": 2,
+   "title": "Creating a Project",
+   "file_path": "31e7d81d212c4bb69e0a010dfc55cab4.html",
+   "loio": "31e7d81d212c4bb69e0a010dfc55cab4"
+  },
+  {
+   "level": 2,
+   "title": "Adding a Request or Invoice to a Project",
+   "file_path": "e212f2d05fdc44389e6cf1ac3dcb7478.html",
+   "loio": "e212f2d05fdc44389e6cf1ac3dcb7478"
+  },
+  {
+   "level": 2,
+   "title": "Viewing Project Details",
+   "file_path": "e6f53acc45454798b728a635d8615d2c.html",
+   "loio": "e6f53acc45454798b728a635d8615d2c"
+  },
+  {
+   "level": 1,
+   "title": "Acknowledging Receipt of Items or Completion of Services",
+   "file_path": "40fcb424a335477ebdb0f6abdd259159.html",
+   "loio": "40fcb424a335477ebdb0f6abdd259159"
+  },
+  {
+   "level": 2,
+   "title": "Reopening an Order for Receiving",
+   "file_path": "976c928c07d546c695061cea5cf5d7b9.html",
+   "loio": "976c928c07d546c695061cea5cf5d7b9"
+  },
+  {
+   "level": 2,
+   "title": "Receiving Orders On Behalf of Others",
+   "file_path": "fbf18602f504415ea01e4f8167af50bf.html",
+   "loio": "fbf18602f504415ea01e4f8167af50bf"
+  },
+  {
+   "level": 1,
+   "title": "Team Buying and Receiving",
+   "file_path": "7b084c55f7244a14b0397913cf1a3e5c.html",
+   "loio": "7b084c55f7244a14b0397913cf1a3e5c"
+  },
+  {
+   "level": 2,
+   "title": "Turning on Manual Team Buying and Receiving",
+   "file_path": "b6db79c48d704454b2043e2c373eea64.html",
+   "loio": "b6db79c48d704454b2043e2c373eea64"
+  },
+  {
+   "level": 2,
+   "title": "Turning on Automatic Team Buying",
+   "file_path": "648da1799bcc40298f890dec22bc6f14.html",
+   "loio": "648da1799bcc40298f890dec22bc6f14"
+  },
+  {
+   "level": 2,
+   "title": "Managing Your Teams",
+   "file_path": "a36aa79824ec45e4a8530c47dd3f9e97.html",
+   "loio": "a36aa79824ec45e4a8530c47dd3f9e97"
+  },
+  {
+   "level": 2,
+   "title": "Creating a Team RFQ",
+   "file_path": "19acf59e067f499d9db2d926d8eb0e22.html",
+   "loio": "19acf59e067f499d9db2d926d8eb0e22"
+  },
+  {
+   "level": 2,
+   "title": "Buying with a Team",
+   "file_path": "dacd8bb77ec1472bbea6426be4b4b304.html",
+   "loio": "dacd8bb77ec1472bbea6426be4b4b304"
+  },
+  {
+   "level": 2,
+   "title": "Receiving with a Team",
+   "file_path": "3644314a11674b7cb09e2ec52bdb5108.html",
+   "loio": "3644314a11674b7cb09e2ec52bdb5108"
+  },
+  {
+   "level": 1,
+   "title": "Working with Assets",
+   "file_path": "3cca92fa576f42ea974a4df20e13c2cc.html",
+   "loio": "3cca92fa576f42ea974a4df20e13c2cc"
+  },
+  {
+   "level": 2,
+   "title": "Adding Asset Information on a Requisition",
+   "file_path": "e6416b8fa4ee479ba1d29a22f9b72038.html",
+   "loio": "e6416b8fa4ee479ba1d29a22f9b72038"
+  },
+  {
+   "level": 2,
+   "title": "Creating Asset Groups",
+   "file_path": "ace1446d42344c5db37190fe9344e0ed.html",
+   "loio": "ace1446d42344c5db37190fe9344e0ed"
+  },
+  {
+   "level": 1,
+   "title": "Running Reports",
+   "file_path": "c441e2a0a80e414896dfcb4f4b91cda0.html",
+   "loio": "c441e2a0a80e414896dfcb4f4b91cda0"
+  },
+  {
+   "level": 1,
+   "title": "Getting Help through WalkMe",
+   "file_path": "4020c646914f487cb0c78ada6eb12f15.html",
+   "loio": "4020c646914f487cb0c78ada6eb12f15"
+  },
+  {
+   "level": 1,
+   "title": "Getting Help through SAP Companion",
+   "file_path": "23315cc9f3214f1dbc0ada4bd8e746cc.html",
+   "loio": "23315cc9f3214f1dbc0ada4bd8e746cc"
+  },
+  {
+   "level": 2,
+   "title": "SAP Companion Controls",
+   "file_path": "bf7b253aea054fdc96216ba9d60f6675.html",
+   "loio": "bf7b253aea054fdc96216ba9d60f6675"
+  },
+  {
+   "level": 1,
+   "title": "Getting Help through Help Community",
+   "file_path": "c02b066fbfc244c9aab90fa4c68d4f4a.html",
+   "loio": "c02b066fbfc244c9aab90fa4c68d4f4a"
+  }
+ ]
+}
