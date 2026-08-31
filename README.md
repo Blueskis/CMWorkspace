@@ -143,6 +143,9 @@ in order of setup effort:
 1. **Generate in the artifact, via Gamma** — the console now drafts email, article, newsletter
    and briefing decks straight through the viewer's own **Gamma** connector. Nothing to deploy:
    Gamma is hosted, the viewer adds it once in claude.ai, and the deck lane exports to `.pptx`.
+   **Email comes back as a real `.docx`**: the page walks Gamma's content tree and packages it
+   with docx-js — the same library `build_docx.py` drives — then hands it over through the
+   `downloads` capability, so the channel keeps the `.docx` format the registry specifies.
    **But Gamma writes the copy**, so those drafts have no QA gate and no provenance — in testing
    it invented a portal URL that was never in the input. Treat them as fast first drafts to
    react to, never as checked comms.
