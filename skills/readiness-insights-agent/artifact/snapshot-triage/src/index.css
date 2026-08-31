@@ -1,0 +1,189 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Palette carried over from the Change Impact Intake tool so the CM Workspace
+  toolset reads as one family: serif display / sans body / mono data, navy
+  accent, jade-amber-clay status trio. Hex tokens drive our own components;
+  the same values are re-expressed as HSL below to feed shadcn/ui's slots so
+  every primitive picks up the identical system automatically.
+*/
+@layer base {
+  :root {
+    --paper: #f3f5f9;
+    --surface: #ffffff;
+    --surface-2: #eaeef5;
+    --ink: #12161f;
+    --ink-2: #4c5666;
+    --ink-3: #7a8494;
+    --line: #dce1ea;
+    --line-strong: #bfc7d4;
+    --accent-hex: #2e3d77;
+    --accent-ink: #ffffff;
+    --accent-soft: #e4e8f6;
+    --jade: #0b6b54;
+    --jade-soft: #e0f0ea;
+    --amber: #8c5e0c;
+    --amber-soft: #f7ebd5;
+    --clay: #a33d2e;
+    --clay-soft: #f7e4e0;
+    --shadow: 0 1px 2px rgba(18, 22, 31, 0.06), 0 8px 24px -16px rgba(18, 22, 31, 0.35);
+
+    --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+    /* shadcn slots, derived from the tokens above */
+    --background: 220 33% 96.5%;
+    --foreground: 221.5 26.5% 9.6%;
+    --card: 0 0% 100%;
+    --card-foreground: 221.5 26.5% 9.6%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 221.5 26.5% 9.6%;
+    --primary: 227.7 44.2% 32.4%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 218.2 35.5% 93.9%;
+    --secondary-foreground: 221.5 26.5% 9.6%;
+    --muted: 218.2 35.5% 93.9%;
+    --muted-foreground: 216.9 14.6% 34.9%;
+    --accent: 226.7 50% 92.9%;
+    --accent-foreground: 227.7 44.2% 32.4%;
+    --destructive: 7.7 56% 41%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 218.6 25% 89%;
+    --input: 217.1 19.6% 79%;
+    --ring: 227.7 44.2% 32.4%;
+    --radius: 0.625rem;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0e1117;
+      --surface: #171b23;
+      --surface-2: #1f242e;
+      --ink: #e8ebf2;
+      --ink-2: #a5aebd;
+      --ink-3: #7b8494;
+      --line: #2a303b;
+      --line-strong: #3b4351;
+      --accent-hex: #97a5ea;
+      --accent-ink: #10131b;
+      --accent-soft: #1c2340;
+      --jade: #4fc7a0;
+      --jade-soft: #12302a;
+      --amber: #d9a54e;
+      --amber-soft: #2e2617;
+      --clay: #e38375;
+      --clay-soft: #33201d;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px -16px rgba(0, 0, 0, 0.8);
+
+      --background: 220 24.3% 7.3%;
+      --foreground: 222 27.8% 92.9%;
+      --card: 220 20.7% 11.4%;
+      --card-foreground: 222 27.8% 92.9%;
+      --popover: 220 20.7% 11.4%;
+      --popover-foreground: 222 27.8% 92.9%;
+      --primary: 229.9 66.4% 75.5%;
+      --primary-foreground: 223.6 25.6% 8.4%;
+      --secondary: 220 19.5% 15.1%;
+      --secondary-foreground: 222 27.8% 92.9%;
+      --muted: 220 19.5% 15.1%;
+      --muted-foreground: 217.5 15.4% 69.4%;
+      --accent: 228.3 39.1% 18%;
+      --accent-foreground: 229.9 66.4% 75.5%;
+      --destructive: 7.6 66.3% 67.5%;
+      --destructive-foreground: 223.6 25.6% 8.4%;
+      --border: 218.8 16.8% 19.8%;
+      --input: 218.2 15.7% 27.5%;
+      --ring: 229.9 66.4% 75.5%;
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #0e1117;
+    --surface: #171b23;
+    --surface-2: #1f242e;
+    --ink: #e8ebf2;
+    --ink-2: #a5aebd;
+    --ink-3: #7b8494;
+    --line: #2a303b;
+    --line-strong: #3b4351;
+    --accent-hex: #97a5ea;
+    --accent-ink: #10131b;
+    --accent-soft: #1c2340;
+    --jade: #4fc7a0;
+    --jade-soft: #12302a;
+    --amber: #d9a54e;
+    --amber-soft: #2e2617;
+    --clay: #e38375;
+    --clay-soft: #33201d;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px -16px rgba(0, 0, 0, 0.8);
+
+    --background: 220 24.3% 7.3%;
+    --foreground: 222 27.8% 92.9%;
+    --card: 220 20.7% 11.4%;
+    --card-foreground: 222 27.8% 92.9%;
+    --popover: 220 20.7% 11.4%;
+    --popover-foreground: 222 27.8% 92.9%;
+    --primary: 229.9 66.4% 75.5%;
+    --primary-foreground: 223.6 25.6% 8.4%;
+    --secondary: 220 19.5% 15.1%;
+    --secondary-foreground: 222 27.8% 92.9%;
+    --muted: 220 19.5% 15.1%;
+    --muted-foreground: 217.5 15.4% 69.4%;
+    --accent: 228.3 39.1% 18%;
+    --accent-foreground: 229.9 66.4% 75.5%;
+    --destructive: 7.6 66.3% 67.5%;
+    --destructive-foreground: 223.6 25.6% 8.4%;
+    --border: 218.8 16.8% 19.8%;
+    --input: 218.2 15.7% 27.5%;
+    --ring: 229.9 66.4% 75.5%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html {
+    color-scheme: light dark;
+  }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-mono-data {
+    font-family: var(--font-mono);
+  }
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+}

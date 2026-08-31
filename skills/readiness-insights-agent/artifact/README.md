@@ -6,8 +6,11 @@ training evaluation, a comms feedback form, a readiness assessment — and gets 
 read across all of them: a segment × dimension heatmap, how the answers split, computed
 observations, and the comments laid out for coding.
 
-Published as an Artifact. The source lives here so it is versioned with the skill; edit
-this file and republish to the same URL.
+Published as an Artifact. `snapshot-triage.html` in this folder is the built output and
+the file to republish; its React/TypeScript/Tailwind source lives in
+`snapshot-triage/` (see that folder's own README for the dev workflow) and is styled to
+match the `Change Impact Intake` tool's design system, so the CM Workspace toolset reads
+as one family rather than a pile of one-off pages.
 
 ## What it is, and what it is not
 
@@ -42,9 +45,9 @@ Two things follow from pooling, and both are in the page:
 
 ## Design decisions worth keeping
 
-- **The files never leave the browser.** Parsing is local — a zip reader over the .xlsx
-  plus `DecompressionStream('deflate-raw')`, no upload, no storage, no network. This is
-  what makes it safe to hand to a client-side lead with raw staff feedback in the sheet.
+- **The files never leave the browser.** Parsing is local, via SheetJS bundled into the
+  page at build time — no upload, no storage, no network calls at runtime. This is what
+  makes it safe to hand to a client-side lead with raw staff feedback in the sheet.
 - **The mapping step is visible and editable.** Column roles and readiness dimensions are
   guessed from header wording and shown for correction before anything is computed. A
   dimension guessed with no keyword match says so.
@@ -56,10 +59,19 @@ Two things follow from pooling, and both are in the page:
 
 ## Working on it
 
-Test headlessly rather than by eye alone — the parser is the part that breaks:
+Edit the source in `snapshot-triage/`, not the built HTML directly:
 
 ```bash
-# build a realistic .xlsx (needs openpyxl), then drive the page in headless chromium
+cd snapshot-triage
+pnpm install
+pnpm run build     # -> dist/index.html, single self-contained file
+cp dist/index.html ../snapshot-triage.html
+```
+
+Test headlessly rather than by eye alone — the parser is the part that breaks. Build a
+realistic .xlsx (needs `openpyxl`), then drive the bundle in headless chromium:
+
+```bash
 python3 - <<'PY'
 import csv, openpyxl
 wb = openpyxl.Workbook(); ws = wb.active
@@ -69,7 +81,11 @@ wb.save('/tmp/test_eval.xlsx')
 PY
 ```
 
-Then append a test block to a copy of the page that base64-inlines that file, calls
-`handleFile()`, clicks `#run`, and prints `TABLE`, `MAP` and `ANALYSIS` into a `<div>` —
-`headless_shell --dump-dom` reads the result back. Both themes are worth a screenshot:
-the palette is token-driven with `prefers-color-scheme` and `data-theme` covered.
+Append a test `<script>` **after the last `</script>` tag** in the built file (not by
+searching for `</body>` — see `snapshot-triage/README.md` for why that lands inside a
+SheetJS string literal and corrupts the bundle). Have it wait for `window.load`, build a
+`DataTransfer` from base64-embedded test files, dispatch a real `drop` `DragEvent` at
+`[class*="border-dashed"]`, and log each step to a visible div; `headless_shell
+--dump-dom` reads the result back. Both themes are worth a screenshot: the palette is
+token-driven with `prefers-color-scheme` and `data-theme` covered, same as every other
+artifact in this workspace.
