@@ -62,6 +62,25 @@ export function classifyLayout(layout, slideSize) {
   } else if (hasTitle && hasSubTitle) {
     scores["title-slide"] = 80;
     reasons["title-slide"] = "has a title and a subtitle";
+  } else if (!hasTitle && pics.length === 0 && bodies.length >= 1 && bodies.length <= 2) {
+    // Some real templates (export-tool artifacts, not hand-typed) leave a layout's title
+    // and subtitle as generic body/obj/tx placeholders instead of title/ctrTitle/subTitle.
+    // A layout like that is still recognisable by geometry: a wide text box sitting in the
+    // slide's upper half reads as a title regardless of what its XML calls it. Scored well
+    // below the typed cases above so a template that types its placeholders correctly is
+    // never second-guessed by this fallback.
+    const topBody = bodies.reduce((best, b) => {
+      const g = b.geometry;
+      if (!g) return best;
+      return !best || g.y_in < best.geometry.y_in ? b : best;
+    }, null);
+    const g = topBody?.geometry;
+    const inUpperHalf = g && g.y_in + g.h_in / 2 < slideSize.h_in * 0.5;
+    const isWide = g && slideSize.w_in && g.w_in / slideSize.w_in > 0.4;
+    if (inUpperHalf && isWide) {
+      scores["title-slide"] = 55;
+      reasons["title-slide"] = "a top-positioned text placeholder, not explicitly typed as a title";
+    }
   }
 
   // --- picture -----------------------------------------------------------
@@ -222,12 +241,31 @@ export function targetPlaceholders(profile, layoutPart) {
   const layout = profile.layouts.find((l) => l.part === layoutPart);
   if (!layout) return null;
   const phs = layout.placeholders;
-  const title =
-    phs.find((p) => p.type === "ctrTitle") ?? phs.find((p) => p.type === "title") ?? null;
+  let title = phs.find((p) => p.type === "ctrTitle") ?? phs.find((p) => p.type === "title") ?? null;
   const pic = phs.find((p) => p.type === "pic") ?? null;
-  const bodies = bodyPlaceholders(layout)
+  let bodies = bodyPlaceholders(layout)
     .slice()
     .sort((a, b) => areaFraction(b, profile.slide_size) - areaFraction(a, profile.slide_size));
   const subTitle = phs.find((p) => p.type === "subTitle") ?? null;
+
+  if (!title && !subTitle && bodies.length >= 1) {
+    // Mirrors classifyLayout's geometric title fallback (see the comment there): a layout
+    // can be CHOSEN for the title-slide role via that fallback even though none of its
+    // placeholders are typed title/ctrTitle/subTitle — without this, such a layout would
+    // have nowhere to put the "title" slot's content at all, and it would silently drop.
+    // The topmost body/obj/tx placeholder stands in for the title; whatever's left (if
+    // anything) is still available for "subtitle"/"body" via the normal bodies[] lookup.
+    const topmost = bodies.reduce(
+      (best, b) => (!best || (b.geometry?.y_in ?? Infinity) < (best.geometry?.y_in ?? Infinity) ? b : best),
+      null
+    );
+    const g = topmost?.geometry;
+    const inUpperHalf = g && profile.slide_size?.h_in && g.y_in + g.h_in / 2 < profile.slide_size.h_in * 0.5;
+    if (inUpperHalf) {
+      title = topmost;
+      bodies = bodies.filter((b) => b !== topmost);
+    }
+  }
+
   return { layout, title, pic, bodies, subTitle };
 }

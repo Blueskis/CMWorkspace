@@ -20,9 +20,9 @@
  * report flagged it), synthesising a notes master when the template lacks one.
  */
 
-import { getJSZip } from "./env.js";
+import { getJSZip, parseXml } from "./env.js";
 import { targetPlaceholders } from "./map-layouts.js";
-import { emu, xmlEscape } from "./xml.js";
+import { emu, xmlEscape, findAll, attr, resolveTarget } from "./xml.js";
 import { renderDiagram } from "./render-diagram.js";
 
 const P_NS = "http://schemas.openxmlformats.org/presentationml/2006/main";
@@ -212,14 +212,62 @@ function nextRid(relsXml) {
   return `rId${max + 1}`;
 }
 
+// [Content_Types].xml's root is conventionally unprefixed (<Types xmlns="...">), but
+// nothing requires that — a real uploaded template's XML tooling can just as easily emit
+// <ns0:Types>. A literal "</Types>" match then silently finds nothing and String.replace
+// no-ops, so every part registered afterward (new slides included) is missing from
+// Content_Types and the deck fails validation with no error at build time. Matching the
+// closing tag by an optional-prefix pattern, the same local-name-not-prefix principle
+// xml.js already applies to reading a template, closes that gap here too.
+const CLOSE_TYPES_RE = /<\/(?:[\w.-]+:)?Types>/;
+
 function addOverride(ctXml, partName, contentType) {
   if (ctXml.includes(`PartName="${partName}"`)) return ctXml;
-  return ctXml.replace("</Types>", `<Override PartName="${partName}" ContentType="${contentType}"/></Types>`);
+  return ctXml.replace(CLOSE_TYPES_RE, (tag) => `<Override PartName="${partName}" ContentType="${contentType}"/>${tag}`);
 }
 
 function ensureDefault(ctXml, ext, contentType) {
   if (new RegExp(`Extension="${ext}"`, "i").test(ctXml)) return ctXml;
-  return ctXml.replace("</Types>", `<Default Extension="${ext}" ContentType="${contentType}"/></Types>`);
+  return ctXml.replace(CLOSE_TYPES_RE, (tag) => `<Default Extension="${ext}" ContentType="${contentType}"/>${tag}`);
+}
+
+/**
+ * Drop media/embeddings/tags parts that no surviving relationship points to any more.
+ *
+ * Dropping the template's own example slides (step 1) removes their <Override> and
+ * <p:sldId> entries, but a real template's example deck often carries its own assets —
+ * embedded OLE objects, decorative SVGs, PowerPoint co-authoring "tags" — reachable ONLY
+ * from those now-deleted slides. Left behind, they are legal but orphaned OPC parts:
+ * validate.py correctly flags every one as "Unreferenced file". Every OOXML reference to
+ * a package part goes through a .rels relationship (never a bare path in slide XML), so
+ * walking every SURVIVING .rels file's targets and removing anything in these three
+ * folders that no relationship still names is a complete, exact sweep — not a heuristic.
+ */
+async function sweepOrphanedParts(zip, ctXml) {
+  const SWEPT_DIRS = ["ppt/media/", "ppt/embeddings/", "ppt/tags/"];
+  const referenced = new Set();
+
+  for (const relPath of Object.keys(zip.files)) {
+    if (!relPath.endsWith(".rels") || zip.files[relPath].dir) continue;
+    const idx = relPath.lastIndexOf("_rels/");
+    const sourcePart = relPath.slice(0, idx) + relPath.slice(idx + 6, -".rels".length);
+    const doc = await parseXml(await zip.file(relPath).async("string"));
+    for (const rel of findAll(doc, "Relationship")) {
+      if (attr(rel, "TargetMode") === "External") continue;
+      const target = attr(rel, "Target");
+      if (target) referenced.add(resolveTarget(target, sourcePart));
+    }
+  }
+
+  let newCt = ctXml;
+  for (const name of Object.keys(zip.files)) {
+    if (zip.files[name].dir) continue;
+    if (!SWEPT_DIRS.some((d) => name.startsWith(d))) continue;
+    if (referenced.has(name)) continue;
+    zip.remove(name);
+    newCt = newCt.replace(new RegExp(`<Override[^>]*PartName="/${name}"[^>]*/>`, "g"), "");
+  }
+  return newCt;
 }
 
 // ---------------------------------------------------------------------------
@@ -259,15 +307,33 @@ export async function buildPptx({ templateBytes, profile, assignment, plan, asse
     zip.remove(`ppt/slides/_rels/${file}.rels`);
     ctXml = ctXml.replace(new RegExp(`<Override[^>]*PartName="/${part}"[^>]*/>`, "g"), "");
   }
+  if ((profile.example_slides ?? []).length) {
+    ctXml = await sweepOrphanedParts(zip, ctXml);
+  }
 
   // --- 2. notes master (synthesised only when the template lacks one) -----
   const hasNotesMaster = Object.keys(zip.files).some((n) => /^ppt\/notesMasters\/notesMaster\d+\.xml$/.test(n));
   let notesMasterRid = null;
   if (!hasNotesMaster) {
     zip.file("ppt/notesMasters/notesMaster1.xml", NOTES_MASTER);
+    // A notes master needs its OWN theme part — pointing it at the slide master's
+    // theme1.xml trips validate.py's "two masters sharing one theme part" check (the same
+    // OOXML rule test/make-template-matrix.py's two-masters.pptx fixture exists to catch,
+    // just hit here via the synthesised notes master instead of a second slide master).
+    // Slide masters are named slideMasterN.xml (no gaps), so scanning them for the
+    // highest N and adding one gives a theme number no existing part can already own.
+    let themeNo = 1;
+    for (const n of Object.keys(zip.files)) {
+      const m = n.match(/^ppt\/slideMasters\/slideMaster(\d+)\.xml$/);
+      if (m) themeNo = Math.max(themeNo, parseInt(m[1], 10) + 1);
+    }
+    const theme1Xml = await zip.file("ppt/theme/theme1.xml").async("string");
+    zip.file(`ppt/theme/theme${themeNo}.xml`, theme1Xml);
+    ctXml = addOverride(ctXml, `/ppt/theme/theme${themeNo}.xml`,
+      "application/vnd.openxmlformats-officedocument.theme+xml");
     zip.file(
       "ppt/notesMasters/_rels/notesMaster1.xml.rels",
-      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="${REL_NS}"><Relationship Id="rId1" Type="${R_NS}/theme" Target="../theme/theme1.xml"/></Relationships>`
+      `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="${REL_NS}"><Relationship Id="rId1" Type="${R_NS}/theme" Target="../theme/theme${themeNo}.xml"/></Relationships>`
     );
     ctXml = addOverride(ctXml, "/ppt/notesMasters/notesMaster1.xml",
       "application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml");
@@ -288,6 +354,18 @@ export async function buildPptx({ templateBytes, profile, assignment, plan, asse
   const flatSlides = [];
   for (const mod of [...plan.modules].sort((a, b) => (a.order ?? 0) - (b.order ?? 0))) {
     for (const slide of mod.slides) flatSlides.push({ ...slide, module_id: mod.module_id });
+  }
+
+  // <p:sldIdLst> is optional in the OOXML schema — a template built from scratch with no
+  // slides ever added can genuinely omit it entirely (see
+  // test/fixtures/templates/real-training-template.pptx), not just leave it empty. The
+  // per-slide loop below only knows how to APPEND before "</p:sldIdLst>", so without this
+  // the whole loop's presXml.replace() calls silently no-op and no slide is ever wired
+  // into the deck — the same failure mode notesMasterIdLst already guards against below.
+  if (!presXml.includes("<p:sldIdLst>")) {
+    presXml = presXml.includes("<p:sldMasterIdLst>")
+      ? presXml.replace(/(<\/p:sldMasterIdLst>)/, "$1<p:sldIdLst></p:sldIdLst>")
+      : presXml.replace(/(<p:presentation[^>]*>)/, "$1<p:sldIdLst></p:sldIdLst>");
   }
 
   let slideNo = 0;
