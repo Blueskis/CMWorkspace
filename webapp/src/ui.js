@@ -13,6 +13,17 @@ import { resolveLayoutRoles, ROLES, ROLE_LABELS } from "./map-layouts.js";
 import { generatePlan } from "./plan.js";
 import { buildPptx } from "./build-pptx.js";
 import { audit, hardFail, renderReport } from "./qa.js";
+import { SAMPLE_TEMPLATE, SAMPLE_FSD } from "./sample-data.js";
+
+/** base64 -> File, for the "use sample files" quick-start (some corporate laptops block
+ * the native file picker outright, so this bypasses <input type="file"> entirely, feeding
+ * runParse() the exact same File-shaped object it already knows how to consume). */
+function fileFromBase64({ filename, mimeType, base64 }) {
+  const binary = atob(base64);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return new File([bytes], filename, { type: mimeType });
+}
 
 const QUESTION_COUNT = 5; // fixed by standing instruction — not a user-facing setting
 
@@ -93,6 +104,24 @@ function renderUpload(root) {
 
   const goBtn = el("button", { class: "btn btn--primary", disabled: "disabled", onclick: () => runParse(root) }, "Parse documents");
 
+  const useSamples = SAMPLE_TEMPLATE.base64 && SAMPLE_FSD.base64
+    ? el("div", { class: "notice" }, [
+        el("p", { class: "notice__title" }, "Can't upload files here?"),
+        el("p", {},
+          `If your device blocks the file picker, use the sample template ` +
+          `(${SAMPLE_TEMPLATE.filename}) and FSD (${SAMPLE_FSD.filename}) already ` +
+          `loaded into this page instead.`),
+        el("button", {
+          class: "btn",
+          onclick: () => {
+            state.templateFile = fileFromBase64(SAMPLE_TEMPLATE);
+            state.sourceFiles = [fileFromBase64(SAMPLE_FSD)];
+            refreshStatus();
+          },
+        }, "Use the sample files"),
+      ])
+    : null;
+
   root.replaceChildren(
     el("div", { class: "panel" }, [
       el("h2", {}, "1. Upload"),
@@ -105,6 +134,7 @@ function renderUpload(root) {
         dropZone("Source documents", ".docx, .pptx or .pdf — the FSD and anything else", sourceInput),
       ]),
       status,
+      useSamples,
       el("div", { class: "panel__actions" }, [goBtn]),
     ])
   );
