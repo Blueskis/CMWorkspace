@@ -44,10 +44,16 @@ what they have:
 Submitting any tab appends a batch to the page's `history`, tagged `channel: "form" |
 "freetext" | "excel"` (a mode-2 batch is tagged `mode: "baseline"` instead — see below), with
 status `submitted`. **This session runs remotely and cannot hold a live watch on the
-artifact** — nothing wakes Claude automatically when someone submits, in either mode. Tell
-Claude a batch has landed; it re-reads the artifact, processes whatever's waiting, and
-republishes with the batch marked `processed` — the resulting Airtable rows listed inline for
-mode 1, or a rating-distribution summary and a CSV download for mode 2.
+artifact**, and cannot register a wake subscription on it either — nothing wakes Claude
+automatically when someone submits, in either mode, purely from the artifact side.
+
+`reference/intake-worker.md` designs a fix — a claim/lease queue protocol and a 1-minute
+polling loop, backed by an hourly Routine as a durability floor — but **as of the last update
+to this file, that loop is not yet running.** Until it is, the manual trigger is still how
+batches get processed: tell Claude a batch has landed; it re-reads the artifact, processes
+whatever's waiting, and republishes with the batch marked `processed` — the resulting Airtable
+rows listed inline for mode 1, or a rating-distribution summary and a CSV download for mode 2.
+Check `reference/intake-worker.md`'s Status section before assuming otherwise.
 
 ## Mode 2 — Generate a new baseline CIA
 

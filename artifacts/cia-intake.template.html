@@ -1,0 +1,1262 @@
+<!doctype html>
+<html lang="en">
+<head><!-- frame-runtime --><script>window.__FRAME_PREAMBLE={"v":1,"capabilities":{"artifact":"artifact.EF7sW8YL.js","assets":"assets.8Gk803W0.js","comments":"comments.vw5vQdGA.js","db":"db.h-3sndFg.js","downloads":"downloads.C3GSvEDP.js","embed":"embed.CxGAyc-v.js","mcp":"mcp.Bvma3qD7.js","network":"network.B5UA9Su4.js","notifications":"notifications.ssU4jy7G.js","permissions":"permissions.BNySkLV5.js","room":"room.VSdFwTE9.js","sample":"sample.BW2Uysoh.js","self":"artifact.EF7sW8YL.js","user":"user.BpKav-Rf.js"},"transforms":"_transforms.DSB5x63f.js","comments":"_comments.C6E0cR5g.js","translate":"_translate.5HCW4BJh.js"}</script><script>(function(){"use strict";var te=["light","dark","system"],re=/^[A-Za-z0-9_-]{1,64}$/,$=/^[a-zA-Z_:][a-zA-Z0-9_:.-]{0,127}$/,ne=new Set(["class","hidden","value","checked","style","title","alt","placeholder","lang","dir","role","tabindex","disabled","readonly","contenteditable","open","colspan","rowspan"]);function oe(e){const t=e.toLowerCase();return t.startsWith("data-")||t.startsWith("aria-")||ne.has(t)}var Be="http://www.w3.org/1999/xhtml",se="http://www.w3.org/2000/svg",ae=new Set(["script","style","iframe","noscript","noframes","noembed","xmp","plaintext","template","title","textarea","object","embed"]),ie=new Set(["script","style"]);function ce(e){const t=e.localName.toLowerCase();return e.namespaceURI==="http://www.w3.org/1999/xhtml"?!ae.has(t):e.namespaceURI===se?!ie.has(t):!1}function M(e,t){return e===t||(e===160||e===32)&&(t===160||t===32)}function le(e,t){const r=e.length,n=t.length;let s=0;for(;s<r&&s<n&&M(e.charCodeAt(s),t.charCodeAt(s));)s++;let o=0;for(;o<r-s&&o<n-s&&M(e.charCodeAt(r-1-o),t.charCodeAt(n-1-o));)o++;return{p:s,s:o}}function ue(e,t){const r=e.firstChild;if(e.childNodes.length!==1||r===null||r.nodeType!==Node.TEXT_NODE){e.textContent=t;return}const n=r.data,s=n.length,o=t.length,{p:i,s:c}=le(n,t);i===s&&c===0&&s===o||r.replaceData(i,s-i-c,t.slice(i,o-c));const h=r.data,p=e.ownerDocument.getSelection?.()??null,w=p!==null&&p.rangeCount>0&&(p.anchorNode===r||p.focusNode===r)?{anchor:p.anchorNode,anchorOffset:p.anchorOffset,focus:p.focusNode,focusOffset:p.focusOffset}:null;let m=-1,g=-1;for(let f=0;f<h.length&&f<t.length;f++){const v=h.charCodeAt(f),b=t.charCodeAt(f);v!==b&&M(v,b)&&(m<0&&(m=f),g=f)}const a=m>=0;if(a&&r.replaceData(m,g-m+1,t.slice(m,g+1)),a&&w!==null&&w.anchor!==null&&w.focus!==null)try{p.setBaseAndExtent(w.anchor,w.anchorOffset,w.focus,w.focusOffset)}catch{}}var fe=new Set(["html","head","body","frameset"]);function de(e){return e.namespaceURI==="http://www.w3.org/1999/xhtml"&&fe.has(e.localName)}function pe(e){if(e===null||typeof e!="object")return!1;const t=e;if(typeof t.target!="string"||!re.test(t.target)||t.text!==void 0&&typeof t.text!="string")return!1;if(t.attrsSet!==void 0){if(t.attrsSet===null||typeof t.attrsSet!="object")return!1;for(const[r,n]of Object.entries(t.attrsSet))if(!$.test(r)||typeof n!="string")return!1}if(t.attrsRemoved!==void 0){if(!Array.isArray(t.attrsRemoved))return!1;for(const r of t.attrsRemoved)if(typeof r!="string"||!$.test(r))return!1}return!0}function me(e,t){if(e===null||typeof e!="object")return!1;const{seq:r,elements:n}=e;if(typeof r!="number"||!Number.isSafeInteger(r)||!Array.isArray(n)||n.length===0||n.length>64)return!1;for(let s=0;s<n.length;s++)if(!t(n[s]))return!1;return!0}function he(e){return e===null||typeof e!="object"?!1:me(e.__frame_patch,pe)}function _e(e){if(e===null||typeof e!="object")return!1;const t=e.__frame_init;return t!==null&&typeof t=="object"}function ve(e){return e!==null&&typeof e=="object"&&e.__frame_size_poke===!0}function ye(e){if(e===null||typeof e!="object")return!1;const t=e.__frame_theme;if(t===null||typeof t!="object")return!1;const r=t.theme;return typeof r=="string"&&te.includes(r)}var A=/^[\w.-]+\.js$/;function we(e,t,r){return r?"inert":typeof t=="string"&&A.test(t)?e?[t]:"inert":e?"inert":"framed"}function ge(){return{post(e,t){parent.postMessage(e,t)},on(e){const t=r=>{r.source===parent&&e(r.data,r.origin,r.isTrusted)};return addEventListener("message",t),()=>removeEventListener("message",t)}}}function be(){return{post:()=>{},on:()=>()=>{}}}var j="__frame_scroll",Ee=150,Ae=310,Se=160,Te=3e4;function ke(){let e=0,t=!1,r=!1,n=!1,s=0,o=null;const i=l=>{try{sessionStorage.setItem(j,JSON.stringify({y:l}))}catch{}},c=()=>{if(clearTimeout(e),o===null)return;const l=o;o=null,i(l)},h=()=>{if(t){t=!1;return}r=!0,o=scrollY,clearTimeout(e),e=setTimeout(c,Ee)};try{addEventListener("scroll",h,{passive:!0}),addEventListener("pagehide",c)}catch{}const p=()=>{let l;try{l=sessionStorage.getItem(j)}catch{return null}if(l===null)return null;let _;try{_=JSON.parse(l)}catch{_=null}const d=_?.y;if(!(typeof d=="number"&&Number.isFinite(d)&&d>=0)){try{sessionStorage.removeItem(j)}catch{}return null}return d};let w=!1;const m=l=>{try{const _=scrollY;scrollTo({top:l,left:0,behavior:"instant"}),s=l,n=!0,clearTimeout(e),o=null,i(l);const d=scrollY;d!==_&&(t=!0),d!==l&&!w&&(w=!0,addEventListener("load",()=>{try{if(scrollY===d){const T=p();m(T!==null?T:s)}}catch{}},{once:!0}))}catch{}},g=()=>{try{return!!location.hash}catch{return!0}};let a=!1;const f=()=>{try{if(a||innerWidth>Ae||innerHeight>Se)return;a=!0;const l=Date.now(),_=()=>{try{removeEventListener("resize",_)}catch{}if(Date.now()-l>Te||r||g())return;const d=p();m(d!==null?d:s)};addEventListener("resize",_)}catch{}};let v=!1,b=!1;return{restore(){if(v||(v=!0,g()))return;const l=p();l!==null&&(m(l),f())},promoted(){if(b||(b=!0,g()))return;const l=p();l!==null?(m(l),f()):n&&m(s)}}}function Re(e,t,r,n){let s=null;try{s=window.trustedTypes?.createPolicy("frame-runtime",{createScriptURL:h=>h})??null}catch{}const o=window.Worker,i=o?.prototype,c=Object.freeze({Worker:o,workerOn:i?.addEventListener,workerPost:i?.postMessage,workerTerminate:i?.terminate,fetch:window.fetch.bind(window),preventDefault:Event.prototype.preventDefault,policy:s,origins:t});r(e).then(h=>h?.bootTopLevel?h.bootTopLevel(c,n):n.settle()).catch(()=>n.settle())}var De="modulepreload",Ie=function(e){return"/"+e},Ue={},Le=function(t,r,n){let s=Promise.resolve();function o(i){const c=new Event("vite:preloadError",{cancelable:!0});if(c.payload=i,window.dispatchEvent(c),!c.defaultPrevented)throw i}return s.then(i=>{for(const c of i||[])c.status==="rejected"&&o(c.reason);return t().catch(o)})},Oe=window===top,q=Object.getOwnPropertyDescriptor(window,"claude"),k=we(Oe,window.__FRAME_PREAMBLE?.topLevel,q?.writable===!1),N=typeof k=="object"&&k[0],y=N?be():ge();(function(){const e=Object.defineProperty,t=globalThis,r=["RTCPeerConnection","webkitRTCPeerConnection","RTCDataChannel","RTCIceCandidate","RTCSessionDescription","RTCRtpSender","RTCRtpReceiver"];let n=0;for(let s=0;s<r.length;s++){const o=r[s];try{e(t,o,{value:void 0,writable:!1,configurable:!1})}catch{try{delete t[o]}catch{}try{e(t,o,{value:void 0,writable:!1,configurable:!0})}catch{}}typeof t[o]=="function"&&n++}if(n&&k==="framed")try{y.post({__frame_rtc_lockdown_failed:n},"*")}catch{}})();var Pe=1e4,Y=Object.freeze([...window.__FRAME_PREAMBLE?.origins??["https://claude.ai","https://preview.claude.ai"]]);function X(e){for(const t of Y)if(t.endsWith(":*"))try{const r=new URL(e);if(`${r.protocol}//${r.hostname}:*`===t)return!0}catch{}else if(e===t)return!0;return!1}var R=Object.freeze({...window.__FRAME_PREAMBLE?.capabilities}),B=window.__FRAME_PREAMBLE?.transforms,D=window.__FRAME_PREAMBLE?.comments,I=window.__FRAME_PREAMBLE?.translate;function S(e){return Le(()=>import("/_runtime/"+e),void 0)}function G(e,t){return{contract:e.contract,changes:new Set(e.changes??[]),flags:new Set(e.flags??[]),capabilities:e.capabilities??{},capBudgets:e.capBudgets??{},transforms:new Map,shellOrigin:t,mount:x,hooks:O,pipe:()=>({wrap:(r,n)=>(...s)=>{try{return n(...s)}catch(o){return Promise.reject(o)}}})}}var L=null,E=null;function V(e,t,r){try{Object.defineProperty(e,t,{value:r,writable:!1,configurable:!1,enumerable:!0})}catch{try{Object.defineProperty(e,t,{value:r,writable:!1,configurable:!0,enumerable:!0})}catch{}}}var U=!1,O={editBefore:null,edit:null};function Ce(e,t,r=!1){const n=[];let s;if(r)try{O.editBefore?.(e)}catch{}for(const o of e.elements){const i=document.querySelector(`[data-id="${o.target}"]`);if(!i){s=o.target;break}if([...Object.keys(o.attrsSet??{}),...o.attrsRemoved??[]].some(c=>!oe(c))){s=o.target;break}if(o.text!==void 0&&(!ce(i)||de(i))){s=o.target;break}for(const[c,h]of Object.entries(o.attrsSet??{}))if(!J(i,c)){try{i.setAttribute(c,h)}catch{}Z(i,c,h)}for(const c of o.attrsRemoved??[])J(i,c)||(i.removeAttribute(c),Z(i,c,null));typeof o.text=="string"&&ue(i,o.text),n.push(o.target)}if(r)try{O.edit?.(e.seq,n,s)}catch{}if(s!==void 0){y.post({__frame_patch_miss:{seq:e.seq}},t);return}try{document.dispatchEvent(new CustomEvent("claude:edit",{detail:{seq:e.seq,targets:n}}))}catch{}}function Z(e,t,r){if(!(e instanceof HTMLInputElement))return;const n=t.toLowerCase();n==="checked"?e.checked=r!==null:n==="value"&&e.type!=="file"&&(e.value=r??"")}function J(e,t){const r=t.toLowerCase(),n=e;return r==="data-id"||(r==="value"||r==="checked")&&(n.__artifactSecret===!0||/^(password|hidden|file)$/.test(n.type??"")||/(^|\s)(cc-|one-time-code|current-password|new-password)/i.test(`${e.getAttribute("autocomplete")??""} ${n.autocomplete??""}`))}function Q(e){const t=document.documentElement;e==="light"||e==="dark"?(t.dataset.theme=e,t.style.colorScheme=e,U=!0):U&&(delete t.dataset.theme,t.style.colorScheme="",U=!1)}var P=new Map;function Me(){let e;const t={u:new Promise(r=>{e=r}),r:r=>{t.done=!0,e(r)},done:!1,nulled:!1};return t}function F(){for(const e of P.values())e.done||(e.nulled=!0,e.r(null))}var je=Object.freeze(Object.assign(Object.create(null),{call:Function.prototype.call,apply:Function.prototype.apply,bind:Function.prototype.bind})),x=(e,t)=>{const r=P.get(e);if(!r||r.done){r?.nulled&&E&&y.post({__frame_cap_telemetry:{kind:"cap-load-error",cap:e}},E);return}const n=typeof t=="function"?Object.setPrototypeOf(t,je):Object.assign(Object.create(null),t);typeof n.then=="function"&&delete n.then,r.r(Object.freeze(n))};function ee(){const e=q?.value??{};V(window,"claude",e);for(const t of Object.keys(R)){if(e[t]!==void 0){V(e,t,e[t]);continue}P.set(t,Me())}if(e.use===void 0){const t=r=>{if(typeof r!="string"||!Object.hasOwn(R,r))return Promise.resolve(null);const n=P.get(r);return n?n.u:Promise.resolve(e[r]??null)};try{Object.defineProperty(e,"use",{value:t,writable:!0,configurable:!0,enumerable:!1})}catch{}}}if(k==="framed"){const e=B&&A.test(B)?S(B).catch(()=>{}):Promise.resolve(void 0),t=a=>{if(a.type==="auxclick"&&a.button!==1)return;const f=a.target,v=f&&f.closest?f.closest("a[href],area[href]"):null;if(!v)return;const b=v.getAttribute("href");if(!b)return;let l;try{l=new URL(b,document.baseURI)}catch{return}if((l.protocol==="http:"||l.protocol==="https:")&&l.origin!==location.origin){a.preventDefault();const _=(v.getAttribute("target")??"").toLowerCase(),d=a.type==="auxclick"||a.metaKey||a.ctrlKey||a.shiftKey||a.altKey||!["","_self","_top","_parent"].includes(_);y.post({__frame_nav:!0,url:l.href,newTab:d},"*")}};addEventListener("click",t,!0),addEventListener("auxclick",t,!0);const r={},n=a=>{a.isTrusted&&(r.pointer=!0)},s=a=>{a.isTrusted&&(r.click=!0)};addEventListener("pointermove",n,{capture:!0,passive:!0}),addEventListener("click",s,{capture:!0,passive:!0}),e.then(a=>{a?.wireNav&&(a.wireNav(),removeEventListener("click",t,!0),removeEventListener("auxclick",t,!0),removeEventListener("pointermove",n,!0),removeEventListener("click",s,!0),a.wireEngagement?.(r))});let o=null;try{o=ke()}catch{}ee();let i=null,c=null,h=0;const p=y.on((a,f)=>{X(f)&&_e(a)&&(i=a.__frame_init,E=f,p(),clearTimeout(h),c?.())});y.post({__frame_connect:!0},"*");const w=new Promise(a=>{c=a,h=setTimeout(()=>{p(),a()},Pe)}),m=document.readyState==="loading"?new Promise(a=>document.addEventListener("DOMContentLoaded",()=>a(),{once:!0})):Promise.resolve();m.then(()=>{try{o?.restore()}catch{}});const g={cb:null};y.on((a,f)=>{if(X(f)&&ve(a)){try{o?.promoted()}catch{}g.cb?.()}}),w.then(async()=>{if(!i||!E){F();return}Q(i.theme);const a=E;let f=!1,v=!1;y.on((u,z,C)=>{if(z!==a)return;ye(u)&&Q(u.__frame_theme.theme),he(u)&&Ce(u.__frame_patch,a,C);const H=u?.__fc_mode;H&&typeof H=="object"&&!f&&D&&A.test(D)&&(f=!0,S(D).then(K=>K.install?.(a,H.on===!0)).catch(()=>{}));const W=u?.__ft_cmd;W&&typeof W=="object"&&!v&&I&&A.test(I)&&(v=!0,S(I).then(K=>K.install?.(a,W)).catch(()=>{}))});const b=Object.keys(i.capabilities??{}).filter(u=>Object.hasOwn(R,u)).map(u=>[u,R[u]]).filter(u=>typeof u[1]=="string"&&A.test(u[1])),l=await Promise.allSettled(b.map(([,u])=>S(u))),_=await e,d=E;if(_?.buildBoot||y.post({__frame_cap_telemetry:{kind:"cap-load-error",cap:"_transforms"}},d),_?.buildBoot)try{L=_.buildBoot(i,_.TRANSFORMS??{},{shellOrigin:d,mount:x,hooks:O},u=>y.post({__frame_cap_telemetry:u},d))}catch{y.post({__frame_cap_telemetry:{kind:"cap-load-error",cap:"_transforms"}},d),L=G(i,d)}else L=G(i,d);const T=u=>y.post({__frame_cap_telemetry:{kind:"cap-load-error",cap:u}},d),Ne=L;l.forEach((u,z)=>{const C=b[z][0];if(u.status!=="fulfilled"){T(C);return}try{u.value?.install?.(Ne)}catch{T(C)}}),F(),await m,y.post({__frame_ready:!0},E),e.then(u=>u?.installSizeReporter?.(d,g))})}else N&&(ee(),Re(N,Y,S,{settle:F,mount:x}))})();</script><!-- /frame-runtime -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Change Impact Intake</title>
+<style id="app-style">
+:root{
+  color-scheme: light dark;
+  --paper:#F3F5F9;
+  --surface:#FFFFFF;
+  --surface-2:#EAEEF5;
+  --ink:#12161F;
+  --ink-2:#4C5666;
+  --ink-3:#7A8494;
+  --line:#DCE1EA;
+  --line-strong:#BFC7D4;
+  --accent:#2E3D77;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#E4E8F6;
+  --jade:#0B6B54;
+  --jade-soft:#E0F0EA;
+  --amber:#8C5E0C;
+  --amber-soft:#F7EBD5;
+  --clay:#A33D2E;
+  --clay-soft:#F7E4E0;
+  --shadow: 0 1px 2px rgba(18,22,31,.06), 0 8px 24px -16px rgba(18,22,31,.35);
+  --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1117;
+    --surface:#171B23;
+    --surface-2:#1F242E;
+    --ink:#E8EBF2;
+    --ink-2:#A5AEBD;
+    --ink-3:#7B8494;
+    --line:#2A303B;
+    --line-strong:#3B4351;
+    --accent:#97A5EA;
+    --accent-ink:#10131B;
+    --accent-soft:#1C2340;
+    --jade:#4FC7A0;
+    --jade-soft:#12302A;
+    --amber:#D9A54E;
+    --amber-soft:#2E2617;
+    --clay:#E38375;
+    --clay-soft:#33201D;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1117;
+  --surface:#171B23;
+  --surface-2:#1F242E;
+  --ink:#E8EBF2;
+  --ink-2:#A5AEBD;
+  --ink-3:#7B8494;
+  --line:#2A303B;
+  --line-strong:#3B4351;
+  --accent:#97A5EA;
+  --accent-ink:#10131B;
+  --accent-soft:#1C2340;
+  --jade:#4FC7A0;
+  --jade-soft:#12302A;
+  --amber:#D9A54E;
+  --amber-soft:#2E2617;
+  --clay:#E38375;
+  --clay-soft:#33201D;
+  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:88px;
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important;} }
+
+h1{ font-family:var(--font-display); font-weight:600; text-wrap:balance; margin:0; letter-spacing:-0.01em; }
+
+.appbar{
+  position:sticky; top:0; z-index:20;
+  display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+  padding:12px 24px;
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; flex-direction:column; margin-right:auto; gap:2px; }
+.brand h1{ font-size:1.3rem; }
+.brand small{ color:var(--ink-3); font-size:.78rem; }
+.row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+.page{ max-width:880px; margin:0 auto; padding:32px 24px 40px; }
+
+.eyebrow{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-3); margin:0 0 8px; }
+.lede{ color:var(--ink-2); max-width:62ch; margin:0 0 32px; font-size:15px; }
+
+.letterhead{ display:flex; flex-wrap:wrap; gap:20px; margin-bottom:32px; }
+.letterhead .field{ flex:1 1 180px; }
+
+.field{ display:flex; flex-direction:column; gap:6px; }
+.field.grow{ flex:1 1 auto; }
+.field > span{ font-size:.78rem; font-weight:500; color:var(--ink-2); }
+.field > span em{ font-style:normal; font-weight:400; opacity:0.85; }
+
+input[type="text"], input[type="date"], select, textarea{
+  font-family:var(--font-body);
+  font-size:14.5px;
+  color:var(--ink);
+  background:var(--surface);
+  border:1px solid var(--line-strong);
+  border-radius:6px;
+  padding:8px 10px;
+  width:100%;
+  min-width:0;
+}
+textarea{ resize:vertical; min-height:70px; line-height:1.6; font-family:var(--font-body); }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  border-radius:4px;
+}
+input:disabled, textarea:disabled, select:disabled{ opacity:0.7; }
+
+.modes{ display:flex; gap:8px; margin-bottom:28px; flex-wrap:wrap; }
+.mode-btn{
+  flex:1 1 260px; text-align:left; cursor:pointer;
+  background:var(--surface); border:1px solid var(--line-strong); border-radius:10px;
+  padding:14px 16px; display:flex; flex-direction:column; gap:3px;
+  font-family:var(--font-body); color:var(--ink);
+  transition:border-color .12s ease, background .12s ease;
+}
+.mode-btn:hover{ background:var(--surface-2); }
+.mode-btn strong{ font-size:.92rem; font-weight:600; }
+.mode-btn span{ font-size:.78rem; color:var(--ink-2); line-height:1.45; }
+.mode-active{ border-color:var(--accent); background:var(--accent-soft); }
+.mode-active strong{ color:var(--accent); }
+.mode-active span{ color:var(--ink-2); }
+
+.baseline-panel{ display:flex; flex-direction:column; gap:18px; }
+.baseline-meta{ display:flex; flex-wrap:wrap; gap:16px; }
+.baseline-meta .field{ flex:1 1 200px; }
+.filelist{ display:flex; flex-direction:column; gap:8px; }
+.fileitem{
+  display:flex; align-items:center; gap:10px; padding:10px 14px;
+  background:var(--surface-2); border:1px solid var(--line-strong); border-radius:6px;
+}
+.fileitem .mono{ font-family:var(--font-mono); font-size:13px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.fileitem .file-size{ margin-left:auto; }
+.filecap{ font-size:12px; color:var(--ink-3); font-family:var(--font-mono); }
+
+.stats-line{
+  display:flex; flex-wrap:wrap; gap:8px; align-items:center;
+  padding-top:12px; font-size:13.5px;
+}
+.batch-actions{ padding-top:14px; display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+.batch-prompt{ font-size:13.5px; white-space:pre-wrap; color:var(--ink); margin:0 0 8px; }
+.batch-files{ font-size:12.5px; color:var(--ink-2); font-family:var(--font-mono); margin:0; }
+
+.tabs{ display:flex; gap:0; margin-bottom:20px; border-bottom:1px solid var(--line-strong); }
+.tab{
+  font-family:var(--font-body); font-size:13.5px; font-weight:500;
+  background:none; border:none; padding:10px 4px; margin-right:22px;
+  color:var(--ink-2); cursor:pointer; border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+}
+.tab:hover{ color:var(--ink); }
+.tab-active{ color:var(--accent); border-bottom-color:var(--accent); font-weight:600; }
+
+.freetext-panel, .excel-panel{ display:flex; flex-direction:column; gap:10px; }
+.hint{ font-size:13px; color:var(--ink-2); margin:0; max-width:62ch; }
+.file-chosen{
+  display:flex; align-items:center; gap:10px; padding:12px 14px;
+  background:var(--surface-2); border:1px solid var(--line-strong); border-radius:6px;
+}
+.file-chosen .mono{ font-family:var(--font-mono); font-size:13px; }
+.file-size{ font-size:12.5px; color:var(--ink-2); }
+.pill-channel{ background:var(--surface-2); color:var(--ink-2); }
+.batch-freetext{ font-size:13.5px; white-space:pre-wrap; color:var(--ink); margin:0; }
+
+.changes{ display:flex; flex-direction:column; gap:24px; margin-bottom:16px; }
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  padding:22px 24px 26px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+
+.card-top{ display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+.breadcrumb{ display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.breadcrumb .code{
+  font-family:var(--font-mono);
+  font-size:13px;
+  width:96px;
+  padding:6px 8px;
+  background:var(--surface-2);
+  border:1px solid var(--line-strong);
+  border-radius:5px;
+  color:var(--accent);
+}
+.breadcrumb .sep{ color:var(--ink-3); }
+
+.card-row{ display:flex; gap:16px; flex-wrap:wrap; }
+.card-row .field:not(.grow){ flex:0 0 200px; }
+
+.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+@media (max-width:640px){ .two-col{ grid-template-columns:1fr; } }
+
+.stakeholders{ border-top:1px solid var(--line); padding-top:16px; margin-top:2px; }
+.stakeholders-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+.stakeholders-head > span:first-child{ font-size:12px; font-weight:600; color:var(--ink-2); text-transform:uppercase; letter-spacing:0.05em; }
+
+.stakeholder{
+  display:flex; gap:12px; align-items:flex-end; flex-wrap:wrap;
+  padding:12px 0 12px 16px;
+  border-left:2px solid var(--line-strong);
+  margin-bottom:4px;
+}
+.stakeholder .field{ flex:1 1 160px; }
+.stakeholder .field.grow{ flex:2 1 220px; }
+
+.table-legend{ font-size:12.5px; color:var(--ink-2); margin:0 0 10px; }
+.th-required-legend{ color:var(--clay); font-weight:600; }
+
+.table-wrap{
+  overflow-x:auto;
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  background:var(--surface);
+  margin-bottom:12px;
+}
+.changes-table{ width:100%; min-width:760px; border-collapse:collapse; }
+.changes-table thead th{
+  font-size:12px; font-weight:600; color:var(--ink-2);
+  text-transform:uppercase; letter-spacing:0.05em; text-align:left;
+  padding:10px 8px; border-bottom:1px solid var(--line-strong); white-space:nowrap;
+}
+.th-required::after{ content:" *"; color:var(--clay); }
+.changes-table td{ padding:6px 8px; border-bottom:1px solid var(--line); vertical-align:top; }
+.changes-table tbody tr.change-row:hover{ background:var(--surface-2); }
+.row-num, .row-num-head{ font-family:var(--font-mono); font-size:12.5px; color:var(--ink-3); text-align:center; width:32px; }
+.row-actions{ white-space:nowrap; display:flex; gap:10px; align-items:center; }
+
+.changes-table .cell-input{
+  border:1px solid transparent; background:transparent;
+  border-radius:4px; padding:6px 8px; width:100%;
+}
+.changes-table .cell-input:hover{ border-color:var(--line); }
+.changes-table .cell-input:focus{ border-color:var(--line-strong); background:var(--surface); }
+.changes-table .cell-input.code{ min-width:90px; font-family:var(--font-mono); color:var(--accent); }
+.cell-textarea{ min-height:44px; resize:vertical; min-width:160px; }
+
+.drawer-row td{ background:var(--surface-2); border-bottom:1px solid var(--line-strong); padding:18px 20px; }
+
+.link-btn{
+  background:none; border:none; padding:0; margin:0;
+  font-family:var(--font-body); font-size:13px; font-weight:500;
+  color:var(--accent); cursor:pointer;
+}
+.link-btn:hover{ text-decoration:underline; }
+.link-btn.remove{ color:var(--ink-2); }
+.link-btn.remove:hover{ color:var(--clay); }
+.spacer{ width:1px; }
+
+button, select, input, textarea{ font:inherit; color:inherit; }
+
+.btn{
+  appearance:none; cursor:pointer;
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--line-strong); border-radius:7px;
+  padding:7px 15px; font-size:.87rem; font-weight:500;
+  transition:background .12s ease, border-color .12s ease;
+}
+.btn:hover{ background:var(--surface-2); }
+.btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+.btn.primary:hover{ filter:brightness(1.08); }
+.btn.primary:disabled{ opacity:0.6; cursor:default; filter:none; }
+.btn.ghost{ border-color:transparent; background:transparent; color:var(--ink-2); }
+.btn.ghost:hover{ background:var(--surface-2); color:var(--ink); }
+.btn.small{ padding:4px 9px; font-size:.78rem; }
+.btn-add-change{ width:100%; text-align:center; padding:14px; }
+
+.empty{
+  border:1px dashed var(--line-strong); border-radius:10px; padding:36px 24px;
+  text-align:center; color:var(--ink-2); display:flex; flex-direction:column; gap:14px; align-items:center;
+}
+
+.dock{
+  position:fixed; left:0; right:0; bottom:0;
+  background:var(--surface); border-top:1px solid var(--line);
+  padding:14px 24px; display:flex; justify-content:space-between; align-items:center;
+  gap:16px; z-index:10;
+}
+.dock-count{ font-family:var(--font-mono); font-size:12.5px; color:var(--ink-2); font-variant-numeric:tabular-nums; }
+
+.toast{
+  position:fixed; bottom:76px; left:50%; transform:translateX(-50%);
+  background:var(--clay-soft); color:var(--clay);
+  border:1px solid var(--clay); border-radius:7px;
+  padding:10px 16px; font-size:13.5px; max-width:90vw; z-index:20;
+}
+
+.history{ margin-top:40px; padding-top:28px; border-top:1px solid var(--line-strong); }
+.history h2{ font-family:var(--font-display); font-size:1.15rem; font-weight:600; margin:0 0 16px; }
+
+.batch{ background:var(--surface); border:1px solid var(--line); border-radius:10px; box-shadow:var(--shadow); margin-bottom:12px; overflow:hidden; }
+.live-register{ border-color:var(--accent); margin-bottom:24px; }
+.live-register .pill-channel{ background:var(--accent-soft); color:var(--accent); }
+.batch summary{
+  display:flex; align-items:center; gap:14px; padding:14px 18px; cursor:pointer; list-style:none;
+}
+.batch summary::-webkit-details-marker{ display:none; }
+.batch-date{ font-family:var(--font-mono); font-size:12.5px; color:var(--ink-2); }
+.batch-count{ font-size:13px; color:var(--ink-2); margin-left:auto; }
+.batch-body{ padding:0 18px 18px; border-top:1px solid var(--line); }
+.batch-change{ padding:12px 0; border-bottom:1px solid var(--line); }
+.batch-change:last-child{ border-bottom:none; }
+.batch-breadcrumb{ font-family:var(--font-mono); font-size:12px; color:var(--accent); margin:0 0 4px; }
+.batch-title{ font-weight:600; margin:0 0 4px; }
+.batch-stakeholders{ font-size:13px; color:var(--ink-2); margin:0; }
+.awaiting{ font-size:13px; color:var(--ink-2); padding-top:12px; margin:0; }
+.processed-note{ padding-top:12px; font-size:14px; margin:0; }
+.results-list{ list-style:none; padding:0; margin:8px 0 0; display:flex; flex-direction:column; gap:6px; font-size:13.5px; }
+.results-list .mono{ font-family:var(--font-mono); font-size:12.5px; color:var(--accent); }
+
+.pill{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.03em; text-transform:uppercase;
+  padding:4px 10px; border-radius:999px; font-weight:600; white-space:nowrap;
+}
+.pill-warn{ background:var(--amber-soft); color:var(--amber); }
+.pill-success{ background:var(--jade-soft); color:var(--jade); }
+
+.rating{ font-weight:600; }
+.rating-high{ color:var(--clay); }
+.rating-medium{ color:var(--amber); }
+.rating-low, .rating-nominimal{ color:var(--jade); }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="application/json" id="state-data">{"history": [], "current": {"programme": "", "preparedBy": "", "date": "", "mode": "process", "channel": "freetext", "changes": [], "freetext": "", "excelFile": null, "baselineClient": "", "baselineScope": "", "baselineGoLive": "", "baselinePrompt": "", "baselineFiles": []}}</script>
+<script id="app-script">
+(function(){
+  "use strict";
+
+  function uid(prefix){
+    if (window.crypto && crypto.randomUUID) return prefix + "-" + crypto.randomUUID().slice(0,8);
+    return prefix + "-" + Math.random().toString(36).slice(2,10);
+  }
+
+  function esc(s){
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function(c){
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+
+  function freshStakeholder(){
+    return { id: uid("sg"), name:"", rolesHeadcount:"", notes:"" };
+  }
+
+  function freshChange(){
+    return {
+      id: uid("chg"), title:"", l1:"", l2:"", l3:"", l4:"",
+      changeType:"Brownfield", asIs:"", toBe:"", steer:"", sourceNote:"",
+      stakeholders:[ freshStakeholder() ]
+    };
+  }
+
+  function defaultState(){
+    return {
+      history: [],
+      current: {
+        programme:"", preparedBy:"",
+        date: new Date().toISOString().slice(0,10),
+        mode:"process",
+        channel:"form",
+        changes: [],
+        freetext:"",
+        excelFile:null,
+        baselineClient:"",
+        baselineScope:"",
+        baselineGoLive:"",
+        baselinePrompt:"",
+        baselineFiles:[]
+      }
+    };
+  }
+
+  var PER_FILE_CAP = 8 * 1024 * 1024;
+  var TOTAL_FILE_CAP = 6 * 1024 * 1024;
+  var DOC_RE = /\.(docx|xlsx|pptx|pdf|txt|md|csv)$/i;
+
+  function formatBytes(n){
+    if (n == null) return "";
+    if (n < 1024) return n + " B";
+    if (n < 1024*1024) return (n/1024).toFixed(1) + " KB";
+    return (n/1024/1024).toFixed(2) + " MB";
+  }
+
+  function loadState(){
+    var el = document.getElementById("state-data");
+    if (el && el.textContent.trim()){
+      try {
+        var parsed = JSON.parse(el.textContent);
+        if (parsed && parsed.current){
+          parsed.current = Object.assign({}, defaultState().current, parsed.current);
+          parsed.history = parsed.history || [];
+          return parsed;
+        }
+      } catch(e){}
+    }
+    var base = defaultState();
+    try {
+      var raw = localStorage.getItem("cia-intake-draft");
+      if (raw){
+        var draft = JSON.parse(raw);
+        if (draft && Array.isArray(draft.changes)) base.current = Object.assign({}, base.current, draft);
+      }
+    } catch(e){}
+    return base;
+  }
+
+  var root = document.getElementById("root");
+  var state = loadState();
+  var artifactCap = null;
+  var downloadsCap = null;
+  var mcpCap = null;
+  if (window.claude && window.claude.use){
+    window.claude.use("artifact").then(function(a){ artifactCap = a; });
+    window.claude.use("downloads").then(function(d){ downloadsCap = d; });
+    window.claude.use("mcp").then(function(m){ mcpCap = m; });
+  }
+
+  var LIVE_CIA_BASE_ID = "appFD6GsiE3Jh5rGQ";
+  var CHANGE_IMPACTS_TABLE_ID = "tblfZObW243ZAGE7W";
+  var FIELD_IMPACT_ID = "fldwB73o4DHTUo65U";
+  var FIELD_STAKEHOLDER_GROUP = "fldylnVj77lfTsqwE";
+  var FIELD_OVERALL_IMPACT = "fld8RYBqP2R55hPwH";
+  var FIELD_RATING = "fld3N4ZH6jKmG418C";
+
+  // Never persisted into state-data — live Airtable data is read fresh each time, not snapshotted.
+  var liveRegister = { status: "idle", records: [], totalCount: 0, error: null, cache: null };
+
+  // Never persisted into state-data — purely local table UI state (which rows show their details drawer).
+  var expandedChangeIds = {};
+
+  var saveTimer = null;
+  function scheduleDraftSave(){
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function(){
+      try { localStorage.setItem("cia-intake-draft", JSON.stringify(state.current)); } catch(e){}
+    }, 600);
+  }
+
+  var toastTimer = null;
+  function toast(msg){
+    var el = document.getElementById("toast");
+    if (!el) return;
+    el.textContent = msg;
+    el.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){ el.hidden = true; }, 4500);
+  }
+
+  function formatDate(iso){
+    if (!iso) return "";
+    try { return new Date(iso).toLocaleString(undefined, {dateStyle:"medium", timeStyle:"short"}); }
+    catch(e){ return iso; }
+  }
+
+  function renderStakeholderRow(c, sh){
+    var canRemove = c.stakeholders.length > 1;
+    return '<div class="stakeholder" data-change-id="' + c.id + '" data-stakeholder-id="' + sh.id + '">'
+      + '<label class="field"><span>Group</span>'
+      + '<input type="text" data-field="name" value="' + esc(sh.name) + '" placeholder="e.g. Procurement Approvers"></label>'
+      + '<label class="field"><span>Roles / headcount</span>'
+      + '<input type="text" data-field="rolesHeadcount" value="' + esc(sh.rolesHeadcount) + '" placeholder="optional"></label>'
+      + '<label class="field grow"><span>Notes for this group</span>'
+      + '<input type="text" data-field="notes" value="' + esc(sh.notes) + '" placeholder="optional"></label>'
+      + (canRemove ? '<button type="button" class="link-btn remove" data-action="remove-stakeholder">Remove</button>' : '<span class="spacer"></span>')
+      + '</div>';
+  }
+
+  function renderChangesTableHead(){
+    return '<thead><tr>'
+      + '<th class="row-num-head">#</th>'
+      + '<th class="th-required">L1</th>'
+      + '<th class="th-required">L2</th>'
+      + '<th class="th-required">L3</th>'
+      + '<th class="th-required">L4</th>'
+      + '<th class="th-required">As-is</th>'
+      + '<th class="th-required">To-be</th>'
+      + '<th></th>'
+    + '</tr></thead>';
+  }
+
+  function renderChangeRow(c, idx){
+    var expanded = !!expandedChangeIds[c.id];
+    var row = '<tr class="change-row" data-change-id="' + c.id + '">'
+      + '<td class="row-num">' + (idx + 1) + '</td>'
+      + '<td><input class="cell-input code" data-field="l1" value="' + esc(c.l1) + '" placeholder="L1"></td>'
+      + '<td><input class="cell-input code" data-field="l2" value="' + esc(c.l2) + '" placeholder="L2"></td>'
+      + '<td><input class="cell-input code" data-field="l3" value="' + esc(c.l3) + '" placeholder="L3"></td>'
+      + '<td><input class="cell-input code" data-field="l4" value="' + esc(c.l4) + '" placeholder="L4"></td>'
+      + '<td><textarea class="cell-input cell-textarea" data-field="asIs" rows="2" placeholder="How this happens now">' + esc(c.asIs) + '</textarea></td>'
+      + '<td><textarea class="cell-input cell-textarea" data-field="toBe" rows="2" placeholder="How this will happen">' + esc(c.toBe) + '</textarea></td>'
+      + '<td class="row-actions">'
+        + '<button type="button" class="btn small ghost" data-action="toggle-change-details">' + (expanded ? "Hide details" : "Details") + '</button>'
+        + '<button type="button" class="link-btn remove" data-action="remove-change">Remove</button>'
+      + '</td>'
+    + '</tr>';
+    if (!expanded) return row;
+    var types = ["Brownfield","Greenfield","Hybrid"];
+    var typeOptions = types.map(function(t){
+      return '<option value="' + t + '"' + (c.changeType === t ? " selected" : "") + '>' + t + '</option>';
+    }).join("");
+    var drawer = '<tr class="drawer-row" data-change-id="' + c.id + '"><td colspan="8">'
+      + '<div class="card-row">'
+        + '<label class="field grow"><span>Title <em>(optional)</em></span>'
+        + '<input type="text" data-field="title" value="' + esc(c.title) + '" placeholder="Short label for this change"></label>'
+        + '<label class="field"><span>Change type</span>'
+        + '<select data-field="changeType">' + typeOptions + '</select></label>'
+      + '</div>'
+      + '<label class="field"><span>Anything to know when scoring this? <em>(optional)</em></span>'
+      + '<textarea data-field="steer" rows="2" placeholder="e.g. this is an optional new role, so people impact shouldn\'t run high">' + esc(c.steer) + '</textarea></label>'
+      + '<label class="field"><span>Where does this come from? <em>(optional)</em></span>'
+      + '<input type="text" data-field="sourceNote" value="' + esc(c.sourceNote) + '" placeholder="e.g. CM lead brief, 21 Aug"></label>'
+      + '<div class="stakeholders">'
+        + '<div class="stakeholders-head"><span>Who does this affect <em>(optional)</em></span>'
+        + '<button type="button" class="link-btn" data-action="add-stakeholder">+ Add stakeholder group</button></div>'
+        + c.stakeholders.map(function(sh){ return renderStakeholderRow(c, sh); }).join("")
+      + '</div>'
+    + '</td></tr>';
+    return row + drawer;
+  }
+
+  function renderHistoryItem(b){
+    var pillClass = b.status === "processed" ? "pill-success" : "pill-warn";
+    var pillLabel = b.status === "processed" ? "Processed" : "Submitted — awaiting Claude";
+    var mode = b.mode || "process";
+
+    if (mode === "baseline"){
+      var promptPreview = (b.prompt || "").trim();
+      if (promptPreview.length > 320) promptPreview = promptPreview.slice(0,320) + "…";
+      var fileNames = (b.files || []).map(function(f){ return f.name; }).join(", ");
+      var bBody = '<div class="batch-change">'
+        + (promptPreview ? '<p class="batch-prompt">' + esc(promptPreview) + '</p>' : '<p class="batch-prompt">(no prompt text)</p>')
+        + (fileNames ? '<p class="batch-files">' + esc(fileNames) + '</p>' : '')
+      + '</div>';
+      var bTail;
+      if (b.status === "processed"){
+        var statsLine = "";
+        if (b.stats){
+          statsLine = '<div class="stats-line">'
+            + '<span class="num">' + b.stats.count + ' impacts</span>'
+            + (b.stats.high != null ? ' &middot; <span class="rating rating-high">' + b.stats.high + ' High</span>' : "")
+            + (b.stats.medium != null ? ' &middot; <span class="rating rating-medium">' + b.stats.medium + ' Medium</span>' : "")
+            + (b.stats.low != null ? ' &middot; <span class="rating rating-low">' + b.stats.low + ' Low</span>' : "")
+          + '</div>';
+        }
+        var bNote = b.processedNote ? '<p class="processed-note">' + esc(b.processedNote) + '</p>' : "";
+        var actions = '<div class="batch-actions">';
+        if (b.csv){
+          actions += '<button type="button" class="btn ghost small" data-action="download-register">Download register (.csv)</button>';
+        }
+        actions += '<span class="hint">Full workbook (' + esc(b.workbookName || "the .xlsx") + ') was delivered in chat.</span></div>';
+        bTail = statsLine + bNote + actions;
+      } else {
+        bTail = '<p class="awaiting">Claude will read this batch, build the baseline, and deliver the workbook in chat. Refresh in a few minutes.</p>';
+      }
+      return '<details class="batch" data-batch-id="' + b.id + '">'
+        + '<summary>'
+          + '<span class="pill ' + pillClass + '">' + pillLabel + '</span>'
+          + '<span class="pill pill-channel">Baseline CIA</span>'
+          + '<span class="batch-date">' + esc(formatDate(b.submittedAt)) + '</span>'
+          + '<span class="batch-count">' + esc(b.client || "") + '</span>'
+        + '</summary>'
+        + '<div class="batch-body">' + bBody + bTail + '</div>'
+      + '</details>';
+    }
+
+    var channel = b.channel || "form";
+    var channelLabel = channel === "freetext" ? "Free text" : channel === "excel" ? "Excel upload" : "Form";
+    var countLabel = "";
+    var body;
+    if (channel === "freetext"){
+      var preview = (b.text || "").trim();
+      if (preview.length > 240) preview = preview.slice(0,240) + "…";
+      body = '<div class="batch-change"><p class="batch-freetext">' + esc(preview || "(empty)") + '</p></div>';
+    } else if (channel === "excel"){
+      var fname = (b.file && b.file.name) || "(file)";
+      var fsize = b.file && b.file.size != null ? formatBytes(b.file.size) : "";
+      body = '<div class="batch-change"><p class="batch-title">' + esc(fname) + '</p>'
+        + '<p class="batch-stakeholders">' + esc(fsize) + '</p></div>';
+    } else {
+      var changes = b.changes || [];
+      countLabel = changes.length + ' process change' + (changes.length === 1 ? "" : "s");
+      body = changes.map(function(c){
+        var crumb = [c.l1,c.l2,c.l3,c.l4].filter(Boolean).map(esc).join(" &rsaquo; ") || "(no taxonomy given)";
+        var names = (c.stakeholders || []).map(function(s){ return s.name; }).filter(Boolean).map(esc).join(", ") || "no stakeholder groups named";
+        return '<div class="batch-change">'
+          + '<p class="batch-breadcrumb">' + crumb + '</p>'
+          + '<p class="batch-title">' + (esc(c.title) || "(untitled)") + '</p>'
+          + '<p class="batch-stakeholders">' + names + '</p>'
+        + '</div>';
+      }).join("");
+    }
+    var tail;
+    if (b.status === "processed"){
+      var note = b.processedNote ? '<p class="processed-note">' + esc(b.processedNote) + '</p>' : "";
+      var results = "";
+      if (b.results && b.results.length){
+        results = '<ul class="results-list">' + b.results.map(function(r){
+          var ratingClass = "rating-" + String(r.rating || "").toLowerCase().replace(/[^a-z]/g, "");
+          return '<li><span class="mono">' + esc(r.impactId) + '</span> — ' + esc(r.stakeholderGroup) + ' — <span class="rating ' + ratingClass + '">' + esc(r.rating) + '</span></li>';
+        }).join("") + '</ul>';
+      }
+      tail = note + results;
+    } else {
+      tail = '<p class="awaiting">Claude will read this batch and populate the Airtable register. Refresh in a few minutes.</p>';
+    }
+    return '<details class="batch" data-batch-id="' + b.id + '">'
+      + '<summary>'
+        + '<span class="pill ' + pillClass + '">' + pillLabel + '</span>'
+        + '<span class="pill pill-channel">' + channelLabel + '</span>'
+        + '<span class="batch-date">' + esc(formatDate(b.submittedAt)) + '</span>'
+        + '<span class="batch-count">' + countLabel + '</span>'
+      + '</summary>'
+      + '<div class="batch-body">' + body + tail + '</div>'
+    + '</details>';
+  }
+
+  function renderHistory(history){
+    if (!history.length) return "";
+    return '<section class="history"><h2>Submitted batches</h2>' + history.map(renderHistoryItem).join("") + '</section>';
+  }
+
+  var RATING_ORDER = ["High", "Medium", "Low", "No / Minimal"];
+
+  function renderLiveRegisterBody(lr){
+    if (lr.status === "idle"){
+      return '<p class="hint">Reads the live <span class="mono">Change Impacts</span> table directly from your Airtable connector — opens the connector prompt on first use.</p>';
+    }
+    if (lr.status === "loading"){
+      return '<p class="hint">Loading live register…</p>';
+    }
+    if (lr.status === "unavailable"){
+      return '<p class="hint">' + esc(lr.error || "Add the Airtable connector in claude.ai Settings → Connectors to see the live register here.") + '</p>';
+    }
+    if (lr.status === "error"){
+      return '<p class="hint">' + esc(lr.error || "Couldn't load the live register.") + '</p>';
+    }
+    var counts = { "High": 0, "Medium": 0, "Low": 0, "No / Minimal": 0 };
+    lr.records.forEach(function(r){
+      var rating = (r.cellValuesByFieldId && r.cellValuesByFieldId[FIELD_RATING]) || "";
+      if (Object.prototype.hasOwnProperty.call(counts, rating)) counts[rating] += 1;
+    });
+    var staleNote = lr.stale ? '<p class="hint">Having trouble reaching Airtable — showing the last data that loaded.</p>' : "";
+    var pills = RATING_ORDER.filter(function(k){ return counts[k] > 0; }).map(function(k){
+      var cls = "rating-" + k.toLowerCase().replace(/[^a-z]/g, "");
+      return '<span class="rating ' + cls + '">' + counts[k] + " " + esc(k) + '</span>';
+    }).join(" &middot; ");
+    var rows = lr.records.slice(0, 20).map(function(r){
+      var c = r.cellValuesByFieldId || {};
+      var ratingVal = c[FIELD_RATING] || "";
+      var ratingCls = "rating-" + String(ratingVal).toLowerCase().replace(/[^a-z]/g, "");
+      return '<li><span class="mono">' + esc(c[FIELD_IMPACT_ID] || r.id) + '</span> — '
+        + esc(c[FIELD_STAKEHOLDER_GROUP] || "") + ' — '
+        + '<span class="rating ' + ratingCls + '">' + esc(ratingVal) + '</span></li>';
+    }).join("");
+    var updated = lr.cache && lr.cache.storedAt
+      ? '<span class="batch-date">as of ' + esc(formatDate(new Date(lr.cache.storedAt).toISOString())) + '</span>'
+      : "";
+    return staleNote
+      + '<div class="stats-line"><span class="num">' + lr.totalCount + ' impacts</span>'
+      + (pills ? ' &middot; ' + pills : '') + '</div>'
+      + (rows ? '<ul class="results-list">' + rows + '</ul>' : '')
+      + updated;
+  }
+
+  function renderLiveRegister(){
+    return '<details class="batch live-register" id="live-register">'
+      + '<summary>'
+        + '<span class="pill pill-channel">Live Register</span>'
+        + '<span class="batch-date">Change Impacts &middot; Airtable</span>'
+      + '</summary>'
+      + '<div class="batch-body" id="live-register-body">' + renderLiveRegisterBody(liveRegister) + '</div>'
+    + '</details>';
+  }
+
+  function startLiveRegisterWatch(){
+    if (liveRegister.status !== "idle") return;
+    if (!mcpCap){
+      liveRegister.status = "unavailable";
+      liveRegister.error = "AI-powered artifacts / connector access isn't available in this view.";
+      writeLiveRegisterBody();
+      return;
+    }
+    liveRegister.status = "loading";
+    writeLiveRegisterBody();
+    mcpCap.watchTool("Airtable", "list_records_for_table", {
+      baseId: LIVE_CIA_BASE_ID,
+      tableId: CHANGE_IMPACTS_TABLE_ID,
+      fieldIds: [FIELD_IMPACT_ID, FIELD_STAKEHOLDER_GROUP, FIELD_OVERALL_IMPACT, FIELD_RATING],
+      pageSize: 100
+    }, onLiveRegisterEvent, { refetchInterval: 60000 });
+  }
+
+  function onLiveRegisterEvent(ev){
+    if (ev.type === "error"){
+      var code = ev.error && ev.error.code;
+      var authCodes = ["needs_reauth","server_not_connected","selection_required","not_granted","capability_disabled","capability_removed"];
+      if (authCodes.indexOf(code) !== -1){
+        liveRegister.status = "unavailable";
+        liveRegister.records = [];
+        liveRegister.error = "Add or reconnect Airtable in claude.ai Settings → Connectors to see the live register.";
+      } else if (code === "server_unavailable"){
+        liveRegister.stale = liveRegister.records.length > 0;
+        if (!liveRegister.stale){ liveRegister.status = "error"; liveRegister.error = "Airtable is temporarily unreachable — it will keep trying."; }
+      } else if (code === "blocked_by_policy"){
+        liveRegister.status = "error";
+        liveRegister.error = "Your organization's policy blocks this connector call.";
+      } else if (code === "approval_required"){
+        liveRegister.status = "error";
+        liveRegister.error = "This call needs approval before it can run.";
+      } else if (code === "tool_error"){
+        liveRegister.status = "error";
+        liveRegister.error = (ev.error && ev.error.message) || "Airtable reported an error.";
+      } else {
+        liveRegister.status = "error";
+        liveRegister.error = "Couldn't load the live register.";
+      }
+      writeLiveRegisterBody();
+      return;
+    }
+    var payload = (ev.result && ev.result.payload) || {};
+    liveRegister.status = "ready";
+    liveRegister.stale = false;
+    liveRegister.records = payload.records || [];
+    liveRegister.totalCount = (payload.metadata && payload.metadata.totalRecordCount != null) ? payload.metadata.totalRecordCount : liveRegister.records.length;
+    liveRegister.cache = (ev.result && ev.result.cache) || null;
+    writeLiveRegisterBody();
+  }
+
+  function writeLiveRegisterBody(){
+    var el = document.getElementById("live-register-body");
+    if (el) el.innerHTML = renderLiveRegisterBody(liveRegister);
+  }
+
+  function renderChannelTabs(active){
+    var tabs = [["form","Form"], ["freetext","Free text"], ["excel","Excel upload"]];
+    return '<div class="tabs" role="tablist">' + tabs.map(function(t){
+      var cls = "tab" + (active === t[0] ? " tab-active" : "");
+      return '<button type="button" class="' + cls + '" data-action="switch-channel" data-channel="' + t[0] + '">' + t[1] + '</button>';
+    }).join("") + '</div>';
+  }
+
+  function renderFormChannel(s){
+    var n = s.current.changes.length;
+    if (n === 0){
+      return '<div class="empty"><p>No process changes yet.</p>'
+        + '<button type="button" class="btn primary" data-action="add-change">Add a process change</button></div>';
+    }
+    return '<p class="table-legend"><span class="th-required-legend">*</span> required &mdash; L1&ndash;L4, As-is and To-be. Everything else is optional: open &ldquo;Details&rdquo; on a row for title, change type, scoring notes, source and stakeholders.</p>'
+      + '<div class="table-wrap"><table class="changes-table" aria-label="Process changes">'
+        + renderChangesTableHead()
+        + '<tbody>' + s.current.changes.map(function(c, i){ return renderChangeRow(c, i); }).join("") + '</tbody>'
+      + '</table></div>'
+      + '<button type="button" class="btn ghost btn-add-change" data-action="add-change">+ Add another process change</button>';
+  }
+
+  function renderFreetextChannel(s){
+    return '<div class="freetext-panel">'
+      + '<label class="field"><span>Paste or type the brief</span>'
+      + '<textarea data-field="freetext" rows="14" placeholder="Write it the way you\'d describe it out loud: what process, what\'s true today, what changes, who it affects, anything to know when scoring it, and where this came from.">' + esc(s.current.freetext) + '</textarea></label>'
+      + '<p class="hint">No structure required &mdash; Claude reads this the same way it reads a pasted brief in chat: taxonomy, as-is/to-be, stakeholder groups and any scoring steer, however you\'ve written it.</p>'
+      + '</div>';
+  }
+
+  function renderExcelChannel(s){
+    var f = s.current.excelFile;
+    return '<div class="excel-panel">'
+      + (f
+          ? '<div class="file-chosen"><span class="mono">' + esc(f.name) + '</span> <span class="file-size">' + formatBytes(f.size) + '</span> '
+            + '<button type="button" class="link-btn remove" data-action="remove-file">Remove</button></div>'
+          : '<label class="field"><span>Upload a filled CIA Template (.xlsx)</span>'
+            + '<input type="file" accept=".xlsx"></label>'
+        )
+      + '<p class="hint">Fill in whatever you have in the template\'s own columns &mdash; leave the rest blank. Claude extracts every populated row, scores anything left incomplete the same way it would a free-text brief, and writes the results to Airtable. Up to 8MB.</p>'
+      + '</div>';
+  }
+
+  function renderModeSwitcher(mode){
+    var modes = [
+      ["process","Generate a CIA process","One process change → rows in the Airtable register"],
+      ["baseline","Generate a new baseline CIA","A transformation prompt + documents → a downloadable baseline workbook"]
+    ];
+    return '<div class="modes" role="tablist">' + modes.map(function(m){
+      var cls = "mode-btn" + (mode === m[0] ? " mode-active" : "");
+      return '<button type="button" class="' + cls + '" data-action="switch-mode" data-mode="' + m[0] + '">'
+        + '<strong>' + m[1] + '</strong><span>' + m[2] + '</span></button>';
+    }).join("") + '</div>';
+  }
+
+  function renderBaselinePanel(s){
+    var files = s.current.baselineFiles || [];
+    var fileListHtml = files.length
+      ? '<div class="filelist">' + files.map(function(f){
+          return '<div class="fileitem" data-file-id="' + f.id + '">'
+            + '<span class="mono">' + esc(f.name) + '</span>'
+            + '<span class="file-size">' + formatBytes(f.size) + '</span>'
+            + '<button type="button" class="link-btn remove" data-action="remove-baseline-file">Remove</button>'
+          + '</div>';
+        }).join("") + '</div>'
+      : "";
+    return '<div class="baseline-panel">'
+      + '<section class="baseline-meta">'
+        + '<label class="field"><span>Client</span>'
+        + '<input type="text" data-field="baselineClient" value="' + esc(s.current.baselineClient) + '" placeholder="e.g. Meridian Industrial Group"></label>'
+        + '<label class="field"><span>Solution scope</span>'
+        + '<input type="text" data-field="baselineScope" value="' + esc(s.current.baselineScope) + '" placeholder="e.g. SAP S/4HANA + Ariba, Wave 1 UK/PL"></label>'
+        + '<label class="field"><span>Go-live date <em>(optional)</em></span>'
+        + '<input type="date" data-field="baselineGoLive" value="' + esc(s.current.baselineGoLive) + '"></label>'
+      + '</section>'
+      + '<label class="field"><span>Describe the transformation</span>'
+      + '<textarea data-field="baselinePrompt" rows="16" placeholder="Systems and modules in scope, the business processes being changed, the stakeholder groups affected and rough sizes, entity/wave split, organisational changes to roles or policies, and anything you already know is sensitive.">' + esc(s.current.baselinePrompt) + '</textarea></label>'
+      + '<div class="field"><span>Supporting documents <em>(optional)</em></span>'
+        + '<input type="file" accept=".docx,.xlsx,.pptx,.pdf,.txt,.md,.csv" multiple>'
+        + '<p class="filecap">Word, Excel, PowerPoint, PDF, text, markdown or CSV. Up to 8MB per file, 6MB total.</p>'
+        + fileListHtml
+      + '</div>'
+      + '<p class="hint">Claude builds a comprehensive first-pass baseline &mdash; every plausible process area and stakeholder group the input implies &mdash; for your client to prune and discuss, not a validated assessment. It lands as a downloadable Excel workbook in chat.</p>'
+      + '</div>';
+  }
+
+  function dockLabel(s){
+    var mode = s.current.mode || "process";
+    if (mode === "baseline"){
+      var promptLen = (s.current.baselinePrompt || "").trim().length;
+      var fileCount = (s.current.baselineFiles || []).length;
+      var parts = [];
+      if (promptLen) parts.push(promptLen + " character" + (promptLen === 1 ? "" : "s"));
+      if (fileCount) parts.push(fileCount + " file" + (fileCount === 1 ? "" : "s"));
+      return parts.length ? parts.join(", ") + " drafted" : "Nothing drafted yet";
+    }
+    var channel = s.current.channel || "form";
+    if (channel === "freetext"){
+      var len = (s.current.freetext || "").trim().length;
+      return len ? (len + " character" + (len === 1 ? "" : "s") + " drafted") : "Nothing drafted yet";
+    }
+    if (channel === "excel"){
+      return s.current.excelFile ? ("Ready: " + s.current.excelFile.name) : "No file chosen";
+    }
+    var n = s.current.changes.length;
+    return n + " process change" + (n === 1 ? "" : "s") + " drafted";
+  }
+
+  function renderApp(s){
+    var mode = s.current.mode || "process";
+    var channel = s.current.channel || "form";
+    var channelBody = channel === "freetext" ? renderFreetextChannel(s)
+      : channel === "excel" ? renderExcelChannel(s)
+      : renderFormChannel(s);
+
+    var eyebrow = mode === "baseline" ? "Baseline CIA Generation" : "Process Change Intake";
+    var lede = mode === "baseline"
+      ? "Describe the transformation in one prompt, attach whatever documents you have, and Claude builds a comprehensive first-pass baseline for the client to validate &mdash; a downloadable workbook, not a live register."
+      : "Describe a process change &mdash; what's true today, what changes, and who it lands on. Claude reads whichever channel you use, scores it against the CIA rubric, and writes the register rows into Airtable.";
+
+    var body = mode === "baseline"
+      ? renderBaselinePanel(s)
+      : ('<section class="letterhead">'
+          + '<label class="field"><span>Programme</span>'
+          + '<input type="text" data-field="programme" value="' + esc(s.current.programme) + '" placeholder="e.g. SAP S/4HANA + Ariba"></label>'
+          + '<label class="field"><span>Prepared by</span>'
+          + '<input type="text" data-field="preparedBy" value="' + esc(s.current.preparedBy) + '" placeholder="optional"></label>'
+          + '<label class="field"><span>Date</span>'
+          + '<input type="date" data-field="date" value="' + esc(s.current.date) + '"></label>'
+        + '</section>'
+        + renderChannelTabs(channel)
+        + '<section class="changes">' + channelBody + '</section>');
+
+    var submitLabel = mode === "baseline" ? "Generate baseline CIA" : "Submit to Claude";
+
+    return '<header class="appbar">'
+      + '<div class="brand"><h1>Change Impact Intake</h1><small>One process at a time, or a full baseline in one pass</small></div>'
+      + '<div class="row"><button type="button" class="btn ghost small" data-action="toggle-theme" title="Toggle light/dark">Theme</button></div>'
+    + '</header>'
+      + '<div class="page">'
+      + renderModeSwitcher(mode)
+      + '<p class="eyebrow">' + eyebrow + '</p>'
+      + '<p class="lede">' + lede + '</p>'
+      + body
+      + renderLiveRegister()
+      + renderHistory(s.history)
+      + '</div>'
+      + '<div class="dock">'
+        + '<span class="dock-count">' + dockLabel(s) + '</span>'
+        + '<button type="button" id="submit-btn" class="btn primary" data-action="submit">' + submitLabel + '</button>'
+      + '</div>'
+      + '<div id="toast" class="toast" hidden></div>';
+  }
+
+  function render(){
+    root.innerHTML = renderApp(state);
+  }
+
+  function buildDocument(s){
+    var styleText = document.getElementById("app-style").textContent;
+    var scriptText = document.getElementById("app-script").textContent;
+    var stateJson = JSON.stringify(s).replace(/</g, "\\u003c");
+    return "<!doctype html>\n<html lang=\"en\">\n<head>\n"
+      + "<meta charset=\"utf-8\">\n"
+      + "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n"
+      + "<meta name=\"color-scheme\" content=\"light dark\">\n"
+      + "<title>Change Impact Intake</title>\n"
+      + "<style id=\"app-style\">" + styleText + "</style>\n"
+      + "</head>\n<body>\n"
+      + "<div id=\"root\"></div>\n"
+      + "<script type=\"application/json\" id=\"state-data\">" + stateJson + "<" + "/script>\n"
+      + "<script id=\"app-script\">" + scriptText + "<" + "/script>\n"
+      + "</body>\n</html>";
+  }
+
+  function findChange(id){
+    return state.current.changes.find(function(c){ return c.id === id; });
+  }
+
+  root.addEventListener("toggle", function(e){
+    if (e.target && e.target.id === "live-register" && e.target.open){
+      startLiveRegisterWatch();
+    }
+  }, true);
+
+  root.addEventListener("input", function(e){
+    var t = e.target;
+    if (t.type === "file"){
+      var fileList = t.files ? Array.prototype.slice.call(t.files) : [];
+      if (!fileList.length) return;
+
+      if (t.multiple){
+        var existing = state.current.baselineFiles || [];
+        var existingTotal = existing.reduce(function(sum,f){ return sum + (f.size||0); }, 0);
+        var accepted = [];
+        var acceptedTotal = 0;
+        var rejectedReason = null;
+        fileList.forEach(function(file){
+          if (!DOC_RE.test(file.name)){
+            rejectedReason = rejectedReason || (file.name + ": unsupported file type.");
+            return;
+          }
+          if (file.size > PER_FILE_CAP){
+            rejectedReason = rejectedReason || (file.name + ": over 8MB.");
+            return;
+          }
+          if (existingTotal + acceptedTotal + file.size > TOTAL_FILE_CAP){
+            rejectedReason = rejectedReason || "That would put this batch over the 6MB total — remove something first.";
+            return;
+          }
+          accepted.push(file);
+          acceptedTotal += file.size;
+        });
+        if (rejectedReason) toast(rejectedReason);
+        if (!accepted.length){ t.value = ""; return; }
+        var remaining = accepted.length;
+        accepted.forEach(function(file){
+          var r = new FileReader();
+          r.onload = function(){
+            var dataUrl = String(r.result || "");
+            var b64 = dataUrl.split(",")[1] || "";
+            state.current.baselineFiles.push({ id: uid("file"), name: file.name, size: file.size, base64: b64 });
+            remaining -= 1;
+            if (remaining === 0) render();
+          };
+          r.onerror = function(){
+            toast("Could not read " + file.name + " — try again.");
+            remaining -= 1;
+            if (remaining === 0) render();
+          };
+          r.readAsDataURL(file);
+        });
+        return;
+      }
+
+      var file = fileList[0];
+      if (!/\.xlsx$/i.test(file.name)){
+        toast("Please choose an .xlsx file.");
+        t.value = "";
+        return;
+      }
+      if (file.size > PER_FILE_CAP){
+        toast("That file is over 8MB — a filled CIA template is normally well under 1MB.");
+        t.value = "";
+        return;
+      }
+      var reader = new FileReader();
+      reader.onload = function(){
+        var dataUrl = String(reader.result || "");
+        var b64 = dataUrl.split(",")[1] || "";
+        state.current.excelFile = { name: file.name, size: file.size, base64: b64 };
+        render();
+      };
+      reader.onerror = function(){
+        toast("Could not read that file — try again.");
+      };
+      reader.readAsDataURL(file);
+      return;
+    }
+    var field = t.dataset.field;
+    if (!field) return;
+    var changeEl = t.closest("[data-change-id]");
+    var shEl = t.closest("[data-stakeholder-id]");
+    if (changeEl && shEl){
+      var c1 = findChange(changeEl.dataset.changeId);
+      var sh = c1 && c1.stakeholders.find(function(s){ return s.id === shEl.dataset.stakeholderId; });
+      if (sh) sh[field] = t.value;
+    } else if (changeEl){
+      var c2 = findChange(changeEl.dataset.changeId);
+      if (c2) c2[field] = t.value;
+    } else {
+      state.current[field] = t.value;
+    }
+    scheduleDraftSave();
+  });
+
+  root.addEventListener("click", function(e){
+    var btn = e.target.closest("[data-action]");
+    if (!btn) return;
+    var action = btn.dataset.action;
+    if (action === "add-change"){
+      state.current.changes.push(freshChange());
+      render();
+    } else if (action === "remove-change"){
+      var id = btn.closest("[data-change-id]").dataset.changeId;
+      state.current.changes = state.current.changes.filter(function(c){ return c.id !== id; });
+      delete expandedChangeIds[id];
+      render();
+    } else if (action === "toggle-change-details"){
+      var tid = btn.closest("[data-change-id]").dataset.changeId;
+      if (expandedChangeIds[tid]) delete expandedChangeIds[tid];
+      else expandedChangeIds[tid] = true;
+      render();
+    } else if (action === "add-stakeholder"){
+      var cid = btn.closest("[data-change-id]").dataset.changeId;
+      var c = findChange(cid);
+      if (c) c.stakeholders.push(freshStakeholder());
+      render();
+    } else if (action === "remove-stakeholder"){
+      var changeId = btn.closest("[data-change-id]").dataset.changeId;
+      var shId = btn.closest("[data-stakeholder-id]").dataset.stakeholderId;
+      var c3 = findChange(changeId);
+      if (c3) c3.stakeholders = c3.stakeholders.filter(function(s){ return s.id !== shId; });
+      render();
+    } else if (action === "switch-channel"){
+      state.current.channel = btn.dataset.channel;
+      render();
+    } else if (action === "remove-file"){
+      state.current.excelFile = null;
+      render();
+    } else if (action === "switch-mode"){
+      state.current.mode = btn.dataset.mode;
+      render();
+    } else if (action === "remove-baseline-file"){
+      var fid = btn.closest("[data-file-id]").dataset.fileId;
+      state.current.baselineFiles = (state.current.baselineFiles || []).filter(function(f){ return f.id !== fid; });
+      render();
+    } else if (action === "download-register"){
+      downloadRegister(btn);
+    } else if (action === "toggle-theme"){
+      var docEl = document.documentElement;
+      var cur = docEl.getAttribute("data-theme");
+      var isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      docEl.setAttribute("data-theme", isDark ? "light" : "dark");
+    } else if (action === "submit"){
+      onSubmit();
+    }
+  });
+
+  function onSubmit(){
+    var mode = state.current.mode || "process";
+    if (mode === "baseline"){
+      onSubmitBaseline();
+      return;
+    }
+    onSubmitProcess();
+  }
+
+  function downloadRegister(btn){
+    var detailsEl = btn.closest("[data-batch-id]");
+    var batchId = detailsEl && detailsEl.dataset.batchId;
+    var batch = state.history.find(function(b){ return b.id === batchId; });
+    if (!batch || !batch.csv){
+      toast("No register available for this batch.");
+      return;
+    }
+    if (!downloadsCap){
+      toast("Downloads aren't available in this view — the full workbook was already delivered in chat.");
+      return;
+    }
+    var filename = (batch.client ? batch.client.replace(/[^A-Za-z0-9 _-]/g,"").trim().replace(/\s+/g,"-") : "baseline-cia") + "-register.csv";
+    downloadsCap.save({ filename: filename, data: batch.csv }).catch(function(err){
+      if (err && err.code === "declined") return;
+      toast("Couldn't save the file — the full workbook is in chat either way.");
+    });
+  }
+
+  function onSubmitBaseline(){
+    var hasPrompt = !!(state.current.baselinePrompt || "").trim();
+    var hasFiles = (state.current.baselineFiles || []).length > 0;
+    if (!hasPrompt && !hasFiles){
+      toast("Describe the transformation or attach a document before submitting.");
+      return;
+    }
+    if (!(state.current.baselineClient || "").trim()){
+      toast("Client is required.");
+      return;
+    }
+    if (!(state.current.baselineScope || "").trim()){
+      toast("Solution scope is required.");
+      return;
+    }
+    if (!artifactCap){
+      toast("Submitting isn't available in this view.");
+      return;
+    }
+    var btn = document.getElementById("submit-btn");
+    btn.disabled = true;
+    btn.textContent = "Submitting…";
+    var batch = {
+      id: uid("batch"),
+      mode: "baseline",
+      status: "submitted",
+      submittedAt: new Date().toISOString(),
+      processedAt: null,
+      processedNote: "",
+      results: [],
+      stats: null,
+      workbookName: "",
+      csv: "",
+      client: state.current.baselineClient,
+      scope: state.current.baselineScope,
+      goLive: state.current.baselineGoLive,
+      prompt: state.current.baselinePrompt,
+      files: state.current.baselineFiles
+    };
+    var next = {
+      history: [batch].concat(state.history),
+      current: Object.assign({}, state.current, {
+        date: new Date().toISOString().slice(0,10),
+        baselineClient: "",
+        baselineScope: "",
+        baselineGoLive: "",
+        baselinePrompt: "",
+        baselineFiles: []
+      })
+    };
+    artifactCap.publish(buildDocument(next)).then(function(){
+      try { localStorage.removeItem("cia-intake-draft"); } catch(e){}
+    }).catch(function(err){
+      btn.disabled = false;
+      btn.textContent = "Generate baseline CIA";
+      if (!err || err.code !== "conflict"){
+        toast("Could not submit — " + ((err && err.message) || "please try again."));
+      }
+    });
+  }
+
+  function onSubmitProcess(){
+    var channel = state.current.channel || "form";
+    if (channel === "form" && state.current.changes.length === 0){
+      toast("Add at least one process change before submitting.");
+      return;
+    }
+    if (channel === "form" && state.current.changes.length > 0){
+      var REQUIRED_FIELDS = [["l1","L1"],["l2","L2"],["l3","L3"],["l4","L4"],["asIs","As-is"],["toBe","To-be"]];
+      var missingRows = [];
+      state.current.changes.forEach(function(c, i){
+        var missing = REQUIRED_FIELDS.filter(function(f){ return !(c[f[0]] || "").trim(); }).map(function(f){ return f[1]; });
+        if (missing.length) missingRows.push("Row " + (i + 1) + ": " + missing.join(", "));
+      });
+      if (missingRows.length){
+        var shown = missingRows.slice(0, 3).join(" · ");
+        var extra = missingRows.length > 3 ? " (+" + (missingRows.length - 3) + " more row" + (missingRows.length - 3 > 1 ? "s" : "") + ")" : "";
+        toast("Fill in the required fields — " + shown + extra);
+        return;
+      }
+    }
+    if (channel === "freetext" && !(state.current.freetext || "").trim()){
+      toast("Write something before submitting.");
+      return;
+    }
+    if (channel === "excel" && !state.current.excelFile){
+      toast("Choose a file before submitting.");
+      return;
+    }
+    if (!artifactCap){
+      toast("Submitting isn't available in this view.");
+      return;
+    }
+    var btn = document.getElementById("submit-btn");
+    btn.disabled = true;
+    btn.textContent = "Submitting…";
+    var batch = {
+      id: uid("batch"),
+      channel: channel,
+      status: "submitted",
+      submittedAt: new Date().toISOString(),
+      processedAt: null,
+      processedNote: "",
+      results: [],
+      programme: state.current.programme,
+      preparedBy: state.current.preparedBy,
+      date: state.current.date
+    };
+    if (channel === "form") batch.changes = state.current.changes;
+    else if (channel === "freetext") batch.text = state.current.freetext;
+    else if (channel === "excel") batch.file = state.current.excelFile;
+
+    var next = {
+      history: [batch].concat(state.history),
+      current: {
+        programme: state.current.programme,
+        preparedBy: state.current.preparedBy,
+        date: new Date().toISOString().slice(0,10),
+        channel: channel,
+        changes: [],
+        freetext: "",
+        excelFile: null
+      }
+    };
+    artifactCap.publish(buildDocument(next)).then(function(){
+      try { localStorage.removeItem("cia-intake-draft"); } catch(e){}
+    }).catch(function(err){
+      btn.disabled = false;
+      btn.textContent = "Submit to Claude";
+      if (!err || err.code !== "conflict"){
+        toast("Could not submit — " + ((err && err.message) || "please try again."));
+      }
+    });
+  }
+
+  render();
+})();
+</script>
+</body>
+</html>

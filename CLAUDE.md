@@ -109,3 +109,17 @@ request, then applied to `Change Impact Intake`
 (`https://claude.ai/code/artifact/4f937bb9-ee6d-41bf-ab6e-dabeed14bd55`). If either drifts
 from this file, treat this file as the source of truth and re-sync the artifact, not the
 other way round.
+
+## Published artifacts — capabilities and sharing
+
+| Artifact | URL | Capabilities | Shareable by link? |
+|---|---|---|---|
+| Change Impact Intake (live) | `4f937bb9-ee6d-41bf-ab6e-dabeed14bd55` | `artifact`, `downloads`, `mcp` (Airtable) | No — declaring `mcp` makes an artifact organization-internal |
+| Change Impact Intake (testing) | `8dc74aff-d05c-47c7-a5f2-3a793dd55e26` | `artifact`, `downloads` | Yes — `mcp` deliberately dropped for this copy |
+
+**`db` carries the same sharing restriction as `mcp`** — a page declaring it also becomes
+organization-internal, not link-shareable. Don't add `db` to the testing copy for the same
+reason `mcp` was dropped from it. A versioned snapshot of the live artifact's HTML lives at
+`artifacts/cia-intake.template.html` — see `skills/change-impact-assessment/reference/
+intake-worker.md` for the auto-processing design this is a step toward, and its current build
+status.
