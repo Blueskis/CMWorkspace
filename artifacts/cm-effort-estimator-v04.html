@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<title>CM Effort Estimator</title>
+<title>CM Effort Estimator v0.4</title>
 
 <style>
   :root {
@@ -304,7 +304,7 @@
   }
 
 
-  /* ---------- v0.3: role, country, rank ---------- */
+  /* ---------- v0.3: role, rank ---------- */
 
   .seg {
     display: inline-flex; border: 1px solid var(--line-strong); border-radius: 7px;
@@ -320,7 +320,7 @@
   .seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 
   /* These set their own display, which would otherwise beat the UA's [hidden]. */
-  .admin-only[hidden], .country-badge[hidden] { display: none !important; }
+  .admin-only[hidden] { display: none !important; }
 
   .steps .divider {
     align-self: center; margin: 0 6px 0 14px; padding-left: 14px;
@@ -337,15 +337,6 @@
     border-left: 3px solid var(--amber); padding: 9px 13px; font-size: .82rem;
   }
   .admin-note strong { font-weight: 600; }
-
-  .country-badge {
-    display: inline-flex; align-items: baseline; gap: 7px;
-    font-family: var(--font-mono); font-size: .7rem; letter-spacing: .08em;
-    text-transform: uppercase; color: var(--ink-2);
-    background: var(--surface-2); border: 1px solid var(--line);
-    padding: 4px 9px; border-radius: 5px;
-  }
-  .country-badge b { font-weight: 600; color: var(--ink); letter-spacing: .04em; }
 
   .empty-gate {
     display: flex; flex-direction: column; gap: 10px; align-items: flex-start;
@@ -409,11 +400,7 @@
   .syn button:hover { background: var(--clay-soft); color: var(--clay); }
   .syn-add { width: 168px; font-size: .8rem; padding: 3px 8px; }
 
-  /* variance */
-  .chip.var-hi { background: var(--clay-soft); color: var(--clay); border-color: transparent; }
-  .chip.var-lo { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
-
-  /* ---------- v0.4: complexity, mode, add-line, indicative price ---------- */
+  /* ---------- v0.4: complexity, mode, add-line ---------- */
 
   .lvl, .mode-sel { font-size: .8rem; padding: 3px 6px; width: 100%; min-width: 96px; }
   td.lvl-cell, td.mode-cell { min-width: 104px; }
@@ -432,23 +419,6 @@
     align-items: center;
   }
   @media (max-width: 860px) { .addline-grid { grid-template-columns: minmax(0, 1fr); } }
-
-  details.indicative { }
-  details.indicative > summary {
-    display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-    padding: 12px 16px; cursor: pointer; list-style: none;
-  }
-  details.indicative > summary::-webkit-details-marker { display: none; }
-  details.indicative > summary::after {
-    content: "▸"; color: var(--ink-3); font-size: .8rem; order: 3;
-  }
-  details.indicative[open] > summary::after { content: "▾"; }
-  details.indicative > summary:hover { background: var(--surface-2); }
-  details.indicative > summary:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-  .ind-total {
-    font-family: var(--font-mono); font-variant-numeric: tabular-nums;
-    font-size: 1rem; font-weight: 600; color: var(--ink-2); margin-left: auto;
-  }
 
   /* Confirmation dialog — the artifact runs in a sandboxed frame where
      window.confirm() is ignored, so destructive actions ask in-page. */
@@ -511,12 +481,6 @@
   .archbar span { display: block; height: 100%; background: var(--accent); }
 
   #grand-body td { padding-top: 9px; padding-bottom: 9px; }
-
-  .rate-cell input { width: 100%; }
-  .rates-scroll th.sticky-col, .rates-scroll td.sticky-col {
-    position: sticky; left: 0; background: var(--surface); z-index: 1;
-    border-right: 1px solid var(--line);
-  }
 </style>
 
 
@@ -542,9 +506,8 @@
   <button class="step" role="tab" aria-selected="true" data-panel="scope"><span class="idx">01</span> Scope &amp; RFP</button>
   <button class="step" role="tab" aria-selected="false" data-panel="quote"><span class="idx">02</span> Manday estimate</button>
   <span class="divider admin-only" hidden>Configuration</span>
-  <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="quotes" hidden>Past quotes</button>
+  <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="quotes" hidden>Past project effort</button>
   <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="library" hidden>Hours library</button>
-  <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="rates" hidden>Billing rates</button>
   <button class="step admin admin-only" role="tab" aria-selected="false" data-panel="vocab" hidden>CM vocabulary</button>
 </nav>
 
@@ -555,15 +518,10 @@
       <div class="card">
         <header>
           <h2>1 &middot; The engagement</h2>
-          <span class="hint">Where the work is delivered sets the rate card</span>
+          <span class="hint">Sets how the estimate is sectioned and how many review cycles it carries</span>
         </header>
         <div class="body">
           <div class="row">
-            <div class="field" style="max-width:250px">
-              <label for="country">Country of implementation</label>
-              <select id="country"></select>
-              <span class="src" id="country-src">Sets rates and tax</span>
-            </div>
             <div class="field" style="min-width:220px;flex:1">
               <label for="client-name">Client / pursuit name</label>
               <input type="text" id="client-name" placeholder="e.g. Northwind Utilities &mdash; S/4HANA">
@@ -660,7 +618,7 @@
       </div>
     </section>
 
-    <!-- ============ 02 PRICED DELIVERABLES ============ -->
+    <!-- ============ 02 MANDAY ESTIMATE ============ -->
     <section class="panel" id="panel-quote" role="tabpanel">
       <div class="card" id="scope-gate" hidden>
         <div class="empty-gate">
@@ -745,10 +703,9 @@
         </header>
         <div class="body">
           <div class="row no-print">
-            <span class="country-badge" id="quote-country"></span>
             <button class="btn spacer" id="btn-rebuild">Rebuild from scope</button>
             <button class="btn ghost" id="btn-copy-md">Copy as Markdown</button>
-            <button class="btn ghost" id="btn-export-invoice">Export CSV</button>
+            <button class="btn ghost" id="btn-export-csv">Export CSV</button>
             <button class="btn primary" id="btn-print">Print / PDF</button>
           </div>
           <div class="tablewrap">
@@ -782,7 +739,7 @@
         <div class="body">
           <div class="row">
             <div class="field" style="max-width:180px"><label for="c-contingency">Buffer %</label><input type="number" id="c-contingency" step="1" min="0"></div>
-            <p class="note" style="flex:1;min-width:240px">Adds to the estimate as contingency mandays. Commercial adjustments &mdash; discount, expenses and tax &mdash; sit with the indicative price in the sidebar, since the binding numbers come from the pricing workbench.</p>
+            <p class="note" style="flex:1;min-width:240px">Adds to the estimate as contingency mandays, held against scope volatility.</p>
           </div>
         </div>
       </div>
@@ -795,23 +752,22 @@
       </div>
     </section>
 
-    <!-- ============ ADMIN: PAST QUOTES ============ -->
+    <!-- ============ ADMIN: PAST PROJECT EFFORT ============ -->
     <section class="panel" id="panel-quotes" role="tabpanel">
       <div class="card">
         <header>
-          <h2>Past project quotes</h2>
+          <h2>Past project effort</h2>
           <span class="hint">Calibrates effort where the hours library is silent</span>
         </header>
         <div class="body">
-          <div class="admin-note"><strong>Admin</strong><span>The estimate is built from the hours library, so this history no longer sets day rates. It calibrates mandays per unit where the library is silent, and backs the indicative price shown in the sidebar.</span></div>
-          <p class="note">One row per priced line from a past proposal. <strong>Days</strong> is the total effort quoted for that line, <strong>Price</strong> the fee charged, in that country's currency. The implied day rate is derived, then indexed to today at the escalation rate on the Billing rates tab.</p>
+          <div class="admin-note"><strong>Admin</strong><span>This table is the stand-in for the effort database the CoE will host later. A deliverable with tasks in the hours library always prefers the library; this only fills in where the library is silent.</span></div>
+          <p class="note">One row per deliverable from a past project. <strong>Mandays</strong> is the effort actually spent on that line; mandays per unit is what calibrates a new estimate.</p>
           <div class="tablewrap">
             <table id="quotes-table">
               <thead>
                 <tr>
-                  <th>Project</th><th class="n">Year</th><th>Country</th><th>Industry</th><th>Deliverable</th>
-                  <th class="n">Qty</th><th class="n">Days</th><th class="n">Price</th>
-                  <th class="n">Implied rate</th><th class="n">Days / unit</th><th class="no-print"></th>
+                  <th>Project</th><th class="n">Year</th><th>Industry</th><th>Deliverable</th>
+                  <th class="n">Qty</th><th class="n">Mandays</th><th class="n">Mandays / unit</th><th class="no-print"></th>
                 </tr>
               </thead>
               <tbody id="quotes-body"></tbody>
@@ -905,50 +861,6 @@
       </div>
     </section>
 
-    <!-- ============ ADMIN: BILLING RATES ============ -->
-    <section class="panel" id="panel-rates" role="tabpanel">
-      <div class="card">
-        <header>
-          <h2>Billing rates by country and rank</h2>
-          <span class="hint">Day rates in each country's local currency</span>
-        </header>
-        <div class="body">
-          <div class="admin-note"><strong>Illustrative rates</strong><span>These are placeholder day rates for the MVP, not your firm's card. Replace them &mdash; edit any cell, or import a CSV &mdash; before quoting anything real.</span></div>
-          <div class="tablewrap rates-scroll">
-            <table id="rates-table">
-              <thead><tr id="rates-head"></tr></thead>
-              <tbody id="rates-body"></tbody>
-            </table>
-          </div>
-          <div class="row">
-            <div class="field" style="max-width:200px">
-              <label for="escalation">Annual rate escalation %</label>
-              <input type="number" id="escalation" min="0" max="20" step="0.5">
-            </div>
-            <p class="note" style="flex:1;min-width:220px">Escalation indexes past quotes to today for the variance flag. It does not inflate the rate card &mdash; keep the card current instead.</p>
-          </div>
-          <div class="row">
-            <button class="btn ghost" id="btn-import-rates">Import CSV</button>
-            <button class="btn ghost" id="btn-export-rates">Export CSV</button>
-            <input type="file" id="rates-file" accept=".csv" hidden>
-            <button class="btn ghost small spacer" id="btn-rates-reset">Reset rate card</button>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <header><h2>Tax and currency by country</h2><span class="hint">Seeds the tax field on the indicative price</span></header>
-        <div class="body">
-          <div class="tablewrap">
-            <table id="tax-table">
-              <thead><tr><th>Country</th><th>Currency</th><th>Tax name</th><th class="n">Default rate %</th></tr></thead>
-              <tbody id="tax-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    </section>
-
     <!-- ============ ADMIN: VOCABULARY ============ -->
     <section class="panel" id="panel-vocab" role="tabpanel">
       <div class="card">
@@ -998,31 +910,6 @@
       </div>
     </div>
 
-    <details class="card indicative" id="price-block">
-      <summary>
-        <span class="eyebrow">Indicative price</span>
-        <span class="ind-total" id="s-total">&mdash;</span>
-      </summary>
-      <div class="body">
-        <p class="note">A sanity check only &mdash; the binding number comes from the pricing workbench. Set the country on the Scope tab to price this effort.</p>
-        <span class="country-badge" id="s-country" style="align-self:flex-start"></span>
-        <div class="row" style="gap:8px">
-          <div class="field"><label for="c-discount">Discount %</label><input type="number" id="c-discount" step="1" min="0"></div>
-          <div class="field"><label for="c-expenses">Expenses</label><input type="number" id="c-expenses" step="500" min="0"></div>
-          <div class="field"><label for="c-tax"><span id="tax-label">Tax</span> %</label><input type="number" id="c-tax" step="0.5" min="0"></div>
-        </div>
-        <p class="note" id="tax-note"></p>
-      </div>
-      <div class="body" style="border-top:1px solid var(--line)">
-        <div class="sumline"><span>Fees</span><span id="s-fees">&mdash;</span></div>
-        <div class="sumline muted"><span>Buffer</span><span id="s-cont">&mdash;</span></div>
-        <div class="sumline muted"><span>Discount</span><span id="s-disc">&mdash;</span></div>
-        <div class="sumline muted"><span>Expenses</span><span id="s-exp">&mdash;</span></div>
-        <div class="sumline muted"><span id="s-tax-label">Tax</span><span id="s-tax">&mdash;</span></div>
-        <div class="sumline strong"><span>Total</span><span id="s-total2">&mdash;</span></div>
-        <div class="sumline muted" id="s-optp-row" style="display:none"><span>Options</span><span id="s-opt">&mdash;</span></div>
-      </div>
-    </details>
   </aside>
 </div>
 
@@ -1056,21 +943,21 @@
 (function () {
   "use strict";
 
-  const STORE_KEY = "cm-estimator-v7";
+  const STORE_KEY = "cm-estimator-v8";
 
   // Saved state from an older build of this tool describes a different app —
   // earlier versions seeded the scope drivers and auto-built the full
   // deliverable list, which would resurrect an estimate the user never asked
   // for. Drop those keys so everyone starts genuinely empty.
-  ["cm-estimator-v1", "cm-estimator-v3", "cm-estimator-v4", "cm-estimator-v5", "cm-estimator-v6"].forEach((k) => {
+  ["cm-estimator-v1", "cm-estimator-v3", "cm-estimator-v4", "cm-estimator-v5", "cm-estimator-v6", "cm-estimator-v7"].forEach((k) => {
     try { localStorage.removeItem(k); } catch (e) { /* private mode */ }
   });
   const THIS_YEAR = new Date().getFullYear();
   const $ = (id) => document.getElementById(id);
 
   /* =====================================================================
-     Deliverable taxonomy — the vocabulary shared by past quotes, the rate
-     card and the manday estimate.
+     Deliverable taxonomy — the vocabulary shared by past project effort rows
+     and the manday estimate.
      ===================================================================== */
 
   const TAXONOMY = [
@@ -1680,42 +1567,33 @@
      Sample data
      ===================================================================== */
 
-  // Past quotes are historic prices in the currency of the country they were
-  // delivered in, so a benchmark is only comparable within its own country.
-  const SAMPLE_QUOTE_COUNTRY = {
-    "Project Meridian (sample)": "MY",
-    "Project Halyard (sample)": "SG",
-    "Project Kestrel (sample)": "SG"
-  };
-
   const SAMPLE_QUOTES = [
-    ["Project Meridian (sample)", 2023, "Manufacturing", "cm_strategy", 1, 10, 15000],
-    ["Project Meridian (sample)", 2023, "Manufacturing", "impact_assessment", 4, 24, 36000],
-    ["Project Meridian (sample)", 2023, "Manufacturing", "comms_strategy", 1, 7, 10500],
-    ["Project Meridian (sample)", 2023, "Manufacturing", "comms_collateral", 18, 27, 37800],
-    ["Project Meridian (sample)", 2023, "Manufacturing", "tna", 1, 8, 12000],
-    ["Project Meridian (sample)", 2023, "Manufacturing", "courseware", 8, 34, 47600],
-    ["Project Meridian (sample)", 2023, "Manufacturing", "eu_training", 26, 26, 33800],
-    ["Project Meridian (sample)", 2023, "Manufacturing", "hypercare", 2, 20, 30000],
-    ["Project Meridian (sample)", 2023, "Manufacturing", "cm_lead", 9, 108, 172800],
-    ["Project Halyard (sample)", 2024, "Banking", "cm_strategy", 1, 8, 14400],
-    ["Project Halyard (sample)", 2024, "Banking", "stakeholder_plan", 1, 6, 10800],
-    ["Project Halyard (sample)", 2024, "Banking", "readiness_assess", 3, 12, 21600],
-    ["Project Halyard (sample)", 2024, "Banking", "leadership_workshops", 4, 10, 19000],
-    ["Project Halyard (sample)", 2024, "Banking", "change_network", 1, 7, 12600],
-    ["Project Halyard (sample)", 2024, "Banking", "comms_collateral", 24, 34, 57800],
-    ["Project Halyard (sample)", 2024, "Banking", "adoption_measurement", 1, 6, 10800],
-    ["Project Kestrel (sample)", 2025, "Public sector", "cm_strategy", 1, 7, 11900],
-    ["Project Kestrel (sample)", 2025, "Public sector", "impact_assessment", 3, 17, 27200],
-    ["Project Kestrel (sample)", 2025, "Public sector", "training_strategy", 1, 5, 8000],
-    ["Project Kestrel (sample)", 2025, "Public sector", "courseware", 6, 26, 41600],
-    ["Project Kestrel (sample)", 2025, "Public sector", "t3", 3, 6, 9600],
-    ["Project Kestrel (sample)", 2025, "Public sector", "business_readiness", 2, 11, 17600],
-    ["Project Kestrel (sample)", 2025, "Public sector", "hypercare", 1, 9, 14400],
-    ["Project Kestrel (sample)", 2025, "Public sector", "cm_lead", 6, 66, 105600]
-  ].map(([project, year, industry, deliverable, qty, days, price]) =>
-    ({ project, year, industry, deliverable, qty, days, price,
-       country: SAMPLE_QUOTE_COUNTRY[project] || "SG" }));
+    ["Project Meridian (sample)", 2023, "Manufacturing", "cm_strategy", 1, 10],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "impact_assessment", 4, 24],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "comms_strategy", 1, 7],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "comms_collateral", 18, 27],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "tna", 1, 8],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "courseware", 8, 34],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "eu_training", 26, 26],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "hypercare", 2, 20],
+    ["Project Meridian (sample)", 2023, "Manufacturing", "cm_lead", 9, 108],
+    ["Project Halyard (sample)", 2024, "Banking", "cm_strategy", 1, 8],
+    ["Project Halyard (sample)", 2024, "Banking", "stakeholder_plan", 1, 6],
+    ["Project Halyard (sample)", 2024, "Banking", "readiness_assess", 3, 12],
+    ["Project Halyard (sample)", 2024, "Banking", "leadership_workshops", 4, 10],
+    ["Project Halyard (sample)", 2024, "Banking", "change_network", 1, 7],
+    ["Project Halyard (sample)", 2024, "Banking", "comms_collateral", 24, 34],
+    ["Project Halyard (sample)", 2024, "Banking", "adoption_measurement", 1, 6],
+    ["Project Kestrel (sample)", 2025, "Public sector", "cm_strategy", 1, 7],
+    ["Project Kestrel (sample)", 2025, "Public sector", "impact_assessment", 3, 17],
+    ["Project Kestrel (sample)", 2025, "Public sector", "training_strategy", 1, 5],
+    ["Project Kestrel (sample)", 2025, "Public sector", "courseware", 6, 26],
+    ["Project Kestrel (sample)", 2025, "Public sector", "t3", 3, 6],
+    ["Project Kestrel (sample)", 2025, "Public sector", "business_readiness", 2, 11],
+    ["Project Kestrel (sample)", 2025, "Public sector", "hypercare", 1, 9],
+    ["Project Kestrel (sample)", 2025, "Public sector", "cm_lead", 6, 66]
+  ].map(([project, year, industry, deliverable, qty, days]) =>
+    ({ project, year, industry, deliverable, qty, days }));
 
   const SAMPLE_RFP = `REQUIREMENT SPECIFICATIONS — CHANGE MANAGEMENT AND TRAINING
 
@@ -1826,9 +1704,8 @@ Anonymised extract of a public-sector requirement specification, used as the sam
 
 
   /* =====================================================================
-     Southeast Asian delivery countries, consultant ranks and billing rates.
-     Rates are day rates held in each country's own billing currency — there
-     is no FX layer, because a pursuit is delivered and invoiced in one place.
+     Consultant ranks and the effort mix each archetype of work is staffed
+     with. Ranks are an effort-only layer — headcounts by rank, not rates.
      ===================================================================== */
 
   const RANKS = [
@@ -1845,30 +1722,6 @@ Anonymised extract of a public-sector requirement specification, used as the sam
   const RANK_COLOR = {
     analyst: "#B9C3E8", consultant: "#8E9CD8", senior_consultant: "#6B7BC4",
     manager: "#4E5EA8", senior_manager: "#3A4788", director: "#2A3468", partner: "#1B2247"
-  };
-
-  const COUNTRIES = [
-    { id: "SG", name: "Singapore", currency: "SGD", tax: "GST", taxRate: 9 },
-    { id: "MY", name: "Malaysia", currency: "MYR", tax: "SST", taxRate: 8 },
-    { id: "BN", name: "Brunei", currency: "BND", tax: "No indirect tax", taxRate: 0 },
-    { id: "VN", name: "Vietnam", currency: "VND", tax: "VAT", taxRate: 10 },
-    { id: "KH", name: "Cambodia", currency: "USD", tax: "VAT", taxRate: 10 },
-    { id: "ID", name: "Indonesia", currency: "IDR", tax: "PPN", taxRate: 11 },
-    { id: "PH", name: "Philippines", currency: "PHP", tax: "VAT", taxRate: 12 }
-  ];
-
-  const COUNTRY_BY_ID = Object.fromEntries(COUNTRIES.map((c) => [c.id, c]));
-
-  // Illustrative day rates for the MVP — replace with the firm's own card.
-  // Cambodia is quoted in USD, as professional services there routinely are.
-  const RATE_CARD = {
-    SG: { analyst: 900, consultant: 1300, senior_consultant: 1800, manager: 2400, senior_manager: 3100, director: 4000, partner: 5500 },
-    MY: { analyst: 1600, consultant: 2400, senior_consultant: 3300, manager: 4400, senior_manager: 5700, director: 7300, partner: 10000 },
-    BN: { analyst: 850, consultant: 1250, senior_consultant: 1700, manager: 2300, senior_manager: 2950, director: 3800, partner: 5200 },
-    VN: { analyst: 6000000, consultant: 9000000, senior_consultant: 12500000, manager: 16500000, senior_manager: 21000000, director: 27000000, partner: 37000000 },
-    KH: { analyst: 500, consultant: 750, senior_consultant: 1050, manager: 1400, senior_manager: 1800, director: 2300, partner: 3200 },
-    ID: { analyst: 3500000, consultant: 5200000, senior_consultant: 7200000, manager: 9500000, senior_manager: 12500000, director: 16000000, partner: 22000000 },
-    PH: { analyst: 18000, consultant: 27000, senior_consultant: 37000, manager: 49000, senior_manager: 63000, director: 82000, partner: 112000 }
   };
 
   // Who actually does the work. Keyed by archetype, because every task in the
@@ -1923,14 +1776,6 @@ Anonymised extract of a public-sector requirement specification, used as the sam
 
   function mixSum(mix) { return RANKS.reduce((s, r) => s + (+mix[r.id] || 0), 0); }
 
-  function rateFor(countryId, rankId) {
-    const ov = ((state.rates || {})[countryId] || {})[rankId];
-    if (ov > 0) return +ov;
-    return (RATE_CARD[countryId] || {})[rankId] || 0;
-  }
-
-  const activeCountry = () => COUNTRY_BY_ID[state.country] || null;
-
 
   /* =====================================================================
      Second sample: a rail operator's tender, written in operator language
@@ -1980,7 +1825,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
   const defaultState = () => ({
     role: "user",
-    country: "",
     rfpText: "",
     fileName: "",
     drivers: Object.fromEntries(DRIVERS.map((d) => [d.key, ""])),
@@ -1991,7 +1835,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     optionalCat: {},       // catalogId -> the same, named outright
     clientTerms: {},       // catalogId -> the client's own wording for this deliverable
     quotes: SAMPLE_QUOTES.map((q) => ({ ...q })),
-    overrides: {},         // catalogId -> {days, rate}
+    overrides: {},         // catalogId -> {days}
     scopeType: "",             // global | local | both
     involvement: { global: 100, local: 100 },  // Deloitte's share of each stream, %
     reviewCycles: 1,           // 1–3 rounds of client + our review
@@ -2005,13 +1849,11 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     taskOff: {},           // task index -> true when excluded from the library rollup
     archetypes: {},        // archetype -> {Simple, Standard, Complex} hour overrides
     rankMix: {},           // archetype -> {rankId: headcount} overrides
-    rates: {},             // countryId -> {rankId: day rate} overrides
-    taxes: {},             // countryId -> {rate} overrides
     vocab: seedVocab(),    // rate key -> synonyms the analyser matches on
     lines: [],
     settings: {
-      escalation: 3, hoursPerDay: 8,
-      contingency: 0, discount: 0, expenses: 0, tax: 0, taxTouched: false, client: ""
+      hoursPerDay: 8,
+      contingency: 0, client: ""
     }
   });
 
@@ -2042,16 +1884,9 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   }
 
   /* =====================================================================
-     Formatting helpers — money follows the selected country's currency
+     Formatting helpers
      ===================================================================== */
 
-  const currencyCode = () => (activeCountry() || {}).currency || "SGD";
-
-  const money = (n) => new Intl.NumberFormat(undefined, {
-    style: "currency", currency: currencyCode(), maximumFractionDigits: 0
-  }).format(isFinite(n) ? n : 0);
-
-  const moneyShort = (n) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 0 }).format(Math.round(n || 0));
   const days = (n) => (Math.round(n * 10) / 10).toFixed(1);
   const median = (arr) => {
     if (!arr.length) return null;
@@ -2368,58 +2203,42 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   }
 
   // The exact words the RFP used, taken back out of the document with its own
-  // capitalisation intact. We price our deliverable; we name it their way.
+  // capitalisation intact. We size our deliverable; we name it their way.
   function clientTerm(text, hit) {
     const slice = text.slice(hit.index, hit.index + hit.length).replace(/\s+/g, " ").trim();
     return slice.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9)]+$/g, "");
   }
 
   /* =====================================================================
-     Benchmarks from past quotes — effort calibration and a variance check.
-     Only quotes from the selected country are comparable, since prices are
-     held in the currency they were sold in.
+     Benchmarks from past project rows — mandays-per-unit calibration where
+     the hours library has no tasks for a deliverable.
      ===================================================================== */
 
   function benchmarks() {
     const out = {};
-    const allRates = [];
-    const here = state.country;
     state.quotes.forEach((q) => {
-      const qty = +q.qty, d = +q.days, p = +q.price, year = +q.year || THIS_YEAR;
+      const qty = +q.qty, d = +q.days;
       if (!(qty > 0) || !(d > 0)) return;
-      (out[q.deliverable] = out[q.deliverable] || { rates: [], dpu: [] });
+      (out[q.deliverable] = out[q.deliverable] || { dpu: [] });
       out[q.deliverable].dpu.push(d / qty);
-      // Effort travels between countries; price does not.
-      if (!(p > 0) || (here && q.country !== here)) return;
-      const idx = Math.pow(1 + (+state.settings.escalation || 0) / 100, Math.max(0, THIS_YEAR - year));
-      const rate = (p / d) * idx;
-      allRates.push(rate);
-      out[q.deliverable].rates.push(rate);
     });
-    const res = { _blended: median(allRates) || 0, _n: allRates.length };
+    const res = {};
     Object.entries(out).forEach(([id, v]) => {
-      res[id] = { n: v.dpu.length, rateN: v.rates.length, rate: median(v.rates), dpu: median(v.dpu) };
+      res[id] = { n: v.dpu.length, dpu: median(v.dpu) };
     });
     return res;
   }
 
 
   /* =====================================================================
-     Pricing engine
+     Effort engine
 
-     Effort is built bottom-up from the hours library, exactly as in v0.2.
-     Price is new: each task's hours are costed at its archetype's team
-     against the selected country's rate card, and the deliverable's blended
-     day rate falls out of the total cost over the total effort.
+     Effort is built bottom-up from the hours library: each task's hours
+     come from the archetype/complexity matrix, and a deliverable's mandays
+     are the sum of its enabled tasks' hours over hours-per-day. Where the
+     library has no tasks for a deliverable, effort falls back to the
+     mandays-per-unit calibrated from past project rows.
      ===================================================================== */
-
-  // Cost one hour of work done by a given team, in the country's currency.
-  function mixHourlyCost(mix, countryId, hpd) {
-    const sum = mixSum(mix);
-    if (!(sum > 0)) return 0;
-    const dayRate = RANKS.reduce((s, r) => s + ((+mix[r.id] || 0) / sum) * rateFor(countryId, r.id), 0);
-    return dayRate / (hpd || 8);
-  }
 
   // Person-hours by rank for one deliverable, at its library composition.
   function rankHours(entry, level) {
@@ -2435,24 +2254,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       total += h;
     });
     return { byRank: out, total };
-  }
-
-  function resolveRate(entry, bm, level) {
-    const ov = state.overrides[entry.id] || {};
-    if (ov.rate > 0) return { value: +ov.rate, basis: "override" };
-
-    const country = state.country;
-    if (!country) return { value: 0, basis: "nocountry" };
-    const hpd = state.settings.hoursPerDay || 8;
-
-    const rh = rankHours(entry, level);
-    if (rh.total > 0) {
-      const cost = RANKS.reduce((s, r) => s + rh.byRank[r.id] * (rateFor(country, r.id) / hpd), 0);
-      return { value: cost / (rh.total / hpd), basis: "mix", mix: rh.byRank, hours: rh.total };
-    }
-
-    // No tasks to profile — cost it at the default mix.
-    return { value: mixHourlyCost({ ...DEFAULT_MIX }, country, hpd) * hpd, basis: "defaultmix" };
   }
 
   function resolveDays(entry, bm, level) {
@@ -2519,7 +2320,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         const effortF = mode ? modeFactor(mode, "effort") : 1;
         const capacityF = mode ? modeFactor(mode, "capacity") : 1;
 
-        const rate = resolveRate(entry, bm, level);
         const dpu = resolveDays(entry, bm, level);
         // Markets are explicit in the local quantity, so the cross-site
         // coordination multiplier would double-count there.
@@ -2556,10 +2356,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
           editedOptional: prev ? !!prev.editedOptional : false,
           qty: prev && prev.editedQty ? prev.qty : autoQty,
           dpu: autoDays,
-          rate: Math.round(rate.value),
           editedQty: prev ? !!prev.editedQty : false,
           editedInclude: prev ? !!prev.editedInclude : false,
-          rateBasis: rate.basis,
           daysBasis: dpu.basis, daysN: dpu.n, libHours: dpu.hours,
           rankShare: rh.total > 0 ? rh.byRank : null, rankTotalHours: rh.total,
           multParts: parts, baseDpu: Math.round(dpu.value * 10) / 10,
@@ -2611,27 +2409,14 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     const sum = mixSum(mix);
     const byRank = emptyMix();
     if (sum > 0) RANKS.forEach((r) => { byRank[r.id] = hours * ((+mix[r.id] || 0) / sum); });
-    const rate = state.country ? Math.round(mixHourlyCost(mix, state.country, hpd) * hpd) : 0;
     return { ...l,
       stream: l.stream || "global",
       dpu: Math.round((hours / hpd) * m * effortF * (local ? localisationFactor() : 1) * 10) / 10,
       baseDpu: Math.round((hours / hpd) * 10) / 10,
       libHours: hours, customTasks: tasks, customPerTask: perTask,
-      effortF, rate, rateBasis: "mix", daysBasis: "custom",
+      effortF, daysBasis: "custom",
       rankShare: sum > 0 ? byRank : null, rankTotalHours: hours,
       multParts: parts };
-  }
-
-  // How the derived price compares with what this deliverable actually sold for
-  // before, in this country. Only meaningful with real history behind it.
-  function variance(l) {
-    if (l.custom || !state.country) return null;
-    const bm = benchmarks();
-    const q = bm[l.rateKey];
-    if (!q || !(q.rate > 0) || !(q.rateN > 0)) return null;
-    const delta = (l.rate - q.rate) / q.rate;
-    if (Math.abs(delta) < 0.2) return null;
-    return { delta, quoted: q.rate, n: q.rateN };
   }
 
   // Effort for one stream: the build, split between us and the client by the
@@ -2671,16 +2456,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     const clientReview = streams.reduce((s, t) => s + t.clientReview, 0);
     const optEffort = streams.reduce((s, t) => s + t.ourOpt, 0);
 
-    const fees = inc.reduce((s, l) => s + l.qty * l.dpu * l.rate, 0) * (effort > 0 && build > 0 ? effort / build : 1);
-    const optFees = opt.reduce((s, l) => s + l.qty * l.dpu * l.rate, 0);
-
     const s = state.settings;
-    const contingency = fees * (+s.contingency || 0) / 100;
-    const beforeDiscount = fees + contingency;
-    const discount = beforeDiscount * (+s.discount || 0) / 100;
-    const expenses = +s.expenses || 0;
-    const net = beforeDiscount - discount + expenses;
-    const tax = net * (+s.tax || 0) / 100;
 
     // Mandays by rank across the included lines, scaled from each line's
     // library composition up to its actual quantity, then to our share.
@@ -2705,10 +2481,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     const effortWithBuffer = effort + bufferDays;
 
     return { streams, byStream, inc, opt, build, clientEffort, ourReview, clientReview,
-      optFees, optEffort, fees, effort, bufferDays, effortWithBuffer,
-      contingency, discount, expenses, tax, total: net + tax,
+      optEffort, effort, bufferDays, effortWithBuffer,
       byRank, rankedEffort: ranked,
-      blended: effort > 0 ? fees / effort : 0,
       fte: driverValue("months") > 0 ? effortWithBuffer / (driverValue("months") * 21) : 0 };
   }
 
@@ -2778,63 +2552,25 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
   function renderQuotes() {
     const options = TAXONOMY.map((t) => `<option value="${t.id}">${esc(t.name)}</option>`).join("");
-    const countryOpts = COUNTRIES.map((c) => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
     $("quotes-body").innerHTML = state.quotes.length ? state.quotes.map((q, i) => {
-      const idx = Math.pow(1 + (+state.settings.escalation || 0) / 100, Math.max(0, THIS_YEAR - (+q.year || THIS_YEAR)));
-      const rate = (+q.days > 0) ? (+q.price / +q.days) * idx : 0;
       const dpu = (+q.qty > 0) ? +q.days / +q.qty : 0;
-      const cur = (COUNTRY_BY_ID[q.country] || {}).currency || "";
       return `<tr data-i="${i}">
         <td><input type="text" data-q="project" value="${esc(q.project)}"></td>
         <td class="n" style="width:78px"><input type="number" data-q="year" value="${esc(q.year)}" step="1"></td>
-        <td style="width:130px"><select data-q="country">${countryOpts}</select></td>
         <td><input type="text" data-q="industry" value="${esc(q.industry)}"></td>
         <td><select data-q="deliverable">${options}</select></td>
         <td class="n" style="width:78px"><input type="number" data-q="qty" value="${esc(q.qty)}" step="1" min="0"></td>
         <td class="n" style="width:82px"><input type="number" data-q="days" value="${esc(q.days)}" step="0.5" min="0"></td>
-        <td class="n" style="width:118px"><input type="number" data-q="price" value="${esc(q.price)}" step="100" min="0"></td>
-        <td class="n" title="Indexed to ${THIS_YEAR}">${rate ? moneyShort(rate) + " " + cur : "—"}</td>
         <td class="n">${dpu ? days(dpu) : "—"}</td>
         <td class="no-print"><button class="btn ghost small danger" data-del="${i}" aria-label="Delete row">✕</button></td>
       </tr>`;
-    }).join("") : `<tr><td colspan="11" class="empty">No past quotes yet — add lines or import a CSV.</td></tr>`;
+    }).join("") : `<tr><td colspan="8" class="empty">No past project rows yet — add lines or import a CSV.</td></tr>`;
 
     state.quotes.forEach((q, i) => {
       const row = document.querySelector(`#quotes-body tr[data-i="${i}"]`);
       if (!row) return;
       row.querySelector('select[data-q="deliverable"]').value = q.deliverable;
-      row.querySelector('select[data-q="country"]').value = q.country || "SG";
     });
-  }
-
-  /* ---- Billing rates by country and rank ---- */
-
-  function renderRates() {
-    $("rates-head").innerHTML = `<th class="sticky-col">Country</th><th>Currency</th>`
-      + RANKS.map((r) => `<th class="n">${esc(r.name)}</th>`).join("");
-
-    $("rates-body").innerHTML = COUNTRIES.map((c) => {
-      const cells = RANKS.map((r) => {
-        const ov = ((state.rates || {})[c.id] || {})[r.id];
-        const src = (RATE_CARD[c.id] || {})[r.id] || 0;
-        return `<td class="n rate-cell" style="min-width:112px"><input type="number" data-country="${c.id}" data-rank="${r.id}" value="${ov > 0 ? ov : src}" step="50" min="0"></td>`;
-      }).join("");
-      const here = c.id === state.country;
-      return `<tr data-country="${c.id}">
-        <td class="sticky-col"><strong>${esc(c.name)}</strong>${here ? ` <span class="chip bench">this pursuit</span>` : ""}</td>
-        <td class="num">${esc(c.currency)}</td>${cells}</tr>`;
-    }).join("");
-
-    $("tax-body").innerHTML = COUNTRIES.map((c) => {
-      const ov = ((state.taxes || {})[c.id] || {}).rate;
-      const val = ov === undefined ? c.taxRate : ov;
-      return `<tr>
-        <td><strong>${esc(c.name)}</strong></td>
-        <td class="num">${esc(c.currency)}</td>
-        <td>${esc(c.tax)}</td>
-        <td class="n" style="width:110px"><input type="number" data-tax="${c.id}" value="${esc(val)}" step="0.5" min="0"></td>
-      </tr>`;
-    }).join("");
   }
 
   /* ---- Hours library and the teams that staff it ---- */
@@ -3040,7 +2776,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         ? `${days(l.libHours)} h from ${l.daysN} library task${l.daysN === 1 ? "" : "s"} at ${l.level} ÷ ${state.settings.hoursPerDay || 8} h/day`
         : l.daysBasis === "custom"
           ? `${days(l.customPerTask)} h per task at ${l.level} × ${l.customTasks} tasks ÷ ${state.settings.hoursPerDay || 8} h/day`
-        : l.daysBasis === "benchmark" ? `effort benchmarked on ${l.daysN} past quote line${l.daysN === 1 ? "" : "s"}`
+        : l.daysBasis === "benchmark" ? `effort benchmarked on ${l.daysN} past project line${l.daysN === 1 ? "" : "s"}`
         : `standard effort assumption`;
 
       const formula = [
@@ -3119,10 +2855,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
     $("quote-meta").textContent = `${t.inc.length} deliverable${t.inc.length === 1 ? "" : "s"} · ${days(t.effortWithBuffer)} mandays · prepared ${new Date().toLocaleDateString()}`;
     $("quote-title").textContent = state.settings.client ? `Manday estimate — ${state.settings.client}` : "Manday estimate";
-    const c = activeCountry();
-    const badge = $("quote-country");
-    badge.innerHTML = c ? `Delivered in <b>${esc(c.name)}</b>` : `<b>No country set</b> · effort only`;
-    badge.hidden = false;
   }
 
   function renderArchetypes(t) {
@@ -3165,7 +2897,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       return;
     }
     const d = effDrivers();
-    const c = activeCountry();
     const cycles = reviewCycles();
     const markets = Math.max(1, driverValue("geos"));
     const modeCounts = {};
@@ -3191,14 +2922,13 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately quoted.`,
       state.settings.contingency > 0 ? `A ${state.settings.contingency}% delivery buffer — ${days(t.bufferDays)} mandays — is held against scope volatility.` : null,
       t.opt.length ? `${t.opt.length} line${t.opt.length === 1 ? " is" : "s are"} quoted as option${t.opt.length === 1 ? "" : "s"} totalling ${days(t.optEffort)} mandays, excluded from the headline effort.` : null,
-      c ? `Any price shown is indicative only, blended from the ${c.name} rate card at the team each deliverable requires. The binding commercial number comes from the pricing workbench.` : `No delivery country is set, so no indicative price is shown. Effort is independent of country.`
+      `This is effort only, in mandays. Any commercial number — price, rate, discount, tax — is produced separately.`
     ].filter(Boolean);
     $("assumptions").innerHTML = items.map((i) => `<li>${esc(i)}</li>`).join("");
   }
 
   function renderSummary() {
     const t = totals();
-    const c = activeCountry();
     const hasEffort = t.effortWithBuffer > 0;
 
     $("s-days").textContent = hasEffort ? days(t.effortWithBuffer) : "—";
@@ -3218,20 +2948,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $("s-opt-row").style.display = t.opt.length ? "" : "none";
     $("s-opt-days").textContent = days(t.optEffort) + " md";
 
-    // Indicative price — subordinate to the effort figures above.
-    const hasPrice = t.total > 0;
-    $("s-total").textContent = hasPrice ? money(t.total) : c ? "—" : "no country";
-    $("s-country").innerHTML = c ? `<b>${esc(c.name)}</b> · ${esc(c.currency)}` : `No country selected`;
-    $("s-fees").textContent = money(t.fees);
-    $("s-cont").textContent = t.contingency ? "+" + money(t.contingency) : "—";
-    $("s-disc").textContent = t.discount ? "−" + money(t.discount) : "—";
-    $("s-exp").textContent = t.expenses ? "+" + money(t.expenses) : "—";
-    $("s-tax-label").textContent = c ? c.tax : "Tax";
-    $("s-tax").textContent = t.tax ? "+" + money(t.tax) : "—";
-    $("s-total2").textContent = money(t.total);
-    $("s-optp-row").style.display = t.opt.length ? "" : "none";
-    $("s-opt").textContent = money(t.optFees);
-
     const ranked = t.rankedEffort;
     if (ranked > 0) {
       $("s-rankbar").innerHTML = RANKS.map((r) => {
@@ -3248,7 +2964,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   }
 
   function renderAll() {
-    renderDrivers(); renderSignals(); renderQuotes(); renderLibrary(); renderRates();
+    renderDrivers(); renderSignals(); renderQuotes(); renderLibrary();
     renderModes(); renderVocab(); renderInvolvement(); renderStreams(); renderAssumptions(); renderSummary();
   }
 
@@ -3257,7 +2973,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
      Role, theme and navigation
      ===================================================================== */
 
-  const ADMIN_PANELS = ["quotes", "library", "rates", "vocab"];
+  const ADMIN_PANELS = ["quotes", "library", "vocab"];
 
   function showPanel(name) {
     if (state.role !== "admin" && ADMIN_PANELS.includes(name)) name = "scope";
@@ -3294,35 +3010,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   /* =====================================================================
      Tab 1 — engagement and document intake
      ===================================================================== */
-
-  $("country").innerHTML = `<option value="">Select a country…</option>`
-    + COUNTRIES.map((c) => `<option value="${c.id}">${esc(c.name)} · ${esc(c.currency)}</option>`).join("");
-
-  $("country").addEventListener("change", (e) => {
-    state.country = e.target.value;
-    const c = activeCountry();
-    // The tax field follows the country until an estimator types their own.
-    if (c && !state.settings.taxTouched) {
-      const ov = ((state.taxes || {})[c.id] || {}).rate;
-      state.settings.tax = ov === undefined ? c.taxRate : ov;
-      $("c-tax").value = state.settings.tax;
-    }
-    applyTaxLabel();
-    buildLines(false);
-    renderAll();
-    save();
-    if (c) toast(`Priced against the ${c.name} rate card`);
-  });
-
-  function applyTaxLabel() {
-    const c = activeCountry();
-    $("tax-label").textContent = c ? c.tax : "Tax";
-    $("tax-note").textContent = c
-      ? (c.taxRate > 0
-          ? `${c.name} applies ${c.tax} at a standard rate of ${c.taxRate}%. Change it here for this pursuit, or change the default on the Billing rates tab.`
-          : `${c.name} has no broad indirect tax on services. Leave this at zero unless the contract says otherwise.`)
-      : "Select a country of implementation to pick up its default tax treatment.";
-  }
 
   const drop = $("drop");
   ["dragenter", "dragover"].forEach((e) => drop.addEventListener(e, (ev) => { ev.preventDefault(); drop.classList.add("over"); }));
@@ -3452,7 +3139,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   });
 
   /* =====================================================================
-     Tab 2 — priced deliverables
+     Tab 2 — manday deliverables
      ===================================================================== */
 
   function onLineEdit(e) {
@@ -3597,10 +3284,9 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     toast("Rebuilt from scope");
   });
 
-  ["c-contingency", "c-discount", "c-expenses", "c-tax"].forEach((id) => {
+  ["c-contingency"].forEach((id) => {
     $(id).addEventListener("input", (e) => {
       state.settings[id.slice(2)] = parseFloat(e.target.value) || 0;
-      if (id === "c-tax") state.settings.taxTouched = true;
       // The buffer is mandays, so it shows in the table foot as well as the sidebar.
       if (id === "c-contingency") renderLines();
       renderAssumptions(); renderSummary(); save();
@@ -3613,22 +3299,22 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   });
 
   /* =====================================================================
-     Admin — past quotes
+     Admin — past project effort
      ===================================================================== */
 
-  const NUMERIC_QUOTE_FIELDS = ["year", "qty", "days", "price"];
+  const NUMERIC_QUOTE_FIELDS = ["year", "qty", "days"];
 
   $("quotes-body").addEventListener("input", (e) => {
     const tr = e.target.closest("tr"); if (!tr) return;
     const i = +tr.dataset.i, f = e.target.dataset.q;
-    if (!f || f === "deliverable" || f === "country") return;
+    if (!f || f === "deliverable") return;
     state.quotes[i][f] = NUMERIC_QUOTE_FIELDS.includes(f) ? (parseFloat(e.target.value) || 0) : e.target.value;
     buildLines(false); renderLines(); renderSummary(); save();
   });
 
   $("quotes-body").addEventListener("change", (e) => {
     const f = e.target.dataset.q;
-    if (f !== "deliverable" && f !== "country") return;
+    if (f !== "deliverable") return;
     const i = +e.target.closest("tr").dataset.i;
     state.quotes[i][f] = e.target.value;
     renderQuotes(); buildLines(false); renderLines(); renderSummary(); save();
@@ -3644,8 +3330,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   $("btn-add-quote").addEventListener("click", () => {
     const last = state.quotes[state.quotes.length - 1];
     state.quotes.push({ project: last ? last.project : "New project", year: THIS_YEAR,
-      country: state.country || (last ? last.country : "SG") || "SG",
-      industry: last ? last.industry : "", deliverable: "cm_strategy", qty: 1, days: 0, price: 0 });
+      industry: last ? last.industry : "", deliverable: "cm_strategy", qty: 1, days: 0 });
     renderQuotes();
     const rows = document.querySelectorAll("#quotes-body tr");
     const input = rows[rows.length - 1] && rows[rows.length - 1].querySelector("input");
@@ -3654,16 +3339,16 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   });
 
   $("btn-restore-samples").addEventListener("click", async () => {
-    if (!await askConfirm("Restore sample quotes?", "The past-quotes table is replaced with the illustrative sample data. Any quotes you entered or imported are lost.", "Restore samples")) return;
+    if (!await askConfirm("Restore sample data?", "The past-project effort table is replaced with the illustrative sample data. Any rows you entered or imported are lost.", "Restore samples")) return;
     state.quotes = SAMPLE_QUOTES.map((q) => ({ ...q }));
     renderQuotes(); buildLines(false); renderLines(); renderSummary(); save();
-    toast("Sample quotes restored");
+    toast("Sample data restored");
   });
 
   $("btn-export-quotes").addEventListener("click", () => {
-    const rows = [["project", "year", "country", "industry", "deliverable", "qty", "days", "price"]]
-      .concat(state.quotes.map((q) => [q.project, q.year, q.country, q.industry, q.deliverable, q.qty, q.days, q.price]));
-    download("past-quotes.csv", toCsv(rows));
+    const rows = [["project", "year", "industry", "deliverable", "qty", "mandays"]]
+      .concat(state.quotes.map((q) => [q.project, q.year, q.industry, q.deliverable, q.qty, q.days]));
+    download("past-project-effort.csv", toCsv(rows));
   });
 
   $("btn-import-quotes").addEventListener("click", () => $("quotes-file").click());
@@ -3673,19 +3358,18 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     if (rows.length < 2) { toast("No rows found in that CSV"); return; }
     const head = rows[0].map((h) => h.trim().toLowerCase());
     const col = (n) => head.indexOf(n);
+    const daysCol = col("mandays") >= 0 ? col("mandays") : col("days");
     const imported = rows.slice(1).filter((r) => r.length > 3).map((r) => ({
       project: r[col("project")] || "Imported",
       year: parseInt(r[col("year")], 10) || THIS_YEAR,
-      country: COUNTRY_BY_ID[String(r[col("country")] || "").toUpperCase().trim()] ? String(r[col("country")]).toUpperCase().trim() : (state.country || "SG"),
       industry: r[col("industry")] || "",
       deliverable: BY_ID[r[col("deliverable")]] ? r[col("deliverable")] : matchDeliverable(r[col("deliverable")]),
       qty: parseFloat(r[col("qty")]) || 0,
-      days: parseFloat(r[col("days")]) || 0,
-      price: parseFloat(String(r[col("price")]).replace(/[^\d.\-]/g, "")) || 0
+      days: parseFloat(r[daysCol]) || 0
     }));
     state.quotes = state.quotes.concat(imported);
     renderQuotes(); buildLines(false); renderLines(); renderSummary(); save();
-    toast(`${imported.length} quote line${imported.length === 1 ? "" : "s"} imported`);
+    toast(`${imported.length} row${imported.length === 1 ? "" : "s"} imported`);
     e.target.value = "";
   });
 
@@ -3818,73 +3502,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   });
 
   /* =====================================================================
-     Admin — billing rates
-     ===================================================================== */
-
-  $("rates-body").addEventListener("input", (e) => {
-    const c = e.target.dataset.country, r = e.target.dataset.rank;
-    if (!c || !r) return;
-    state.rates[c] = state.rates[c] || {};
-    const v = parseFloat(e.target.value);
-    if (v > 0) state.rates[c][r] = v; else delete state.rates[c][r];
-    buildLines(false); renderLines(); renderSummary(); save();
-  });
-
-  $("tax-body").addEventListener("input", (e) => {
-    const c = e.target.dataset.tax;
-    if (!c) return;
-    state.taxes[c] = { rate: Math.max(0, parseFloat(e.target.value) || 0) };
-    if (c === state.country && !state.settings.taxTouched) {
-      state.settings.tax = state.taxes[c].rate;
-      $("c-tax").value = state.settings.tax;
-      renderAssumptions(); renderSummary();
-    }
-    save();
-  });
-
-  $("escalation").addEventListener("input", (e) => {
-    state.settings.escalation = parseFloat(e.target.value) || 0;
-    renderQuotes(); renderLines(); save();
-  });
-
-  $("btn-rates-reset").addEventListener("click", async () => {
-    if (!await askConfirm("Reset the rate card?", "Every day rate and tax rate you have edited is discarded, restoring the seeded illustrative card.", "Reset rates")) return;
-    state.rates = {}; state.taxes = {};
-    buildLines(false); renderRates(); renderLines(); renderSummary(); save();
-    toast("Rate card reset");
-  });
-
-  $("btn-export-rates").addEventListener("click", () => {
-    const rows = [["country_code", "country", "currency"].concat(RANKS.map((r) => r.id))];
-    COUNTRIES.forEach((c) => rows.push([c.id, c.name, c.currency].concat(RANKS.map((r) => rateFor(c.id, r.id)))));
-    download("billing-rates.csv", toCsv(rows));
-  });
-
-  $("btn-import-rates").addEventListener("click", () => $("rates-file").click());
-  $("rates-file").addEventListener("change", async (e) => {
-    const file = e.target.files[0]; if (!file) return;
-    const rows = parseCsv(await file.text());
-    if (rows.length < 2) { toast("No rows found in that CSV"); return; }
-    const head = rows[0].map((h) => h.trim().toLowerCase());
-    const codeCol = head.indexOf("country_code") >= 0 ? head.indexOf("country_code") : head.indexOf("country");
-    let n = 0;
-    rows.slice(1).forEach((r) => {
-      const raw = String(r[codeCol] || "").trim();
-      const c = COUNTRY_BY_ID[raw.toUpperCase()] || COUNTRIES.find((x) => x.name.toLowerCase() === raw.toLowerCase());
-      if (!c) return;
-      RANKS.forEach((rank) => {
-        const col = head.indexOf(rank.id);
-        if (col < 0) return;
-        const v = parseFloat(String(r[col]).replace(/[^\d.]/g, ""));
-        if (v > 0) { state.rates[c.id] = state.rates[c.id] || {}; state.rates[c.id][rank.id] = v; n++; }
-      });
-    });
-    buildLines(false); renderRates(); renderLines(); renderSummary(); save();
-    toast(n ? `${n} rate${n === 1 ? "" : "s"} imported` : "No matching countries or ranks in that CSV");
-    e.target.value = "";
-  });
-
-  /* =====================================================================
      Admin — CM vocabulary
      ===================================================================== */
 
@@ -3928,9 +3545,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
      Exports
      ===================================================================== */
 
-  $("btn-export-invoice").addEventListener("click", () => {
+  $("btn-export-csv").addEventListener("click", () => {
     const t = totals();
-    const c = activeCountry();
     const rows = [["#", "Stream", "Deliverable", "RFP term", "Unit", "Qty", "Complexity", "Mode", "Mandays per unit", "Mandays"]];
     let i = 0;
     t.streams.forEach((ts) => {
@@ -3959,23 +3575,13 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     RANKS.slice().reverse().forEach((r) => { if (t.byRank[r.id] >= 0.05) rows.push(["", "", r.name, "", "", "", "", "", "", days(t.byRank[r.id])]); });
     rows.push(["", "", "Average FTE", "", "", "", "", "", "", t.fte.toFixed(1)]);
 
-    if (t.total > 0) {
-      rows.push([], ["", "", `INDICATIVE PRICE — sanity check only, ${c ? c.name : ""} (${currencyCode()})`]);
-      rows.push(["", "", "Fees", "", "", "", "", "", "", Math.round(t.fees)]);
-      if (t.discount) rows.push(["", "", `Discount ${state.settings.discount}%`, "", "", "", "", "", "", -Math.round(t.discount)]);
-      if (t.expenses) rows.push(["", "", "Travel & expenses", "", "", "", "", "", "", Math.round(t.expenses)]);
-      if (t.tax) rows.push(["", "", `${c ? c.tax : "Tax"} ${state.settings.tax}%`, "", "", "", "", "", "", Math.round(t.tax)]);
-      rows.push(["", "", "Indicative total", "", "", "", "", "", "", Math.round(t.total)]);
-    }
     download((state.settings.client || "cm-manday-estimate").replace(/[^\w\-]+/g, "-").toLowerCase() + ".csv", toCsv(rows));
   });
 
   $("btn-copy-md").addEventListener("click", async () => {
     const t = totals();
-    const c = activeCountry();
     let md = `## Manday estimate${state.settings.client ? " — " + state.settings.client : ""}\n\n`;
-    md += `**${days(t.effortWithBuffer)} mandays** · ${t.fte.toFixed(1)} average FTE over ${driverValue("months")} months`;
-    md += c ? ` · delivered in ${c.name}.\n\n` : `.\n\n`;
+    md += `**${days(t.effortWithBuffer)} mandays** · ${t.fte.toFixed(1)} average FTE over ${driverValue("months")} months.\n\n`;
 
     const header = `| # | Deliverable | Unit | Qty | Complexity | Mode | Mandays |\n|---:|---|---|---:|---|---|---:|\n`;
     const line = (l, i) => {
@@ -4014,15 +3620,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       md += `### Team shape\n\n| Rank | Mandays |\n|---|---:|\n`;
       RANKS.slice().reverse().forEach((r) => { if (t.byRank[r.id] >= 0.05) md += `| ${r.name} | ${days(t.byRank[r.id])} |\n`; });
       md += `\n`;
-    }
-
-    if (t.total > 0) {
-      md += `**Indicative price** — a sanity check only; the binding number comes from the pricing workbench.\n\n`;
-      md += `| Item | ${currencyCode()} |\n|---|---:|\n| Fees | ${moneyShort(t.fees)} |\n`;
-      if (t.discount) md += `| Discount ${state.settings.discount}% | −${moneyShort(t.discount)} |\n`;
-      if (t.expenses) md += `| Travel & expenses | ${moneyShort(t.expenses)} |\n`;
-      if (t.tax) md += `| ${c ? c.tax : "Tax"} ${state.settings.tax}% | ${moneyShort(t.tax)} |\n`;
-      md += `| **Indicative total** | **${moneyShort(t.total)}** |\n`;
     }
 
     try { await navigator.clipboard.writeText(md); toast("Manday estimate copied as Markdown"); }
@@ -4129,7 +3726,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
   function labelExports() {
     if (CAN_SAVE_FILES) return;
-    ["btn-export-quotes", "btn-library-export", "btn-export-invoice", "btn-export-rates", "btn-vocab-export"].forEach((id) => {
+    ["btn-export-quotes", "btn-library-export", "btn-export-csv", "btn-vocab-export"].forEach((id) => {
       if ($(id)) $(id).textContent = "Copy as CSV";
     });
   }
@@ -4139,7 +3736,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $("file-status").textContent = "";
     $("analyse-status").textContent = "";
     $("file").value = "";
-    $("country").value = state.country || "";
     $("delivery-mode").value = state.deliveryMode || "blended";
     $("scope-type").value = state.scopeType || "";
     $("review-cycles").value = reviewCycles();
@@ -4148,15 +3744,10 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $("rev-ours").value = Math.round(reviewPct("ours") * 100);
     applyReviewNote();
     renderInvolvement();
-    $("escalation").value = state.settings.escalation;
     $("hours-per-day").value = state.settings.hoursPerDay;
     $("c-contingency").value = state.settings.contingency;
-    $("c-discount").value = state.settings.discount;
-    $("c-expenses").value = state.settings.expenses;
-    $("c-tax").value = state.settings.tax;
     $("client-name").value = state.settings.client || "";
     applyRole();
-    applyTaxLabel();
     labelExports();
     renderAll();
   }
