@@ -1,0 +1,19 @@
+{
+  "project": "SAP ECC6 to S/4HANA Migration",
+  "client": "Fictional Singapore Statutory Board (\"CivicBoard\")",
+  "change_id": "CHG-014",
+  "change_title": "New Asset Accounting (FI-AA) go-live",
+  "description": "ECC6 classic Asset Accounting is replaced by New Asset Accounting in S/4HANA. Parallel ledgers are introduced, depreciation areas are restructured, and asset postings move from batch-based month-end runs to real-time integration with the general ledger.",
+  "source_system_behaviour": "Depreciation posted via a scheduled batch job at month-end; asset values reconciled manually against GL in a separate step; single depreciation area used for statutory reporting.",
+  "target_system_behaviour": "Depreciation posts in real time on every asset transaction; GL and asset sub-ledger reconcile automatically; three depreciation areas (statutory, tax, group) run in parallel.",
+  "affected_org_units": ["Finance - Fixed Assets", "Finance - Statutory Reporting", "Internal Audit"],
+  "affected_roles": [
+    {"role": "Fixed Asset Accountant", "headcount": 6},
+    {"role": "Finance Month-End Close Lead", "headcount": 2},
+    {"role": "Statutory Reporting Analyst", "headcount": 3},
+    {"role": "Internal Auditor (Finance)", "headcount": 2}
+  ],
+  "go_live_date": "2027-01-01",
+  "assessed_by": "Colonel Tan, Change Management Analyst",
+  "assessment_date": "2026-09-02"
+}

@@ -1,0 +1,19 @@
+{
+  "project": "SAP ECC6 to S/4HANA Migration",
+  "client": "Fictional Singapore Statutory Board (\"CivicBoard\")",
+  "change_id": "CHG-041",
+  "topic": "SD Order-to-Cash: new pricing procedure for government contracts",
+  "description": "Pricing determination for government-contract sales orders changes from a manually-applied discount condition (ECC6) to an automatic condition record lookup (S/4HANA) based on contract tier. Users no longer key in discounts manually; they select the correct contract tier and the system derives price.",
+  "target_audience": "Order Management Officers (end users, no prior S/4HANA exposure)",
+  "audience_size": 45,
+  "prior_knowledge": "Familiar with ECC6 VA01/VA02 order entry; no exposure to S/4HANA Fiori apps",
+  "delivery_format": "90-minute instructor-led virtual session",
+  "learning_level": "apply (hands-on task completion), per Bloom's taxonomy",
+  "must_cover": [
+    "Where contract tier is selected on the sales order",
+    "How to verify the system-derived price is correct",
+    "Error handling: what to do when no condition record is found",
+    "What NOT to do: manually overriding price like in ECC6"
+  ],
+  "requested_outputs": ["learning_objectives", "session_agenda", "slide_level_outline", "assessment_questions"]
+}

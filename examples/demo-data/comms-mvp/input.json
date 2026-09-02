@@ -1,0 +1,24 @@
+{
+  "project": "SAP ECC6 to S/4HANA Migration",
+  "client": "Fictional Singapore GLC (\"HarbourLink Pte Ltd\")",
+  "change_id": "CHG-027",
+  "change_title": "Purchase Requisition creation moves to Fiori app",
+  "description": "Creating a Purchase Requisition moves from SAP GUI transaction ME51N to the Fiori app 'Create Purchase Requisition - Advanced'. Approval routing and mandatory fields are unchanged; only the entry screen and navigation change.",
+  "go_live_date": "2026-11-16",
+  "audience": {
+    "primary": "Procurement Requesters (approx. 340 staff across all business units)",
+    "secondary": ["Line Managers who approve PRs", "Procurement Shared Services team"]
+  },
+  "tone": "reassuring, action-oriented, low jargon",
+  "key_messages": [
+    "What changes: screen and navigation only, not the approval process",
+    "When: go-live 16 Nov 2026, ME51N access removed same day",
+    "What to do: complete the 15-min e-learning before go-live; a job aid is available",
+    "Who to contact: Procurement Shared Services helpdesk"
+  ],
+  "requested_outputs": ["announcement_email", "faq", "manager_talking_points"],
+  "channel_constraints": {
+    "announcement_email": "under 200 words, mobile-friendly",
+    "faq": "5-7 Q&As max"
+  }
+}
