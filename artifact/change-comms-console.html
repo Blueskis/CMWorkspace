@@ -310,14 +310,14 @@ code{ font-family:var(--font-mono); font-size:.88em; background:var(--surface-2)
 
 <div class="page">
   <p class="eyebrow">Change Communications</p>
-  <p class="lede">Write the change in your own words, choose the channels, and Claude runs the
-     pipeline &mdash; intake, plan, QA, then routing to whichever tool builds each artifact.
-     Every draft comes back traced to what you actually said.</p>
+  <p class="lede">Write the change in your own words, choose the channels, and get a first draft
+     for each one &mdash; a downloadable file, or a Canva link with copy ready to paste in.</p>
 
-  <p class="notice"><b>Nothing is drafted inside this console.</b> It builds the request below;
-     the actual draft only exists once you run that in Claude, traced to your brief or the
-     knowledge bank. Read every fact before anything goes anywhere, whichever tool ends up
-     writing it.</p>
+  <p class="notice"><b>Drafts here are quick, not checked.</b> Claude writes each one from your
+     brief text alone, right in this browser &mdash; nothing traces back to a source and no QA
+     runs. Read every fact before anything goes anywhere. For the checked route &mdash; every
+     line traced to your brief or the knowledge bank, QA before anything is produced &mdash; run
+     the request below in a Claude conversation instead.</p>
 
   <section class="step">
     <div class="step-head">
@@ -383,11 +383,10 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
       <div><span class="pill pill-success">Live</span> an automated build exists</div>
       <div><span class="pill pill-channel">Planned</span> ships a production spec instead</div>
     </div>
-    <p class="hint" style="margin-top:8px">A producer that isn't reachable is not a failed run
-       &mdash; Claude hands back the handoff artifact and says so. Canva channels need the Canva
-       connector authorised, or you get a design brief instead of a finished file. Both video
-       lanes need ElevenLabs enabled, and even then it supplies the <em>narration</em> only:
-       assembling the picture stays a production step.</p>
+    <p class="hint" style="margin-top:8px">Email, Article and Briefing deck download as a real
+       file. Newsletter and Banner draft the copy here and link straight to Canva to paste it
+       in &mdash; there's no live Canva connector on this page. The video channels aren't built
+       here at all; they're listed in the run request for the traced route.</p>
 
     <div class="actions">
       <button type="button" class="btn primary" id="go" disabled>Generate first drafts</button>
@@ -403,11 +402,15 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
   <section class="step" id="out">
     <div class="step-head">
       <span class="step-no">03</span>
-      <h2>Send it to Claude</h2>
+      <h2>Drafts</h2>
     </div>
-    <p class="step-sub">Copy this into your Claude conversation. It runs the full pipeline
-       &mdash; intake, plan, QA, then routing each channel to its producer &mdash; so every line
-       traces to your brief or the knowledge bank.</p>
+    <p class="step-sub">Each channel drafts on its own below. For the checked, traced route
+       instead, use the run request underneath.</p>
+
+    <div class="card" id="out-live" style="display:none">
+      <div class="run-list" id="runlist"></div>
+      <div class="results" id="results"></div>
+    </div>
 
     <div class="card" id="out-fallback">
       <div class="out-top">
@@ -430,6 +433,13 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
   </footer>
 </div>
 
+<!-- docx-js: builds the Email/Article .docx client-side. Pinned to 9.0.0 — the LAST version
+     that ships build/index.umd.js; 9.3.0+ dropped it, and the unpinned URL only 200s off a
+     stale cache. Global: window.docx. -->
+<script src="https://cdn.jsdelivr.net/npm/docx@9.0.0/build/index.umd.js"></script>
+<!-- pptxgenjs: builds the Briefing deck .pptx client-side. Pinned to 3.12.0, the bundle build
+     (includes its own dependencies, so nothing else to load). Global: window.PptxGenJS. -->
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
 <script>
 (function () {
   "use strict";
@@ -681,6 +691,235 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
     document.body.removeChild(ta);
   }
 
+  // --- Drafting live, in this browser -----------------------------------------------------
+  // Claude drafts each channel's copy through the `sample` capability — a per-call,
+  // viewer-consented ask that runs on the viewer's own Claude usage and needs no connector, so
+  // (unlike the Gamma MCP route this replaced) declaring it doesn't block sharing the page
+  // publicly. Email/Article/Briefing deck package the draft into a real file with docx-js /
+  // pptxgenjs and offer it through the `downloads` capability. Newsletter/Banner draft short
+  // copy and link straight to Canva to paste it in — there's no live Canva connector here.
+
+  var STAGE_LABEL = { wait: "Waiting", run: "Working", ok: "Ready", warn: "Needs attention", fail: "Failed" };
+  var PRODUCED_FILES = Object.create(null);   // channel id -> {blob, filename}
+
+  // Channels this console can actually draft. `kind` picks the producer in produceChannel();
+  // anything not listed here (the two video channels) falls straight to "not built here".
+  var PRODUCIBLE = { email: "docx", article: "docx", briefing_deck: "pptx", newsletter: "canva", banner: "canva" };
+
+  function setStage(id, kind, text) {
+    var pill = document.getElementById("pill-" + id);
+    var stage = document.getElementById("stage-" + id);
+    if (pill) { pill.className = "stpill stpill-" + kind; pill.textContent = STAGE_LABEL[kind] || kind; }
+    if (stage) { stage.textContent = text; }
+  }
+
+  function renderRunList(picks) {
+    $("runlist").innerHTML = picks.map(function (c) {
+      return '<div class="run-row" id="row-' + c.id + '">' +
+        '<span class="name">' + esc(c.name) + '</span>' +
+        '<span class="stage" id="stage-' + c.id + '">Queued</span>' +
+        '<span class="stpill stpill-wait" id="pill-' + c.id + '">Waiting</span>' +
+      '</div>';
+    }).join("");
+    $("results").innerHTML = "";
+  }
+
+  function addResult(html) {
+    var el = document.createElement("div");
+    el.className = "result";
+    el.innerHTML = html;
+    $("results").appendChild(el);
+  }
+
+  function sampleErrorCopy(err) {
+    var code = err && err.code;
+    if (code === "not_granted") return "AI drafting isn’t available in this view.";
+    if (code === "rate_limited") return "Too many drafts requested at once — try again shortly.";
+    if (code === "prompt_too_large") return "Your brief is too long to draft in one go — trim it and try again.";
+    if (code === "invalid_json" || code === "empty_completion") return "Claude’s reply didn’t come back in the expected shape — try again.";
+    if (code === "cancelled") return "Drafting was cancelled.";
+    if (code === "refused") return "Claude declined to draft this one — check the brief for anything that reads as sensitive.";
+    if (code === "upstream_error") return "Temporarily unreachable — try again shortly.";
+    if (code === "session_expired" || code === "sampling_disabled" || code === "not_declared" ||
+        code === "capability_disabled" || code === "capability_removed") return "AI drafting isn’t available in this view.";
+    return "Couldn’t draft this channel" + (err && err.message ? ": " + err.message : ".");
+  }
+
+  // Every prompt asks for exactly one JSON shape and repeats the no-inventing rule from the
+  // channel library — the same rule the real skill pipeline enforces, just unchecked here.
+  function contentPrompt(chan) {
+    var org = $("org").value.trim() || "the organisation";
+    var sender = $("sender").value.trim();
+    var a = assessBrief($("brief").value);
+    var L = [];
+    L.push("Write an internal change communication for " + org + ".");
+    L.push("Channel: " + chan.name + " — " + chan.note);
+    L.push("");
+    L.push("THE CHANGE, IN THE PRACTITIONER'S OWN WORDS:");
+    L.push($("brief").value.trim());
+    L.push("");
+    if (sender) { L.push("SENDER: " + sender); L.push(""); }
+    L.push("RULES:");
+    L.push("- Use ONLY the facts stated above. Do not invent dates, names, URLs, portal");
+    L.push("  addresses, phone numbers, system names or statistics.");
+    L.push("- Write for the reader, not the programme. Plain language, active voice.");
+    L.push("- Where a fact isn't stated above, write \"[GAP: <what's missing>]\" rather than");
+    L.push("  inventing an answer.");
+    if (a.scored && a.missing.length) {
+      L.push("- These are NOT answered above — leave them as [GAP] rather than guessing:");
+      a.missing.forEach(function (c) { L.push("    * " + c.label + " (" + c.say + ")"); });
+    }
+    L.push("");
+    L.push("Reply with ONLY a JSON object, no other text, matching exactly this shape:");
+    if (chan.id === "email") {
+      L.push('{"subject": string (max 50 chars), "paragraphs": [string, ...]}');
+    } else if (chan.id === "article") {
+      L.push('{"headline": string, "standfirst": string, "paragraphs": [string, ...]}');
+    } else if (chan.id === "briefing_deck") {
+      L.push('{"slides": [{"title": string, "bullets": [string, ...]}, ...]}');
+      L.push("Up to 12 slides, up to 5 bullets per slide.");
+    } else {
+      L.push('{"headline": string, "body": string}');
+    }
+    return L.join("\n");
+  }
+
+  function fileBase(chan) {
+    var org = ($("org").value.trim() || "change").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    return (org || "change") + "-" + chan.id;
+  }
+
+  function buildDocx(chan, content) {
+    if (typeof docx === "undefined" || !docx.Packer) { return Promise.resolve(null); }
+    var D = docx;
+    var children = [];
+    if (chan.id === "email" && content.subject) {
+      children.push(new D.Paragraph({ text: content.subject, heading: D.HeadingLevel.HEADING_1 }));
+    }
+    if (chan.id === "article" && content.headline) {
+      children.push(new D.Paragraph({ text: content.headline, heading: D.HeadingLevel.HEADING_1 }));
+      if (content.standfirst) {
+        children.push(new D.Paragraph({ children: [new D.TextRun({ text: content.standfirst, italics: true })] }));
+      }
+    }
+    (content.paragraphs || []).forEach(function (p) {
+      children.push(new D.Paragraph({ children: [new D.TextRun({ text: String(p) })] }));
+    });
+    children.push(new D.Paragraph({ text: "" }));
+    var sender = $("sender").value.trim();
+    children.push(new D.Paragraph({
+      children: [new D.TextRun({
+        text: "AI-drafted, not checked. Written by Claude from the brief typed into the Change "
+            + "Comms Console. No line is traced to a source and no QA has run, so verify every "
+            + "date, name, figure and link before sending." + (sender ? " Intended sender: " + sender + "." : ""),
+        italics: true, size: 18
+      })]
+    }));
+    try {
+      var doc = new D.Document({
+        creator: "Change Comms Console",
+        title: content.subject || content.headline || chan.name,
+        sections: [{ children: children }]
+      });
+      return D.Packer.toBlob(doc);
+    } catch (e) { return Promise.resolve(null); }
+  }
+
+  function buildPptx(chan, content) {
+    if (typeof PptxGenJS === "undefined") { return Promise.resolve(null); }
+    try {
+      var pptx = new PptxGenJS();
+      (content.slides || []).forEach(function (s) {
+        var slide = pptx.addSlide();
+        slide.addText(String(s.title || ""), { x: 0.5, y: 0.3, w: 9, fontSize: 24, bold: true });
+        var bullets = (s.bullets || []).map(function (b) { return { text: String(b), options: { bullet: true, breakLine: true } }; });
+        if (bullets.length) { slide.addText(bullets, { x: 0.5, y: 1.1, w: 9, h: 5, fontSize: 16 }); }
+      });
+      var notes = pptx.addSlide();
+      notes.addText("AI-drafted, not checked. Verify every date, name, figure and link before presenting.",
+        { x: 0.5, y: 0.4, w: 9, fontSize: 14, italic: true });
+      return pptx.write({ outputType: "blob" });
+    } catch (e) { return Promise.resolve(null); }
+  }
+
+  function offerFile(chan, content) {
+    var builder = PRODUCIBLE[chan.id] === "docx" ? buildDocx : PRODUCIBLE[chan.id] === "pptx" ? buildPptx : null;
+    if (!builder) { return Promise.resolve(null); }
+    var ext = PRODUCIBLE[chan.id];
+    return builder(chan, content).then(function (blob) {
+      if (!blob) { return null; }
+      return { blob: blob, filename: fileBase(chan) + "." + ext, label: "Download ." + ext };
+    }).catch(function () { return null; });
+  }
+
+  function renderProduced(chan, content, file) {
+    var html = '<h3>' + esc(chan.name) + '</h3>';
+    if (PRODUCIBLE[chan.id] === "canva") {
+      html += '<p><b>' + esc(content.headline || "") + '</b></p>' +
+        '<p>' + esc(content.body || "") + '</p>' +
+        '<p><a href="https://www.canva.com/create/" target="_blank" rel="noopener">Open Canva</a>' +
+        ' — paste the copy above into your design.</p>';
+    } else if (file) {
+      html += '<p><button type="button" class="btn small dl-file" data-ch="' + esc(chan.id) +
+        '">' + esc(file.label) + '</button></p>';
+      PRODUCED_FILES[chan.id] = file;
+    } else {
+      // The file library didn't load or the content came back empty — never a dead end.
+      html += '<div class="gaps"><p>Couldn’t build the file here. The drafted text:</p></div>' +
+        (content.subject || content.headline ? '<p><b>' + esc(content.subject || content.headline) + '</b></p>' : "") +
+        (content.paragraphs || []).map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("");
+    }
+    html += '<p class="stamp">AI-drafted, not checked. Verify every date, name, figure and link ' +
+      'before it goes anywhere.</p>';
+    addResult(html);
+    setStage(chan.id, "ok", PRODUCIBLE[chan.id] === "canva" ? "Copy ready" : (file ? "File ready" : "Drafted"));
+  }
+
+  function produceChannel(sample, chan) {
+    if (!PRODUCIBLE[chan.id]) {
+      setStage(chan.id, "warn", "Not built here");
+      addResult('<h3>' + esc(chan.name) + '</h3>' +
+        '<p>Not built here — routes to ' + esc(chan.by) + '. Use the run request below for this channel.</p>');
+      return Promise.resolve();
+    }
+    setStage(chan.id, "run", "Drafting…");
+    return sample.json(contentPrompt(chan), { modelTier: "default" })
+      .then(function (content) {
+        setStage(chan.id, "run", PRODUCIBLE[chan.id] === "canva" ? "Ready" : "Building the file…");
+        return offerFile(chan, content).then(function (file) { renderProduced(chan, content, file); });
+      })
+      .catch(function (err) {
+        setStage(chan.id, "fail", "Failed");
+        addResult('<h3>' + esc(chan.name) + '</h3><p>' + esc(sampleErrorCopy(err)) + '</p>');
+      });
+  }
+
+  function produceAll(sample) {
+    var picks = chosen();
+    $("out-live").style.display = "flex";
+    $("out-live").style.flexDirection = "column";
+    $("out").classList.add("show");
+    $("out").scrollIntoView({ behavior: "smooth", block: "start" });
+    renderRunList(picks);
+    var chain = Promise.resolve();
+    picks.forEach(function (chan) {
+      chain = chain.then(function () { return produceChannel(sample, chan); });
+    });
+    return chain;
+  }
+
+  function handleGenerateClick() {
+    $("go").disabled = true;
+    $("go").textContent = "Drafting…";
+    var restore = function () { $("go").disabled = false; $("go").textContent = "Generate first drafts"; };
+
+    if (!window.claude || typeof window.claude.use !== "function") { restore(); showRequest(); return; }
+    window.claude.use("sample").then(function (sample) {
+      if (!sample) { return null; }
+      return produceAll(sample);
+    }).then(function () { restore(); showRequest(); }, function () { restore(); showRequest(); });
+  }
 
   renderChannels();
   if (loadDraft()) { $("restored").hidden = false; }
@@ -700,11 +939,31 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
     });
     $("restored").hidden = true;
     $("out").classList.remove("show");
+    $("out-live").style.display = "none";
+    $("runlist").innerHTML = ""; $("results").innerHTML = "";
     syncCount();
     $("brief").focus();
   });
 
-  $("go").addEventListener("click", showRequest);
+  // Delegated: the download buttons are rendered after each channel finishes.
+  $("results").addEventListener("click", function (ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest(".dl-file") : null;
+    if (!btn) { return; }
+    var file = PRODUCED_FILES[btn.getAttribute("data-ch")];
+    if (!file) { return; }
+    withCap("downloads", function (dl) {
+      if (!dl) { alert("Downloads aren’t available in this view."); return; }
+      btn.disabled = true;
+      dl.save({ filename: file.filename, data: file.blob })
+        .then(function () { btn.textContent = "Saved"; },
+              function (e) {
+                btn.disabled = false;
+                if (e && e.code !== "declined") { alert("Could not save the file."); }
+              });
+    });
+  });
+
+  $("go").addEventListener("click", handleGenerateClick);
 
   $("btn-theme").addEventListener("click", function () {
     var cur = document.documentElement.getAttribute("data-theme");

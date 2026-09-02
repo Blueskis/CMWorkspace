@@ -95,6 +95,10 @@ Element.prototype.removeChild = function (child) {
 Element.prototype.addEventListener = function (type, fn) {
   (this._listeners[type] = this._listeners[type] || []).push(fn);
 };
+Element.prototype._dispatch = function (type, evt) {
+  evt.target = evt.target || this;
+  (this._listeners[type] || []).slice().forEach(function (fn) { fn(evt); });
+};
 Element.prototype._classes = function () {
   return (this.attrs["class"] || "").split(/\s+/).filter(Boolean);
 };
@@ -151,6 +155,14 @@ Element.prototype.querySelectorAll = function (sel) {
   var out = [];
   walk(this, function (el) { if (selectorMatches(el, sel)) { out.push(el); } });
   return out;
+};
+Element.prototype.closest = function (sel) {
+  var el = this;
+  while (el && el.tagName !== "#text") {
+    if (selectorMatches(el, sel)) { return el; }
+    el = el.parentNode;
+  }
+  return null;
 };
 
 // Tiny forgiving HTML parser — enough for the markup this file's template strings emit
@@ -209,7 +221,7 @@ var SKELETON_TAGS = {
 };
 var SKELETON_IDS = [
   "btn-theme", "brief", "cover-score", "cover", "org", "sender", "chans", "go", "count",
-  "restored", "clear-draft", "out", "outsum", "copy", "dl", "req"
+  "restored", "clear-draft", "out", "out-live", "runlist", "results", "outsum", "copy", "dl", "req"
 ];
 function makeDocument() {
   var doc = new Document();
@@ -219,6 +231,7 @@ function makeDocument() {
     doc.body.appendChild(el);
   });
   doc.getElementById("restored").hidden = true;
+  doc.getElementById("out-live").style.display = "none";
   return doc;
 }
 
@@ -251,6 +264,35 @@ function installFastTimers(ctx) {
   ctx.clearTimeout = function (id) { clearImmediate(id); };
 }
 
+function makeFakeDocx() {
+  function Ctor(opts) { this.opts = opts; }
+  return {
+    Packer: { toBlob: function (doc) { return Promise.resolve({ __fakeBlob: "docx", doc: doc }); } },
+    Document: Ctor, Paragraph: Ctor, TextRun: Ctor,
+    HeadingLevel: { HEADING_1: 1, HEADING_2: 2, HEADING_3: 3, HEADING_4: 4, HEADING_5: 5, HEADING_6: 6 }
+  };
+}
+
+function makeFakePptxGenJS() {
+  function PptxGenJS() { this.slides = []; }
+  PptxGenJS.prototype.addSlide = function () {
+    var slide = { texts: [], addText: function (t, o) { slide.texts.push({ t: t, o: o }); } };
+    this.slides.push(slide);
+    return slide;
+  };
+  PptxGenJS.prototype.write = function () {
+    return Promise.resolve({ __fakeBlob: "pptx", slideCount: this.slides.length });
+  };
+  return PptxGenJS;
+}
+
+// A fake `sample` capability namespace: `sample.json(input, opts)` resolves/rejects per `impl`.
+function makeSample(impl) {
+  var fn = function () { return Promise.reject(new Error("sample(text) is not used by this page")); };
+  fn.json = impl;
+  return fn;
+}
+
 var rawHtml = fs.readFileSync(HTML_PATH, "utf8");
 var appScriptSrc = dewrap(extractAppScript(rawHtml));
 new vm.Script(appScriptSrc, { filename: "change-comms-console.js" }); // fail fast on a syntax error
@@ -273,6 +315,8 @@ function loadConsole(opts) {
   installFastTimers(ctx);
   ctx.window = ctx;
   ctx.claude = { use: opts.claudeUse || function () { return Promise.resolve(null); } };
+  if (opts.withDocx) { ctx.docx = makeFakeDocx(); }
+  if (opts.withPptx) { ctx.PptxGenJS = makeFakePptxGenJS(); }
   vm.runInContext(appScriptSrc, ctx); // runs renderChannels()/loadDraft()/syncCount() at load, as on the real page
   ctx.__doc = doc;
   return ctx;
@@ -315,7 +359,7 @@ function assert(cond, msg) {
 test("0 (regression): no Gamma or mcp capability code ships in the console", function () {
   // A page that declares the mcp capability cannot be shared publicly — that's exactly why
   // Gamma was removed. Guard against it quietly coming back.
-  assert(!/Gamma/.test(rawHtml), "found a reference to Gamma in the shipped file");
+  assert(!/GAMMA_BY_CHANNEL|gammaUrl|tryLiveGeneration/.test(rawHtml), "found Gamma routing/generation code in the shipped file");
   assert(!/window\.claude\.use\(\s*["']mcp["']/.test(rawHtml), "found a call to window.claude.use(\"mcp\")");
   assert(!/callTool|listTools/.test(rawHtml), "found MCP call-surface code (callTool/listTools)");
 });
@@ -367,18 +411,22 @@ test("4: a short brief scores nothing and a full brief covers all six required p
 });
 
 // --- Generate -> the run request ----------------------------------------------------------
+// With no `sample` capability granted (the default fake claude.use resolves null for every
+// name), Generate falls straight through to the run request — same as before drafting existed.
 
 test("5: clicking Generate shows the run request naming every picked channel", function () {
   var ctx = loadConsole();
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["email", "newsletter", "briefing_deck"]);
   ctx.document.getElementById("go")._listeners.click[0]();
-  var req = ctx.document.getElementById("req").textContent;
-  // chosen() filters CHANNELS in its declared array order, not selection order.
-  assert(req.indexOf("CHANNELS: email, briefing_deck, newsletter") !== -1,
-    "expected the run request to list all three channels, got: " + req);
-  assert(req.indexOf(LONG_BRIEF) !== -1, "expected the run request to include the brief text");
-  assert(ctx.document.getElementById("out").classList.contains("show"), "the output section should be revealed");
+  return drain(10).then(function () {
+    var req = ctx.document.getElementById("req").textContent;
+    // chosen() filters CHANNELS in its declared array order, not selection order.
+    assert(req.indexOf("CHANNELS: email, briefing_deck, newsletter") !== -1,
+      "expected the run request to list all three channels, got: " + req);
+    assert(req.indexOf(LONG_BRIEF) !== -1, "expected the run request to include the brief text");
+    assert(ctx.document.getElementById("out").classList.contains("show"), "the output section should be revealed");
+  });
 });
 
 test("6: the run request carries open questions instead of inventing answers", function () {
@@ -387,9 +435,147 @@ test("6: the run request carries open questions instead of inventing answers", f
   setBrief(ctx, "From 1 October we are changing how payroll works for everyone, because the old system is retiring.");
   pickChannels(ctx, ["email"]);
   ctx.document.getElementById("go")._listeners.click[0]();
-  var req = ctx.document.getElementById("req").textContent;
-  assert(req.indexOf("NOT ANSWERED ABOVE") !== -1, "expected an open-questions section, got: " + req);
-  assert(req.indexOf("do not invent answers") !== -1, "expected the explicit no-inventing instruction");
+  return drain(10).then(function () {
+    var req = ctx.document.getElementById("req").textContent;
+    assert(req.indexOf("NOT ANSWERED ABOVE") !== -1, "expected an open-questions section, got: " + req);
+    assert(req.indexOf("do not invent answers") !== -1, "expected the explicit no-inventing instruction");
+  });
+});
+
+// --- Drafting live in the browser (the `sample` capability) -----------------------------
+
+test("11: Email drafts via sample() and packages a downloadable .docx", function () {
+  var seenPrompt = null;
+  var sample = makeSample(function (input) {
+    seenPrompt = input;
+    return Promise.resolve({ subject: "Payroll moves to twice-monthly", paragraphs: ["Para one.", "Para two."] });
+  });
+  var ctx = loadConsole({
+    claudeUse: function (name) { return Promise.resolve(name === "sample" ? sample : null); },
+    withDocx: true
+  });
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["email"]);
+  ctx.document.getElementById("go")._listeners.click[0]();
+  assert(ctx.document.getElementById("go").textContent === "Drafting…", "button should show the drafting state immediately");
+  return drain(20).then(function () {
+    assert(seenPrompt.indexOf("JSON object") !== -1, "expected the prompt to ask for a JSON object");
+    assert(seenPrompt.indexOf("do not invent") === -1 || seenPrompt.indexOf("Do not invent") !== -1,
+      "expected the no-inventing rule in the prompt");
+    var results = ctx.document.getElementById("results");
+    assert(results.children.length === 1, "expected one result block for the one picked channel");
+    var btn = ctx.document.querySelector(".dl-file");
+    assert(btn, "expected a Download .docx button");
+    assert(btn.textContent === "Download .docx", "expected the download button to say .docx, got: " + btn.textContent);
+    assert(ctx.PRODUCED_FILES.email, "expected the produced file to be recorded");
+    assert(ctx.document.getElementById("stage-email").textContent === "File ready", "stage should read File ready");
+    var go = ctx.document.getElementById("go");
+    assert(go.disabled === false && go.textContent === "Generate first drafts", "button should be restored, got: " + go.textContent);
+  });
+});
+
+test("12: the Download button saves the produced file through the downloads capability", function () {
+  var sample = makeSample(function () { return Promise.resolve({ subject: "Subject", paragraphs: ["Body."] }); });
+  var saved = null;
+  var downloadsCap = { save: function (f) { saved = f; return Promise.resolve(); } };
+  var ctx = loadConsole({
+    claudeUse: function (name) {
+      return Promise.resolve(name === "sample" ? sample : name === "downloads" ? downloadsCap : null);
+    },
+    withDocx: true
+  });
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["email"]);
+  ctx.document.getElementById("org").value = "Northwind Foods";
+  ctx.document.getElementById("go")._listeners.click[0]();
+  return drain(20).then(function () {
+    var btn = ctx.document.querySelector(".dl-file");
+    ctx.document.getElementById("results")._dispatch("click", { target: btn });
+    return drain(5).then(function () {
+      assert(saved, "expected downloads.save() to be called");
+      assert(saved.filename === "northwind-foods-email.docx", "expected a slugified filename, got: " + saved.filename);
+      assert(saved.data.__fakeBlob === "docx", "expected the saved data to be the built docx blob");
+    });
+  });
+});
+
+test("13: Briefing deck drafts via sample() and packages a downloadable .pptx", function () {
+  var sample = makeSample(function () {
+    return Promise.resolve({ slides: [{ title: "Overview", bullets: ["Point one", "Point two"] }] });
+  });
+  var ctx = loadConsole({
+    claudeUse: function (name) { return Promise.resolve(name === "sample" ? sample : null); },
+    withPptx: true
+  });
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["briefing_deck"]);
+  ctx.document.getElementById("go")._listeners.click[0]();
+  return drain(20).then(function () {
+    var btn = ctx.document.querySelector(".dl-file");
+    assert(btn && btn.textContent === "Download .pptx", "expected a Download .pptx button, got: " + (btn && btn.textContent));
+    assert(ctx.PRODUCED_FILES.briefing_deck, "expected the produced pptx to be recorded");
+  });
+});
+
+test("14: Newsletter drafts copy and links straight to Canva, with no file produced", function () {
+  var sample = makeSample(function () {
+    return Promise.resolve({ headline: "Payday just got more frequent", body: "Full copy here." });
+  });
+  var ctx = loadConsole({ claudeUse: function (name) { return Promise.resolve(name === "sample" ? sample : null); } });
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["newsletter"]);
+  ctx.document.getElementById("go")._listeners.click[0]();
+  return drain(20).then(function () {
+    var link = ctx.document.querySelector('a[href="https://www.canva.com/create/"]');
+    assert(link, "expected a link to Canva");
+    assert(link.textContent === "Open Canva", "expected the link text to say Open Canva, got: " + link.textContent);
+    var results = ctx.document.getElementById("results");
+    var text = results.children.map(function (c) { return c.textContent; }).join(" ");
+    assert(text.indexOf("Full copy here.") !== -1, "expected the drafted body text to be shown for pasting into Canva");
+    assert(!ctx.document.querySelector(".dl-file"), "Canva channels should not produce a downloadable file");
+  });
+});
+
+test("15: a video channel is reported as not built here, not silently skipped", function () {
+  var ctx = loadConsole({ claudeUse: function (name) { return Promise.resolve(name === "sample" ? makeSample(function () { return Promise.resolve({}); }) : null); } });
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["short_form_video"]);
+  ctx.document.getElementById("go")._listeners.click[0]();
+  return drain(20).then(function () {
+    var results = ctx.document.getElementById("results");
+    var text = results.children.map(function (c) { return c.textContent; }).join(" ");
+    assert(text.indexOf("Not built here") !== -1, "expected a not-built-here message, got: " + text);
+    assert(text.indexOf("ElevenLabs narration") !== -1, "expected it to name the real producer");
+  });
+});
+
+test("16: a not_granted sample() error is reported per channel, not thrown", function () {
+  var sample = makeSample(function () { return Promise.reject({ code: "not_granted" }); });
+  var ctx = loadConsole({ claudeUse: function (name) { return Promise.resolve(name === "sample" ? sample : null); } });
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["email"]);
+  ctx.document.getElementById("go")._listeners.click[0]();
+  return drain(20).then(function () {
+    assert(ctx.document.getElementById("stage-email").textContent === "Failed", "expected the row to report Failed");
+    var results = ctx.document.getElementById("results");
+    var text = results.children.map(function (c) { return c.textContent; }).join(" ");
+    assert(text.indexOf("AI drafting isn’t available") !== -1, "expected the not_granted wording, got: " + text);
+    var go = ctx.document.getElementById("go");
+    assert(go.disabled === false && go.textContent === "Generate first drafts", "button should still recover, got: " + go.textContent);
+  });
+});
+
+test("17: sample() unavailable falls back to the run request with no drafting attempted", function () {
+  var ctx = loadConsole({ claudeUse: function () { return Promise.resolve(null); } });
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["email"]);
+  ctx.document.getElementById("go")._listeners.click[0]();
+  return drain(10).then(function () {
+    assert(ctx.document.getElementById("out-live").style.display === "none", "the live drafting card should stay hidden");
+    assert(ctx.document.getElementById("req").textContent.indexOf("CHANNELS: email") !== -1, "the run request should still be built");
+    var go = ctx.document.getElementById("go");
+    assert(go.disabled === false && go.textContent === "Generate first drafts", "button should be restored, got: " + go.textContent);
+  });
 });
 
 // --- Draft persistence ---------------------------------------------------------------------
