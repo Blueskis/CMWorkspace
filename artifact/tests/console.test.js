@@ -345,6 +345,15 @@ function setBrief(ctx, text) {
   ctx.syncCount();
 }
 
+// GAMMA_BY_CHANNEL ships empty — no shipped channel currently routes through Gamma (Email and
+// Article go to the docx skill, Briefing deck to the pptx skill, Newsletter hands off to
+// Canva). The live-generation machinery stays in the file dormant rather than deleted, so
+// these tests exercise it by injecting a route for an existing channel id, the same way test 7
+// reaches in and removes renderRunList — not because that channel is actually Gamma-routed today.
+function installGammaRoute(ctx, id, cfg) {
+  ctx.GAMMA_BY_CHANNEL[id] = cfg;
+}
+
 var LONG_BRIEF = "From 1 October payroll moves from monthly to twice-monthly for all staff, " +
   "affecting every employee. HR will run info sessions and the portal opens on 1 Sept. " +
   "Questions go to hr@example.com. This is a mandatory change with no opt-out.";
@@ -396,6 +405,8 @@ test("1: two live channels run end-to-end through Gamma and the button recovers"
     }
   });
   var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp), withDocx: true });
+  installGammaRoute(ctx, "email", { format: "document", numCards: 1, amount: "brief", docx: true });
+  installGammaRoute(ctx, "briefing_deck", { format: "presentation", amount: "medium", exportAs: "pptx" });
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["email", "briefing_deck"]);
   ctx.tryLiveGeneration();
@@ -430,6 +441,7 @@ test("2: a completed deck payload with exportUrl renders a direct .pptx download
     }
   });
   var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
+  installGammaRoute(ctx, "briefing_deck", { format: "presentation", amount: "medium", exportAs: "pptx" });
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["briefing_deck"]);
   ctx.tryLiveGeneration();
@@ -451,6 +463,7 @@ test("3: a completed deck payload with no exportUrl falls back to the Gamma link
     }
   });
   var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
+  installGammaRoute(ctx, "briefing_deck", { format: "presentation", amount: "medium", exportAs: "pptx" });
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["briefing_deck"]);
   ctx.tryLiveGeneration();
@@ -531,6 +544,7 @@ test("8: a needs_reauth error on one channel is reported without blocking the ot
     }
   });
   var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
+  installGammaRoute(ctx, "email", { format: "document", numCards: 1, amount: "brief", docx: true });
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["email"]);
   ctx.tryLiveGeneration();
@@ -557,6 +571,8 @@ test("9: one failing channel does not stop a second channel from completing", fu
     }
   });
   var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
+  installGammaRoute(ctx, "email", { format: "document", numCards: 1, amount: "brief", docx: true });
+  installGammaRoute(ctx, "briefing_deck", { format: "presentation", amount: "medium", exportAs: "pptx" });
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["email", "briefing_deck"]);
   ctx.tryLiveGeneration();
@@ -584,6 +600,7 @@ test("10 (regression): #results survives a run so the .dl-docx delegated handler
     }
   });
   var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp), withDocx: true });
+  installGammaRoute(ctx, "email", { format: "document", numCards: 1, amount: "brief", docx: true });
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["email"]);
   var resultsBefore = ctx.document.getElementById("results");
@@ -599,6 +616,43 @@ test("10 (regression): #results survives a run so the .dl-docx delegated handler
     ctx.claude.use = function (name) { return Promise.resolve(name === "downloads" ? save : null); };
     resultsAfter._dispatch("click", { target: btn, closest: function (sel) { return btn.closest(sel); } });
     return drain(5).then(function () { assert(clicked, "the delegated .dl-docx click handler should still fire after a run"); });
+  });
+});
+
+test("11 (regression): no shipped channel reaches Gamma even when the connector is present", function () {
+  var generateCalls = 0;
+  var mcp = makeMcp({
+    listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); },
+    calls: { generate: function () { generateCalls++; return Promise.reject(new Error("should not be called")); } }
+  });
+  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
+  // Deliberately NOT calling installGammaRoute: GAMMA_BY_CHANNEL ships empty, so none of
+  // Email, Article, Briefing deck or Newsletter should ever reach mcp.callTool("generate").
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["email", "article", "briefing_deck", "newsletter"]);
+  ctx.tryLiveGeneration();
+  return drain(30).then(function () {
+    assert(generateCalls === 0, "expected zero Gamma generate calls, got " + generateCalls);
+    var results = ctx.document.getElementById("results");
+    assert(results.children.length === 4, "expected a not-built-here result for every picked channel, got " + results.children.length);
+    var html = results.children.map(function (c) { return c.textContent; }).join(" ");
+    ["docx skill", "pptx skill", "Canva"].forEach(function (producer) {
+      assert(html.indexOf(producer) !== -1, "expected the results to name " + producer + " as the producer, got: " + html);
+    });
+    assert(ctx.document.getElementById("out-fallback").style.display === "block", "the run request should still be offered for these channels");
+  });
+});
+
+test("12: the run request lists every selected channel that Gamma doesn't build", function () {
+  var mcp = makeMcp({ listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); }, calls: {} });
+  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["email", "article", "briefing_deck", "newsletter"]);
+  ctx.tryLiveGeneration();
+  return drain(30).then(function () {
+    var req = ctx.document.getElementById("req").textContent;
+    assert(req.indexOf("CHANNELS: email, article, briefing_deck, newsletter") !== -1,
+      "expected the run request to list all four channels, got: " + req);
   });
 });
 

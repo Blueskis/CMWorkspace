@@ -314,11 +314,11 @@ code{ font-family:var(--font-mono); font-size:.88em; background:var(--surface-2)
      pipeline &mdash; intake, plan, QA, then routing to whichever tool builds each artifact.
      Every draft comes back traced to what you actually said.</p>
 
-  <p class="notice"><b>Drafts here are generated, not checked.</b> Gamma writes the copy from
-     what you type, so nothing traces back to your brief and no QA runs &mdash; in testing it
-     invented a portal address that was never in the input. Read every fact before this goes
-     anywhere. For the checked route, run the pipeline in Claude with the request this page
-     builds: there, every line traces to your brief or the knowledge bank.</p>
+  <p class="notice"><b>Nothing is drafted inside this console.</b> No channel currently routes
+     through a connector this page can call directly — Generate builds the request below, and
+     every line of the actual draft only exists once you run it in Claude, traced to your brief
+     or the knowledge bank. Read every fact before anything goes anywhere, regardless of which
+     tool ends up writing it.</p>
 
   <section class="step">
     <div class="step-head">
@@ -455,12 +455,11 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
   // Per-channel Gamma settings. `gamma: null` means Gamma cannot build this channel — those
   // route to Canva or ElevenLabs, which stay handoff lanes, and are listed in the run request
   // instead of generated here.
-  var GAMMA_BY_CHANNEL = {
-    email:         { format: "document",     numCards: 1, amount: "brief", docx: true },
-    article:       { format: "document",                  amount: "detailed" },
-    newsletter:    { format: "document",                  amount: "medium" },
-    briefing_deck: { format: "presentation",              amount: "medium", exportAs: "pptx" }
-  };
+  // Intentionally empty: Email and Article are built by the docx skill, Briefing deck by the
+  // pptx skill, and Newsletter hands off to Canva — none of that runs inside this console, so
+  // no channel currently routes through Gamma. Left in place, along with the live-generation
+  // machinery below it, as the hook for whichever channel routes through Gamma next.
+  var GAMMA_BY_CHANNEL = {};
   var GAMMA_THEME = "consultant";   // its own keywords: consulting, corporate, formal, business
   var POLL_MS = 5000;
   var POLL_LIMIT = 48;              // ~4 minutes before giving up on one channel
@@ -468,14 +467,14 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
   // `by` names the producer that actually builds each channel's artifact — the routing table
   // from schemas/channel_registry.json, shown so it is visible without running anything.
   var CHANNELS = [
-    { id:"email", name:"Email", fmt:".docx", by:"Gamma copy → docx", status:"live",
-      note:"The workhorse. One action, one deadline, a named sender. Downloads as a real Word file." },
+    { id:"email", name:"Email", fmt:".docx", by:"docx skill", status:"live",
+      note:"The workhorse. One action, one deadline, a named sender. Built by the docx skill when you run the request below." },
     { id:"article", name:"Article", fmt:".docx", by:"docx skill", status:"live",
       note:"The considered version — explains the reasoning at length." },
-    { id:"briefing_deck", name:"Briefing deck", fmt:".pptx", by:"Gamma → .pptx", status:"live",
+    { id:"briefing_deck", name:"Briefing deck", fmt:".pptx", by:"pptx skill", status:"live",
       note:"A pack a manager presents, with speaker notes and likely questions." },
-    { id:"newsletter", name:"Newsletter", fmt:"Document", by:"Gamma", status:"live",
-      note:"Skimmable round-up. Builds in Canva; needs the connector authorised." },
+    { id:"newsletter", name:"Newsletter", fmt:"Document", by:"Canva", status:"live",
+      note:"Skimmable round-up. Builds in Canva when you run the request below." },
     { id:"banner", name:"Intranet banner", fmt:"Canva design", by:"Canva", status:"live",
       note:"A signpost: one message, pointing at the detail elsewhere." },
     { id:"short_form_video", name:"Short-form video", fmt:"Script + captions", by:"ElevenLabs narration", status:"planned",
