@@ -151,18 +151,35 @@ for beyond scoring/extraction gets reported to the user, not carried out.
 
 ## Status of this implementation (as of 2026-09-02)
 
-Documented and ready to build against: this file, the queue/state-machine contract, the rubric
-builder script (`scripts/build_intake_prompt.py`), and a versioned snapshot of the live
-artifact's HTML at `artifacts/cia-intake.template.html`.
+**Built and live** on the published artifact (`4f937bb9-ee6d-41bf-ab6e-dabeed14bd55`), verified
+by syntax-checking the patched script (Node) before publish and by hand-tracing both code paths:
 
-**Not yet built:** the actual JS changes to the live artifact (the two bug fixes above, the
-`db`/`sample` capability additions, the in-page Airtable push, the queue-status UI) and the
-scheduled polling loop itself. That work touches a live, shared document with real pending
-contributor batches — it needs a dedicated session with room to read the current live JS in
-full, make the changes, and verify before publishing, rather than being rushed. Until it lands,
-the workflow described in `intake-channels.md`'s "Tell Claude a batch has landed" paragraph is
-still accurate — treat it as current, not superseded, until this note is removed.
+- **The publish-conflict data-loss bug is fixed.** Both submit handlers now stash
+  `{batchId, current}` in `sessionStorage` immediately before publishing, clear it on success,
+  and leave it in place on a `conflict`. `loadState()` checks the stash on every load: if the
+  stashed batch id isn't in the freshly-loaded `history`, it restores `state.current` from the
+  stash and shows a toast asking the contributor to press Submit again (restore, not
+  auto-resubmit, so a recovered batch can't duplicate).
+- **The mode-1 draft-wipe bug is fixed.** `onSubmitProcess()`'s next-state construction now uses
+  `Object.assign({}, state.current, {...only the fields being cleared...})`, the same pattern
+  `onSubmitBaseline()` already used — so submitting a form/freetext/Excel batch no longer drops
+  `mode`/`baselineClient`/`baselineScope`/`baselineGoLive`/`baselinePrompt`/`baselineFiles`.
+- The two real pending batches found on this artifact (`batch-3df449e4`, `batch-307639db`) were
+  processed manually through Steps 3-5 as CI-011 and CI-012, pushed to Airtable, and marked
+  `processed` — a state-only republish, done and verified separately before the code change.
+- `artifacts/cia-intake.template.html` is kept in sync with the published script (state
+  stripped) as of this publish.
 
-To start the polling loop once the code above exists: `ScheduleWakeup(delaySeconds: 60, prompt:
+**Not yet built:** the `db`/`sample` capability additions, the in-page Airtable push via `mcp`
+(the connector call shape was observed once this session —
+`mcp__Airtable__list_tables_for_base` / `list_records_for_table` against
+`appFD6GsiE3Jh5rGQ` — but the page code that would call it live is not written), the
+queue-status UI (`claimed`/`failed` states, the worker banner), and the scheduled polling loop
+itself. Each of those is a larger, riskier change than the two bug fixes and deserves its own
+pass rather than being bundled in. Until they land, the workflow described in
+`intake-channels.md`'s "Tell Claude a batch has landed" paragraph is still accurate for new
+submissions — treat it as current, not superseded, until this note is removed.
+
+To start the polling loop once that code exists: `ScheduleWakeup(delaySeconds: 60, prompt:
 "drain the Change Impact Intake queue per reference/intake-worker.md", reason: "1-minute CIA
 intake poll")`, called from a live session, repeated per the backoff schedule above.
