@@ -1,0 +1,1134 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Change Comms Console</title>
+<style id="app-style">
+:root{
+  color-scheme: light dark;
+  --paper:#F3F5F9;
+  --surface:#FFFFFF;
+  --surface-2:#EAEEF5;
+  --ink:#12161F;
+  --ink-2:#4C5666;
+  --ink-3:#7A8494;
+  --line:#DCE1EA;
+  --line-strong:#BFC7D4;
+  --accent:#2E3D77;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#E4E8F6;
+  --jade:#0B6B54;
+  --jade-soft:#E0F0EA;
+  --amber:#8C5E0C;
+  --amber-soft:#F7EBD5;
+  --clay:#A33D2E;
+  --clay-soft:#F7E4E0;
+  --shadow: 0 1px 2px rgba(18,22,31,.06), 0 8px 24px -16px rgba(18,22,31,.35);
+  --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1117;
+    --surface:#171B23;
+    --surface-2:#1F242E;
+    --ink:#E8EBF2;
+    --ink-2:#A5AEBD;
+    --ink-3:#7B8494;
+    --line:#2A303B;
+    --line-strong:#3B4351;
+    --accent:#97A5EA;
+    --accent-ink:#10131B;
+    --accent-soft:#1C2340;
+    --jade:#4FC7A0;
+    --jade-soft:#12302A;
+    --amber:#D9A54E;
+    --amber-soft:#2E2617;
+    --clay:#E38375;
+    --clay-soft:#33201D;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1117;
+  --surface:#171B23;
+  --surface-2:#1F242E;
+  --ink:#E8EBF2;
+  --ink-2:#A5AEBD;
+  --ink-3:#7B8494;
+  --line:#2A303B;
+  --line-strong:#3B4351;
+  --accent:#97A5EA;
+  --accent-ink:#10131B;
+  --accent-soft:#1C2340;
+  --jade:#4FC7A0;
+  --jade-soft:#12302A;
+  --amber:#D9A54E;
+  --amber-soft:#2E2617;
+  --clay:#E38375;
+  --clay-soft:#33201D;
+  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:48px;
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important;} }
+
+h1,h2{ font-family:var(--font-display); font-weight:600; text-wrap:balance; margin:0; letter-spacing:-0.01em; }
+h1{ font-size:1.3rem; }
+h2{ font-size:1.05rem; }
+p{ margin:0; }
+
+.appbar{
+  position:sticky; top:0; z-index:20;
+  display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+  padding:12px 24px;
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; flex-direction:column; margin-right:auto; gap:2px; }
+.brand small{ color:var(--ink-3); font-size:.78rem; }
+.row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+.page{ max-width:880px; margin:0 auto; padding:32px 24px 40px; }
+
+.eyebrow{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-3); margin:0 0 8px; }
+.lede{ color:var(--ink-2); max-width:62ch; margin:0 0 32px; font-size:15px; }
+.hint{ font-size:13px; color:var(--ink-2); margin:0; max-width:62ch; }
+
+.step{ margin-bottom:28px; }
+.step-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:4px; }
+.step-no{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:600; }
+.step-sub{ color:var(--ink-2); font-size:14px; max-width:62ch; margin:0 0 14px; }
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  padding:22px 24px 26px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.card-row{ display:flex; gap:16px; flex-wrap:wrap; }
+
+.field{ display:flex; flex-direction:column; gap:6px; }
+.field.grow{ flex:1 1 240px; }
+.field > span{ font-size:.78rem; font-weight:500; color:var(--ink-2); }
+.field > span em{ font-style:normal; font-weight:400; opacity:0.85; }
+
+input[type="text"], textarea{
+  font-family:var(--font-body);
+  font-size:14.5px;
+  color:var(--ink);
+  background:var(--surface);
+  border:1px solid var(--line-strong);
+  border-radius:6px;
+  padding:8px 10px;
+  width:100%;
+  min-width:0;
+}
+textarea{ min-height:250px; line-height:1.6; resize:vertical; }
+::placeholder{ color:var(--ink-3); }
+
+input:focus-visible, textarea:focus-visible, button:focus-visible, .chan:focus-within{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  border-radius:4px;
+}
+
+.prompts{
+  background:var(--surface-2);
+  border-radius:8px;
+  padding:14px 16px;
+}
+.cover-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.cover-score{
+  font-family:var(--font-mono); font-size:11.5px; font-weight:600;
+  color:var(--ink-3); font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+.cover-score.good{ color:var(--jade); }
+.cover-list{ display:grid; gap:5px; }
+.cover-item{ display:flex; align-items:flex-start; gap:9px; font-size:13.5px; line-height:1.45; }
+.cover-mark{
+  flex:none; width:15px; height:15px; margin-top:2px; border-radius:50%;
+  border:1.5px solid var(--line-strong); background:var(--surface);
+  display:grid; place-items:center;
+}
+.cover-mark svg{ width:9px; height:9px; stroke:var(--accent-ink); stroke-width:3; fill:none; opacity:0; }
+.cover-item.on .cover-mark{ background:var(--jade); border-color:var(--jade); }
+.cover-item.on .cover-mark svg{ opacity:1; }
+.cover-item b{ color:var(--ink); font-weight:600; }
+.cover-item .say{ color:var(--ink-2); }
+.cover-item.on .say{ color:var(--ink-3); }
+.cover-item .opt{ color:var(--ink-3); font-size:12px; }
+.cover-foot{ font-size:12.5px; color:var(--ink-3); margin:12px 0 0; line-height:1.5; }
+
+.btn{
+  appearance:none; cursor:pointer;
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--line-strong); border-radius:7px;
+  padding:7px 15px; font-size:.87rem; font-weight:500;
+  transition:background .12s ease, border-color .12s ease;
+}
+.btn:hover{ background:var(--surface-2); }
+.btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+.btn.primary:hover{ filter:brightness(1.08); }
+.btn.primary:disabled{ opacity:0.6; cursor:default; filter:none; }
+.btn.ghost{ border-color:transparent; background:transparent; color:var(--ink-2); }
+.btn.ghost:hover{ background:var(--surface-2); color:var(--ink); }
+.btn.small{ padding:4px 9px; font-size:.78rem; }
+
+.pill{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.03em; text-transform:uppercase;
+  padding:4px 10px; border-radius:999px; font-weight:600; white-space:nowrap;
+}
+.pill-success{ background:var(--jade-soft); color:var(--jade); }
+.pill-warn{ background:var(--amber-soft); color:var(--amber); }
+.pill-channel{ background:var(--surface-2); color:var(--ink-2); }
+
+.chan-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(250px,1fr)); gap:10px; }
+.chan{
+  position:relative; display:block; cursor:pointer;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:8px; padding:13px 14px;
+  transition:border-color .12s ease, background .12s ease;
+}
+.chan:hover{ border-color:var(--line-strong); }
+.chan input{ position:absolute; opacity:0; width:0; height:0; }
+.chan.on{ border-color:var(--accent); background:var(--accent-soft); }
+.chan-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.chan-name{ font-weight:600; font-size:.95rem; }
+.chan-fmt{ font-family:var(--font-mono); font-size:11.5px; color:var(--ink-3); margin-top:3px; }
+.chan-note{ font-size:13px; color:var(--ink-2); margin-top:7px; line-height:1.45; }
+.tick{
+  width:17px; height:17px; flex:none; border-radius:4px;
+  border:1.5px solid var(--line-strong); background:var(--surface);
+  display:grid; place-items:center;
+}
+.chan.on .tick{ background:var(--accent); border-color:var(--accent); }
+.tick svg{ width:10px; height:10px; stroke:var(--accent-ink); stroke-width:2.6; fill:none; opacity:0; }
+.chan.on .tick svg{ opacity:1; }
+
+.legend{ display:flex; flex-wrap:wrap; gap:8px 20px; margin-top:12px; font-size:13px; color:var(--ink-2); }
+.legend div{ display:flex; align-items:center; gap:7px; }
+
+.actions{ display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:18px; }
+
+.notice{
+  margin:-18px 0 30px;
+  padding:11px 14px;
+  background:var(--amber-soft);
+  color:var(--amber);
+  border-radius:8px;
+  font-size:13.5px;
+  line-height:1.5;
+  max-width:62ch;
+}
+.notice code{ background:transparent; color:inherit; font-weight:600; padding:0; }
+
+.restored{
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+  margin-top:12px; padding:9px 12px;
+  background:var(--surface-2); border-radius:7px;
+  font-size:13px; color:var(--ink-2);
+}
+
+#out{ display:none; }
+#out.show{ display:block; }
+.out-top{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+pre{
+  margin:0; padding:14px 16px; overflow-x:auto;
+  background:var(--surface-2); border-radius:8px;
+  font-family:var(--font-mono); font-size:12.5px; line-height:1.6; color:var(--ink-2);
+  white-space:pre-wrap; word-break:break-word; max-height:330px;
+}
+
+.run-list{ display:flex; flex-direction:column; gap:8px; }
+.run-row{
+  display:flex; align-items:center; gap:12px; padding:10px 12px;
+  background:var(--surface-2); border-radius:7px; font-size:13.5px;
+}
+.run-row .name{ font-weight:600; flex:0 0 150px; }
+.run-row .stage{ color:var(--ink-2); flex:1 1 auto; }
+.run-row .stpill{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.03em; text-transform:uppercase;
+  padding:3px 8px; border-radius:999px; font-weight:600; white-space:nowrap; }
+.stpill-wait{ background:var(--surface); color:var(--ink-3); border:1px solid var(--line); }
+.stpill-run{ background:var(--accent-soft); color:var(--accent); }
+.stpill-ok{ background:var(--jade-soft); color:var(--jade); }
+.stpill-warn{ background:var(--amber-soft); color:var(--amber); }
+.stpill-fail{ background:var(--clay-soft); color:var(--clay); }
+
+.results{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+.results:empty{ margin-top:0; }
+.result{ padding:14px 16px; border:1px solid var(--line); border-radius:8px; }
+.result h3{ font-family:var(--font-body); font-size:.92rem; font-weight:600; margin:0 0 6px; }
+.result p{ font-size:13px; color:var(--ink-2); line-height:1.5; }
+.result p + p{ margin-top:5px; }
+.result a{ color:var(--accent); font-weight:600; }
+.result .gaps{ margin-top:8px; padding:9px 11px; background:var(--amber-soft); border-radius:6px; }
+.result .gaps p{ color:var(--amber); font-size:12.5px; }
+
+.stamp{
+  margin-top:6px; padding:7px 10px;
+  background:var(--amber-soft); color:var(--amber);
+  border-radius:6px; font-size:12.5px; line-height:1.45;
+}
+
+.banner-msg{
+  padding:11px 14px; border-radius:8px; font-size:13.5px; margin-bottom:14px;
+  background:var(--surface-2); color:var(--ink-2);
+}
+.banner-msg.warn{ background:var(--amber-soft); color:var(--amber); }
+.banner-msg a{ color:inherit; text-decoration:underline; }
+
+footer{ margin-top:36px; padding-top:18px; border-top:1px solid var(--line); }
+footer p{ font-size:13px; color:var(--ink-3); max-width:62ch; }
+footer p + p{ margin-top:8px; }
+footer b{ color:var(--ink-2); font-weight:600; }
+code{ font-family:var(--font-mono); font-size:.88em; background:var(--surface-2); padding:1px 5px; border-radius:3px; color:var(--ink-2); }
+</style>
+
+<header class="appbar">
+  <div class="brand">
+    <h1>Change Comms Console</h1>
+    <small>Describe the change once &mdash; Claude drafts it for every channel you pick</small>
+  </div>
+  <div class="row">
+    <button type="button" class="btn ghost small" id="btn-theme" title="Toggle light/dark">Theme</button>
+  </div>
+</header>
+
+<div class="page">
+  <p class="eyebrow">Change Communications</p>
+  <p class="lede">Write the change in your own words, choose the channels, and Claude runs the
+     pipeline &mdash; intake, plan, QA, then routing to whichever tool builds each artifact.
+     Every draft comes back traced to what you actually said.</p>
+
+  <p class="notice"><b>Drafts here are generated, not checked.</b> Gamma writes the copy from
+     what you type, so nothing traces back to your brief and no QA runs &mdash; in testing it
+     invented a portal address that was never in the input. Read every fact before this goes
+     anywhere. For the checked route, run the pipeline in Claude with the request this page
+     builds: there, every line traces to your brief or the knowledge bank.</p>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="step-no">01</span>
+      <h2>Describe the change</h2>
+    </div>
+    <p class="step-sub">Prose is fine &mdash; there are no fields to fill in. The more of the prompts
+       below you cover, the fewer gaps come back.</p>
+
+    <div class="card">
+      <label class="field grow">
+        <span>The change, in your own words</span>
+        <textarea id="brief" spellcheck="true" placeholder="e.g. From 1 October we're moving payroll from monthly to twice-monthly, and payslips move to a self-service portal.
+
+Everyone on the payroll is affected — about 2,400 people across the UK and Ireland. They each need to activate a portal account and check their bank details by 14 September; it takes ten minutes. Line managers also pick up timesheet approval, which payroll used to do centrally, so they need 45 minutes of training first.
+
+We're doing it because colleagues asked for it — more frequent pay was the top request in the last two engagement surveys — and because the current system loses vendor support in March 2027.
+
+Total annual pay isn't changing, and neither are contracts, hours or pensions. That matters, because the first thing people will assume is that they're being paid less.
+
+It's going out from Marcus Bell, our Chief People Officer. Questions go to payroll support, 8am–6pm weekdays. We still don't know whether agency contractors see any change to their payment timing."></textarea>
+      </label>
+
+      <div class="prompts">
+        <div class="cover-head">
+          <p class="eyebrow" style="margin:0">Worth covering</p>
+          <span class="cover-score" id="cover-score">&mdash;</span>
+        </div>
+        <div class="cover-list" id="cover"></div>
+        <p class="cover-foot">A read of your text, not a QA result &mdash; the real checks run on the
+           draft. Anything still missing comes back as a visible <code>[GAP]</code> rather than an
+           invented answer, which is often the right outcome.</p>
+      </div>
+
+      <div class="card-row">
+        <label class="field grow">
+          <span>Organisation</span>
+          <input type="text" id="org" placeholder="Used to name the files" autocomplete="organization">
+        </label>
+        <label class="field grow">
+          <span>Sending on behalf of <em>(optional)</em></span>
+          <input type="text" id="sender" placeholder="Name and role of the messenger">
+        </label>
+      </div>
+
+      <p class="hint">Brand isn't collected here. Palette, typography and tone live in a per-client
+         brand profile reused across every change &mdash; Claude uses the one on file, and stops to
+         ask if there isn't one rather than approximating it.</p>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="step-no">02</span>
+      <h2>Choose the channels</h2>
+    </div>
+    <p class="step-sub">Each routes to a different tool. Every channel produces a reviewable draft and
+       a QA report; the badge says whether the finished artifact can be built right now.</p>
+
+    <div class="chan-grid" id="chans"></div>
+
+    <div class="legend">
+      <div><span class="pill pill-success">Live</span> an automated build exists</div>
+      <div><span class="pill pill-channel">Planned</span> ships a production spec instead</div>
+    </div>
+    <p class="hint" style="margin-top:8px">A producer that isn't reachable is not a failed run
+       &mdash; Claude hands back the handoff artifact and says so. Canva channels need the Canva
+       connector authorised, or you get a design brief instead of a finished file. Both video
+       lanes need ElevenLabs enabled, and even then it supplies the <em>narration</em> only:
+       assembling the picture stays a production step.</p>
+
+    <div class="actions">
+      <button type="button" class="btn primary" id="go" disabled>Generate first drafts</button>
+      <span class="hint" id="count">Pick at least one channel</span>
+    </div>
+
+    <div class="restored" id="restored" hidden>
+      <span>Picked up where you left off &mdash; this draft is saved in this browser only.</span>
+      <button type="button" class="btn ghost small" id="clear-draft">Start fresh</button>
+    </div>
+  </section>
+
+  <section class="step" id="out">
+    <div class="step-head">
+      <span class="step-no">03</span>
+      <h2 id="out-h2">Generate</h2>
+    </div>
+    <p class="step-sub" id="out-sub">&mdash;</p>
+
+    <div class="card" id="out-live" style="display:none">
+      <div id="run-banner"></div>
+      <div class="run-list" id="runlist"></div>
+      <div class="results" id="results"></div>
+    </div>
+
+    <div class="card" id="out-fallback" style="display:none">
+      <div class="out-top">
+        <p class="hint" id="outsum">&mdash;</p>
+        <div class="row">
+          <button type="button" class="btn primary small" id="copy">Copy</button>
+          <button type="button" class="btn small" id="dl">Download .md</button>
+        </div>
+      </div>
+      <pre id="req"></pre>
+    </div>
+  </section>
+
+  <footer>
+    <p>Every draft comes back as a <b>first draft for practitioner review</b> &mdash; never an approved
+       send. Sentences trace to what you wrote or to past collateral; anything neither covers comes
+       back as a visible <code>[GAP]</code> rather than a plausible-sounding guess.</p>
+    <p><b>Copy and design are approved separately.</b> A draft can pass every check and still carry a
+       layout no one has signed off.</p>
+  </footer>
+</div>
+
+<!-- docx-js: the same library skills/cm-comms-generator/scripts/build_docx.py drives, so the
+     email lane produces a real .docx here too. Pinned to 9.0.0 — the LAST version that ships
+     build/index.umd.js; 9.3.0+ dropped it, and the unpinned URL only 200s off a stale cache. -->
+<script src="https://cdn.jsdelivr.net/npm/docx@9.0.0/build/index.umd.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // Gamma is a hosted connector the viewer adds once in claude.ai — nothing to deploy, no URL
+  // to manage. It replaces the cm-comms server, which could never be reached from here: it is
+  // source code in the repo with no host, and the two routes that would have avoided hosting
+  // (a host: MCP server on the viewer's machine, or an LLM capability in the page) are both
+  // unavailable on this account.
+  var MCP_SERVERS = ["Gamma"];
+  var REQUIRED_TOOLS = ["generate", "get_generation_status"];
+  var activeServer = null;
+
+  // Per-channel Gamma settings. `gamma: null` means Gamma cannot build this channel — those
+  // route to Canva or ElevenLabs, which stay handoff lanes, and are listed in the run request
+  // instead of generated here.
+  var GAMMA_BY_CHANNEL = {
+    email:         { format: "document",     numCards: 1, amount: "brief", docx: true },
+    article:       { format: "document",                  amount: "detailed" },
+    newsletter:    { format: "document",                  amount: "medium" },
+    briefing_deck: { format: "presentation",              amount: "medium", exportAs: "pptx" }
+  };
+  var GAMMA_THEME = "consultant";   // its own keywords: consulting, corporate, formal, business
+  var POLL_MS = 5000;
+  var POLL_LIMIT = 48;              // ~4 minutes before giving up on one channel
+
+  // `by` names the producer that actually builds each channel's artifact — the routing table
+  // from schemas/channel_registry.json, shown so it is visible without running anything.
+  var CHANNELS = [
+    { id:"email", name:"Email", fmt:".docx", by:"Gamma copy → docx", status:"live",
+      note:"The workhorse. One action, one deadline, a named sender. Downloads as a real Word file." },
+    { id:"article", name:"Article", fmt:".docx", by:"docx skill", status:"live",
+      note:"The considered version — explains the reasoning at length." },
+    { id:"briefing_deck", name:"Briefing deck", fmt:".pptx", by:"Gamma → .pptx", status:"live",
+      note:"A pack a manager presents, with speaker notes and likely questions." },
+    { id:"newsletter", name:"Newsletter", fmt:"Document", by:"Gamma", status:"live",
+      note:"Skimmable round-up. Builds in Canva; needs the connector authorised." },
+    { id:"banner", name:"Intranet banner", fmt:"Canva design", by:"Canva", status:"live",
+      note:"A signpost: one message, pointing at the detail elsewhere." },
+    { id:"short_form_video", name:"Short-form video", fmt:"Script + captions", by:"ElevenLabs narration", status:"planned",
+      note:"30–90s clip. You get a scene spec, timings and captions; ElevenLabs narrates it once that connector is enabled." },
+    { id:"explainer_video", name:"Explainer video", fmt:"Script + captions", by:"ElevenLabs narration", status:"planned",
+      note:"2–5 min walkthrough. Narration only — assembling the picture stays a production step, as no avatar-video connector exists." }
+  ];
+
+  var PILL = { live:"pill-success", blocked:"pill-warn", planned:"pill-channel" };
+  var LABEL = { live:"Live", blocked:"Blocked", planned:"Planned" };
+
+  // The six questions qa_comms.py checks a finished draft for, applied here to the RAW TEXT
+  // as a writing prompt. Deliberately weaker than the real audit — this only asks whether you
+  // appear to have mentioned a thing, never whether the draft covers it properly. `required`
+  // items are the six; the rest are strong recommendations from the channel library.
+  var MONTHS = "jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec";
+  var COVERAGE = [
+    { id:"what", required:true, label:"What's changing",
+      say:"the substance, in the reader's terms rather than the programme's",
+      re:/\b(chang|mov(e|ing)|switch|replac|introduc|new |instead of|rolling out|roll out|migrat|from .{1,30} to )/i },
+    { id:"who", required:true, label:"Who's affected",
+      say:"each group, and how differently",
+      re:/\b(everyone|colleagues?|staff|employees?|people|teams?|managers?|affected|impacted|all .{0,12}(staff|colleagues|employees)|\d[\d,]{2,}\s*(people|colleagues|staff|employees))/i },
+    { id:"why", required:true, label:"Why it's happening",
+      say:"the reason, and why now",
+      re:/\b(because|why|reason|so that|in order to|due to|driven by|thanks to|out of support|end of life|asked for)/i },
+    { id:"when", required:true, label:"When",
+      say:"key dates — flag any that aren't confirmed",
+      re:new RegExp("\\b(\\d{1,2}(st|nd|rd|th)?\\s+(" + MONTHS + ")|(" + MONTHS + ")[a-z]*\\s+\\d{1,2}|\\d{1,2}[\\/-]\\d{1,2}[\\/-]\\d{2,4}|\\b20\\d\\d\\b|next (week|month|quarter|year)|from \\d)", "i") },
+    { id:"action", required:true, label:"What people must do",
+      say:"the action, the deadline, and roughly how long it takes",
+      re:/\b(need to|needs to|must|should|required to|have to|action|activate|complete|register|sign up|log in|check your|update your|book|enrol|enroll|attend)/i },
+    { id:"help", required:true, label:"Where to get help",
+      say:"the route when the action fails — the most-omitted field",
+      // Needs a contactable ROUTE, not the word "help" or "support" on its own: "the system
+      // loses vendor support in March" must not read as a help desk, and it did until this
+      // was tightened.
+      re:/([\w.+-]+@[\w-]+\.[a-z]{2,}|\b(service|help)\s?desk\b|\bhelpline\b|\bhotline\b|\bcontact\b|\bget in touch\b|\breach out\b|questions?\s+(go|to|about|can|should|will)|\b(payroll|hr|it|people|technical|finance)\s+support\b|\bsupport\s+(team|desk|line|inbox|mailbox|channel|portal)\b|\bif you (need|have)\s+(help|questions?|any|trouble|problems?)|\bfor help\b|\bhelp is available\b)/i },
+    { id:"notchanging", required:false, label:"What is not changing",
+      say:"named reassurance stops more speculation than anything else",
+      re:/\b(not chang|isn'?t chang|aren'?t chang|unchanged|stays? the same|remains? the same|no change to|will not change|won'?t change)/i },
+    { id:"unknown", required:false, label:"What you don't know yet",
+      say:"comes back as a visible gap, not an invented answer",
+      re:/\b(don'?t know|do not know|unclear|not sure|unsure|still (to be|being)|tbc|to be confirmed|undecided|open question|yet to)/i }
+  ];
+
+  function assessBrief(text) {
+    var t = String(text || "");
+    // Too little text to say anything honest about: report nothing rather than a false negative
+    // on every line, which would read as criticism of an empty box.
+    if (t.trim().length < 40) { return { hits:{}, met:0, requiredTotal:0, missing:[], scored:false }; }
+    var hits = {}, met = 0, missing = [];
+    COVERAGE.forEach(function (c) {
+      var ok = c.re.test(t);
+      hits[c.id] = ok;
+      if (c.required) {
+        if (ok) { met++; } else { missing.push(c); }
+      }
+    });
+    var requiredTotal = COVERAGE.filter(function (c) { return c.required; }).length;
+    return { hits: hits, met: met, requiredTotal: requiredTotal, missing: missing, scored: true };
+  }
+
+  var TICK = '<svg viewBox="0 0 12 12" aria-hidden="true"><polyline points="1.5,6.5 4.5,9.5 10.5,2.5"></polyline></svg>';
+
+  function renderCoverage() {
+    var a = assessBrief($("brief").value);
+    $("cover").innerHTML = COVERAGE.map(function (c) {
+      var on = a.hits[c.id];
+      return '<div class="cover-item' + (on ? " on" : "") + '">' +
+        '<span class="cover-mark">' + TICK + '</span>' +
+        '<span><b>' + esc(c.label) + '</b>' +
+        (c.required ? "" : ' <span class="opt">· recommended</span>') +
+        ' <span class="say">&mdash; ' + esc(c.say) + '</span></span>' +
+      '</div>';
+    }).join("");
+
+    var score = $("cover-score");
+    if (!a.scored) {
+      score.textContent = "—";
+      score.className = "cover-score";
+    } else {
+      score.textContent = a.met + " of " + a.requiredTotal + " covered";
+      score.className = "cover-score" + (a.met === a.requiredTotal ? " good" : "");
+    }
+    return a;
+  }
+
+  // --- Draft persistence -----------------------------------------------------
+  // Per-viewer and private to this browser. Deliberately NOT the artifact capability, which
+  // would save the text into the page for everyone it is shared with — these briefs are
+  // client-confidential change comms. Every access is guarded: storage throws outright in some
+  // embedded contexts, and the page has to render correctly when it does.
+  var STORE_KEY = "cm-comms-console-draft";
+
+  function saveDraft() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        brief: $("brief").value, org: $("org").value, sender: $("sender").value,
+        channels: Object.keys(picked), at: Date.now()
+      }));
+    } catch (e) { /* storage unavailable or full — the page works without it */ }
+  }
+
+  function loadDraft() {
+    var raw = null;
+    try { raw = localStorage.getItem(STORE_KEY); } catch (e) { return false; }
+    if (!raw) { return false; }
+    var d;
+    try { d = JSON.parse(raw); } catch (e) { return false; }
+    if (!d || typeof d !== "object" || !String(d.brief || "").trim()) { return false; }
+    $("brief").value = d.brief || "";
+    $("org").value = d.org || "";
+    $("sender").value = d.sender || "";
+    (d.channels || []).forEach(function (id) {
+      var el = document.querySelector('.chan[data-id="' + id + '"]');
+      var box = el && el.querySelector("input");
+      if (box) { box.checked = true; picked[id] = true; el.classList.add("on"); }
+    });
+    return true;
+  }
+
+  function clearDraft() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) { /* nothing to clear */ }
+  }
+
+  var picked = Object.create(null);
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+
+  function renderChannels() {
+    $("chans").innerHTML = CHANNELS.map(function (c) {
+      return '<label class="chan" data-id="' + c.id + '">' +
+        '<input type="checkbox" value="' + c.id + '">' +
+        '<span class="chan-top">' +
+          '<span class="chan-name">' + esc(c.name) + '</span>' +
+          '<span class="row" style="gap:8px">' +
+            '<span class="pill ' + PILL[c.status] + '">' + LABEL[c.status] + '</span>' +
+            '<span class="tick"><svg viewBox="0 0 12 12" aria-hidden="true">' +
+              '<polyline points="1.5,6.5 4.5,9.5 10.5,2.5"></polyline></svg></span>' +
+          '</span>' +
+        '</span>' +
+        '<span class="chan-fmt">' + esc(c.fmt) + ' · built by ' + esc(c.by) + '</span>' +
+        '<span class="chan-note">' + esc(c.note) + '</span>' +
+      '</label>';
+    }).join("");
+
+    Array.prototype.forEach.call(document.querySelectorAll(".chan"), function (el) {
+      var box = el.querySelector("input");
+      box.addEventListener("change", function () {
+        if (box.checked) { picked[box.value] = true; el.classList.add("on"); }
+        else { delete picked[box.value]; el.classList.remove("on"); }
+        syncCount();
+      });
+    });
+  }
+
+  function chosen() { return CHANNELS.filter(function (c) { return picked[c.id]; }); }
+
+  function syncCount() {
+    var n = chosen().length;
+    var brief = $("brief").value.trim();
+    var a = renderCoverage();
+    $("go").disabled = (n === 0 || brief.length < 40);
+    if (n === 0) {
+      $("count").textContent = "Pick at least one channel";
+    } else if (brief.length < 40) {
+      $("count").textContent = "Add a little more detail about the change";
+    } else if (a.missing.length) {
+      // Never blocking: an unanswered question is a legitimate [GAP], not an error.
+      $("count").textContent = n + (n === 1 ? " channel" : " channels") + " · " +
+        a.missing.length + " question" + (a.missing.length === 1 ? "" : "s") + " unanswered";
+    } else {
+      $("count").textContent = n + (n === 1 ? " channel selected" : " channels selected");
+    }
+    saveDraft();
+  }
+
+  function buildRequest() {
+    var org = $("org").value.trim() || "the client";
+    var sender = $("sender").value.trim();
+    var picks = chosen();
+    var lines = [];
+    lines.push("Run cm-comms-generator for the change below.");
+    lines.push("");
+    lines.push("ORGANISATION: " + org);
+    if (sender) lines.push("SENDER: " + sender);
+    lines.push("CHANNELS: " + picks.map(function (c) { return c.id; }).join(", "));
+    lines.push("");
+    lines.push("THE CHANGE");
+    lines.push($("brief").value.trim());
+    lines.push("");
+    var a = assessBrief($("brief").value);
+    if (a.scored && a.missing.length) {
+      lines.push("NOT ANSWERED ABOVE — treat as open questions, do not invent answers:");
+      a.missing.forEach(function (c) { lines.push("- " + c.label + " (" + c.say + ")"); });
+      lines.push("");
+    }
+    lines.push("WHAT TO DO");
+    lines.push("1. Interrogate this into a change_brief.json — stable A/M/T ids, and put");
+    lines.push("   anything I left unanswered in open_questions rather than inventing it.");
+    lines.push("2. Plan and draft each channel above, then QA before producing anything.");
+    lines.push("3. Route each channel to its producer and build what can be built.");
+    lines.push("4. Hand back the drafts, the QA reports and the files, and tell me what");
+    lines.push("   is still open.");
+    return lines.join("\n");
+  }
+
+  function showRequest() {
+    var picks = chosen();
+    $("out-h2").textContent = "Send it to Claude";
+    $("out-sub").textContent = "Gamma isn’t connected for this account, so this step is manual: copy this into your Claude conversation. That route also runs the checks — every line traced to your brief, and QA before anything is produced.";
+    $("out-live").style.display = "none";
+    $("out-fallback").style.display = "block";
+    $("req").textContent = buildRequest();
+    $("outsum").textContent =
+      picks.length + (picks.length === 1 ? " channel" : " channels") + " · " +
+      picks.filter(function (c) { return c.status === "live"; }).length + " build a file now";
+    $("out").classList.add("show");
+    $("out").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function withCap(name, cb) {
+    if (!window.claude || typeof window.claude.use !== "function") { cb(null); return; }
+    window.claude.use(name).then(cb, function () { cb(null); });
+  }
+
+  function fallbackCopy(text, done) {
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.top = "-1000px";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) { /* left selected to copy by hand */ }
+    document.body.removeChild(ta);
+  }
+
+  // --- Live generation via the viewer's Gamma connector ---------------------
+  // Falls back to the copy/paste request whenever the server isn't reachable:
+  // not added as a connector, reauth lapsed, or genuinely unavailable. Errors
+  // are branched on McpError.code per connector, never collapsed into one
+  // generic banner — see the artifact-capabilities mcp doctrine.
+
+  var STAGE_LABEL = { wait: "Waiting", run: "Working", ok: "Ready", warn: "Needs attention", fail: "Blocked" };
+
+  function setStage(id, kind, text) {
+    var pill = document.getElementById("pill-" + id);
+    var stage = document.getElementById("stage-" + id);
+    if (pill) { pill.className = "stpill stpill-" + kind; pill.textContent = STAGE_LABEL[kind] || kind; }
+    if (stage) { stage.textContent = text; }
+  }
+
+  function renderRunList(picks) {
+    $("runlist").innerHTML = picks.map(function (c) {
+      return '<div class="run-row" id="row-' + c.id + '">' +
+        '<span class="name">' + esc(c.name) + '</span>' +
+        '<span class="stage" id="stage-' + c.id + '">Queued</span>' +
+        '<span class="stpill stpill-wait" id="pill-' + c.id + '">Waiting</span>' +
+      '</div>';
+    }).join("");
+    $("results").innerHTML = "";
+  }
+
+  function addResult(html) {
+    var el = document.createElement("div");
+    el.className = "result";
+    el.innerHTML = html;
+    $("results").appendChild(el);
+  }
+
+  function banner(kind, html) {
+    var el = document.createElement("div");
+    el.className = "banner-msg" + (kind === "warn" ? " warn" : "");
+    el.innerHTML = html;
+    $("run-banner").appendChild(el);
+  }
+
+  function mcpErrorCopy(err) {
+    var code = err && err.code;
+    if (code === "needs_reauth") return "Your Gamma connection has lapsed — reconnect it in claude.ai Settings → Connectors.";
+    if (code === "server_not_connected") return "Gamma isn’t connected for this account — add it in claude.ai Settings → Connectors. The run request below still works by hand.";
+    if (code === "selection_required") return "More than one Gamma connector is available and none is chosen yet — pick one, then try again.";
+    if (code === "blocked_by_policy") return "Your organisation’s policy blocks the Gamma connector for this account.";
+    if (code === "approval_required") return "This call needs per-call approval that isn't available here yet.";
+    if (code === "tool_error") return "Gamma reported an error: " + (err.message || "no detail given") + ".";
+    if (code === "server_unavailable") return "Gamma is temporarily unreachable — try again shortly.";
+    return "Gamma couldn’t complete this step" + (err && err.message ? ": " + err.message : ".");
+  }
+
+  // --- Gamma generation ------------------------------------------------------
+  // Response shapes below were observed against the live connector, not guessed:
+  //   generate            -> {generationId, status:"pending", gammaUrl:".../generations/<id>"}
+  //   get_generation_status pending   -> {generationId, status:"pending"}
+  //   get_generation_status completed -> {generationId, status:"completed",
+  //                                       gammaUrl:"https://gamma.app/docs/<docId>",
+  //                                       credits:{deducted, remaining}}
+  // Note the final gammaUrl differs from the one generate returns, so always take the URL
+  // from the completed poll.
+
+  function buildPrompt(chan) {
+    var org = $("org").value.trim() || "the organisation";
+    var sender = $("sender").value.trim();
+    var a = assessBrief($("brief").value);
+    var L = [];
+    L.push("Internal change communication for " + org + ".");
+    L.push("Channel: " + chan.name + " — " + chan.note);
+    L.push("");
+    L.push("THE CHANGE, IN THE PRACTITIONER'S OWN WORDS:");
+    L.push($("brief").value.trim());
+    L.push("");
+    if (sender) { L.push("SENDER: " + sender); L.push(""); }
+    L.push("RULES:");
+    L.push("- Use ONLY the facts stated above. Do not invent dates, names, URLs, portal");
+    L.push("  addresses, phone numbers, system names or statistics.");
+    L.push("- Write for the reader, not the programme. Plain language, active voice.");
+    if (a.scored && a.missing.length) {
+      L.push("- These questions are NOT answered above. Do not invent answers — leave a clearly");
+      L.push("  marked placeholder the practitioner can fill in:");
+      a.missing.forEach(function (c) { L.push("    * " + c.label + " (" + c.say + ")"); });
+    }
+    return L.join("\n");
+  }
+
+  function pollGeneration(mcp, chan, id, tries) {
+    return mcp.callTool(activeServer, "get_generation_status", { generationId: id })
+      .then(function (res) {
+        var p = res.payload || {};
+        if (p.status === "completed") { return p; }
+        if (p.status && p.status !== "pending") {
+          throw { code: "tool_error", message: "Gamma reported status '" + p.status + "'" };
+        }
+        if (tries >= POLL_LIMIT) {
+          throw { code: "upstream_error", message: "still generating after several minutes" };
+        }
+        setStage(chan.id, "run", "Generating… (" + ((tries + 1) * POLL_MS / 1000 | 0) + "s)");
+        return new Promise(function (r) { setTimeout(r, POLL_MS); })
+          .then(function () { return pollGeneration(mcp, chan, id, tries + 1); });
+      });
+  }
+
+  // --- Email → .docx ---------------------------------------------------------
+  // The repo builds email as a .docx through the docx skill (build_docx.py drives docx-js).
+  // A browser page can't run that script, but it CAN run the same library, so the email lane
+  // packages Gamma's copy into a real Word file rather than leaving it as a web doc.
+  //
+  // Gamma returns its content as a ProseMirror-style tree on
+  // generationDetails.content.default.content. Node types observed on a live response:
+  // doc/document/card/cardLayoutItem/gridLayout/gridCell/smartLayout/smartLayoutCell/
+  // calloutBox/labelGroup/label wrap children; heading/paragraph hold runs; text carries
+  // marks (bold); hardBreak and emoji are inline. Anything unrecognised is walked through,
+  // so an unfamiliar container costs formatting, never content.
+
+  // `label` holds text directly rather than wrapping a paragraph, so it has to count as a
+  // block — without it Gamma's audience line ("All Colleagues · Northwind Foods") is
+  // silently dropped from the .docx. Caught by testing the walker against a real response.
+  var DOCX_FILES = Object.create(null);   // channel id -> {blob, filename}
+
+  var BLOCK_NODES = { heading: 1, paragraph: 1, label: 1 };
+
+  function runsFrom(node, out) {
+    (node.content || []).forEach(function (n) {
+      if (n.type === "text") {
+        var bold = (n.marks || []).some(function (m) { return m.type === "bold"; });
+        out.push({ text: n.text || "", bold: bold });
+      } else if (n.type === "emoji") {
+        out.push({ text: (n.attrs && n.attrs.native) || "", bold: false });
+      } else if (n.type === "hardBreak") {
+        out.push({ br: true });
+      } else if (n.content) {
+        runsFrom(n, out);
+      }
+    });
+    return out;
+  }
+
+  function flatten(node, blocks) {
+    if (!node || typeof node !== "object") { return blocks; }
+    if (BLOCK_NODES[node.type]) {
+      var runs = runsFrom(node, []);
+      if (runs.some(function (r) { return r.text && r.text.trim(); })) {
+        blocks.push({ heading: node.type === "heading" ? ((node.attrs && node.attrs.level) || 1) : 0, runs: runs });
+      }
+      return blocks;
+    }
+    (node.content || []).forEach(function (c) { flatten(c, blocks); });
+    return blocks;
+  }
+
+  function gammaBlocks(details) {
+    try {
+      var root = details && details.content && details.content.default;
+      return root ? flatten(root, []) : [];
+    } catch (e) { return []; }
+  }
+
+  function buildDocx(chan, blocks) {
+    if (typeof docx === "undefined" || !docx.Packer) { return null; }
+    var D = docx, HL = D.HeadingLevel;
+    var levels = [null, HL.HEADING_1, HL.HEADING_2, HL.HEADING_3, HL.HEADING_4, HL.HEADING_5, HL.HEADING_6];
+    var org = $("org").value.trim();
+    var sender = $("sender").value.trim();
+
+    var children = blocks.map(function (b) {
+      var kids = [];
+      b.runs.forEach(function (r) {
+        if (r.br) { kids.push(new D.TextRun({ text: "", break: 1 })); }
+        else { kids.push(new D.TextRun({ text: r.text, bold: !!r.bold })); }
+      });
+      var opts = { children: kids };
+      if (b.heading) { opts.heading = levels[Math.min(b.heading, 6)] || HL.HEADING_2; }
+      return new D.Paragraph(opts);
+    });
+
+    // Provenance footer — this file must never be mistaken for a pipeline-checked draft.
+    children.push(new D.Paragraph({ text: "" }));
+    children.push(new D.Paragraph({
+      children: [new D.TextRun({
+        text: "Generated draft — not checked. The copy above was written by Gamma from the "
+            + "brief typed into the Change Comms Console. It has not been through QA and no "
+            + "line is traced to a source, so verify every date, name, figure and link before "
+            + "sending." + (sender ? " Intended sender: " + sender + "." : ""),
+        italics: true, size: 18
+      })]
+    }));
+
+    var doc = new D.Document({
+      creator: "Change Comms Console",
+      title: (org ? org + " — " : "") + chan.name,
+      sections: [{ children: children }]
+    });
+    return D.Packer.toBlob(doc);
+  }
+
+  function offerDocx(chan, details) {
+    var blocks = gammaBlocks(details);
+    if (!blocks.length) { return Promise.resolve(null); }
+    var blobP;
+    try { blobP = buildDocx(chan, blocks); } catch (e) { return Promise.resolve(null); }
+    if (!blobP) { return Promise.resolve(null); }
+    return blobP.then(function (blob) {
+      var org = ($("org").value.trim() || "change").toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      return { blob: blob, filename: (org || "change") + "-" + chan.id + ".docx" };
+    }).catch(function () { return null; });
+  }
+
+  function runChannel(mcp, chan) {
+    var cfg = GAMMA_BY_CHANNEL[chan.id];
+    if (!cfg) {
+      setStage(chan.id, "warn", "Not built here");
+      addResult('<h3>' + esc(chan.name) + '</h3>' +
+        '<p>Gamma doesn’t build this one — it routes to ' + esc(chan.by) +
+        '. Use the run request below for this channel.</p>');
+      return Promise.resolve();
+    }
+    setStage(chan.id, "run", "Sending to Gamma…");
+    var input = { inputText: buildPrompt(chan), format: cfg.format, themeId: GAMMA_THEME,
+                  textOptions: { amount: cfg.amount, audience: "all affected colleagues",
+                                 tone: "clear, warm, professional" } };
+    if (cfg.numCards) { input.numCards = cfg.numCards; }
+    if (cfg.exportAs) { input.exportAs = cfg.exportAs; }
+
+    return mcp.callTool(activeServer, "generate", input)
+      .then(function (res) {
+        var p = res.payload || {};
+        if (!p.generationId) { throw { code: "tool_error", message: "no generation id returned" }; }
+        setStage(chan.id, "run", "Generating…");
+        return pollGeneration(mcp, chan, p.generationId, 0);
+      })
+      .then(function (done) {
+        if (!cfg.docx) { return done; }
+        // Email is a .docx channel in this pipeline, so package Gamma's copy with the same
+        // library the docx skill uses instead of leaving it as a web doc.
+        setStage(chan.id, "run", "Building the .docx…");
+        return offerDocx(chan, done.generationDetails).then(function (file) {
+          done._docx = file;   // null when docx-js didn't load or the tree was empty
+          return done;
+        });
+      })
+      .then(function (done) {
+        var url = done.gammaUrl;
+        var exportUrl = cfg.exportAs ? done.exportUrl : null;
+        var credits = done.credits && typeof done.credits.deducted === "number"
+          ? done.credits.deducted + " credits used" +
+            (typeof done.credits.remaining === "number" ? ", " + done.credits.remaining + " left" : "")
+          : "";
+        addResult('<h3>' + esc(chan.name) + '</h3>' +
+          (url ? '<p><a href="' + esc(url) + '" target="_blank" rel="noopener">Open the draft in Gamma</a>' +
+                 (cfg.exportAs && !exportUrl ? ' — export as .' + esc(cfg.exportAs) + ' from there' : '') + '</p>'
+               : '<p>Gamma finished but returned no link.</p>') +
+          (exportUrl ? '<p><a href="' + esc(exportUrl) + '" target="_blank" rel="noopener">Download the .' +
+                       esc(cfg.exportAs) + '</a></p>' : '') +
+          (done._docx ? '<p><button type="button" class="btn small dl-docx" data-ch="' +
+                        esc(chan.id) + '">Download .docx</button></p>' : '') +
+          '<p class="stamp">Generated — not QA’d, not traced. Gamma wrote this copy, so ' +
+          'check every fact against your brief before it goes anywhere.</p>' +
+          (credits ? '<p class="hint">' + esc(credits) + '</p>' : ''));
+        if (done._docx) { DOCX_FILES[chan.id] = done._docx; }
+        setStage(chan.id, "ok", done._docx ? "Draft + .docx ready" : "Draft ready");
+      })
+      .catch(function (err) {
+        setStage(chan.id, "fail", "Failed");
+        addResult('<h3>' + esc(chan.name) + '</h3><p>' + esc(mcpErrorCopy(err)) + '</p>');
+      });
+  }
+
+  function runGeneration(mcp) {
+    var picks = chosen();
+    $("out-h2").textContent = "Generating";
+    $("out-sub").textContent = "Drafting each channel through your Gamma connector.";
+    $("out-fallback").style.display = "none";
+    $("out-live").style.display = "flex";
+    $("out-live").style.flexDirection = "column";
+    $("run-banner").innerHTML = "";
+    $("out").classList.add("show");
+    $("out").scrollIntoView({ behavior: "smooth", block: "start" });
+    renderRunList(picks);
+    $("go").disabled = true;
+    $("go").textContent = "Generating…";
+
+    var chain = Promise.resolve();
+    picks.forEach(function (chan) {
+      chain = chain.then(function () { return runChannel(mcp, chan); });
+    });
+    chain.then(function () {
+      // Channels Gamma cannot build still need somewhere to go.
+      if (picks.some(function (c) { return !GAMMA_BY_CHANNEL[c.id]; })) {
+        $("out-fallback").style.display = "block";
+        $("req").textContent = buildRequest();
+        $("outsum").textContent = "For the channels Gamma doesn’t build";
+      }
+      $("go").disabled = false;
+      $("go").textContent = "Generate first drafts";
+    });
+  }
+
+  var LIST_TOOLS_TIMEOUT_MS = 15000;
+
+  function tryLiveGeneration() {
+    // The mcp capability can take up to ~10s to settle when nothing answers (no connector,
+    // a shell that never replies) — without an immediate state change here, that whole window
+    // looks like the button did nothing. Every path below shows something right away.
+    //
+    // Everything from here runs as one then/catch chain: a throw anywhere in it (a bad
+    // response shape, a future slip) lands in the single catch below instead of hanging the
+    // button silently, and listTools() races a timeout so a connector that never replies
+    // still restores the button.
+    $("go").disabled = true;
+    $("go").textContent = "Checking for Gamma…";
+    var restore = function () { $("go").disabled = false; $("go").textContent = "Generate first drafts"; };
+
+    if (!window.claude || typeof window.claude.use !== "function") { restore(); showRequest(); return; }
+
+    window.claude.use("mcp").then(function (mcp) {
+      if (!mcp) { restore(); showRequest(); return null; }
+
+      var timedOut = false;
+      var timeoutP = new Promise(function (resolve) {
+        setTimeout(function () { timedOut = true; resolve({ servers: [] }); }, LIST_TOOLS_TIMEOUT_MS);
+      });
+
+      return Promise.race([mcp.listTools(), timeoutP]).then(function (res) {
+        if (timedOut) { restore(); showRequest(); return; }
+        var servers = res.servers || [];
+        activeServer = null;
+        // First candidate that is present AND exposes all five tools wins. A connector that
+        // is listed but has an empty tool set is the not-yet-chosen / not-connected state —
+        // the every() check below rejects it without a special case.
+        for (var i = 0; i < MCP_SERVERS.length && !activeServer; i++) {
+          var name = MCP_SERVERS[i];
+          var match = servers.filter(function (s) { return s.server === name; })[0];
+          if (!match) { continue; }
+          var toolNames = (match.tools || []).map(function (t) { return t.name; });
+          if (REQUIRED_TOOLS.every(function (t) { return toolNames.indexOf(t) !== -1; })) {
+            activeServer = name;
+          }
+        }
+        if (activeServer) { return runGeneration(mcp); }
+        restore(); showRequest();
+      });
+    }).catch(function () { restore(); showRequest(); });
+  }
+
+  renderChannels();
+  if (loadDraft()) { $("restored").hidden = false; }
+  ["brief", "org", "sender"].forEach(function (id) {
+    $(id).addEventListener("input", syncCount);
+  });
+  syncCount();
+
+  $("clear-draft").addEventListener("click", function () {
+    clearDraft();
+    $("brief").value = ""; $("org").value = ""; $("sender").value = "";
+    Object.keys(picked).forEach(function (id) { delete picked[id]; });
+    Array.prototype.forEach.call(document.querySelectorAll(".chan"), function (el) {
+      el.classList.remove("on");
+      var box = el.querySelector("input");
+      if (box) { box.checked = false; }
+    });
+    $("restored").hidden = true;
+    $("out").classList.remove("show");
+    syncCount();
+    $("brief").focus();
+  });
+
+  // Delegated: the download buttons are rendered after each channel finishes.
+  $("results").addEventListener("click", function (ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest(".dl-docx") : null;
+    if (!btn) { return; }
+    var file = DOCX_FILES[btn.getAttribute("data-ch")];
+    if (!file) { return; }
+    withCap("downloads", function (dl) {
+      if (!dl) { alert("Downloads aren’t available in this view."); return; }
+      btn.disabled = true;
+      dl.save({ filename: file.filename, data: file.blob })
+        .then(function () { btn.textContent = "Saved"; },
+              function (e) {
+                btn.disabled = false;
+                if (e && e.code !== "declined") { alert("Could not save the .docx."); }
+              });
+    });
+  });
+
+  $("go").addEventListener("click", tryLiveGeneration);
+
+  $("btn-theme").addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+  });
+
+  $("copy").addEventListener("click", function () {
+    var btn = this, text = buildRequest();
+    var done = function () {
+      btn.textContent = "Copied";
+      setTimeout(function () { btn.textContent = "Copy"; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+    } else { fallbackCopy(text, done); }
+  });
+
+  $("dl").addEventListener("click", function () {
+    var org = ($("org").value.trim() || "change").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    withCap("downloads", function (dl) {
+      if (!dl) { alert("Downloads aren't available in this view — use Copy instead."); return; }
+      dl.save({ filename: (org || "change") + "-run-request.md", data: buildRequest() })
+        .catch(function (e) { if (e && e.code !== "declined") alert("Could not save the file."); });
+    });
+  });
+})();
+</script>
