@@ -363,9 +363,17 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
         </label>
       </div>
 
-      <p class="hint">Brand isn't collected here. Palette, typography and tone live in a per-client
-         brand profile reused across every change &mdash; Claude uses the one on file, and stops to
-         ask if there isn't one rather than approximating it.</p>
+      <label class="field grow">
+        <span>Brand template for the Briefing deck <em>(optional, .pptx or .potx)</em></span>
+        <input type="file" id="template-file" accept=".pptx,.potx">
+      </label>
+      <p class="hint" id="template-hint" hidden>Attached &mdash; the Briefing deck won't build
+         here. It's added to the run request below so the pptx skill profiles the template and
+         builds against its actual layouts, instead of this console's generic one.</p>
+
+      <p class="hint">Brand isn't otherwise collected here. Palette, typography and tone live in a
+         per-client brand profile reused across every change &mdash; Claude uses the one on file,
+         and stops to ask if there isn't one rather than approximating it.</p>
     </div>
   </section>
 
@@ -452,7 +460,7 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
     { id:"article", name:"Article", fmt:".docx", by:"docx skill", status:"live",
       note:"The considered version — explains the reasoning at length." },
     { id:"briefing_deck", name:"Briefing deck", fmt:".pptx", by:"pptx skill", status:"live",
-      note:"A pack a manager presents, with speaker notes and likely questions." },
+      note:"A pack a manager presents, with speaker notes and likely questions. Attach a brand template above for the client's actual layout." },
     { id:"newsletter", name:"Newsletter", fmt:"Document", by:"Canva", status:"live",
       note:"Skimmable round-up. Builds in Canva when you run the request below." },
     { id:"banner", name:"Intranet banner", fmt:"Canva design", by:"Canva", status:"live",
@@ -582,6 +590,11 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
   }
 
   var picked = Object.create(null);
+  // A File isn't serializable, so this is never persisted to the saved draft — it has to be
+  // re-attached each visit. It only affects the Briefing deck, and only the handoff route:
+  // true template fidelity (preserving the client's actual layouts) needs the real pptx skill's
+  // unzip/edit/rezip, which only runs in a full Claude Code session, not this static page.
+  var templateFile = null;
   function $(id) { return document.getElementById(id); }
   function esc(s) {
     return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
@@ -647,6 +660,11 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
     lines.push("ORGANISATION: " + org);
     if (sender) lines.push("SENDER: " + sender);
     lines.push("CHANNELS: " + picks.map(function (c) { return c.id; }).join(", "));
+    if (templateFile && picks.some(function (c) { return c.id === "briefing_deck"; })) {
+      lines.push("BRAND TEMPLATE: " + templateFile.name + " — attached to this message.");
+      lines.push("Profile it with profile_template.py before building the Briefing deck, and");
+      lines.push("build against its actual layouts and placeholders, not a generic template.");
+    }
     lines.push("");
     lines.push("THE CHANGE");
     lines.push($("brief").value.trim());
@@ -883,6 +901,15 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
         '<p>Not built here — routes to ' + esc(chan.by) + '. Use the run request below for this channel.</p>');
       return Promise.resolve();
     }
+    if (chan.id === "briefing_deck" && templateFile) {
+      // A generic in-browser deck would just be wrong here — the practitioner asked for their
+      // actual template, and only the real pptx skill (run via the request below) can honour it.
+      setStage(chan.id, "warn", "Uses your template");
+      addResult('<h3>' + esc(chan.name) + '</h3>' +
+        '<p>A brand template is attached (' + esc(templateFile.name) + ') — built on the actual ' +
+        'client layout when you run the request below, not on a generic one here.</p>');
+      return Promise.resolve();
+    }
     setStage(chan.id, "run", "Drafting…");
     return sample.json(contentPrompt(chan), { modelTier: "default" })
       .then(function (content) {
@@ -928,6 +955,12 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
   });
   syncCount();
 
+  $("template-file").addEventListener("change", function () {
+    var files = $("template-file").files;
+    templateFile = files && files[0] ? files[0] : null;
+    $("template-hint").hidden = !templateFile;
+  });
+
   $("clear-draft").addEventListener("click", function () {
     clearDraft();
     $("brief").value = ""; $("org").value = ""; $("sender").value = "";
@@ -937,6 +970,9 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
       var box = el.querySelector("input");
       if (box) { box.checked = false; }
     });
+    templateFile = null;
+    $("template-file").value = "";
+    $("template-hint").hidden = true;
     $("restored").hidden = true;
     $("out").classList.remove("show");
     $("out-live").style.display = "none";

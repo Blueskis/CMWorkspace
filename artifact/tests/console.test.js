@@ -216,12 +216,13 @@ Document.prototype.execCommand = function () { return true; };
 // parsed from the file, since the file's real markup carries a lot of layout not relevant to
 // behaviour.
 var SKELETON_TAGS = {
-  brief: "textarea", req: "pre", org: "input", sender: "input",
+  brief: "textarea", req: "pre", org: "input", sender: "input", "template-file": "input",
   go: "button", "clear-draft": "button", copy: "button", dl: "button", "btn-theme": "button"
 };
 var SKELETON_IDS = [
-  "btn-theme", "brief", "cover-score", "cover", "org", "sender", "chans", "go", "count",
-  "restored", "clear-draft", "out", "out-live", "runlist", "results", "outsum", "copy", "dl", "req"
+  "btn-theme", "brief", "cover-score", "cover", "org", "sender", "template-file", "template-hint",
+  "chans", "go", "count", "restored", "clear-draft", "out", "out-live", "runlist", "results",
+  "outsum", "copy", "dl", "req"
 ];
 function makeDocument() {
   var doc = new Document();
@@ -231,6 +232,7 @@ function makeDocument() {
     doc.body.appendChild(el);
   });
   doc.getElementById("restored").hidden = true;
+  doc.getElementById("template-hint").hidden = true;
   doc.getElementById("out-live").style.display = "none";
   return doc;
 }
@@ -329,6 +331,11 @@ function pickChannels(ctx, ids) {
 function setBrief(ctx, text) {
   ctx.document.getElementById("brief").value = text;
   ctx.syncCount();
+}
+function attachTemplate(ctx, filename) {
+  var input = ctx.document.getElementById("template-file");
+  input.files = [{ name: filename }];
+  input._listeners.change[0]();
 }
 
 var LONG_BRIEF = "From 1 October payroll moves from monthly to twice-monthly for all staff, " +
@@ -514,6 +521,61 @@ test("13: Briefing deck drafts via sample() and packages a downloadable .pptx", 
     var btn = ctx.document.querySelector(".dl-file");
     assert(btn && btn.textContent === "Download .pptx", "expected a Download .pptx button, got: " + (btn && btn.textContent));
     assert(ctx.PRODUCED_FILES.briefing_deck, "expected the produced pptx to be recorded");
+  });
+});
+
+// --- Brand template for the Briefing deck (handoff, not live fidelity) -------------------
+
+test("13b: attaching a brand template skips the live pptx build and defers to the request", function () {
+  var generateCalls = 0;
+  var sample = makeSample(function () {
+    generateCalls++;
+    return Promise.resolve({ slides: [{ title: "Overview", bullets: ["Point one"] }] });
+  });
+  var ctx = loadConsole({
+    claudeUse: function (name) { return Promise.resolve(name === "sample" ? sample : null); },
+    withPptx: true
+  });
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["briefing_deck"]);
+  attachTemplate(ctx, "acme-corp-template.potx");
+  assert(ctx.document.getElementById("template-hint").hidden === false, "the attached hint should show once a file is chosen");
+  ctx.document.getElementById("go")._listeners.click[0]();
+  return drain(20).then(function () {
+    assert(generateCalls === 0, "expected no live drafting call for a channel deferred to the template handoff");
+    assert(!ctx.document.querySelector(".dl-file"), "expected no downloadable file when a template is attached");
+    var results = ctx.document.getElementById("results");
+    var text = results.children.map(function (c) { return c.textContent; }).join(" ");
+    assert(text.indexOf("acme-corp-template.potx") !== -1, "expected the result to name the attached file, got: " + text);
+    var req = ctx.document.getElementById("req").textContent;
+    assert(req.indexOf("BRAND TEMPLATE: acme-corp-template.potx") !== -1, "expected the run request to carry the template filename, got: " + req);
+    assert(req.indexOf("profile_template.py") !== -1, "expected the run request to reference the profiling step");
+  });
+});
+
+test("13c: an attached template is only mentioned in the request when Briefing deck is picked", function () {
+  var ctx = loadConsole();
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["email"]);
+  attachTemplate(ctx, "acme-corp-template.potx");
+  ctx.document.getElementById("go")._listeners.click[0]();
+  return drain(10).then(function () {
+    var req = ctx.document.getElementById("req").textContent;
+    assert(req.indexOf("BRAND TEMPLATE") === -1, "the template line should be omitted when Briefing deck isn't selected, got: " + req);
+  });
+});
+
+test("13d: Start fresh clears the attached template", function () {
+  var ctx = loadConsole();
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["briefing_deck"]);
+  attachTemplate(ctx, "acme-corp-template.potx");
+  ctx.document.getElementById("clear-draft")._listeners.click[0]();
+  assert(ctx.document.getElementById("template-hint").hidden === true, "the attached hint should hide again");
+  ctx.document.getElementById("go")._listeners.click[0]();
+  return drain(10).then(function () {
+    var req = ctx.document.getElementById("req").textContent;
+    assert(req.indexOf("BRAND TEMPLATE") === -1, "a cleared template should not appear in a later request, got: " + req);
   });
 });
 
