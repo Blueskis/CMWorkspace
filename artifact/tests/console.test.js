@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 "use strict";
 
-// Regression tests for artifact/change-comms-console.html — the "Generate first drafts"
-// button hanging on "Checking for Gamma..." (root cause: a call to syncRegistry(), a
-// function removed when cm-comms was retired, in the promise chain that decides whether to
-// run a live Gamma generation).
+// Tests for artifact/change-comms-console.html.
+//
+// The console no longer calls Gamma (or any connector) live — it only builds a copy/paste run
+// request for Claude to execute the real pipeline (docx skill, pptx skill, Canva). That's a
+// deliberate simplification: a page that declares an `mcp` capability cannot be shared
+// publicly, and no channel was actually being built live by it any more anyway (see the git
+// history on this file for the earlier per-channel routing fix). These tests cover what's left:
+// channel selection, the brief-coverage checker, draft persistence, and the run request itself
+// — plus a regression test that Gamma/mcp machinery doesn't come back by accident.
 //
 // No dependencies, no network. Runs the console's real <script> body — extracted from the
 // committed HTML file and de-wrapped so its top-level `var`/`function` declarations become
-// inspectable properties of a fresh vm context per test — against a hand-rolled DOM stub and
-// a fake `window.claude.use("mcp")` connector. The DOM stub implements exactly the subset of
-// the platform this file's script uses (checked against the source below), not a general
-// browser.
+// inspectable properties of a fresh vm context per test — against a hand-rolled DOM stub.
 //
 // Run: node artifact/tests/console.test.js
 
@@ -85,12 +87,6 @@ Element.prototype.appendChild = function (child) {
   this.children.push(child);
   return child;
 };
-Element.prototype.insertBefore = function (child, ref) {
-  child.parentNode = this;
-  var i = this.children.indexOf(ref);
-  if (i === -1) { this.children.push(child); } else { this.children.splice(i, 0, child); }
-  return child;
-};
 Element.prototype.removeChild = function (child) {
   var i = this.children.indexOf(child);
   if (i !== -1) { this.children.splice(i, 1); }
@@ -99,20 +95,9 @@ Element.prototype.removeChild = function (child) {
 Element.prototype.addEventListener = function (type, fn) {
   (this._listeners[type] = this._listeners[type] || []).push(fn);
 };
-Element.prototype.removeEventListener = function (type, fn) {
-  var list = this._listeners[type] || [];
-  var i = list.indexOf(fn);
-  if (i !== -1) { list.splice(i, 1); }
-};
-Element.prototype._dispatch = function (type, evt) {
-  evt.target = evt.target || this;
-  (this._listeners[type] || []).slice().forEach(function (fn) { fn(evt); });
-};
 Element.prototype._classes = function () {
   return (this.attrs["class"] || "").split(/\s+/).filter(Boolean);
 };
-Element.prototype.classList = {};
-["add", "remove", "contains"].forEach(function () {});
 Object.defineProperty(Element.prototype, "classList", {
   get: function () {
     var el = this;
@@ -167,14 +152,6 @@ Element.prototype.querySelectorAll = function (sel) {
   walk(this, function (el) { if (selectorMatches(el, sel)) { out.push(el); } });
   return out;
 };
-Element.prototype.closest = function (sel) {
-  var el = this;
-  while (el && el.tagName !== "#text") {
-    if (selectorMatches(el, sel)) { return el; }
-    el = el.parentNode;
-  }
-  return null;
-};
 
 // Tiny forgiving HTML parser — enough for the markup this file's template strings emit
 // (flat-ish, double-quoted attributes, no scripts/comments). Not a general HTML parser.
@@ -202,6 +179,7 @@ function parseHTML(doc, html) {
     var el = new Element(doc, tag);
     var attrRe = /([a-zA-Z_:][a-zA-Z0-9_:.-]*)(?:\s*=\s*"([^"]*)")?/g, am;
     while ((am = attrRe.exec(m[2] || ""))) { el.setAttribute(am[1], am[2] === undefined ? "" : am[2]); }
+    if (tag === "input" && Object.prototype.hasOwnProperty.call(el.attrs, "value")) { el.value = el.attrs.value; }
     stack[stack.length - 1].appendChild(el);
     var selfClose = m[0].slice(-2) === "/>";
     if (!VOID_TAGS[tag] && !selfClose) { stack.push(el); }
@@ -224,15 +202,14 @@ Document.prototype.execCommand = function () { return true; };
 
 // The static shell: every id the script's $() calls reference. Built directly rather than
 // parsed from the file, since the file's real markup carries a lot of layout not relevant to
-// behaviour — see the plan note on this tradeoff.
+// behaviour.
 var SKELETON_TAGS = {
   brief: "textarea", req: "pre", org: "input", sender: "input",
   go: "button", "clear-draft": "button", copy: "button", dl: "button", "btn-theme": "button"
 };
 var SKELETON_IDS = [
   "btn-theme", "brief", "cover-score", "cover", "org", "sender", "chans", "go", "count",
-  "restored", "clear-draft", "out", "out-h2", "out-sub", "out-live", "run-banner",
-  "runlist", "results", "out-fallback", "outsum", "copy", "dl", "req"
+  "restored", "clear-draft", "out", "outsum", "copy", "dl", "req"
 ];
 function makeDocument() {
   var doc = new Document();
@@ -242,8 +219,6 @@ function makeDocument() {
     doc.body.appendChild(el);
   });
   doc.getElementById("restored").hidden = true;
-  doc.getElementById("out-live").style.display = "none";
-  doc.getElementById("out-fallback").style.display = "none";
   return doc;
 }
 
@@ -271,25 +246,13 @@ function dewrap(src) {
   return closed;
 }
 
-// setTimeout that ignores its delay and fires on the next macrotask. Tests don't care about
-// wall-clock time (some of the code's real delays are minutes), only about the eventual
-// outcome, so collapsing every delay to "soon" keeps the suite fast and deterministic without
-// a fake-timer library.
 function installFastTimers(ctx) {
   ctx.setTimeout = function (fn) { return setImmediate(fn); };
   ctx.clearTimeout = function (id) { clearImmediate(id); };
 }
 
-function makeFakeDocx() {
-  function Ctor(opts) { this.opts = opts; }
-  return {
-    Packer: { toBlob: function (doc) { return Promise.resolve({ __fakeBlob: true, doc: doc }); } },
-    Document: Ctor, Paragraph: Ctor, TextRun: Ctor,
-    HeadingLevel: { HEADING_1: 1, HEADING_2: 2, HEADING_3: 3, HEADING_4: 4, HEADING_5: 5, HEADING_6: 6 }
-  };
-}
-
-var appScriptSrc = dewrap(extractAppScript(fs.readFileSync(HTML_PATH, "utf8")));
+var rawHtml = fs.readFileSync(HTML_PATH, "utf8");
+var appScriptSrc = dewrap(extractAppScript(rawHtml));
 new vm.Script(appScriptSrc, { filename: "change-comms-console.js" }); // fail fast on a syntax error
 
 function loadConsole(opts) {
@@ -310,30 +273,9 @@ function loadConsole(opts) {
   installFastTimers(ctx);
   ctx.window = ctx;
   ctx.claude = { use: opts.claudeUse || function () { return Promise.resolve(null); } };
-  if (opts.withDocx) { ctx.docx = makeFakeDocx(); }
   vm.runInContext(appScriptSrc, ctx); // runs renderChannels()/loadDraft()/syncCount() at load, as on the real page
   ctx.__doc = doc;
   return ctx;
-}
-
-function makeMcp(spec) {
-  return {
-    listTools: spec.listTools,
-    callTool: function (server, tool, args) {
-      var fn = spec.calls && spec.calls[tool];
-      if (!fn) { return Promise.reject(new Error("unexpected tool call: " + tool)); }
-      return fn(args);
-    }
-  };
-}
-function claudeUseWithMcp(mcp) {
-  return function (name) { return name === "mcp" ? Promise.resolve(mcp) : Promise.resolve(null); };
-}
-
-var GAMMA_SERVER_OK = { servers: [{ server: "Gamma", tools: [{ name: "generate" }, { name: "get_generation_status" }] }] };
-
-function fakeGenerationDetails(text) {
-  return { content: { default: { type: "doc", content: [{ type: "paragraph", content: [{ type: "text", text: text || "Hello colleagues" }] }] } } };
 }
 
 function pickChannels(ctx, ids) {
@@ -345,24 +287,14 @@ function setBrief(ctx, text) {
   ctx.syncCount();
 }
 
-// GAMMA_BY_CHANNEL ships empty — no shipped channel currently routes through Gamma (Email and
-// Article go to the docx skill, Briefing deck to the pptx skill, Newsletter hands off to
-// Canva). The live-generation machinery stays in the file dormant rather than deleted, so
-// these tests exercise it by injecting a route for an existing channel id, the same way test 7
-// reaches in and removes renderRunList — not because that channel is actually Gamma-routed today.
-function installGammaRoute(ctx, id, cfg) {
-  ctx.GAMMA_BY_CHANNEL[id] = cfg;
-}
-
 var LONG_BRIEF = "From 1 October payroll moves from monthly to twice-monthly for all staff, " +
-  "affecting every employee. HR will run info sessions and the portal opens on 1 Sept. " +
+  "affecting every employee, because the current system loses vendor support in March. " +
+  "Everyone needs to activate a portal account by 1 September. " +
   "Questions go to hr@example.com. This is a mandatory change with no opt-out.";
-
-// --- Drain helper: let a chain of microtasks + our immediate-based timers settle ----------
 
 function drain(rounds) {
   var p = Promise.resolve();
-  for (var i = 0; i < (rounds || 40); i++) {
+  for (var i = 0; i < (rounds || 10); i++) {
     p = p.then(function () { return new Promise(function (r) { setImmediate(r); }); });
   }
   return p;
@@ -378,281 +310,151 @@ function assert(cond, msg) {
   if (!cond) { throw new Error(msg || "assertion failed"); }
 }
 
-test("1: two live channels run end-to-end through Gamma and the button recovers", function () {
-  var calls = { generate: 0, get_generation_status: 0 };
-  var tries = Object.create(null);
-  var mcp = makeMcp({
-    listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); },
-    calls: {
-      generate: function (input) {
-        calls.generate++;
-        var id = "gen-" + calls.generate;
-        return Promise.resolve({ payload: { generationId: id, status: "pending", gammaUrl: "https://gamma.app/generations/" + id } });
-      },
-      get_generation_status: function (args) {
-        calls.get_generation_status++;
-        tries[args.generationId] = (tries[args.generationId] || 0) + 1;
-        if (tries[args.generationId] < 2) { return Promise.resolve({ payload: { generationId: args.generationId, status: "pending" } }); }
-        return Promise.resolve({
-          payload: {
-            generationId: args.generationId, status: "completed",
-            gammaUrl: "https://gamma.app/docs/" + args.generationId,
-            generationDetails: fakeGenerationDetails(),
-            credits: { deducted: 5, remaining: 95 }
-          }
-        });
-      }
-    }
-  });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp), withDocx: true });
-  installGammaRoute(ctx, "email", { format: "document", numCards: 1, amount: "brief", docx: true });
-  installGammaRoute(ctx, "briefing_deck", { format: "presentation", amount: "medium", exportAs: "pptx" });
-  setBrief(ctx, LONG_BRIEF);
-  pickChannels(ctx, ["email", "briefing_deck"]);
-  ctx.tryLiveGeneration();
-  assert(ctx.document.getElementById("go").textContent === "Checking for Gamma…", "button should show the checking state immediately");
-  return drain(60).then(function () {
-    assert(calls.generate === 2, "expected one generate call per selected channel, got " + calls.generate);
-    var go = ctx.document.getElementById("go");
-    assert(go.disabled === false, "button should be re-enabled once the run finishes");
-    assert(go.textContent === "Generate first drafts", "button text should be restored, got: " + go.textContent);
-    var results = ctx.document.getElementById("results");
-    assert(results.children.length === 2, "expected one result block per channel, got " + results.children.length);
-    ["pill-email", "pill-briefing_deck"].forEach(function (id) {
-      assert(ctx.document.getElementById(id).textContent === "Ready", id + " should read Ready");
-    });
-  });
+// --- Regression: no Gamma/mcp machinery -----------------------------------------------
+
+test("0 (regression): no Gamma or mcp capability code ships in the console", function () {
+  // A page that declares the mcp capability cannot be shared publicly — that's exactly why
+  // Gamma was removed. Guard against it quietly coming back.
+  assert(!/Gamma/.test(rawHtml), "found a reference to Gamma in the shipped file");
+  assert(!/window\.claude\.use\(\s*["']mcp["']/.test(rawHtml), "found a call to window.claude.use(\"mcp\")");
+  assert(!/callTool|listTools/.test(rawHtml), "found MCP call-surface code (callTool/listTools)");
 });
 
-test("2: a completed deck payload with exportUrl renders a direct .pptx download link", function () {
-  var mcp = makeMcp({
-    listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); },
-    calls: {
-      generate: function () { return Promise.resolve({ payload: { generationId: "g1" } }); },
-      get_generation_status: function () {
-        return Promise.resolve({
-          payload: {
-            generationId: "g1", status: "completed",
-            gammaUrl: "https://gamma.app/docs/g1",
-            exportUrl: "https://gamma.app/export/g1.pptx"
-          }
-        });
-      }
-    }
-  });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
-  installGammaRoute(ctx, "briefing_deck", { format: "presentation", amount: "medium", exportAs: "pptx" });
+// --- Channel selection & the brief input -----------------------------------------------
+
+test("1: picking channels and typing a brief enables Generate", function () {
+  var ctx = loadConsole();
+  assert(ctx.document.getElementById("go").disabled === true, "button starts disabled");
+  pickChannels(ctx, ["email"]);
+  assert(ctx.document.getElementById("go").disabled === true, "still disabled with too short a brief");
   setBrief(ctx, LONG_BRIEF);
-  pickChannels(ctx, ["briefing_deck"]);
-  ctx.tryLiveGeneration();
-  return drain(30).then(function () {
-    var link = ctx.document.querySelector('a[href="https://gamma.app/export/g1.pptx"]');
-    assert(link, "expected a download link pointing at exportUrl");
-    assert(link.textContent.indexOf("Download the .pptx") !== -1, "link text should say Download the .pptx, got: " + link.textContent);
-  });
+  assert(ctx.document.getElementById("go").disabled === false, "should enable once a channel is picked and the brief is long enough");
 });
 
-test("3: a completed deck payload with no exportUrl falls back to the Gamma link", function () {
-  var mcp = makeMcp({
-    listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); },
-    calls: {
-      generate: function () { return Promise.resolve({ payload: { generationId: "g1" } }); },
-      get_generation_status: function () {
-        return Promise.resolve({ payload: { generationId: "g1", status: "completed", gammaUrl: "https://gamma.app/docs/g1" } });
-      }
-    }
-  });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
-  installGammaRoute(ctx, "briefing_deck", { format: "presentation", amount: "medium", exportAs: "pptx" });
-  setBrief(ctx, LONG_BRIEF);
-  pickChannels(ctx, ["briefing_deck"]);
-  ctx.tryLiveGeneration();
-  return drain(30).then(function () {
-    var results = ctx.document.getElementById("results");
-    var html = results.children.map(function (c) { return c.textContent; }).join(" ");
-    assert(html.indexOf("export as .pptx from there") !== -1, "expected the export-by-hand hint, got: " + html);
-    assert(html.indexOf("Download the .pptx") === -1, "should not render a download link with no exportUrl");
-  });
-});
-
-test("4: no Gamma server present falls back to the copy/paste request and restores the button", function () {
-  var mcp = makeMcp({ listTools: function () { return Promise.resolve({ servers: [] }); }, calls: {} });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
+test("2: unpicking a channel disables Generate again once none remain", function () {
+  var ctx = loadConsole();
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["email"]);
-  ctx.tryLiveGeneration();
-  return drain(20).then(function () {
-    var go = ctx.document.getElementById("go");
-    assert(go.disabled === false && go.textContent === "Generate first drafts", "button should be restored, got: " + go.textContent);
-    assert(ctx.document.getElementById("out-fallback").style.display === "block", "fallback request should be shown");
-  });
+  assert(ctx.document.getElementById("go").disabled === false);
+  var box = ctx.document.querySelector('.chan[data-id="email"]').querySelector("input");
+  box.checked = false;
+  box._listeners.change[0]();
+  assert(ctx.document.getElementById("go").disabled === true, "should disable once the only picked channel is unpicked");
 });
 
-test("5: Gamma listed but not connected (empty tool set) is treated the same as absent", function () {
-  var mcp = makeMcp({
-    listTools: function () { return Promise.resolve({ servers: [{ server: "Gamma", tools: [] }] }); },
-    calls: {}
-  });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
+test("3: all seven channels render with the correct producer labels", function () {
+  var ctx = loadConsole();
+  var chans = ctx.document.querySelectorAll(".chan");
+  assert(chans.length === 7, "expected 7 channels, got " + chans.length);
+  var byId = {};
+  ctx.CHANNELS.forEach(function (c) { byId[c.id] = c; });
+  assert(byId.email.by === "docx skill", "Email should be built by the docx skill");
+  assert(byId.article.by === "docx skill", "Article should be built by the docx skill");
+  assert(byId.briefing_deck.by === "pptx skill", "Briefing deck should be built by the pptx skill");
+  assert(byId.newsletter.by === "Canva", "Newsletter should be built by Canva, got: " + byId.newsletter.by);
+  assert(byId.banner.by === "Canva", "Intranet banner should be built by Canva");
+});
+
+// --- The coverage checker ----------------------------------------------------------------
+
+test("4: a short brief scores nothing and a full brief covers all six required prompts", function () {
+  var ctx = loadConsole();
+  setBrief(ctx, "too short");
+  assert(ctx.document.getElementById("cover-score").textContent === "—", "a short brief should show no score");
+  setBrief(ctx, LONG_BRIEF);
+  var score = ctx.document.getElementById("cover-score").textContent;
+  assert(score === "6 of 6 covered", "expected the long brief to cover all six required prompts, got: " + score);
+});
+
+// --- Generate -> the run request ----------------------------------------------------------
+
+test("5: clicking Generate shows the run request naming every picked channel", function () {
+  var ctx = loadConsole();
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["email", "newsletter", "briefing_deck"]);
+  ctx.document.getElementById("go")._listeners.click[0]();
+  var req = ctx.document.getElementById("req").textContent;
+  // chosen() filters CHANNELS in its declared array order, not selection order.
+  assert(req.indexOf("CHANNELS: email, briefing_deck, newsletter") !== -1,
+    "expected the run request to list all three channels, got: " + req);
+  assert(req.indexOf(LONG_BRIEF) !== -1, "expected the run request to include the brief text");
+  assert(ctx.document.getElementById("out").classList.contains("show"), "the output section should be revealed");
+});
+
+test("6: the run request carries open questions instead of inventing answers", function () {
+  var ctx = loadConsole();
+  // Long enough to score, but missing a stated action and a help route.
+  setBrief(ctx, "From 1 October we are changing how payroll works for everyone, because the old system is retiring.");
+  pickChannels(ctx, ["email"]);
+  ctx.document.getElementById("go")._listeners.click[0]();
+  var req = ctx.document.getElementById("req").textContent;
+  assert(req.indexOf("NOT ANSWERED ABOVE") !== -1, "expected an open-questions section, got: " + req);
+  assert(req.indexOf("do not invent answers") !== -1, "expected the explicit no-inventing instruction");
+});
+
+// --- Draft persistence ---------------------------------------------------------------------
+
+test("7: the draft survives a reload via localStorage", function () {
+  var store = Object.create(null);
+  var fakeStorage = {
+    getItem: function (k) { return Object.prototype.hasOwnProperty.call(store, k) ? store[k] : null; },
+    setItem: function (k, v) { store[k] = String(v); },
+    removeItem: function (k) { delete store[k]; }
+  };
+  var ctx1 = loadConsole();
+  ctx1.localStorage = fakeStorage;
+  setBrief(ctx1, LONG_BRIEF);
+  pickChannels(ctx1, ["article"]);
+
+  var ctx2 = loadConsole();
+  ctx2.localStorage = fakeStorage;
+  var restored = ctx2.loadDraft();
+  assert(restored, "expected loadDraft() to find the saved draft");
+  assert(ctx2.document.getElementById("brief").value === LONG_BRIEF, "brief text should be restored");
+  assert(ctx2.picked.article === true, "the picked channel should be restored");
+});
+
+test("8: Start fresh clears the brief, the picks and the saved draft", function () {
+  var ctx = loadConsole();
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["email"]);
-  ctx.tryLiveGeneration();
-  return drain(20).then(function () {
-    var go = ctx.document.getElementById("go");
-    assert(go.textContent === "Generate first drafts", "button should be restored, got: " + go.textContent);
-    assert(ctx.document.getElementById("out-fallback").style.display === "block", "fallback request should be shown");
-  });
+  ctx.document.getElementById("clear-draft")._listeners.click[0]();
+  assert(ctx.document.getElementById("brief").value === "", "brief should be cleared");
+  assert(Object.keys(ctx.picked).length === 0, "picks should be cleared");
+  // syncCount() re-saves after clearing (it always persists current state), so the stored
+  // draft is now empty rather than absent — loadDraft() treats an empty brief as "nothing saved".
+  assert(ctx.loadDraft() === false, "an empty draft should no longer be treated as a saved one");
 });
 
-test("6 (regression): listTools never settles no longer hangs the button forever", function () {
-  var mcp = makeMcp({ listTools: function () { return new Promise(function () {}); }, calls: {} });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
-  setBrief(ctx, LONG_BRIEF);
-  pickChannels(ctx, ["email"]);
-  ctx.tryLiveGeneration();
-  assert(ctx.document.getElementById("go").textContent === "Checking for Gamma…", "should show the checking state right away");
-  return drain(20).then(function () {
-    var go = ctx.document.getElementById("go");
-    assert(go.disabled === false, "button should recover once the timeout fires, not stay stuck checking forever");
-    assert(go.textContent === "Generate first drafts", "button text should be restored, got: " + go.textContent);
-    assert(ctx.document.getElementById("out-fallback").style.display === "block", "fallback request should be shown after the timeout");
-  });
-});
+// --- Download .md ---------------------------------------------------------------------------
 
-test("7 (regression): a throw inside the generation chain restores the button instead of hanging", function () {
-  var mcp = makeMcp({ listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); }, calls: {} });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
-  setBrief(ctx, LONG_BRIEF);
-  pickChannels(ctx, ["email"]);
-  // Simulate exactly the shape of today's bug: a function the chain calls has gone missing.
-  ctx.renderRunList = undefined;
-  ctx.tryLiveGeneration();
-  return drain(20).then(function () {
-    var go = ctx.document.getElementById("go");
-    assert(go.disabled === false, "button should recover even when a dependency inside the chain throws");
-    assert(go.textContent === "Generate first drafts", "button text should be restored, got: " + go.textContent);
-  });
-});
-
-test("8: a needs_reauth error on one channel is reported without blocking the others", function () {
-  var mcp = makeMcp({
-    listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); },
-    calls: {
-      generate: function () {
-        return Promise.reject({ code: "needs_reauth" });
-      }
+test("9: Download .md saves the run request through the downloads capability", function () {
+  var saved = null;
+  var ctx = loadConsole({
+    claudeUse: function (name) {
+      return Promise.resolve(name === "downloads" ? { save: function (f) { saved = f; return Promise.resolve(); } } : null);
     }
   });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
-  installGammaRoute(ctx, "email", { format: "document", numCards: 1, amount: "brief", docx: true });
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["email"]);
-  ctx.tryLiveGeneration();
-  return drain(20).then(function () {
-    var stage = ctx.document.getElementById("stage-email");
-    assert(stage.textContent === "Failed", "expected the row to report Failed, got: " + stage.textContent);
-    var results = ctx.document.getElementById("results");
-    var html = results.children.map(function (c) { return c.textContent; }).join(" ");
-    assert(html.indexOf("reconnect it") !== -1, "expected the reauth wording, got: " + html);
+  ctx.document.getElementById("org").value = "Northwind Foods";
+  ctx.document.getElementById("dl")._listeners.click[0]();
+  return drain(5).then(function () {
+    assert(saved, "expected downloads.save() to be called");
+    assert(saved.filename === "northwind-foods-run-request.md", "expected a slugified filename, got: " + saved.filename);
+    assert(saved.data.indexOf("CHANNELS: email") !== -1, "expected the saved file to contain the run request");
   });
 });
 
-test("9: one failing channel does not stop a second channel from completing", function () {
-  var mcp = makeMcp({
-    listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); },
-    calls: {
-      generate: function (input) {
-        if (input.format === "presentation") { return Promise.reject({ code: "server_unavailable" }); }
-        return Promise.resolve({ payload: { generationId: "g-email" } });
-      },
-      get_generation_status: function () {
-        return Promise.resolve({ payload: { generationId: "g-email", status: "completed", gammaUrl: "https://gamma.app/docs/g-email" } });
-      }
-    }
-  });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
-  installGammaRoute(ctx, "email", { format: "document", numCards: 1, amount: "brief", docx: true });
-  installGammaRoute(ctx, "briefing_deck", { format: "presentation", amount: "medium", exportAs: "pptx" });
-  setBrief(ctx, LONG_BRIEF);
-  pickChannels(ctx, ["email", "briefing_deck"]);
-  ctx.tryLiveGeneration();
-  return drain(40).then(function () {
-    assert(ctx.document.getElementById("stage-briefing_deck").textContent === "Failed", "deck channel should report Failed");
-    assert(ctx.document.getElementById("stage-email").textContent === "Draft ready", "email channel should still complete");
-    var go = ctx.document.getElementById("go");
-    assert(go.disabled === false && go.textContent === "Generate first drafts", "button should still recover, got: " + go.textContent);
-  });
-});
-
-test("10 (regression): #results survives a run so the .dl-docx delegated handler stays live", function () {
-  var mcp = makeMcp({
-    listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); },
-    calls: {
-      generate: function () { return Promise.resolve({ payload: { generationId: "g1" } }); },
-      get_generation_status: function () {
-        return Promise.resolve({
-          payload: {
-            generationId: "g1", status: "completed", gammaUrl: "https://gamma.app/docs/g1",
-            generationDetails: fakeGenerationDetails("All colleagues, from HR")
-          }
-        });
-      }
-    }
-  });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp), withDocx: true });
-  installGammaRoute(ctx, "email", { format: "document", numCards: 1, amount: "brief", docx: true });
+test("10: Download .md degrades gracefully when the downloads capability is unavailable", function () {
+  var ctx = loadConsole({ claudeUse: function () { return Promise.resolve(null); } });
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["email"]);
-  var resultsBefore = ctx.document.getElementById("results");
-  ctx.tryLiveGeneration();
-  return drain(30).then(function () {
-    var resultsAfter = ctx.document.getElementById("results");
-    assert(resultsAfter === resultsBefore, "#results must be the same node throughout a run, not replaced by an innerHTML wipe");
-    assert(ctx.DOCX_FILES.email, "expected the email channel to produce a .docx file");
-    var btn = ctx.document.querySelector(".dl-docx");
-    assert(btn, "expected a Download .docx button to be rendered");
-    var clicked = false;
-    var save = { save: function () { clicked = true; return Promise.resolve(); } };
-    ctx.claude.use = function (name) { return Promise.resolve(name === "downloads" ? save : null); };
-    resultsAfter._dispatch("click", { target: btn, closest: function (sel) { return btn.closest(sel); } });
-    return drain(5).then(function () { assert(clicked, "the delegated .dl-docx click handler should still fire after a run"); });
-  });
-});
-
-test("11 (regression): no shipped channel reaches Gamma even when the connector is present", function () {
-  var generateCalls = 0;
-  var mcp = makeMcp({
-    listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); },
-    calls: { generate: function () { generateCalls++; return Promise.reject(new Error("should not be called")); } }
-  });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
-  // Deliberately NOT calling installGammaRoute: GAMMA_BY_CHANNEL ships empty, so none of
-  // Email, Article, Briefing deck or Newsletter should ever reach mcp.callTool("generate").
-  setBrief(ctx, LONG_BRIEF);
-  pickChannels(ctx, ["email", "article", "briefing_deck", "newsletter"]);
-  ctx.tryLiveGeneration();
-  return drain(30).then(function () {
-    assert(generateCalls === 0, "expected zero Gamma generate calls, got " + generateCalls);
-    var results = ctx.document.getElementById("results");
-    assert(results.children.length === 4, "expected a not-built-here result for every picked channel, got " + results.children.length);
-    var html = results.children.map(function (c) { return c.textContent; }).join(" ");
-    ["docx skill", "pptx skill", "Canva"].forEach(function (producer) {
-      assert(html.indexOf(producer) !== -1, "expected the results to name " + producer + " as the producer, got: " + html);
-    });
-    assert(ctx.document.getElementById("out-fallback").style.display === "block", "the run request should still be offered for these channels");
-  });
-});
-
-test("12: the run request lists every selected channel that Gamma doesn't build", function () {
-  var mcp = makeMcp({ listTools: function () { return Promise.resolve(GAMMA_SERVER_OK); }, calls: {} });
-  var ctx = loadConsole({ claudeUse: claudeUseWithMcp(mcp) });
-  setBrief(ctx, LONG_BRIEF);
-  pickChannels(ctx, ["email", "article", "briefing_deck", "newsletter"]);
-  ctx.tryLiveGeneration();
-  return drain(30).then(function () {
-    var req = ctx.document.getElementById("req").textContent;
-    assert(req.indexOf("CHANNELS: email, article, briefing_deck, newsletter") !== -1,
-      "expected the run request to list all four channels, got: " + req);
+  var alerted = null;
+  ctx.alert = function (msg) { alerted = msg; };
+  ctx.document.getElementById("dl")._listeners.click[0]();
+  return drain(5).then(function () {
+    assert(alerted && alerted.indexOf("Copy instead") !== -1, "expected a fallback alert pointing at Copy, got: " + alerted);
   });
 });
 
