@@ -8,8 +8,8 @@
     {
       "name": "cm-workspace",
       "source": "./",
-      "description": "Change-management working tools. Currently: an RFP-to-proposal deck generator that plans a bid against the client's stated requirements and evaluation criteria, writes it from a curated knowledge bank, and audits the result for requirement coverage and content provenance.",
-      "version": "0.1.0"
+      "description": "Change-management working tools. Currently: an RFP-to-proposal deck generator that plans a bid against the client's stated requirements and evaluation criteria, writes it from a curated knowledge bank, and audits the result for requirement coverage and content provenance; and a manday effort estimator that sizes a pursuit from scope drivers through a bottom-up hours library, with an open-ended judgement layer for adjustments the drivers alone don't capture.",
+      "version": "0.2.0"
     }
   ]
 }
