@@ -1,0 +1,2291 @@
+<title>Proposal Development Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
+
+<style>
+/* ---------------------------------------------------------------
+   Tokens. Light is the bare :root; dark is redefined twice so the
+   un-stamped (system) state and the explicit toggle both resolve.
+   --------------------------------------------------------------- */
+:root {
+  --paper:      #F3F5F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #EAEEF5;
+  --ink:        #12161F;
+  --ink-2:      #4C5666;
+  --muted:      #7A8494;
+  --faint:      #7A8494;
+  --rule:       #DCE1EA;
+  --rule-firm:  #BFC7D4;
+
+  --seal:          #2E3D77;
+  --seal-soft:     #E4E8F6;
+  --seal-ink:      #2E3D77;
+  --seal-contrast: #FFFFFF;
+
+  --jade:       #0B6B54;
+  --jade-soft:  #E0F0EA;
+
+  --amber:      #8C5E0C;
+  --amber-soft: #F7EBD5;
+  --red:        #A33D2E;
+  --red-soft:   #F7E4E0;
+
+  --shadow: 0 1px 2px rgba(18, 22, 31, .06), 0 8px 24px -16px rgba(18, 22, 31, .35);
+
+  --ui: "Libre Franklin", "Helvetica Neue", Arial, sans-serif;
+  --doc: "Newsreader", Georgia, "Times New Roman", serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper:      #0E1117;
+    --surface:    #171B23;
+    --surface-2:  #1F242E;
+    --ink:        #E8EBF2;
+    --ink-2:      #A5AEBD;
+    --muted:      #7B8494;
+    --faint:      #7B8494;
+    --rule:       #2A303B;
+    --rule-firm:  #3B4351;
+
+    --seal:          #97A5EA;
+    --seal-soft:     #1C2340;
+    --seal-ink:      #97A5EA;
+    --seal-contrast: #10131B;
+
+    --jade:       #4FC7A0;
+    --jade-soft:  #12302A;
+
+    --amber:      #D9A54E;
+    --amber-soft: #2E2617;
+    --red:        #E38375;
+    --red-soft:   #33201D;
+
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper:      #0E1117;
+  --surface:    #171B23;
+  --surface-2:  #1F242E;
+  --ink:        #E8EBF2;
+  --ink-2:      #A5AEBD;
+  --muted:      #7B8494;
+  --faint:      #7B8494;
+  --rule:       #2A303B;
+  --rule-firm:  #3B4351;
+
+  --seal:          #97A5EA;
+  --seal-soft:     #1C2340;
+  --seal-ink:      #97A5EA;
+  --seal-contrast: #10131B;
+
+  --jade:       #4FC7A0;
+  --jade-soft:  #12302A;
+
+  --amber:      #D9A54E;
+  --amber-soft: #2E2617;
+  --red:        #E38375;
+  --red-soft:   #33201D;
+
+  --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--paper);
+  color: var(--ink-2);
+  font-family: var(--ui);
+  font-size: 15px;
+  line-height: 1.55;
+  margin: 0;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 { color: var(--ink); font-weight: 600; text-wrap: balance; margin: 0; }
+p { margin: 0; }
+code, kbd { font-family: var(--mono); }
+
+:focus-visible {
+  outline: 2px solid var(--seal);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.wrap { max-width: 1240px; margin: 0 auto; padding: 0 28px; }
+
+/* --- masthead ------------------------------------------------- */
+
+.masthead {
+  border-bottom: 1px solid var(--rule-firm);
+  background: var(--surface);
+}
+.masthead .wrap {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 28px 40px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-top: 30px;
+  padding-bottom: 26px;
+}
+.brand h1 {
+  font-size: 27px;
+  letter-spacing: -.018em;
+  line-height: 1.1;
+}
+.brand .stamp {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--seal);
+  margin-bottom: 9px;
+}
+.brand p {
+  margin-top: 10px;
+  max-width: 56ch;
+  color: var(--muted);
+  font-size: 14px;
+}
+.scope {
+  border-left: 2px solid var(--rule-firm);
+  padding-left: 16px;
+  max-width: 34ch;
+  font-size: 13px;
+  color: var(--muted);
+}
+.scope b { color: var(--ink); font-weight: 600; }
+
+.theme-toggle {
+  position: absolute;
+  top: 22px;
+  right: 28px;
+  padding: 4px 9px;
+  font-size: 12px;
+}
+
+/* --- generic panel -------------------------------------------- */
+
+main { padding: 34px 0 120px; }
+
+.stage { margin-top: 34px; }
+.stage:first-child { margin-top: 0; }
+
+.stage-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.stage-num {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--seal);
+  border: 1px solid var(--rule-firm);
+  border-radius: 2px;
+  padding: 2px 6px;
+  letter-spacing: .04em;
+}
+.stage-head h2 { font-size: 17px; letter-spacing: -.01em; }
+.stage-head .aside { font-size: 13px; color: var(--faint); margin-left: auto; }
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  box-shadow: var(--shadow);
+}
+
+/* --- intake ---------------------------------------------------- */
+
+.drop {
+  padding: 40px 28px;
+  text-align: center;
+  border: 1px dashed var(--rule-firm);
+  border-radius: 3px;
+  margin: 14px;
+  transition: background .12s ease, border-color .12s ease;
+}
+.drop.over { border-color: var(--seal); background: var(--seal-soft); }
+.drop h3 { font-size: 16px; }
+.drop p { color: var(--muted); font-size: 13.5px; margin-top: 8px; }
+
+.btnrow { display: flex; gap: 10px; justify-content: center; margin-top: 18px; flex-wrap: wrap; }
+
+button {
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  border-radius: 3px;
+  border: 1px solid var(--rule-firm);
+  background: var(--surface);
+  color: var(--ink);
+  padding: 8px 15px;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease;
+}
+button:hover { background: var(--surface-2); }
+button.primary { background: var(--seal); border-color: var(--seal); color: var(--seal-contrast); }
+button.primary:hover { background: var(--seal-ink); border-color: var(--seal-ink); }
+button.quiet { border-color: transparent; color: var(--muted); padding: 6px 8px; }
+button.quiet:hover { color: var(--ink); background: var(--surface-2); }
+
+.formats {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--faint);
+  letter-spacing: .04em;
+  margin-top: 16px;
+}
+
+textarea {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.6;
+  width: 100%;
+  min-height: 190px;
+  resize: vertical;
+  padding: 14px;
+  border: 1px solid var(--rule-firm);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--ink-2);
+}
+
+.notice {
+  margin: 0 14px 14px;
+  padding: 13px 15px;
+  border-radius: 3px;
+  font-size: 13.5px;
+  border-left: 3px solid var(--amber);
+  background: var(--amber-soft);
+  color: var(--ink);
+}
+.notice b { font-weight: 600; }
+.notice code {
+  font-size: 12px;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 1px 5px;
+}
+
+/* --- document read -------------------------------------------- */
+
+.readout { padding: 4px 0 0; }
+.readout-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 30px;
+  align-items: baseline;
+  padding: 18px 20px;
+  border-bottom: 1px solid var(--rule);
+}
+.readout-top .filename {
+  font-weight: 600;
+  color: var(--ink);
+  font-size: 15px;
+}
+.readout-top .replace { margin-left: auto; }
+
+.tallies { display: flex; flex-wrap: wrap; gap: 26px; padding: 18px 20px; }
+.tally { display: block; }
+.tally .n {
+  display: block;
+  font-family: var(--mono);
+  font-size: 24px;
+  color: var(--ink);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.tally .n.core { color: var(--seal); }
+.tally .k {
+  display: block;
+  font-size: 11px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-top: 7px;
+}
+
+.topics {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+  padding: 0 20px 18px;
+}
+.topics-k {
+  width: 100%;
+  font-size: 11px; letter-spacing: .09em; text-transform: uppercase;
+  color: var(--faint); margin-bottom: 3px;
+}
+.topics .chip b { color: var(--ink); font-weight: 500; }
+
+.clauses { border-top: 1px solid var(--rule); }
+.clause {
+  display: grid;
+  grid-template-columns: 92px 1fr auto;
+  gap: 16px;
+  align-items: baseline;
+  padding: 11px 20px;
+  border-bottom: 1px solid var(--rule);
+}
+.clause:last-child { border-bottom: 0; }
+.clause .ref {
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--seal);
+}
+.clause .ref .pg { color: var(--faint); display: block; font-size: 10.5px; margin-top: 2px; }
+.clause .what { min-width: 0; }
+.clause .head { color: var(--ink); font-weight: 500; font-size: 14px; }
+.clause .quote {
+  font-family: var(--doc);
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 3px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.clause .sig { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.verdict {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 2px;
+  white-space: nowrap;
+}
+.verdict.core { background: var(--seal-soft); color: var(--seal-ink); }
+.verdict.adj { background: var(--surface-2); color: var(--muted); }
+
+details.setaside { border-top: 1px solid var(--rule); }
+details.setaside > summary {
+  padding: 13px 20px;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--muted);
+  list-style: none;
+}
+details.setaside > summary::-webkit-details-marker { display: none; }
+details.setaside > summary::before { content: "▸ "; color: var(--faint); }
+details.setaside[open] > summary::before { content: "▾ "; }
+details.setaside > summary:hover { color: var(--ink); }
+.setaside-body { padding: 0 20px 16px; }
+
+/* --- workspace ------------------------------------------------- */
+
+.workspace {
+  display: grid;
+  grid-template-columns: 296px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+@media (max-width: 950px) { .workspace { grid-template-columns: 1fr; } }
+
+.rail { position: sticky; top: 18px; }
+@media (max-width: 950px) { .rail { position: static; } }
+
+.rail-block { padding: 16px 18px; border-bottom: 1px solid var(--rule); }
+.rail-block:last-child { border-bottom: 0; }
+.rail-block h3 {
+  font-size: 11px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--faint);
+  font-weight: 600;
+  margin-bottom: 11px;
+}
+.rail-block .hint { font-size: 12.5px; color: var(--muted); margin-top: 10px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  padding: 3px 4px 3px 8px;
+  border-radius: 2px;
+  background: var(--seal-soft);
+  color: var(--seal-ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.chip button {
+  border: 0; background: none; padding: 0 3px; cursor: pointer;
+  color: inherit; opacity: .55; font-size: 13px; line-height: 1;
+}
+.chip button:hover { opacity: 1; background: none; }
+.chip.plain { background: var(--surface-2); color: var(--muted); }
+.suggest { margin-top: 10px; align-items: center; }
+.suggest .sublabel {
+  width: 100%;
+  font-size: 10.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 2px;
+}
+button.chip.add {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 400;
+  padding: 3px 8px;
+  border: 1px dashed var(--rule-firm);
+}
+button.chip.add:hover { background: var(--seal-soft); color: var(--seal-ink); border-style: solid; }
+
+input[type="text"], select {
+  font: inherit;
+  font-size: 13px;
+  width: 100%;
+  padding: 7px 9px;
+  border: 1px solid var(--rule-firm);
+  border-radius: 3px;
+  background: var(--surface);
+  color: var(--ink);
+}
+input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
+
+/* --- bank ------------------------------------------------------ */
+
+.bank-top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+  color: var(--muted);
+}
+.bank-top .grow { flex: 1 1 auto; }
+.src-title { color: var(--ink); font-weight: 600; font-size: 14px; }
+.src-sub { color: var(--muted); font-size: 12.5px; display: block; margin-top: 2px; }
+.src-status {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+}
+.src-status.live { color: var(--jade); }
+.src-status.down { color: var(--red); }
+
+.project {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto;
+  gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--rule);
+  align-items: start;
+}
+.project:last-child { border-bottom: 0; }
+.project .name { color: var(--ink); font-weight: 600; font-size: 14.5px; }
+.project .name.blank { color: var(--faint); font-weight: 500; font-style: italic; }
+.project .row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; align-items: center; }
+.project .row.why { gap: 5px; margin-top: 6px; }
+.project .open {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--seal);
+  text-decoration: none;
+  white-space: nowrap;
+  border-bottom: 1px solid transparent;
+}
+.project .open:hover { border-bottom-color: var(--seal); }
+.doclink {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 2px;
+  border: 1px solid var(--rule-firm);
+  color: var(--ink-2);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.doclink:hover { background: var(--surface-2); border-color: var(--seal); color: var(--seal-ink); }
+.doclink.none { border-style: dashed; color: var(--faint); }
+
+.mcp-state { padding: 26px 20px; font-size: 13.5px; color: var(--muted); }
+.mcp-state b { color: var(--ink); display: block; margin-bottom: 5px; font-weight: 600; }
+.mcp-state.bad { border-left: 3px solid var(--red); background: var(--red-soft); color: var(--ink); }
+.mcp-state.warn { border-left: 3px solid var(--amber); background: var(--amber-soft); color: var(--ink); }
+
+.meter { padding-top: 1px; display: block; }
+.meter .val {
+  display: block;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+.meter .val.zero { color: var(--faint); }
+.meter .bar {
+  display: block;
+  height: 3px;
+  background: var(--surface-2);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+.meter .bar i { display: block; height: 3px; background: var(--seal); }
+
+.flag {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  border-radius: 2px;
+  background: var(--surface-2);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.flag.sec { background: transparent; border: 1px solid var(--rule-firm); }
+.flag.risk { background: var(--red-soft); color: var(--red); }
+.flag.warn { background: var(--amber-soft); color: var(--amber); }
+.flag.won  { background: var(--jade-soft); color: var(--jade); }
+.flag.lost { background: var(--red-soft); color: var(--red); }
+.flag.best { background: var(--accent); color: var(--accent-ink); }
+
+.empty { padding: 34px 20px; text-align: center; color: var(--muted); font-size: 13.5px; }
+.empty code { font-size: 12px; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+
+.foot {
+  border-top: 1px solid var(--rule);
+  margin-top: 36px;
+  padding-top: 18px;
+  font-size: 12.5px;
+  color: var(--faint);
+  max-width: 74ch;
+}
+.foot code { font-size: 11.5px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* --- stage 3: draft -------------------------------------------- */
+
+.stack { display: flex; flex-direction: column; gap: 18px; }
+
+.drop.small { padding: 22px 20px; margin: 14px; }
+.drop.small h3 { font-size: 14px; }
+.drop.small p { font-size: 12.5px; }
+
+.file-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--rule);
+}
+.file-row:last-child { border-bottom: 0; }
+.file-row .name { color: var(--ink); font-weight: 500; font-size: 13.5px; overflow-wrap: anywhere; }
+.file-row .meta { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.file-row button.remove { padding: 5px 9px; }
+
+.template-summary { padding: 14px 18px; }
+.template-summary .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 14px 22px;
+  margin-top: 4px;
+}
+.template-summary .k { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--faint); }
+.template-summary .v { font-size: 13.5px; color: var(--ink); margin-top: 3px; }
+.swatches { display: flex; gap: 5px; margin-top: 5px; }
+.swatch { width: 16px; height: 16px; border-radius: 2px; border: 1px solid var(--rule); }
+.layout-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 5px; }
+
+.coverage-summary {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 18px;
+  border-bottom: 1px solid var(--rule);
+}
+.coverage-summary .meter { flex: 1 1 auto; }
+.coverage-summary .count { font-family: var(--mono); font-size: 13px; color: var(--ink); white-space: nowrap; }
+
+.progress-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--rule);
+  font-size: 13px;
+  color: var(--muted);
+}
+.progress-row .bar { flex: 1 1 auto; height: 4px; background: var(--surface-2); border-radius: 2px; overflow: hidden; }
+.progress-row .bar i { display: block; height: 4px; background: var(--seal); transition: width .2s ease; }
+.progress-row .n { font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+
+.slide-card { border-bottom: 1px solid var(--rule); }
+.slide-card:last-child { border-bottom: 0; }
+.slide-card-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 13px 18px 8px;
+}
+.slide-card-head .num { font-family: var(--mono); font-size: 11px; color: var(--faint); }
+.slide-card-head .title { font-weight: 600; color: var(--ink); font-size: 14.5px; flex: 1 1 auto; }
+.slide-card-head .layout { font-family: var(--mono); font-size: 10.5px; color: var(--muted); }
+
+.blocks { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 10px; }
+.block { font-size: 13.5px; color: var(--ink-2); }
+.block[contenteditable="true"] { outline: none; border-radius: 2px; padding: 2px 4px; margin: -2px -4px; }
+.block[contenteditable="true"]:focus { background: var(--surface-2); box-shadow: 0 0 0 1px var(--rule-firm); }
+.block ul { margin: 0; padding-left: 20px; }
+.block ul ul { margin-top: 4px; }
+.block.gap {
+  border-left: 3px solid var(--amber);
+  background: var(--amber-soft);
+  padding: 8px 10px;
+  border-radius: 2px;
+  color: var(--ink);
+}
+.block .sources { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.chip.source { background: var(--jade-soft); color: var(--jade); }
+
+.export-row { display: flex; align-items: center; gap: 14px; padding: 16px 18px; flex-wrap: wrap; }
+.export-status { font-size: 13px; color: var(--muted); }
+.export-status.ok { color: var(--jade); }
+.export-status.bad { color: var(--red); }
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <button type="button" id="theme-toggle" class="quiet theme-toggle" title="Toggle light/dark">Theme</button>
+    <div class="brand">
+      <div class="stamp">Change Management Proposal Development</div>
+      <h1>Proposal Development Tool</h1>
+      <p>Upload a tender, find the past proposals most similar to it, and draft a
+         first version built on your own template — with every claim traced to a
+         source or marked as a gap.</p>
+    </div>
+    <div class="scope">
+      <b>Three steps.</b> Upload the tender, open the past bids most like it, then
+      draft and export a first-draft deck on your own PowerPoint template.
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Stage 1 ------------------------------------------------- -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-num">01</span>
+      <h2>Read the tender</h2>
+      <span class="aside" id="stage1-aside">Nothing loaded</span>
+    </div>
+
+    <div class="panel" id="intake-panel">
+      <div class="drop" id="drop">
+        <h3>Drop the RFP here</h3>
+        <p>Or browse for it. Everything is read in your browser — no file leaves this page.</p>
+        <div class="btnrow">
+          <button class="primary" id="browse">Choose a file</button>
+          <button id="paste-toggle">Paste text instead</button>
+          <button id="demo">Sample: public tender</button>
+          <button id="demo2">Sample: transport ERP</button>
+        </div>
+        <div class="formats">.TXT · .MD · .DOCX · .PPTX</div>
+        <input type="file" id="file" class="sr" accept=".txt,.md,.docx,.pptx,.pdf">
+      </div>
+
+      <div id="paste-area" hidden style="padding: 0 14px 14px;">
+        <textarea id="paste-text" placeholder="Paste the tender text here, then press Read."
+          aria-label="Tender text"></textarea>
+        <div class="btnrow" style="justify-content: flex-start; margin-top: 10px;">
+          <button class="primary" id="paste-run">Read it</button>
+          <button class="quiet" id="paste-cancel">Cancel</button>
+        </div>
+      </div>
+
+      <div id="intake-notice"></div>
+      <div id="readout" class="readout" hidden></div>
+    </div>
+  </section>
+
+  <!-- Stage 2 ------------------------------------------------- -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-num">02</span>
+      <h2>Similar past proposals</h2>
+      <span class="aside" id="stage2-aside"></span>
+    </div>
+
+    <div class="workspace">
+      <aside class="panel rail">
+        <div class="rail-block">
+          <h3>Keywords</h3>
+          <div class="chips" id="tag-chips"></div>
+          <form id="tag-form" style="margin-top: 10px;">
+            <label class="sr" for="tag-input">Add a keyword</label>
+            <input type="text" id="tag-input" placeholder="add a keyword, e.g. erp" autocomplete="off">
+          </form>
+          <div class="chips suggest" id="tag-suggest"></div>
+          <p class="hint" id="tag-hint">Reading the tender picked these out automatically —
+             they decide which past proposals are ranked as similar below. Matching is
+             exact, so add a word only if it already appears in the suggestions above.</p>
+        </div>
+      </aside>
+
+      <div class="panel" id="airtable-panel">
+        <div class="bank-top">
+          <span class="grow"><b class="src-title">Most similar past proposals</b>
+            <span class="src-sub">Ranked by how closely each one matches this tender —
+              highest first.</span></span>
+          <span id="airtable-status" class="src-status">connecting…</span>
+        </div>
+        <div id="airtable-body"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stage 3 ------------------------------------------------- -->
+  <section class="stage">
+    <div class="stage-head">
+      <span class="stage-num">03</span>
+      <h2>Draft the proposal</h2>
+      <span class="aside" id="stage3-aside">Read a tender above to begin</span>
+    </div>
+
+    <div class="stack">
+      <div class="panel" id="template-panel">
+        <div class="bank-top">
+          <span class="grow"><b class="src-title">Your PowerPoint template</b>
+            <span class="src-sub">Reads layouts, theme colours and fonts, read-only —
+              nothing is uploaded anywhere. Needed before drafting, so every slide
+              targets a placeholder that actually exists.</span></span>
+        </div>
+        <div class="drop small" id="template-drop">
+          <h3>Drop your .potx or .pptx template here</h3>
+          <p>Or browse for it.</p>
+          <div class="btnrow">
+            <button class="primary" id="template-browse">Choose a file</button>
+          </div>
+          <div class="formats">.POTX · .PPTX</div>
+          <input type="file" id="template-file" class="sr" accept=".potx,.pptx">
+        </div>
+        <div id="template-notice"></div>
+        <div id="template-summary" hidden></div>
+      </div>
+
+      <div class="panel" id="decks-panel">
+        <div class="bank-top">
+          <span class="grow"><b class="src-title">Past proposals to draft from</b>
+            <span class="src-sub">Drop in the decks or documents worth reusing from the
+              shortlist above — the draft cites what it takes from them, or marks a gap
+              where nothing covers a point.</span></span>
+        </div>
+        <div class="drop small" id="deck-drop">
+          <h3>Drop past proposals here</h3>
+          <p>Or browse for them. Add as many as are worth reusing.</p>
+          <div class="btnrow">
+            <button class="primary" id="deck-browse">Choose files</button>
+          </div>
+          <div class="formats">.DOCX · .PPTX · .TXT · .MD</div>
+          <input type="file" id="deck-file" class="sr" accept=".docx,.pptx,.txt,.md" multiple>
+        </div>
+        <div id="deck-notice"></div>
+        <div id="deck-list"></div>
+      </div>
+
+      <div class="panel" id="draft-panel">
+        <div class="bank-top">
+          <span class="grow"><b class="src-title">Draft</b>
+            <span class="src-sub" id="draft-sub">Upload a template to enable drafting.</span></span>
+          <button class="primary" id="draft-run" disabled>Draft the proposal</button>
+        </div>
+        <div id="draft-notice"></div>
+        <div id="coverage-summary" hidden></div>
+        <div id="draft-progress" hidden></div>
+        <div id="draft-body"></div>
+      </div>
+
+      <div class="panel" id="export-panel">
+        <div class="export-row">
+          <b class="src-title">Export</b>
+          <button class="primary" id="export-run" disabled>Export the deck</button>
+          <span class="export-status" id="export-status">Draft the proposal first.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <p class="foot">
+    The percentage is how much of what this tender raised a past bid covers, judged on
+    the keywords above against each bid's own tags. A keyword only a few past bids carry
+    counts for more than one they all share, so a bid is not rewarded simply for being
+    tagged generously. A bid that was won counts slightly higher and one that was lost
+    slightly lower, but only slightly — a lost bid on this subject is still worth more
+    than a won one on a different subject. It is a shortlist, not a verdict: open
+    anything whose name looks right, whatever it scored.
+  </p>
+</main>
+
+<script type="application/json" id="sample-doc">{"name": "CFS Part 2, Ch 8 — Change Management and Training (sample)", "text": "\n===== PAGE 1 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 1 \n \n \n \n \nREQUIREMENT SPECIFICATIONS \n \nPART 2, CHAPTER 8 \n \nCHANGE MANAGEMENT AND TRAINING \n \n \n \n \n  \n\n===== PAGE 2 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 2 \n \nTABLE OF CONTENTS \n1. INTRODUCTION..............................................................................................................3 \n1.1. Introduction ....................................................................................................................3 \n2. CHANGE MANAGEMENT TEAM ................................................................................4 \n2.1. Team Composition and Structure ..................................................................................4 \n2.2. Team Management and Controls ...................................................................................4 \n2.3. Roles and Responsibilities .............................................................................................4 \n3. CHANGE MANAGEMENT SCOPE ..............................................................................5 \n3.1. Change Management Plan .............................................................................................5 \n3.2. Plan Refinement and Approval ......................................................................................6 \n3.3. Implementation Requirements .......................................................................................7 \n3.4. Legal and Intellectual Property (IP) ...............................................................................7 \n4. CHANGE SUSTENANCE POST SWP OF THE LAST LICENSEE ONBOARDED\n 8 \n4.1. Change Sustenance Plan Proposal .................................................................................8 \n4.2. Plan Execution ...............................................................................................................8 \n5. TRAINING .........................................................................................................................9 \n5.1. Introduction ....................................................................................................................9 \n5.2. Training Materials ........................................................................................................11 \n5.3. Feedback and Evaluation .............................................................................................11 \n5.4. Application ...................................................................................................................11 \n5.5. Tools ............................................................................................................................12 \n6. ORIENTATION PROGRAMME ..................................................................................13 \n6.1. General Requirements for Orientation Programme .....................................................13 \n \n\n===== PAGE 3 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 3 \n \n1. INTRODUCTION \n1.1. Introduction \n1.1.1. The Contractor shall lead and execute change management activities to ensure \nstakeholder readiness prior to each phase of Licensee onboarding. The Contractor \nshall adapt change management approaches as needed throughout the phased \nimplementation up till the end of the Solution Warranty Period (SWP) for the last \nLicensee onboarded. \n1.1.2.  The stakeholders include but are not limited to the following: \n(a) Senior stakeholder groups including executive project sponsors, leadership, \nboard members, service professionals, administrators and staff; \n(b) Policy divisions, operational teams, and owners of existing systems affected \nby or replaced by the new Solution; \n(c) Authority users, nominated personnel, and authority -nominated technical \npersonnel; \n(d) Functional business units such as Finance and Procurement with processes \nand systems directly impacted by the Solution; \n(e) Technical and project delivery teams, including ICT representatives, data \nowners, system integration leads, cybersecurity and infrastructure personnel; \n(f) End users of the Solution across all organisational levels, including identified \nsuperusers and change champions who will support training and adoption \nactivities; \n(g) External partners and third -party providers involved in service delivery, \nsolution integration, or ongoing system support after each Licensee has \nonboarded. \n1.1.3. The Contractor shall develop a stakeholder engagement strategy and Change \nManagement plan to address the varying levels of concerns across different \nstakeholder groups. \n1.1.4. The Contractor shall ensure that stakeholders understand the need for change and \nthe impact of new working procedures  to promote positive reactions and \nenthusiasm for adopting the Solution. \n1.1.5. The Contractor shall ensure stakeholders are well-informed and aligned on project \nactivities to enable a smooth transition with minimal operational disruptions \nthroughout all project development stages. \n\n===== PAGE 4 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 4 \n \n2. CHANGE MANAGEMENT TEAM \n2.1. Team Composition and Structure \n2.1.1. The Tenderer shall propose a Change Management Team led by a Contractor \nChange Manager. Refer to Part 2  Chapter 4 , Clause 6 for detailed role \ndescriptions and required skillsets. The Change Management Team shall possess \nappropriate expertise and experience to support and partner with the Authority in \ndelivering effective change management throughout the project lifecycle. \n2.1.2. The Tenderer shall clearly define the reporting hierarchy and organisational \nstructure of the Change Management Team, including reporting relationships with \nthe Authority's project team and other contractor teams. \n2.2. Team Management and Controls \n2.2.1. The appointment of the Change Manager and key Change Management Team \nmembers shall be subject to the Authority's approval. \n2.2.2. The Contractor shall ensure minimal changes to Change Management Team \ncomposition throughout the Contract Period. The Contractor shall not change the \nChange Manager or key team members without prior written approval from the \nAuthority. \n2.2.3. Where subcontractors are engaged for change management activities, the \nContractor shall detail how these subcontractors will be managed and trained to \nensure obligations are met. \n2.3. Roles and Responsibilities \n2.3.1. The Change Manager shall collaborate with the development and design team to \nensure change management considerations are integrated throughout the \ndevelopment process. \n2.3.2. The Change Manager shall provide ongoing guidance to the development team on \nstakeholder requirements and user experience factors that will facilitate Solution \nadoption. \n2.3.3. The Change Management team shall review and ensure consistency and coherence \nin all messaging and communications materials (including emails, presentations, \ntraining materials, and announcements) prior to seeking Authority approval and \nreleasing to stakeholders. \n\n===== PAGE 5 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 5 \n \n3. CHANGE MANAGEMENT SCOPE \n3.1. Change Management Plan \n3.1.1. The Tenderer shall propose a Change Management Plan that covers the entire \nproject lifecycle, including: (a) implementation stage; (b) post go -live BAU \noperations stage (including Performance Guarantee Period (PGP) and SWP) ; and \n(c) maintenance services stage, encompassing new releases and patches that affect \nstakeholders. \n3.1.2. The Tenderer shall provide a comprehensive Change Management proposal in its \nTender Offer, including the following: \n(a) Change Management Strategy and Approach that includes but not limited to \nthe following components: \ni) Planning – Design, scheduling, and timeline for intended outcomes, \nchanges, and announcements, organised into phased stages. This shall \ninclude a capability building plan to equip key stakeholders and the \nchange management team with the requisite mindset and skills t o \nsupport change management activities, including just-in-time coaching \nand mentoring; \nii) Evaluation – Assessment of risks and benefits at each stage, with \nrecommended implementation approaches for each phase. This \nincludes but not limited to change impact analysis across the Authority \nand Licensees; \niii) Communication Strategy – Development of a compelling change \nnarrative that establishes context, initiates calls to action, and explains \nthe transformation journey towards the desired vision; \niv) Implementation Schedule – Detailed timeline for executing the change \nmanagement plan according to project milestones; \nv) Post-Implementation Review – Monitoring and evaluation of change \nimplementation effectiveness, with recommendations for adjustments \nwhere necessary. This includes developing pulse check surveys to track \nproject success measures and change progress, conducted every six \nmonths or aligned with project milestones. \nvi) Change Agent Identification and Training – Identification of suitable \nchange agents within the organisation and development of a \ncomprehensive training plan for the identified change agents. \n(b) Change Management Team Structure, including the roles and responsibilities \nof the Contractor team, Subcontractors (if proposed) , the Authority  and \nLicensees; \n\n===== PAGE 6 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 6 \n \n(c) Detailed Stakeholder Engagement Plan, including methods of engagement \n(dialogue sessions, seminars, etc.) and training approaches to ease the \nonboarding process; \n(d) Comprehensive Communications Plan, detailing communication channels, \nmaterials development, coordination mechanisms, and approval processes. \nThe Tenderer shall quote for communication materials development as \noptional items in the Tender proposal; \n(e) Transition Management plan; \n(f) Change Readiness Assessment; \n(g) Change Impact Assessment; \n(h) Change Intervention plan; \n(i) Change Risk Management plan; \n(j) Change Management Activities and Schedule; \n(k) User Training Plan and Materials (refer to Clauses 5 and 6  – Training for \ndetailed requirements); \n(l) Success Measurement Framework, including indicators to measure change \nsuccess during and beyond Solution implementation, clearly specifying \nmeasurement objectives, timelines, measurement indices, and appropriate \nfollow-up actions; \n(m) Handover plan to enable the Authority team to sustain and institutionalise the \nchange within three (3) months before the end of the SWP for the last \nLicensee onboarded; \n(n) Any other proposals or information relating to change management. \n3.1.3. The Tenderer shall provide a cost breakdown for all Change Management activities \nas set out in Part 3, Annex I. \n3.2. Plan Refinement and Approval \n3.2.1. The Contractor shall finalise and confirm Change Management needs after Tender \naward and refine the proposed Change Management Plan accordingly. \n3.2.2. The Contractor shall obtain Authority approval for changes made to the Change \nManagement Plan before execution at different development stages. \n\n===== PAGE 7 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 7 \n \n3.3. Implementation Requirements \n3.3.1. The Contractor shall work with the Authority to leverage policy makers, \nstakeholders, and change networks to develop and customise communications and \nmaterials. \n3.3.2. The Contractor may use communication channels such as newsletters, videos, and \nroad shows. The Change Management team shall track and coordinate all \ncommunications from all channels and sources. \n3.3.3. The Contractor shall prepare all engagement and communication materials \n(including EDMs, posters, briefing slides ) and obtain the Authority’s approval at \nleast five (5) working days before engagement commencement. The Authority \nreserves the right to modify, add to, and use the materials at any time. \n3.3.4. The Contractor shall plan and prepare to execute the Change Sustenance Plan post \nSWP of  the last Licensee onboarded , if the option  under Clause 4  - Change \nSustenance Post SWP of the Last Licensee Onboarded is activated. \n3.3.5. During Change Management programme implementation, the Contractor shall \nanalyse issues related to system usage or adoption and propose additional change \nmanagement measures to address these issues. \n3.3.6. The Contractor shall provide timely reviews tracking Key Performance Indicators \n(KPIs) to validate change management success and provide a post-implementation \nreport one (1) month after each Licensee onboarded, including but not limited to \nthe following: \n(a) Key successes, challenges, and measures of success; \n(b) Summary of findings from reviews and retrospective meetings; and \n(c) Recommendations for sustaining and reinforcing business change efforts, \nparticularly focusing on the human side of change. \n3.3.7. At the Authority's request, the Contractor shall conduct briefings and updates to \nstakeholders at relevant platforms, with content ranging from project progress \nreports to sharing best practices and insights. \n3.4. Legal and Intellectual Property (IP) \n3.4.1. The Contractor shall ensure materials do not infringe third-party IP rights and shall \nindemnify the Authority from all claims arising from IP infringement. \n \n  \n\n===== PAGE 8 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 8 \n \n4. CHANGE SUSTENANCE POST SWP OF THE LAST LICENSEE \nONBOARDED  \n4.1. Change Sustenance Plan Proposal \n4.1.1. The Tenderer shall propose as an option for the Authority  to exercise, a detailed \nChange Sustenance Plan which the Contractor will execute to sustain the change \nmomentum, and ensure stakeholders’ continued adoption of and satisfaction with \nthe Solution post SWP of the last Licensee onboarded. \n4.1.2. The Plan shall minimally include: \n(a) Stakeholder Management Plan; \n(b) Strategy and approach to sustain adoption; \n(c) Engagement and Communications Plan (including engagements during \nSolution enhancements); \n(d) Governance and Team structure; \n(e) Support framework to sustain any proposed interventions to shape desired \nbehaviour; \n(f) Capability Building;  \n(g) Tools and Resources; \n(h) Success measurement indicators for change interventions beyond Solution \nimplementation, clearly specifying measurement objectives, measurement \ntimelines, measurement indices, and appropriate follow-up actions; and  \n(i) Handover plan to enable the Authority team to sustain and institutionalise the \nchange within three (3) months after completing the Change Sustenance Plan.  \n4.2. Plan Execution \n4.2.1. The Contractor shall refine the proposed Change Sustenance Plan during the pre-\ndeployment phase, taking into account feedback and measurements obtained after \nSolution training.  \n4.2.2. The Contractor shall obtain the Authority’s approval for changes made to the \nChange Sustenance Plan before executing the Plan post SWP of the last Licensee \nonboarded.  \n4.2.3. The Tenderer shall itemise the cost for this scope of work as an option for the \nAuthority to exercise as set out in Part 3, Annex I.  \n\n===== PAGE 9 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 9 \n \n5. TRAINING \n5.1. Introduction \n5.1.1. The Contractor shall provide training to meet the following five (5) main \nobjectives: \n(a) To enable all Authority users and nominated personnel to manage, operate, \nconfigure and use the Solution effectively and proficiently; \n(b) To enable all Authority -nominated technical personnel to manage, operate, \nconfigure and maintain the Solution; \n(c) To enable all Authority -nominated technical personnel to have an overview \nof the system architecture and to be able to diagnose and resolve problems in \nusing the Solution; \n(d) To enable a smooth transfer of knowledge from the Contractor to the \nAuthority-nominated technical personnel; \n(e) Any other training and education necessary to meet the training objectives \n5.1.2. The Contractor shall provide at least the following types of training: \n(a) Product Overview and Business Process Training \n(b) Configuration for System modules Training \n(c) Business Rule Training \n(d) Application Security Administration Overview Training \n(e) System Maintenance Overview Training \n(f) Interface and Integration Training \n(g) Reports and Dashboards Overview Training \n(h) Senior Management (Pre Go-Live) Briefings \n(i) Technical Training \n(j) Training on Software and Tools \n5.1.3. The Contractor shall propose and provide suitable and adequate customised training \nfor personnel nominated by the Authority to enable them to carry out smooth \noperation and management of the Solution. \n\n===== PAGE 10 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 10 \n \n5.1.4. The Authority reserves the right to accept part or all of the training courses \nproposed. \n5.1.5. The Authority may require the Contractor to make the necessary amendments to \nthe training courses and training materials wherever necessary as determined by the \nAuthority, and to replace any training instructor that the Authority finds \nunsatisfactory. The Contractor shall comply with any such requirement, at no \nadditional costs to the Authority, within the timeframe stipulated by the Authority \nin a written notice to the Contractor. \n5.1.6. The training sessions shall be conducted at the Contractor’s site, Authority’s \npremises, Licensees’ premises, virtually, or at premises that are convenient to and \nagreed to by the Authority. \n5.1.7. If the Authority requires the training to be held in its premises, the Contractor shall \nbe responsible for setting up the entire training environment. If needed, the \nContractor shall provide all necessary training equipment that is not currently \navailable in the Authority’s premises for these training purposes. \n5.1.8. The Contractor shall ensure the readiness of the training environment and inform \nthe Authority of any technical deficit at least three (3) working days in advance of \na training session. \n5.1.9. The Contractor shall ensure that all training instructor(s) are suitably qualified and \ncompetent, are well-spoken in English and are well-versed in the System.  \n5.1.10. The medium of instruction and training materials shall be in English. \n5.1.11. For onsite trainings, the Contractor shall conduct all training sessions in Singapore. \nThe Contractor shall ensure that the training materials should be readily \ncomprehensible even by someone who has not attended the course(s). \n5.1.12. The Tenderer shall include in its Tender Offer the type of training, target audience, \nduration of each session, proposed number of sessions, number of trainees per \nsession, schedule of the sessions, training charges and rates in the format as set out \nin Part 3, Annex I – Price Schedule and Annex VII. For avoidance of doubt, the \nTenderer shall note that the exact number of participants for the training sessions \nwill be determined by the Authority during the Contract period. \n5.1.13. The Contractor shall ensure the maximum number of participants per training \nsession should not be more than thirty (30) to ensure training is delivered \neffectively, unless otherwise agreed to by the Authority. \n5.1.14. The Contractor shall provide, at no additional costs to the Authority, all necessary \nequipment, training materials and logistics coordination (e.g. inform users of \ntraining schedule, registration of participants, maintain records of attendance, \ncollate training feedback forms, etc.) of all the training sessions. \n\n===== PAGE 11 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 11 \n \n5.1.15. The Contractor shall: \n(a) Work with the Authority to adjust details of the training sessions, including \ndetails such as the schedule, scope, number of sessions, number of trainees \nper sessions; \n(b) Administer the registration and attendance of trainees at all training sessions. \n5.2. Training Materials \n5.2.1. The Contractor shall provide all the training materials (inclusive of instructor's \nguide, slides and trainee's booklet) in soft copy and obtain the Authority’s Approval \nat least five (5) working days before the commencement of the training. \n5.2.2. The Authority shall own all the training materials (soft copy) developed under this \nContract. The Authority shall have the right to use these training materials to \nconduct in-house courses for its personnel. \n5.2.3. The Contractor shall provide each trainee with a complete set of training documents \nand materials in soft copy for his retention. \n5.2.4. The Contractor shall update the training materials when the need arises , including \nto account for any new changes made to the Solution (including newly implemented \nmodules, new releases / patches). \n5.3. Feedback and Evaluation \n5.3.1. The Contractor shall collect feedback from all participants of each training session \nat the end of such session, by distributing evaluation forms to all such participants. \nThe Contractor shall ensure that all participants complete and submit evaluation \nforms in a training session. The Contractor shall collate the results of the evaluation \nforms and submit the completed evaluation forms to the Authority for its review \nwithin seven (7) days after the end of each training session. \n5.3.2. If more than fifty percent (50%) of the feedback gathered on any training session \nconducted by the Contractor is rated three or below (based on a six -point rating \nscale), the Contractor shall, if so required by the Authority, re-conduct such training \nsessions at no additional costs to the Authority. \n5.4. Application \n5.4.1. The Contractor shall provide training on the application on various roles such as \nusers, administrator, operators, etc. \n\n===== PAGE 12 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 12 \n \n5.5. Tools \n5.5.1. The Contractor shall provide training on the tools proposed by the Tenderer. During \nthe training, the Contractor shall walkthrough the proposed approach on how the \ntools in the pipeline will be used in the project and the reports/result that will be \ncollected.  \n5.5.2. The Contractor may propose, at no additional cost to the Authority, additional tools \nthat can aid in change management or training. \n\n===== PAGE 13 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 13 \n \n6. ORIENTATION PROGRAMME \n6.1. General Requirements for Orientation Programme \n6.1.1. Prior to the commencement of application software development activities, the \nContractor shall provide and deliver, at no additional cost to the Authority, an \norientation programme for the Authority’s personnel who are identified to be in the \nproject team, in order to familiarise and prepare these personnel on project and \nproduct management activities as provided by the Contractor. \n6.1.2. The Contractor shall provide the necessary manpower and logistics to support the \nend-to-end delivery of the proposed orientation programme, which may include the \nfollowing: \n(a) Venue where the orientation programme would be conducted (if the proposed \nvenue is not at the Authority’s premises); \n(b) Printing of presentation or other training/ reference materials; and \n(c) Coaches to facilitate group discussion activities and gamification. \n6.1.3. The Tenderer shall provide the following information about the proposed \norientation programme into the Tender Offer: \n(a) Total duration of the orientation programme; \n(b) Proposed number of personnel from the Authority’s organisation who may \nattend the orientation programme;  \n(c) Proposed venue where the orientation programme would be conducted; and \n(d) Broad-level overview of the orientation programme schedule, including the \nknowledge areas that would be covered, modes of information delivery, types \nof activities, and approximate durations of the various portions of the \norientation. \n6.1.4. The Tenderer shall propose whether there is a need to have differentiated \norientation programmes for the Authority’s working team and the Authority’s \nmanagement team. If so, the Tenderer shall articulate the portions that are different \nas separate tracks, in the proposed orientation programme schedule.  \n6.1.5. The orientation programme shall equip the Authority’s personnel with the relevant \ncapabilities for effective and efficient involvement in the development phase of the \nproject. The programme should include the following:  \n(a) Aligning the project , product management, Agile methodology and event \nmilestones (e.g. team organisation structure, prioritised product backlog, \nrelease plan, sprint backlog, development processes).  \n\n===== PAGE 14 =====\nPART 2  CHANGE MANAGEMENT AND TRAINING CHAPTER 8 \n \n 14 \n \n(b) Sharing roles and responsibilities of key roles in the project (e.g. Product \nOwner, Business Users, Product Manager, Agile Coach, and the \nDevelopment Team).   \n(c) Defining Sprint Duration, Definition of Done, Calendar of Ceremonies (e.g. \nsprint planning, sprint review, sprint retrospective), Communication \nPlatform, etc. \n(d) Sharing examples of user stories with clear acceptance criteria (e.g. end -to-\nend test scenarios including alternate and exception flow). \n6.1.6. The orientation program should also share the common industry practices \nperformed during development phase. Below are some examples:  \n(a) Conduct User Research (e.g. through Customer Journey Mapping, \nPrototyping, Wire frame)  \n(b) Backlog prioritization (e.g. use of MoSCoW, Stack Rank, Last Responsible \nMoment, etc.)  \n(c) Clarity of User Stories (e.g. use of 3Cs (Card, Conversation and \nConfirmation), INVEST criteria, etc.) \n6.1.7. The orientation programme shall be conducted on a date to be determined in \nconsultation with the Authority after the issuance of Letter of Award.  \n \n \n "}</script>
+<script type="application/json" id="sample-doc-2">{"name": "Transport company — ERP change management (sample)", "text": "2.3 Change Management\n2.3.1 Change Management Strategy and Approach\n2.3.1.1 Change Management StrategyThe Tenderers should provide a clear change management strategy aligned with the ERP transformation objectives. The strategy must clearly outline:· The expected scope and scale of organisational change.· Transformation principles that guide behaviour, decision-making, and communication.· Alignment with cross-BU transformation and ERP-Maximo co-existence scenarios.· Definition of user adoption objectives and overall change outcomes.· Employee change management framework to ensure smooth adoption of the System and facilitate change enablementThe Tenderers should provide Change Management Strategy and Framework for their recent ERP project.\n2.3.1.2 Change Management ApproachThe Tenderers should propose and deliver a comprehensive Change Management approach to ensure effective adoption of the target ERP Solution, minimize business disruption, and enable users to transition successfully from the legacy system to the new ERP platform.The Change Management approach should address organizational, process, role, and behavioural impacts arising from the ERP migration and should be fully integrated with the overall Project governance and delivery methodology.The Tenderers should describe the approach and the steps they will follow. They should submit Change Management Approach Overview from their previous latest ERP project.\n2.3.1.3 Change Management MethodologyThe Tenderers should define the overall change management methodology and framework.· Structured phases of change management (e.g., Assess, Plan, Execute, Reinforce).· Key deliverables across each phase (high-level only, without detailed plans).· Overall approach to managing adoption and organisational transition.\n2.3.1.4 Change Management Plan and ActivitiesThe Tenderers should devise a Change Management Plan that sets the overall direction and pace of the entire change management journey as part of the Project implementation with the following change management activities but not limited to:· Alignment of change activities with major ERP milestones (e.g., SIT, UAT, Go-Live).· Definition of key change milestones and readiness checkpoints.· Definition of roles and responsibilities (SI / Client / Joint).· Change governance structure (e.g., Change Board, escalation paths, decision-making model).· Change organisation structure and reporting lines.· How change management is coordinated across functional, technical, integration, and data workstreams.· Approach to ensure consistency of change delivery across business units.· Identification of key personnel to be involved with Key roles and competencies required.· High-level resourcing and allocation across Project phases.· Transition Plan from current system to new System from technical and business aspects. Technical aspect should cover the coexistence strategy with legacy system and plan to address dependencies between legacy and new System while business aspect should cover change management of end users, ORGANISATION X technical team and support team· Approach for knowledge transfer and long-term adoption sustainability.· High-level post Go-Live support model.\n2.3.2 Stakeholder Analysis and Engagement\nThe Tenderers should identify key stakeholders who are critical to the success of the Project and involve them in activities that prepare and energise the organisation for the change. This includes understanding stakeholder expectations, required business outcomes, concerns, and anticipated risks, as well as ensuring feedback loops are closed so that concerns are addressed.\n2.3.2.1 Identification of Key Stakeholder GroupsThe Tenderers should conduct a comprehensive identification and classification of all key stakeholder groups that will be impacted by, involved in, or required to support the ERP migration. This includes stakeholders across all affected business units, operational domains, and organisational roles. At a minimum, the Tenderers must consider and assess stakeholder groups such as:· Finance users (e.g., accounts payable/receivable, general ledger, fixed assets, treasury)· Procurement and sourcing teams (e.g., buyers, category managers, contract administrators)· Inventory and warehouse controllers (e.g., storekeepers, material planners, logistics personnel)· Operational managers and supervisors across functional departments· IT and system support staff, including system administrators and technical SMEs· Project governance stakeholders (e.g., PMO, process owners, steering committee members)· Change champions, end users, and ancillary support roles directly or indirectly affected by new processes and system functionalitiesAs part of this submission, the Tenderers should provide the following:\n2.3.2.1.1 Stakeholder Register / Stakeholder ListA detailed and comprehensive register that includes, at minimum:· Stakeholder group name, business unit or department· Key roles and job functions within each group· Level of impact from the ERP migration (e.g., high, medium, low)· Primary concerns, interests, or expectations, High-level engagement needs\n2.3.2.1.2 Stakeholder MapA visual stakeholder mapping that clearly illustrates:· The organisational units impacted, Key roles and stakeholder clusters· Interdependencies between business functions and processes· Impact pathways showing how each group is affected by the ERP migration· The degree of influence and interest of each stakeholder group\n2.3.2.1.3 Descriptive Profiles of Each Stakeholder GroupA concise narrative description for each key stakeholder group, including:· Primary business functions and responsibilities, relevance to the ERP Solution, including processes and modules they interact with· Expected nature of the change impact (e.g., procedural, system usage, reporting changes)· Any dependencies or constraints, Potential risks or challenges related to stakeholder readiness\n2.3.2.1.4 Stakeholder Impact and Influence MatrixThe Tenderers should provide a Stakeholder Impact and Influence Matrix, illustrating how stakeholder groups will be categorised and prioritised. At minimum, the matrix should include Stakeholder group name, Stakeholder's details, Readiness and resistance score.\n2.3.2.2 Stakeholder Impact Assessment\n2.3.2.2.1 Assessment and Engagement ApproachThe Tenderers should conduct a comprehensive Stakeholder Impact Assessment to evaluate how the ERP migration will affect all identified stakeholder groups across the organisation. The assessment must be systematic, evidence-based, and aligned with recognised change-management practices. It should consider not only process and system changes, but also behavioural, organisational, and readiness dimensions to ensure that stakeholders are adequately prepared and supported throughout the ERP transition.\n2.3.2.2.2 Stakeholder Impact Assessment DimensionsThe Tenderers should assess each stakeholder group across, but not limited to, the following key dimensions:\n2.3.2.2.2.1 Stakeholder Influence and Decision Authority· Degree of influence over business processes, policies, or implementation decisions.· Role in shaping or approving ERP-related decisions.· Potential to champion or obstruct Project outcomes.\n2.3.2.2.2.2 Readiness for Change· Current awareness of the ERP initiative, Maturity of existing processes and systems used by the group.· Competency levels relevant to the new ERP capabilities.· Overall preparedness to adopt new workflows, tools, and responsibilities.\n2.3.2.2.2.3 Potential Resistance Factors· Anticipated behavioural or cultural resistance, Perceived loss of authority, control, or established practices.· Historical challenges with technology adoption.· Any structural or organisational constraints that may impact acceptance.\n2.3.2.2.2.4 Expected Level of Impact· Extent of change to daily tasks, reporting responsibilities, or decision-making processes.· Required adjustments to competencies, roles, or process ownership.· Nature of technology or interface changes introduced by the ERP Solution.· Degree of operational disruption expected during migration and post Go-Live stages.The Tenderers must analyse these factors holistically to determine the level and type of intervention required for each stakeholder group.\n2.3.2.3 Stakeholder Engagement\n2.3.2.3.1 Stakeholder Engagement ApproachThe Tenderers should propose a customised engagement approach for each stakeholder group based on the results of the impact assessment. The engagement approach should include:\nEngagement Objectives: What the engagement intends to achieve for each stakeholder group\nEngagement Strategy and Approach: Tailored engagement strategies with frequency and modality of engagement\nRole-Specific Engagement Activities: Activities designed for high-impact/high-influence/low-influence groups with special support measures\nCommunication and Training Alignment: Tying of engagement activities into the overall training, communication, change-enablement plans and feedback loop for refinement\nMonitoring & Adjustments: Mechanisms to monitor engagement effectiveness\n2.3.2.3.2 Stakeholder Engagement Throughout the Transformation LifecycleThe Tenderers should define and implement comprehensive mechanisms to engage stakeholders throughout the full ERP transformation lifecycle. These mechanisms must ensure that all stakeholder groups remain informed, aligned, involved, and supported across the design, build, testing, Go-Live, and post Go-Live optimisation phases. Engagement approaches must be structured, repeatable, inclusive, and tailored to the unique needs and roles of each group to enable successful adoption of the ERP Solution.\n2.3.2.4 Resistance Management\n2.3.2.4.1 Resistance Management and User AdoptionThe Tenderers should define and implement structured measures to identify, assess, mitigate, and monitor stakeholder resistance throughout the ERP transformation. The Tenderers must also propose a comprehensive approach to encourage user adoption of the new ERP system, ensuring that employees across all business units understand the value, capabilities, and operational implications of the new Solution. The approach should be proactive, data-driven, and integrated with the broader change-management and engagement strategy.\n2.3.2.4.2 Resistance Identification and Assessment MeasuresThe Tenderers should outline the methods and mechanisms that will be used to identify resistance early and accurately. These measures should include, but not be limited to:\nStakeholder Sentiment Assessment: readiness assessments designed to detect concerns or emotional barriers\nBehavioural and Operational Resistance Indicators: Identification of deviations in expected contributions or hesitance in decision-making\nStructured Feedback Channels: Formal and informal feedback mechanisms, Documentation and categorisation of concerns\nRisk Categorisationo Classification of resistance types (e.g., passive, active, process-driven, cultural).o Assignment of risk severity and impact rating for targeted intervention planning.The Tenderers should provide Resistance Management Approach and User Adoption Strategy document as part of the proposal submission.\n2.3.2.5 Leadership Alignment and SponsorshipThe Tenderers should ensure alignment with business leaders and Project sponsors to support the ERP transformation and reinforce change and adoption across the organisation.The Tenderers should submit:a) Leadership and sponsor engagement approach detailing the roles of executives and sponsors, expectations for their involvement during key phases of the ERP programme, the mechanisms to engage and brief them, and the cadence for leadership touchpoints, reviews, and decision-making interactions.b) Sample leadership briefing or communication materials demonstrating how key messages, programme updates, change impacts, risks, and adoption expectations will be communicated to the leadership team and sponsors to equip them to effectively advocate for the transformation.c) Governance and escalation structure related to stakeholder issues outlining leadership responsibilities in addressing stakeholder resistance, resolving cross-functional change challenges, approving major change decisions, and supporting the timely escalation and closure of stakeholder-related risks or issues during the ERP transformation.\n2.3.2.6 Feedback and Continuous ImprovementThe Tenderers should establish clear, structured, and accessible mechanisms to enable stakeholders to provide feedback throughout all phases of the ERP migration. These mechanisms must support transparent communication, continuous improvement, and timely issue resolution. The Tenderers should ensure that feedback is captured, analysed, prioritised, and addressed in a manner that supports effective stakeholder engagement and promotes a positive adoption experience of the new ERP system.\n2.3.2.6.1 Feedback Collection ApproachThe Tenderers should provide a detailed description of the mechanisms that will be used to capture stakeholder feedback during the ERP programme. At minimum, the approach should include the following channels:\nSurveys and Pulse Checks\nWorkshops, Focus Groups, and User Forums\nHelpdesk, Service Desk, and Hypercare Inputs\nChange Champion and Super User Networks\nDigital Feedback ChannelsThe Tenderer's approach must ensure that feedback mechanisms are easily accessible, anonymous where required, and suitable for both end users and management stakeholders.\n2.3.2.6.2 Process for Reviewing, Prioritising, and Acting on FeedbackThe Tenderers should describe a structured Feedback Management Process outlining how feedback will be evaluated, escalated, and resolved. At minimum, the process should include:\nFeedback Intake and Logging\nAssessment and Prioritisation\nAction Planning and Resolution\nCommunication Back to Stakeholders\nMonitoring and Continuous Improvement\n2.3.3 Change Impact Assessment\n2.3.3.1 Business Readiness\n2.3.3.1.1 Business Process and Role Change AnalysisThe Tenderers should provide a structured, comprehensive, and methodologically sound approach to analyse all business process changes and role impacts introduced by the new ERP system. This analysis must identify how existing (\"as-is\") processes, user responsibilities, approval hierarchies, and operational workflows will be transformed in the future (\"to-be\") state enabled by the ERP Solution. The Tenderers should clearly articulate system-driven changes, design-driven changes, and any new responsibilities required for successful adoption.The analysis must cover, at minimum, the following elements:· Approval workflows, including routing changes, role authorisation, and segregation of duties impacts· Transaction processing flows, such as order management, procurement lifecycle processing, financial postings, and inventory movements· Reporting and analytics responsibilities, including shifts in ownership of reports, dashboards, and data validation tasks· User roles and responsibilities, including changes in role definitions, creation of new ERP roles, consolidation of existing roles, and updates to authorisation profiles\n2.3.3.1.2 Business Process and Role Change Analysis ApproachThe Tenderers should submit a detailed description of the methodology that will be used to analyse business process changes and role-level impacts. At minimum, the description must include:\nAnalysis Framework\nChange Identification and Documentation\nRole-Based Impact Assessment\nValidation and Alignment\n2.3.3.1.3 Role Impact or Responsibility Change MatrixThe Tenderers should submit a sample Role Impact / Responsibility Change Matrix that demonstrates how roles will be assessed and documented. The sample matrix should include at minimum:· Role name and associated business unit· Current responsibilities (as-is) & Future responsibilities (to-be)· Level of impact (e.g., high, medium, low)· Required competencies or training· Key risks or change-management considerations· Dependencies on other roles or processesThe matrix must illustrate how detailed role-level impacts will support training planning, change-management planning, user readiness assessments, and ERP role configuration.\n2.3.3.2 Organizational Readiness\n2.3.3.2.1 Organization Readiness Assessment FrameworkThe Tenderers should define a robust and comprehensive Organisational Readiness Assessment Framework to evaluate and confirm the organisation's preparedness for ERP Go-Live. The framework must measure readiness across all key dimensions, including user preparedness, process readiness, data readiness (where applicable), and operational capability. The assessment should provide clear, evidence-based insights to support Go-Live decision-making and identify any gaps requiring remediation prior to deployment.The framework must be structured, repeatable, transparent, and aligned with industry-accepted change-management and ERP deployment practices.\n2.3.3.2.2 Readiness Assessment FrameworkThe Tenderers should submit a detailed description of the proposed Readiness Assessment Framework, which must include, at minimum, the following components:\nReadiness Dimensions and Assessment Areas\nAssessment Methodology\nReadiness Governance\n2.3.3.2.3 Readiness Survey or QuestionnaireThe Tenderers should submit a sample Readiness Survey or Questionnaire that demonstrates the structure, depth, and clarity of readiness measurement instruments.It must demonstrate the Tenderer's ability to design meaningful readiness assessment tools that support data-driven Go-Live evaluations.\n2.3.3.2.4 Readiness Scorecard or Readiness CriteriaThe Tenderers should submit a sample Readiness Scorecard or Readiness Criteria Matrix demonstrating how readiness will be measured, scored, reported, and tracked over time.The scorecard should show how results will be used to support Go-Live readiness decisions, including escalation of unresolved issues and prioritisation of corrective actions.\n2.3.3.3 Readiness Checkpoints\n2.3.3.3.1 Readiness Checkpoints and Assessment Schedule Aligned to Project MilestonesThe Tenderers should conduct structured readiness assessments at predefined checkpoints aligned with major Project milestones to determine whether the organisation, stakeholders, and operational units are prepared to progress to subsequent phases of the ERP implementation. The readiness assessments should support informed decision-making prior to User Acceptance Testing (UAT), prior to deployment/Go-Live, and at any additional checkpoints necessary to ensure Project stability and business continuity.These assessments must be evidence-based, documented, measurable, and reviewed by relevant Project governance bodies.The Tenderers should submit a comprehensive Readiness Assessment Schedule showing how readiness evaluations will be conducted throughout the Project. The schedule should include, at minimum:\nRequired Assessment Milestones\nSchedule ElementsThe Tenderers must demonstrate that the schedule supports timely identification and remediation of readiness gaps well before major deployment decisions are made.\n2.3.3.3.2 Readiness Checkpoints and Decision CriteriaThe Tenderers should submit a detailed description of readiness checkpoints including criteria, conditions, and decision mechanisms that determine whether the Project is ready to proceed to the next stage.\nCheckpoint Descriptions\nDecision Criteria and Thresholds\nGovernance and Review Process\n2.3.3.4 Address Readiness Gaps\n2.3.3.4.1 Actions to Address Readiness GapsThe Tenderers should define a structured, proactive, and monitored approach to identify, assess, and remediate organisational readiness gaps prior to ERP deployment. The approach must ensure that all business units, stakeholder groups, and operational teams are adequately prepared for Go-Live and that any deficiencies identified through readiness assessments, UAT results, training records, or stakeholder feedback are addressed in a timely and systematic manner.\n2.3.3.4.2 Approach for Identifying and Managing Readiness GapsThe Tenderers should submit a comprehensive description of the methodology used to identify and address readiness gaps. The approach must include, at minimum:\nReadiness Gap Identification Methods, Logging and Categorisation\nReadiness Gap Analysis and Impact Assessment\nGap Remediation Planning and Execution\nReadiness Closure and VerificationThe Tenderers must explain how each gap will be Validated as resolved, reassessed (if necessary) and reported back to the readiness governance group\n2.3.3.4.3 Readiness Gap Mitigation PlanThe Tenderers should provide a sample Readiness Gap Mitigation Plan demonstrating how gaps will be documented, prioritised, addressed, and verified. The sample plan should include fields such as:· Gap description, root cause· Business unit / stakeholder group affected & severity level and impact rating· Mitigation actions required· Closure validation and evidence providedThe sample must reflect practical ERP implementation standards and show clear traceability from gap identification to closure.1\n2.3.3.5 Go-Live Readiness2.3.3.5.1 Go-Live Readiness ConfirmationThe Tenderers should support the Client in conducting a structured and evidence-based evaluation of overall readiness for ERP Go-Live. This evaluation should be based on agreed readiness criteria, validated through multiple readiness assessments. The Tenderers must ensure that all critical areas-users, processes, data, technology, support structures, and business operations-meet the established readiness thresholds before recommending progression to Go-Live.1\n2.3.3.5.2The Tenderers should work collaboratively with the Client to document findings, identify risks, propose mitigations, and obtain formal sign-off from designated decision-makers.1\n2.3.3.5.3The Tenderers should support the Client in facilitating post-implementation support and building capability within ORGANISATION X IT team for support. During the tender proposal stage, the Tenderers should indicate the different support models available for ORGANISATION X to choose the appropriate model. The Tenderers should also plan for the necessary on-site training (including hands-on, shadowing) and indicate if there are additional knowledge transfer costs. If such costs are not indicated, ORGANISATION X should assume that no additional costs are necessary.1\n2.3.4 Communication Strategy2.3.4.1 Communication Strategy by Stakeholder GroupThe Tenderers should develop, maintain, and deliver a comprehensive communication strategy tailored to the needs, impact levels, and expectations of the various stakeholder groups affected by the ERP migration. The strategy must ensure that all stakeholders are clearly informed of process changes, system impacts, key milestones, and required actions throughout the Project lifecycle.1\n2.3.4.1.1 Stakeholder SegmentationIdentify and categorise stakeholder groups based on role, impact level, business unit, location, and level of system usage.Include, at minimum:· Business users, Process owners, Managers and department heads, Senior Leadership Team (SLT)· IT operations and support teams, Project Steering Committee, Change Champions / Super Users· External stakeholders (if applicable)1\n2.3.4.1.2 Tailored Communication ObjectivesDefine the communication objectives for each stakeholder group, including:· Awareness of system changes, Understanding of process impacts, Clarity on required actions or decisions· Alignment to Project timelines and Adoption readiness1\n2.3.4.1.3 Key Messaging by Stakeholder GroupProvide a mapping of strategic messages tailored for each group.Messages must include:· Purpose and benefits of ERP migration and System & process changes· Expected behaviour changes and business readiness requirements1\n2.3.4.2 Communication Channels and ScheduleThe Tenderers should define clear, structured, and repeatable communication channels and schedules to ensure consistent dissemination of information across all phases of the ERP migration. The Tenderers should develop communications plan, engagement activities e.g., design thinking and materials for each stakeholder group.1\n2.3.4.2.1 Communication ChannelsIdentify and propose the most effective channels for each stakeholder group, such as:· Townhalls and roadshows· Email newsletters and official announcements· Intranet or SharePoint updates· Project microsite· Briefing packs and leadership talking points· Printed posters or infographics· User communities or team briefings· Collaboration tools (Teams, Yammer)· Videos or visual explainers· Digital/on-line Adoption Tool to provide step-by-step guide to support change management and ease of adoption of the new System.1\n2.3.4.2.2 Communication Schedule & FrequencyDefine a comprehensive communication timeline spanning the Project lifecycle:· Design· Build· Testing (UAT, SIT)· Training· Go Live· Post Go-Live Period/ Hypercare· StabilisationThe schedule must include planned communications, ad-hoc communications, and milestone-driven updates.1\n2.3.4.3 Clarity and Consistency of MessagingThe Tenderers should ensure that all communications are clear, concise, accurate, and aligned to the overall change management and organisational messaging.1\n2.3.4.3.1 Messaging FrameworkProvide a structured messaging framework that ensures consistency across stakeholder groups and communication channels.Framework must define:· Core messages, supporting messages, benefit narrative, behavioural expectations1\n2.3.4.3.2 Key Message CatalogueDevelop a catalogue of recurring and reusable messages covering:· ERP transformation rationale· Key process and system changes· Training expectations· Cutover and Go Live information· Post Go-Live support1\n2.3.4.3.3 Consistency ControlEstablish mechanisms to ensure message alignment across teams, such as:· Review and approval workflows· Style guides· Templates and standardised communication assets1\n2.3.4.3.4 Communication MaterialsProduce sample communication materials demonstrating tone, structure, and expected content quality.1\n2.3.4.4 Feedback and Communication EffectivenessThe Tenderers should define and implement mechanisms to capture stakeholder feedback and continuously evaluate the effectiveness of communication activities.1\n2.3.4.4.1 Feedback MechanismsProvide multiple structured channels for stakeholders to ask questions and2.3.4.4 Feedback and Communication Effectiveness**The Tenderers should define and implement mechanisms to capture stakeholder feedback and continuously evaluate the effectiveness of communication activities.1\n2.3.4.4.1 Feedback MechanismsProvide multiple structured channels for stakeholders to ask questions and offer feedback, including:· Online surveys· Project mailbox or hotlines· Focus groups· Q&A sessions after briefings· Digital pulse checks· User communities (Teams channels)1\n2.3.4.4.2 Effectiveness Measurement ApproachDefine KPIs and metrics, such as:· Reach (e.g., open rates, attendance)· Understanding (survey scores)· Engagement (number of queries, participation levels)· Overall satisfaction with communications1\n2.3.4.4.3 Continuous ImprovementEstablish a defined process to analyse feedback and adjust communications accordingly throughout the Project.1\n2.3.4.5 Governance and EscalationThe Tenderers should put in place governance structures and escalation paths to ensure communication clarity, issue management, and risk mitigation throughout the ERP migration.1\n2.3.4.5.1 Communication Governance ModelDefine governance bodies and their roles in communication oversight, including:· Steering Committee· Project Management Office (PMO)· Change Management Lead· Communication Lead· Business Champions Network1\n2.3.4.5.2 Escalation ProcessProvide clear escalation steps for communication-related issues, such as:· Incorrect or unclear announcements· Misalignment between teams· Stakeholder resistance or misinformation· High-impact communication delays1\n2.3.4.5.3 Issue ManagementEstablish a structured process for logging, tracking, and resolving communication risks and issues.1\n2.3.4.5.4 Roles and ResponsibilitiesProvide a RACI or equivalent outlining communication accountabilities across the Tenderer and the Client.1\n2.3.5 Training Strategy and User Enablement2.3.5.1 Trainings for all functionalities and setup illustrated in this tender must be included.2.3.5.1.1 Training scope should include all functional, technical IT and any related certifications (functional and IT) related courses and modules as given in the below table.Sr NoModules1 General Ledger2 Accounts Payable3 Accounts Receivables4 Fixed Assets5 Purchasing Management6 Sourcing7 Contract Management8 Procurement Content - Catalogues9 Invoice module10 Logistics Invoice Verification11 GRC (Governance, Risk, and Compliance)12 Inventory Management13 MaintenanceTable 1 Modules under Training ScopeThe Tenderers should provide the number of training sessions and number of participants provided for the trainings required.The Tenderers should work with ERP product providers to propose the certification courses.Below is the table showing number of Pax.Training Course/ModulesNumber of PaxGeneral Ledger - BU Functional (Power User) 30General Ledger - IT Functional 10General Ledger - End User 50Accounts Payable - BU Functional (Power User) 20Accounts Payable - IT Functional 10Accounts Payable - End User 20Accounts Receivables - BU Functional (Power User) 20Accounts Receivables - IT Functional 10Accounts Receivables - End User 20Fixed Assets - BU Functional (Power User) 10Fixed Assets - IT Functional 10Fixed Assets - End User 10Purchasing Management - BU Functional (Power User) 10Purchasing Management - IT Functional 10Purchasing Management - End User 50Sourcing - BU Functional (Power User) 10Sourcing - IT Functional 10Sourcing - End User 50Contract Management - BU Functional (Power User) 10Contract Management - IT Functional 10Contract Management - End User 50Procurement Content - Catalogues - BU Functional (Power User) 10Procurement Content - Catalogues - IT Functional 10Procurement Content - Catalogues - End User 350Invoice module - BU Functional (Power User) 20Invoice module - IT Functional 10Invoice module - End User 350Logistics Invoice Verification - BU Functional (Power User) 10Logistics Invoice Verification - IT Functional 10Logistics Invoice Verification - End User 50Inventory Management - BU Functional (Power User) 20Inventory Management - IT Functional 10Inventory Management - End User 100Maintenance - BU Functional (Power User) 20Maintenance - IT Functional 10Governance, Risk, and Compliance - BU Functional (Power User) 20Governance, Risk, and Compliance - IT Functional 10Governance, Risk, and Compliance - End User 1290Table 2 Training Course/Modules Pax1\n2.3.5.2 Role Based Training StrategyThe Tenderers should define, design, and implement a comprehensive role-based training strategy aligned to the Client's ERP business processes and user responsibilities. The strategy must ensure that users are trained based on how they will perform their day-to-day work in the new ERP system, rather than generic system functionality.1\n2.3.5.2.1 Details of Role Based Training StrategyThe role-based training strategy should, at a minimum:Identify and define distinct user roles impacted by the ERP implementation, including but not limited to:· End Users (transactional users)· Approvers· Managers and Supervisors· Super Users / Power Users· Business Process Owners· IT / Application Support (as applicable)Align each user role to:· Relevant ERP business processes· System transactions and workflows· Decision rights and authority levels· Reporting and monitoring responsibilitiesDescribe how training content is tailored to:· Different levels of system interaction and complexity· Frequency of use (daily, periodic, exception-based)· Control and compliance responsibilitiesDemonstrate how the training strategy supports:· User adoption· Reduction of post Go-Live support incidents· Knowledge transfer and sustainability\n2.3.5.3 Training Materials and Learning MethodsThe Tenderers should describe the training materials, content formats, and learning methods to be used to support effective ERP knowledge transfer and user adoption.The training approach should cater to different learning styles and operational constraints and may include a blended learning model combining instructor-led and self-paced learning.1\n2.3.5.3.1 Training MethodsTraining methods may include, but are not limited to:· Classroom or virtual instructor-led training· Hands-on system training using a training or sandbox environment· E-learning or online modules· System simulations or guided exercises· User guides and standard operating procedures· Quick reference guides / job aids· Training videos or recorded demonstrations1\n2.3.5.3.2 Training MaterialsThe Tenderers should also describe how training materials will be:· Tailored to the Client's configured ERP Solution· Easy to update post-implementation· Made accessible to users after Go-Live1\n2.3.5.4 Training Delivery Plan and ScheduleThe Tenderers should provide a detailed training delivery plan and schedule aligned with key ERP Project milestones, ensuring users are adequately prepared ahead of system testing and Go-Live.1\n2.3.5.4.1 Details of Delivery PlanThe training delivery plan should:\nAlign training activities with major Project phases, including:\nBusiness process finalization\nSystem configuration completion\nUser Acceptance Testing (UAT)\nEnd User Training (EUT)\nGo-Live preparation\nClearly distinguish between:\nTraining conducted prior to or in support of UAT (e.g. Super User or Business User training)\nEnd User training conducted before Go-Live\nDescribe how training support will be provided during:\nUAT execution (e.g. refresher sessions, support clinics)\nFinal Go-Live preparation and cutover period1\n2.3.5.5 Training Effectiveness and User PreparednessThe Tenderers should define a structured approach to evaluate training effectiveness and assess user preparedness prior to Go-Live, ensuring users are capable and confident to operate the ERP system.1\n2.3.5.5.1 Approach for Training EffectivenessThe approach should include mechanisms to:\nTrack training participation and completion\nAssess user understanding and knowledge retention\nIdentify users or roles requiring additional support\nDetermine overall organisational readiness for Go-LiveThe Tenderers should describe both quantitative and qualitative measures, such as assessments, surveys, or observations.1\n2.3.5.6 Training Governance and Responsibilities2.3.5.6.1 The Tenderers should clearly define the training governance structure aligning with overall Project governance, including roles, responsibilities, and coordination mechanisms between the Tenderer and the Client.12.3.5.6.2 The Tenderers should provide suitably qualified functional and technical experts for all training sessions to answer questions relating to the System, including system functionality, configuration, workflows, integrations, reports, controls, roles and access, and other Solution-specific matters. Any questions that cannot be addressed during the session should be documented, tracked, and responded to within an agreed timeframe at no additional cost to ORGANISATION X\n"}</script>
+
+<script>
+"use strict";
+
+{{MODULES}}
+
+/* =================================================================
+   Shared vocabulary — a direct port of triage_rfp.py's lexicon, so
+   the page scores a document the same way the pipeline does.
+   ================================================================= */
+const LEXICON = {
+  4: ["change management","change manager","change impact","change readiness",
+      "change agent","change champion","change network","change strategy",
+      "change sustenance","organisational change","organizational change",
+      "stakeholder engagement","stakeholder analysis","user adoption",
+      "training needs analysis","train-the-trainer","train the trainer",
+      "transition management","knowledge transfer","behavioural change",
+      "behavioral change","change intervention","orientation programme",
+      "orientation program","change plan","communications plan","communication plan"],
+  3: ["super user","superuser","power user","readiness assessment","hypercare",
+      "floorwalking","floor walking","adoption rate","user acceptance",
+      "training plan","training materials","training strategy","curriculum",
+      "e-learning","elearning","instructor-led","post-implementation review",
+      "sustainment","reinforcement","capability building","upskilling",
+      "change fatigue","resistance","sponsor","sponsorship"],
+  2: ["training","stakeholder","communication","engagement","readiness","workshop",
+      "briefing","onboarding","coaching","mentoring","learning","user guide","job aid",
+      "help desk","helpdesk","feedback","survey","awareness","buy-in","culture","adoption"],
+  1: ["user","staff","employee","end-user","end user","roll-out","rollout"]
+};
+const OFF_TOPIC = ["warranty period","liquidated damages","indemnity","source code escrow",
+  "bandwidth","firewall","database schema","encryption","api","uptime","disaster recovery",
+  "backup","penetration test","hardware","server","bill of quantities","insurance","bond",
+  "arbitration","jurisdiction"];
+// A deliverable is named the same way whichever modal a tender favours — some say
+// "should" throughout and "shall" not once. The modal still decides priority; this list
+// is only about spotting that a deliverable is being named.
+const DELIVERABLE_VERBS = ["provide","develop","submit","prepare","produce","deliver",
+  "propose","establish","conduct","define","include","devise","outline","describe",
+  "identify","detail"];
+const DELIVERABLE_CUES = ["shall","must","should"]
+  .flatMap(m => DELIVERABLE_VERBS.map(v => `${m} ${v}`))
+  .concat(["is required to provide"]);
+
+const CROSS_REF = /\b(?:part|chapter|annex|appendix|schedule|section|volume)[ \t]+(?:[IVXLC]+|\d+(?:\.\d+)*)\b/gi;
+const PAGE_MARKER = /^=+\s*PAGE\s+(\d+)\s*=+\s*$/;
+const TOC_LINE = /\.{4,}\s*\d+\s*$/;
+const TOC_PAGE = /table of contents|^[ \t]*contents[ \t]*$/im;
+const MODAL = /\b(shall|must|should|may|will)\b/i;
+const HEADINGS = [
+  // Seven components: 2.3.2.2.2.4 is a real clause reference in real tenders.
+  /^\s{0,6}(\d{1,2}(?:\.\d{1,3}){0,6})\.?\s+(\S.{2,110})$/,
+  /^\s{0,6}((?:PART|CHAPTER|ANNEX|APPENDIX|SCHEDULE|SECTION|VOLUME)\s+(?:[IVXLC]+|\d+))\b[\s,:.–-]*(.{0,110})$/i
+];
+
+const slug = v => String(v).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+const esc = v => String(v).replace(/[&<>"']/g, c =>
+  ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+/* Knowledge-bank bodies are Markdown. An excerpt is for reading, so drop the syntax
+   rather than showing the reader a diff of someone's source file. */
+const unmark = v => String(v)
+  .replace(/^\s*>+\s*/g, "")
+  .replace(/\s>\s/g, " ")
+  .replace(/#{1,6}\s*/g, "")
+  .replace(/\*\*|\*|`/g, "")
+  .replace(/\s+/g, " ")
+  .trim();
+
+/* --- document splitting (port of split_sections) ----------------- */
+
+const GLUED = /(?<=[a-z])(?=(?:The|This|These|Tenderers?|A|An)\b)/;
+
+/* Word stores a heading and the sentence after it as one run often enough that a tender
+   arrives as "Change Management StrategyThe Tenderers should provide…". */
+function unglue(text) {
+  const at = text.search(GLUED);
+  if (at > 0) {
+    const head = text.slice(0, at).trim();
+    if (head.length >= 3 && head.length <= 70) return head;
+  }
+  return text;
+}
+
+function looksLikeHeading(text) {
+  if (!text) return true;
+  const trimmed = text.trim();
+  const words = trimmed.split(/\s+/);
+  // A real heading does not trail off: "Where subcontractors are engaged for change
+  // management activities, the" passes every other test and is plainly a fragment.
+  const dangling = /[,:;]$/.test(trimmed)
+    || /\b(the|a|an|and|or|of|to|in|for|with|that|which|shall)$/i.test(trimmed);
+  return trimmed.length <= 70 && words.length <= 11 && !MODAL.test(trimmed)
+    && !/[.;]$/.test(trimmed) && !dangling;
+}
+
+function runningHeaders(text) {
+  const counts = new Map();
+  for (const line of text.split("\n")) {
+    const norm = line.trim().replace(/\s+/g, " ");
+    if (norm.length > 6 && norm.length < 120) counts.set(norm, (counts.get(norm) || 0) + 1);
+  }
+  return new Set([...counts].filter(([, n]) => n >= 3).map(([l]) => l));
+}
+
+function stripTocPages(text) {
+  const lines = text.split("\n");
+  const markerAt = lines.map(l => PAGE_MARKER.test(l.trim()));
+  if (!markerAt.some(Boolean)) return text;
+  const out = [];
+  let dropping = false, buffer = [], bufferStart = -1;
+  const flush = () => {
+    if (bufferStart >= 0) out.push(dropping ? "" : buffer.join("\n"));
+    buffer = []; dropping = false;
+  };
+  lines.forEach((line, i) => {
+    if (markerAt[i]) { flush(); out.push(line); bufferStart = i; return; }
+    buffer.push(line);
+    if (TOC_PAGE.test(line)) dropping = true;
+  });
+  flush();
+  return out.join("\n");
+}
+
+function splitSections(text, minWords) {
+  const furniture = runningHeaders(text);
+  const lines = text.split("\n");
+  const marks = [];
+  let offset = 0;
+  for (const line of lines) {
+    const norm = line.trim().replace(/\s+/g, " ");
+    if (!TOC_LINE.test(line) && !furniture.has(norm)) {
+      for (const pattern of HEADINGS) {
+        const m = line.match(pattern);
+        if (m) {
+          const tail = unglue((m[2] || "").replace(/^[\s.:–-]+|[\s.:–-]+$/g, ""));
+          marks.push({ offset, ref: m[1].replace(/\.$/, ""),
+                       heading: looksLikeHeading(tail) ? tail : "" });
+          break;
+        }
+      }
+    }
+    offset += line.length + 1;
+  }
+  if (!marks.length) return [{ ref: "(whole document)", heading: "", body: text, offset: 0 }];
+
+  const sections = [];
+  if (marks[0].offset > 0)
+    sections.push({ ref: "(preamble)", heading: "", offset: 0, body: text.slice(0, marks[0].offset) });
+  marks.forEach((mark, i) => {
+    const end = i + 1 < marks.length ? marks[i + 1].offset : text.length;
+    sections.push({ ref: mark.ref, heading: mark.heading, offset: mark.offset,
+                    body: text.slice(mark.offset, end) });
+  });
+
+  // A heading with almost nothing under it is a parent of the clauses below it. Fold it
+  // forward but keep its title as the child's breadcrumb.
+  const merged = [];
+  let pending = [];
+  for (const section of sections) {
+    if (section.body.trim().split(/\s+/).filter(Boolean).length < minWords) {
+      if (section.heading) pending.push(section.heading);
+      if (merged.length) merged[merged.length - 1].body += section.body;
+      continue;
+    }
+    if (pending.length && !section.heading) section.heading = pending[pending.length - 1];
+    section.parents = pending;
+    pending = [];
+    merged.push(section);
+  }
+  return merged;
+}
+
+function scoreSection(section) {
+  const body = section.body.replace(/\s+/g, " ").toLowerCase();
+  const heading = section.heading.toLowerCase();
+  let score = 0, signalChars = 0;
+  const hits = {}, strong = {};
+
+  for (const weight of [4, 3, 2, 1]) {
+    for (const term of LEXICON[weight]) {
+      const count = body.split(term).length - 1;
+      if (!count) continue;
+      hits[term] = count;
+      if (weight === 4) strong[term] = count;
+      score += weight * count;
+      signalChars += term.length * count;
+      if (heading.includes(term)) score += weight * 3;
+    }
+  }
+
+  const strongTotal = Object.values(strong).reduce((a, b) => a + b, 0);
+  const headingStrong = LEXICON[4].some(t => heading.includes(t));
+  const coverage = signalChars / Math.max(body.length, 1);
+
+  let verdict;
+  if (strongTotal && (strongTotal >= 2 || headingStrong || coverage >= 0.02)) verdict = "cm-core";
+  else if (strongTotal || score >= 6 || coverage >= 0.015) verdict = "cm-adjacent";
+  else verdict = "not-cm";
+
+  return {
+    verdict, score, coverage,
+    strong: Object.keys(strong).sort((a, b) => strong[b] - strong[a]),
+    offTopic: OFF_TOPIC.reduce((n, t) => n + (body.split(t).length - 1), 0),
+    cues: DELIVERABLE_CUES.filter(c => body.includes(c)),
+    excerpt: section.body.replace(/\s+/g, " ").trim().slice(0, 240)
+  };
+}
+
+function triage(text) {
+  const cleaned = stripTocPages(text);
+  const lines = cleaned.split("\n");
+  const pageAt = [];
+  let page = null, cursor = 0;
+  for (const line of lines) {
+    const m = line.trim().match(PAGE_MARKER);
+    if (m) page = Number(m[1]);
+    pageAt.push({ offset: cursor, page });
+    cursor += line.length + 1;
+  }
+  const pageFor = off => {
+    let found = null;
+    for (const p of pageAt) { if (p.offset <= off) found = p.page; else break; }
+    return found;
+  };
+
+  const sections = splitSections(cleaned, 25)
+    .map(s => ({ ...s, ...scoreSection(s), page: pageFor(s.offset) }))
+    .filter(s => s.body.replace(/\s+/g, " ").trim().split(" ").filter(Boolean).length >= 5);
+
+  const furniture = [...runningHeaders(cleaned)].map(l => l.toLowerCase());
+  const refs = new Map();
+  for (const m of cleaned.matchAll(CROSS_REF)) {
+    const ref = m[0].replace(/\s+/g, " ");
+    // "PART 2 … CHAPTER 8" is this document's own running header. Listing it as a part
+    // to chase turns a real warning into noise.
+    if (furniture.some(line => line.includes(ref.toLowerCase()))) continue;
+    if (!refs.has(ref.toLowerCase())) refs.set(ref.toLowerCase(), ref);
+  }
+
+  return {
+    sections,
+    words: cleaned.trim().split(/\s+/).filter(Boolean).length,
+    crossRefs: [...refs.values()].sort((a, b) => a.localeCompare(b)),
+    counts: sections.reduce((acc, s) => (acc[s.verdict] = (acc[s.verdict] || 0) + 1, acc),
+                            { "cm-core": 0, "cm-adjacent": 0, "not-cm": 0 })
+  };
+}
+
+/* What kind of change work this tender describes — its own CM vocabulary, ranked.
+   Context for the reader, not a retrieval key: it says what the work IS, while the
+   bank is tagged by sector, system and content type. */
+function topicProfile(text) {
+  const lowered = text.toLowerCase();
+  const found = [];
+  for (const weight of [4, 3]) {
+    for (const term of LEXICON[weight]) {
+      const n = lowered.split(term).length - 1;
+      if (n) found.push({ term, n, weight });
+    }
+  }
+  return found.sort((a, b) => b.weight - a.weight || b.n - a.n);
+}
+
+/* Retrieval tags seeded from the bank's OWN vocabulary.
+
+   Deriving tags from the CM lexicon instead looks reasonable and retrieves nothing:
+   the lexicon names the work ("change-readiness") while a bank is tagged by sector and
+   system ("erp", "public-sector"), so the two namespaces never meet. Asking which of
+   the bank's existing tags this tender actually mentions can only propose tags that
+   exist to be matched — and it works whatever vocabulary the bank happens to use. */
+/* The vocabulary worth matching against is whatever tags past bids actually carry —
+   a keyword nothing in Airtable uses can never rank anything higher. */
+function projectTagVocabulary() {
+  const all = new Set();
+  for (const p of state.airtable.projects) for (const t of p.tags) all.add(t);
+  return all;
+}
+
+function vocabTagsIn(text, vocabulary) {
+  const lowered = " " + text.toLowerCase().replace(/\s+/g, " ") + " ";
+  const hits = [];
+  for (const tag of vocabulary) {
+    const phrase = tag.replace(/-/g, " ");
+    const re = new RegExp("[^a-z0-9]" + phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+      + "(?:s|es)?[^a-z0-9]", "i");
+    if (re.test(lowered)) hits.push(tag);
+  }
+  return hits.sort();
+}
+
+/* The tags past bids use most, for when a tender mentions none of them. */
+function commonProjectTags(limit = 10) {
+  const counts = {};
+  for (const p of state.airtable.projects) for (const t of p.tags)
+    counts[t] = (counts[t] || 0) + 1;
+  return Object.keys(counts).sort((a, b) => counts[b] - counts[a] || a.localeCompare(b))
+    .slice(0, limit);
+}
+
+/* =================================================================
+   File reading. .docx and .pptx are ZIPs of XML; DecompressionStream
+   inflates them without a library. PDFs genuinely cannot be read here.
+   ================================================================= */
+
+async function inflateRaw(bytes) {
+  const stream = new Blob([bytes]).stream()
+    .pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Uint8Array(await new Response(stream).arrayBuffer());
+}
+
+async function unzip(buffer, wanted) {
+  const dv = new DataView(buffer);
+  let eocd = -1;
+  const floor = Math.max(0, buffer.byteLength - 66000);
+  for (let i = buffer.byteLength - 22; i >= floor; i--) {
+    if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("This does not look like a .docx or .pptx file.");
+
+  const count = dv.getUint16(eocd + 10, true);
+  let at = dv.getUint32(eocd + 16, true);
+  const decoder = new TextDecoder();
+  const out = new Map();
+
+  for (let n = 0; n < count; n++) {
+    if (dv.getUint32(at, true) !== 0x02014b50) break;
+    const method = dv.getUint16(at + 10, true);
+    const compSize = dv.getUint32(at + 20, true);
+    const nameLen = dv.getUint16(at + 28, true);
+    const extraLen = dv.getUint16(at + 30, true);
+    const commentLen = dv.getUint16(at + 32, true);
+    const localAt = dv.getUint32(at + 42, true);
+    const name = decoder.decode(new Uint8Array(buffer, at + 46, nameLen));
+    at += 46 + nameLen + extraLen + commentLen;
+    if (!wanted(name)) continue;
+
+    const start = localAt + 30 + dv.getUint16(localAt + 26, true)
+                            + dv.getUint16(localAt + 28, true);
+    const raw = new Uint8Array(buffer, start, compSize);
+    out.set(name, method === 0 ? raw : await inflateRaw(raw));
+  }
+  return out;
+}
+
+function xmlToText(bytes, breakTags) {
+  let s = new TextDecoder().decode(bytes);
+  for (const tag of breakTags) s = s.split(tag).join("\n");
+  s = s.replace(/<[^>]*>/g, "");
+  return s.replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+          .replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d)))
+          .replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+          .replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+          .replace(/&amp;/g, "&");
+}
+
+class PdfNotice extends Error {}
+
+async function readDocument(file) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith(".pdf")) throw new PdfNotice();
+
+  if (name.endsWith(".docx")) {
+    const parts = await unzip(await file.arrayBuffer(), n => n === "word/document.xml");
+    const doc = parts.get("word/document.xml");
+    if (!doc) throw new Error("No document body found inside that .docx.");
+    return xmlToText(doc, ["</w:p>", "</w:tr>"]);
+  }
+  if (name.endsWith(".pptx")) {
+    const parts = await unzip(await file.arrayBuffer(),
+      n => /^ppt\/slides\/slide\d+\.xml$/.test(n));
+    if (!parts.size) throw new Error("No slides found inside that .pptx.");
+    return [...parts.keys()]
+      .sort((a, b) => Number(a.match(/(\d+)/)[1]) - Number(b.match(/(\d+)/)[1]))
+      .map(k => xmlToText(parts.get(k), ["</a:p>", "</p:sp>"]))
+      .join("\n");
+  }
+  return await file.text();
+}
+
+/* =================================================================
+   State
+   ================================================================= */
+
+const state = {
+  doc: null,          // { name, text, triage }
+  tags: new Set(),
+  airtable: { phase: "loading", projects: [], failure: null },
+  airtableStop: null
+};
+
+// Whether the tender's keywords have been auto-seeded from the past-bids' own tag
+// vocabulary yet. That vocabulary only exists once Airtable has loaded, which can be
+// after a tender is already read — so this runs once, whenever both become true.
+let tagsSeeded = false;
+
+const $ = id => document.getElementById(id);
+
+// Theme — light or dark by system default; the button flips whichever is currently
+// showing. Matches the toggle in Change Impact Intake, this tool's sibling.
+$("theme-toggle").addEventListener("click", () => {
+  const docEl = document.documentElement;
+  const cur = docEl.getAttribute("data-theme");
+  const isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+  docEl.setAttribute("data-theme", isDark ? "light" : "dark");
+});
+
+
+/* =================================================================
+   Airtable — the store for past RFPs and past proposal decks.
+
+   Read live through the viewer's own Airtable connector, so the page
+   never holds a token and never holds a stale copy. Field IDs rather
+   than names: renaming a column in Airtable must not break this page.
+   ================================================================= */
+
+const AIRTABLE = {
+  server: "Airtable",
+  tool: "list_records_for_table",
+  baseId: "appAi9h5mT0hPz5o2",
+  tableId: "tblxQyGlAV81vz3ES",
+  where: "CM Knowledge Bank → Proposals and Tenders",
+  field: {
+    name:     "fld2pcQSSx8pxXaGi",
+    location: "fldAICNuwryB6il5R",
+    rfp:      "fld9cmwu4nuBkQnuS",
+    deck:     "fldXrhDwayxbGplBC",
+    price:    "fldW3eQtJ67m8wt56"
+  }
+};
+
+const recordUrl = (table, id) => `https://airtable.com/${AIRTABLE.baseId}/${table}/${id}`;
+
+/* Airtable encodes a cell differently per field type — a select is an object, a
+   collaborator is an object, plain text is a string. Read the shapes tolerantly rather
+   than asserting one: a wrong assertion renders a blank cell and looks like missing data. */
+function cellText(value) {
+  if (value == null) return "";
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (Array.isArray(value)) return value.map(cellText).filter(Boolean).join(", ");
+  if (typeof value === "object")
+    return String(value.name ?? value.text ?? value.value ?? value.filename ?? "");
+  return "";
+}
+
+/* The register's price column turned out to be a real Number/Currency field, not the
+   plain text the docs once assumed — cellText renders that as a bare "1000000". Format
+   only when the raw cell actually is a number; leave any other shape as cellText found
+   it, since a renamed or retyped column must not throw here. */
+function formatPrice(value) {
+  return typeof value === "number"
+    ? "$" + value.toLocaleString("en-US")
+    : cellText(value);
+}
+
+function cellFiles(value) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(a => a && typeof a === "object")
+    .map(a => ({ name: a.filename || a.name || "attachment", url: a.url || null }));
+}
+
+/* A multipleSelects cell reads back as [{id, name, color}], a singleSelect as one such
+   object, and an unticked checkbox is omitted from the payload entirely. Observed, not
+   assumed — the write path returns plain strings for the same fields. */
+function cellNames(value) {
+  if (!Array.isArray(value)) return [];
+  return value.map(v => (v && typeof v === "object" ? v.name : v))
+              .filter(Boolean).map(String);
+}
+
+const STALE_AFTER_DAYS = 730;
+
+const OUTCOMES = new Set(["won", "lost", "no-bid", "withdrawn", "pending", "unknown"]);
+const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+/* Tags, Outcome and Submitted were added to the register after its field ids were last
+   read here, so unlike the five columns above they cannot be matched by id — guessing an
+   id would be worse than not reading the column at all. They are recognised by the shape
+   of the value instead: a multipleSelects cell is an array of {name}, an Outcome is a
+   single choice whose name is one of the six outcomes, and Submitted is the only ISO
+   date. Inference only ever looks at columns no known id has claimed, so it cannot shadow
+   a field the page already reads, and every column it cannot place is left alone. */
+function inferProjectFields(cells) {
+  const claimed = new Set(Object.values(AIRTABLE.field));
+  let tags = [], outcome = "", submitted = "";
+
+  for (const [fieldId, value] of Object.entries(cells)) {
+    if (claimed.has(fieldId)) continue;
+    const choice = value && typeof value === "object" && !Array.isArray(value)
+      ? String(value.name || "").toLowerCase() : "";
+
+    if (Array.isArray(value) && value.some(v => v && typeof v === "object" && v.name)) {
+      const names = cellNames(value).map(t => t.toLowerCase());
+      if (names.length > tags.length) tags = names;
+    } else if (OUTCOMES.has(choice)) {
+      outcome = choice;
+    } else if (typeof value === "string" && OUTCOMES.has(value.toLowerCase())) {
+      outcome = value.toLowerCase();
+    } else if (typeof value === "string" && ISO_DATE.test(value)) {
+      submitted = value;
+    }
+  }
+  return { tags, outcome, submitted };
+}
+
+function projectFrom(record) {
+  const cells = record.cellValuesByFieldId || record.fields || {};
+  const get = key => cells[AIRTABLE.field[key]];
+  const extra = inferProjectFields(cells);
+  return {
+    id: record.id,
+    url: recordUrl(AIRTABLE.tableId, record.id),
+    name: cellText(get("name")),
+    location: cellText(get("location")),
+    price: formatPrice(get("price")),
+    rfp: cellFiles(get("rfp")),
+    deck: cellFiles(get("deck")),
+    tags: extra.tags,
+    outcome: extra.outcome,
+    submitted: extra.submitted,
+    stale: extra.submitted
+      ? (Date.now() - Date.parse(extra.submitted)) / 86400000 > STALE_AFTER_DAYS
+      : false,
+    empty: !Object.keys(cells).length
+  };
+}
+
+/* --- relevance ----------------------------------------------------
+   How much of what this tender is about does a past bid actually cover?
+
+   Counting shared tags equally cannot answer that, for two reasons. A tag every
+   past bid carries ("training") says nothing about which one to read, while a
+   rare one ("transport") says a great deal; and a bid tagged generously beats a
+   precisely tagged one on volume alone. Both were live problems here — two
+   unrelated bids scored identically because every tag they shared was one no CM
+   proposal would lack.
+
+   So each shared tag is weighted by how rare it is across the register, and the
+   result is reported as a share of everything the tender raised: a percentage
+   that means something on its own, rather than a points tally that only means
+   something next to the row below it. */
+
+const STOPWORDS = new Set(["and", "or", "the", "of", "a", "to", "in", "for", "with", "on"]);
+
+const wordIn = (word, text) =>
+  new RegExp("[^a-z0-9]" + word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    + "(?:s|es)?[^a-z0-9]", "i").test(text);
+
+/* A tag is worth more to a tender that states it outright than to one where only
+   its significant words turn up apart ("readiness assessment" for "change
+   readiness assessment") — real evidence either way, but not equal evidence. */
+function tenderTagWeights() {
+  const vocabulary = projectTagVocabulary();
+  const weights = new Map();
+  for (const tag of state.tags) if (vocabulary.has(tag)) weights.set(tag, 1);
+  if (!state.doc) return weights;
+
+  const text = " " + state.doc.text.toLowerCase().replace(/\s+/g, " ") + " ";
+  for (const tag of vocabulary) {
+    if (weights.has(tag)) continue;
+    const words = tag.replace(/-/g, " ").split(" ")
+      .filter(w => w.length > 3 && !STOPWORDS.has(w));
+    if (words.length > 1 && words.every(w => wordIn(w, text))) weights.set(tag, 0.5);
+  }
+  return weights;
+}
+
+/* Rarity across the register. A tag on one bid in ten discriminates; a tag on
+   all ten cannot. */
+function tagRarity() {
+  const tagged = state.airtable.projects.filter(p => p.tags.length);
+  const n = tagged.length || 1;
+  const seen = new Map();
+  for (const p of tagged)
+    for (const t of new Set(p.tags)) seen.set(t, (seen.get(t) || 0) + 1);
+  const rarity = new Map();
+  for (const [t, count] of seen) rarity.set(t, Math.log(1 + n / count));
+  return rarity;
+}
+
+function relevanceContext() {
+  const weights = tenderTagWeights();
+  const rarity = tagRarity();
+  let total = 0;
+  for (const [tag, w] of weights) total += w * (rarity.get(tag) || 0);
+  return { weights, rarity, total };
+}
+
+function scoreProject(project, ctx) {
+  const { weights, rarity, total } = ctx;
+  const matched = [], related = [];
+  let earned = 0;
+
+  for (const tag of new Set(project.tags)) {
+    const w = weights.get(tag);
+    if (!w) continue;
+    earned += w * (rarity.get(tag) || 0);
+    (w === 1 ? matched : related).push(tag);
+  }
+
+  let relevance = total > 0 ? earned / total : 0;
+  // Rarest first: the tag that separates this bid from the others is the reason
+  // worth reading, and it should not be buried under the ones they all share.
+  const byRarity = (a, b) => (rarity.get(b) || 0) - (rarity.get(a) || 0);
+  const why = [...matched.sort(byRarity).map(t => "matches: " + t),
+               ...related.sort(byRarity).map(t => "related: " + t)];
+
+  // Small multipliers on purpose: a lost bid on this subject is still worth more
+  // than a won one on some other subject, so outcome nudges the order and never
+  // decides it.
+  if (project.outcome === "won") { relevance *= 1.05; why.push("won"); }
+  if (project.outcome === "lost") { relevance *= 0.95; why.push("lost"); }
+  if (project.stale) { relevance *= 0.90; why.push("over two years old"); }
+
+  const score = Math.max(0, Math.min(100, Math.round(relevance * 100)));
+  return { score, matched, related, why };
+}
+
+/* Every error code the contract defines has a different correct fix. Collapsing them
+   into one banner hides the single action that would repair the page. */
+function mcpFailure(error) {
+  const code = (error && error.code) || "upstream_error";
+  const table = {
+    needs_reauth: ["Airtable needs reconnecting",
+      "Its credentials have lapsed. Reconnect Airtable in claude.ai Settings → Connectors, then reload."],
+    server_not_connected: ["No Airtable connector",
+      "This page reads past projects from your Airtable. Add Airtable in claude.ai Settings → Connectors."],
+    selection_required: ["More than one Airtable connector",
+      "Choose which Airtable account this page should read, then reload."],
+    server_not_found: ["That Airtable connector no longer exists",
+      "It was removed upstream. Re-add Airtable in claude.ai Settings → Connectors."],
+    blocked_by_policy: ["Blocked by your organisation's policy",
+      "An administrator has blocked this Airtable tool. The rest of the page still works."],
+    approval_required: ["Needs per-call approval",
+      "Your organisation requires approval for this tool, which artifacts cannot request yet."],
+    not_in_manifest: ["This page is not set up to read that table",
+      "That's a setup issue with the page itself, not something to fix here — report it to whoever maintains this tool."],
+    tool_error: ["Airtable rejected the request",
+      (error && error.message) || "The table may have been renamed, moved, or deleted."],
+    server_unavailable: ["Airtable is not answering",
+      "Usually brief. The page will try again on its next refresh."],
+    rate_limited: ["Too many requests",
+      "Waiting before asking Airtable again."],
+    not_granted: ["Live data is off for this view",
+      "This view did not grant connector access, so past projects cannot be listed here."],
+    capability_disabled: ["Live data is unavailable here",
+      "This viewer cannot run connector calls. Everything else on the page still works."]
+  };
+  const [title, detail] = table[code] || ["Could not reach Airtable",
+    (error && error.message) || "An unexpected error. Reload to try again."];
+  const hard = ["needs_reauth", "server_not_connected", "selection_required",
+                "server_not_found", "blocked_by_policy", "approval_required",
+                "not_in_manifest"].includes(code);
+  return { title, detail, code, hard };
+}
+
+function renderAirtable() {
+  const host = $("airtable-body");
+  const status = $("airtable-status");
+  const { phase, projects, failure } = state.airtable;
+
+  if (phase === "unavailable" || phase === "error") {
+    const f = failure || { title: "Live data unavailable", detail: "", code: "" };
+    status.textContent = f.code || "offline";
+    status.className = "src-status down";
+    host.innerHTML = `<div class="mcp-state ${f.hard ? "bad" : "warn"}">
+      <b>${esc(f.title)}</b>${esc(f.detail)}</div>`;
+    return;
+  }
+  if (phase === "loading") {
+    status.textContent = "reading…";
+    status.className = "src-status";
+    host.innerHTML = `<div class="mcp-state">Reading ${esc(AIRTABLE.where)}…</div>`;
+    return;
+  }
+
+  status.textContent = `${projects.length} record${projects.length === 1 ? "" : "s"}`;
+  status.className = "src-status live";
+
+  if (!projects.length) {
+    host.innerHTML = `<div class="mcp-state">
+      <b>No rows yet</b>The table is reachable but empty. Rows added in Airtable appear
+      here the next time this page refreshes.</div>`;
+    return;
+  }
+
+  // A row with every field blank cannot be ranked, named or opened — nothing to show,
+  // so it is dropped from the list rather than rendered as a row that says "Untitled".
+  const visible = projects.filter(p => !p.empty);
+  const blank = projects.length - visible.length;
+  const filled = visible.length;
+  const docLink = (file, label) => file
+    ? `<a class="doclink" href="${esc(file.url || "#")}" target="_blank"
+         rel="noopener noreferrer">Open ${esc(label)} directly: ${esc(file.name)}</a>`
+    : `<span class="doclink none">no ${esc(label.toLowerCase())}</span>`;
+
+  const ctx = relevanceContext();
+  const ranking = ctx.total > 0;
+  // Ties are common when two bids share the same generic ground, so the order is
+  // settled rather than left to whatever came back first: relevance, then the more
+  // recent bid, then the name.
+  const scored = visible.map(p => ({ ...p, ...scoreProject(p, ctx) }))
+    .sort((a, b) => ranking
+      ? (b.score - a.score
+         || (b.submitted || "").localeCompare(a.submitted || "")
+         || (a.name || "").localeCompare(b.name || ""))
+      : (a.name || "").localeCompare(b.name || ""));
+  const taggable = visible.filter(p => p.tags.length).length;
+  const best = ranking && scored.length && scored[0].score > 0 ? scored[0].id : null;
+
+  host.innerHTML =
+    (filled === 0 ? `<div class="mcp-state warn"><b>${projects.length} rows, all blank</b>
+       The rows exist but no fields are filled in, so there is nothing to match a tender
+       against yet.</div>` : "")
+    + (filled && blank ? `<div class="mcp-state"><b>${blank} blank row${blank === 1 ? "" : "s"}
+       hidden</b>Every field was empty, so there was nothing to rank or open. Fill one in
+       and it appears here on the next refresh.</div>` : "")
+    + (filled && !taggable ? `<div class="mcp-state warn"><b>No tags on any row</b>
+       Without tags these can only be sorted by name. Tag each past bid in Airtable and
+       the closest matches will rise to the top here.</div>` : "")
+    + scored.map(p => {
+        const pct = ranking ? p.score : 0;
+        const val = !ranking ? "&mdash;" : p.score + "%";
+        return `
+      <div class="project">
+        <span class="meter">
+          <span class="val${ranking && p.score > 0 ? "" : " zero"}">${val}</span>
+          <span class="bar"><i style="width:${pct}%"></i></span>
+        </span>
+        <span>
+          <span class="name${p.name ? "" : " blank"}">${esc(p.name || "Untitled row")}</span>
+          ${p.id === best ? '<span class="row"><span class="flag best">best match</span></span>' : ""}
+          <span class="row">
+            ${p.outcome ? `<span class="flag ${p.outcome === "won" ? "won"
+              : p.outcome === "lost" ? "lost" : ""}">${esc(p.outcome)}</span>` : ""}
+            ${p.location ? `<span class="flag sec">${esc(p.location)}</span>` : ""}
+            ${p.submitted ? `<span class="flag${p.stale ? " sec" : ""}">${esc(p.submitted)}</span>` : ""}
+            ${p.price ? `<span class="flag">${esc(p.price)}</span>` : ""}
+          </span>
+          ${p.why.length ? `<span class="row why">${p.why.slice(0, 6).map(w =>
+            `<span class="chip">${esc(w)}</span>`).join("")}${p.why.length > 6
+              ? `<span class="chip plain">+${p.why.length - 6} more</span>` : ""}</span>` : ""}
+          <span class="row">
+            ${docLink(p.rfp[0], "RFP")}
+            ${docLink(p.deck[0], "Deck")}
+          </span>
+        </span>
+        <a class="open" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
+          Open in Airtable →</a>
+      </div>`;
+      }).join("");
+}
+
+async function initAirtable() {
+  const mcp = await window.claude?.use?.("mcp").catch(() => null);
+  if (!mcp) {
+    const failure = {
+      title: "Live Airtable data is not available in this view",
+      detail: "This panel reads from your own Airtable connector. Reading a tender and "
+            + "its triage still works without it.", code: "", hard: false };
+    state.airtable = { phase: "unavailable", projects: [], failure };
+    renderAirtable();
+    return;
+  }
+
+  // Ask what is actually callable before calling. If the connector or tool is named
+  // differently than this page expects, say so — far better than an empty panel.
+  try {
+    const { servers = [] } = await mcp.listTools();
+    const server = servers.find(s => s.server === AIRTABLE.server);
+    if (!server) {
+      const names = servers.map(s => s.server).filter(Boolean);
+      state.airtable = { phase: "error", projects: [], failure: {
+        title: "No Airtable connector for this viewer",
+        detail: names.length
+          ? `This page asks for "${AIRTABLE.server}". Connectors available here: `
+            + `${names.join(", ")}.`
+          : "Add Airtable in claude.ai Settings → Connectors, then reload.",
+        code: "server_not_connected", hard: true } };
+      renderAirtable();
+      return;
+    }
+    const tools = (server.tools || []).map(t => t.name);
+    if (tools.length && !tools.includes(AIRTABLE.tool)) {
+      state.airtable = { phase: "error", projects: [], failure: {
+        title: "That Airtable tool is not available",
+        detail: `This page calls "${AIRTABLE.tool}". This connector offers: `
+              + `${tools.slice(0, 8).join(", ")}.`,
+        code: "not_in_manifest", hard: true } };
+      renderAirtable();
+      return;
+    }
+  } catch (err) {
+    state.airtable = { phase: "error", projects: [], failure: mcpFailure(err) };
+    renderAirtable();
+    return;
+  }
+
+  state.airtable.phase = "loading";
+  renderAirtable();
+
+  state.airtableStop = mcp.watchTool(
+    AIRTABLE.server, AIRTABLE.tool,
+    { baseId: AIRTABLE.baseId, tableId: AIRTABLE.tableId, pageSize: 100 },
+    ev => {
+      if (ev.type === "error") {
+        const failure = mcpFailure(ev.error);
+        // Transient trouble keeps whatever is on screen; an authz denial retracts it,
+        // because showing data the viewer may no longer read is the worse failure.
+        if (!failure.hard && state.airtable.projects.length) {
+          $("airtable-status").textContent = "stale";
+          $("airtable-status").className = "src-status down";
+          return;
+        }
+        state.airtable = { phase: "error", projects: [], failure };
+        renderAirtable();
+        return;
+      }
+      const payload = ev.result && ev.result.payload;
+      const records = (payload && payload.records) || [];
+      state.airtable = { phase: "ready", projects: records.map(projectFrom), failure: null };
+      // The tag vocabulary only exists once past bids have loaded, which can be after a
+      // tender was already read — so the auto-seed that normally runs on upload gets one
+      // more chance here, exactly once.
+      if (!tagsSeeded && state.doc) {
+        vocabTagsIn(state.doc.text, projectTagVocabulary()).forEach(t => state.tags.add(t));
+        tagsSeeded = true;
+        renderTags();
+      }
+      renderAirtable();
+    },
+    { refetchInterval: 60000 }
+  );
+}
+
+/* =================================================================
+   Rendering
+   ================================================================= */
+
+function renderTags() {
+  const host = $("tag-chips");
+  const suggest = $("tag-suggest");
+  if (!state.tags.size) {
+    host.innerHTML = '<span class="chip plain">no tags yet</span>';
+  } else {
+    host.innerHTML = [...state.tags].sort().map(t =>
+      `<span class="chip">${esc(t)}<button data-tag="${esc(t)}"
+         aria-label="Remove tag ${esc(t)}">&times;</button></span>`).join("");
+  }
+  host.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    state.tags.delete(b.dataset.tag);
+    renderTags(); renderAirtable();
+  }));
+
+  // Past bids' own vocabulary is the only thing worth suggesting: a tag no past bid
+  // carries can never match anything, however well it describes the tender.
+  const spare = commonProjectTags(10).filter(t => !state.tags.has(t));
+  suggest.innerHTML = spare.length
+    ? `<span class="sublabel">from past bids' own tags</span>` + spare.map(t =>
+        `<button class="chip plain add" data-add="${esc(t)}">${esc(t)} +</button>`).join("")
+    : "";
+  suggest.querySelectorAll("button[data-add]").forEach(b =>
+    b.addEventListener("click", () => {
+      state.tags.add(b.dataset.add);
+      renderTags(); renderAirtable();
+    }));
+}
+
+
+function renderReadout() {
+  const { doc } = state;
+  const panel = $("readout");
+  if (!doc) { panel.hidden = true; return; }
+  const t = doc.triage;
+  const relevant = t.sections.filter(s => s.verdict !== "not-cm")
+    .sort((a, b) => b.score - a.score);
+  const aside = t.sections.filter(s => s.verdict === "not-cm");
+
+  const VERDICT_LABEL = { "cm-core": "Core to us", "cm-adjacent": "Related", "not-cm": "Not ours" };
+  const clauseRow = s => `
+    <div class="clause">
+      <span class="ref">${esc(s.ref)}${s.page ? `<span class="pg">page ${s.page}</span>` : ""}</span>
+      <span class="what">
+        ${s.heading ? `<span class="head">${esc(s.heading)}</span>` : ""}
+        <span class="quote">${esc(s.excerpt)}</span>
+        ${s.cues.length ? `<span class="sig"><span class="flag">asks us to deliver:
+          ${esc(s.cues.slice(0, 3).join(", "))}</span></span>` : ""}
+      </span>
+      <span class="sig">
+        <span class="verdict ${s.verdict === "cm-core" ? "core" : "adj"}">${esc(VERDICT_LABEL[s.verdict] || s.verdict)}</span>
+      </span>
+    </div>`;
+
+  panel.innerHTML = `
+    <div class="readout-top">
+      <span class="filename">${esc(doc.name)}</span>
+      <span style="color:var(--muted);font-size:13px">${t.words.toLocaleString()} words ·
+        ${t.sections.length} sections</span>
+      <span class="replace"><button class="quiet" id="replace-doc">Read a different file</button></span>
+    </div>
+    <div class="tallies">
+      <span class="tally"><span class="n core">${t.counts["cm-core"]}</span>
+        <span class="k">Ours to answer</span></span>
+      <span class="tally"><span class="n">${t.counts["cm-adjacent"]}</span>
+        <span class="k">Related</span></span>
+      <span class="tally"><span class="n">${t.counts["not-cm"]}</span>
+        <span class="k">Not ours</span></span>
+      <span class="tally"><span class="n">${t.crossRefs.length}</span>
+        <span class="k">Other parts referenced</span></span>
+    </div>
+    ${t.crossRefs.length ? `<div class="notice">
+      <b>Make sure you have every part this tender points to.</b>
+      ${esc(t.crossRefs.slice(0, 12).join(" · "))}. If one of these was never sent to you,
+      that's a question worth asking before you go further — and that deadline comes first.
+    </div>` : ""}
+    ${doc.topics.length ? `<div class="topics">
+      <span class="topics-k">Terms that came up often</span>
+      ${doc.topics.slice(0, 12).map(t =>
+        `<span class="chip plain">${esc(t.term)} <b>${t.n}</b></span>`).join("")}
+    </div>` : ""}
+    <div class="clauses">${relevant.slice(0, 12).map(clauseRow).join("")
+      || '<div class="empty">Nothing in this document looks like it\'s ours to answer.</div>'}</div>
+    ${aside.length ? `<details class="setaside">
+      <summary>${aside.length} section${aside.length === 1 ? "" : "s"} set aside — worth a
+        quick skim of the headings before you trust it</summary>
+      <div class="setaside-body clauses">${aside.map(clauseRow).join("")}</div>
+    </details>` : ""}`;
+  panel.hidden = false;
+
+  const replace = $("replace-doc");
+  if (replace) replace.addEventListener("click", () => {
+    state.doc = null; state.tags.clear(); tagsSeeded = false;
+    $("drop").hidden = false; $("intake-notice").innerHTML = "";
+    $("stage1-aside").textContent = "Nothing loaded";
+    // A new (or removed) tender invalidates any draft built against the
+    // old one's clauses — never leave a stale draft attached to a
+    // different document.
+    state.stage3.outline = null; state.stage3.plan = null;
+    $("draft-body").innerHTML = ""; $("coverage-summary").hidden = true;
+    $("export-run").disabled = true; $("export-status").textContent = "Draft the proposal first.";
+    $("export-status").className = "export-status";
+    renderReadout(); renderTags(); renderAirtable();
+    updateStage3Availability();
+  });
+}
+
+/* =================================================================
+   Wiring
+   ================================================================= */
+
+function ingest(name, text) {
+  if (!text.trim()) { showNotice("That file came through empty. Try pasting the text instead."); return; }
+  state.doc = { name, text, triage: triage(text), topics: topicProfile(text) };
+  vocabTagsIn(text, projectTagVocabulary()).forEach(t => state.tags.add(t));
+  // Only "seeded" if past bids had actually loaded by now — a tender read before
+  // Airtable answers must not block the catch-up seed once it does.
+  if (state.airtable.projects.length) tagsSeeded = true;
+  $("drop").hidden = true;
+  $("paste-area").hidden = true;
+  $("intake-notice").innerHTML = "";
+  $("stage1-aside").textContent =
+    `${state.doc.triage.counts["cm-core"]} section(s) ours to answer`;
+  // A freshly read tender invalidates any prior draft, which was built
+  // against a different document's clauses.
+  state.stage3.outline = null; state.stage3.plan = null;
+  $("draft-body").innerHTML = ""; $("coverage-summary").hidden = true;
+  $("export-run").disabled = true; $("export-status").textContent = "Draft the proposal first.";
+  $("export-status").className = "export-status";
+  renderReadout(); renderTags(); renderAirtable();
+  updateStage3Availability();
+  $("readout").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function showNotice(html) { $("intake-notice").innerHTML = `<div class="notice">${html}</div>`; }
+
+async function handleFile(file) {
+  showNotice(`Reading <b>${esc(file.name)}</b>…`);
+  try {
+    ingest(file.name, await readDocument(file));
+  } catch (err) {
+    if (err instanceof PdfNotice) {
+      showNotice(`<b>PDFs can't be read in the browser.</b> Extract the text first, then
+        drop the <code>.txt</code> here — or paste it:<br>
+        <code>python3 -c "import pypdf;print(chr(10).join(p.extract_text() for p in
+        pypdf.PdfReader('tender.pdf').pages))" &gt; tender.txt</code>`);
+    } else {
+      showNotice(`<b>Could not read ${esc(file.name)}.</b> ${esc(err.message)}
+        Pasting the text works for anything.`);
+    }
+  }
+}
+
+const drop = $("drop");
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.add("over");
+}));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => {
+  e.preventDefault(); drop.classList.remove("over");
+}));
+drop.addEventListener("drop", e => {
+  const file = e.dataTransfer.files[0];
+  if (file) handleFile(file);
+});
+$("browse").addEventListener("click", () => $("file").click());
+$("file").addEventListener("change", e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
+
+$("paste-toggle").addEventListener("click", () => {
+  const area = $("paste-area");
+  area.hidden = !area.hidden;
+  if (!area.hidden) $("paste-text").focus();
+});
+$("paste-cancel").addEventListener("click", () => { $("paste-area").hidden = true; });
+$("paste-run").addEventListener("click", () => {
+  const text = $("paste-text").value;
+  if (text.trim()) ingest("pasted text", text);
+});
+const loadSample = id => () => {
+  const sample = JSON.parse($(id).textContent);
+  ingest(sample.name, sample.text);
+};
+$("demo").addEventListener("click", loadSample("sample-doc"));
+$("demo2").addEventListener("click", loadSample("sample-doc-2"));
+
+$("tag-form").addEventListener("submit", e => {
+  e.preventDefault();
+  // Split on commas only, never whitespace: the tags in Airtable are ordinary
+  // phrases ("change readiness assessment"), so splitting a typed keyword on spaces
+  // — or hyphenating it — produced fragments that could never match one.
+  const raw = $("tag-input").value.trim();
+  if (raw) {
+    raw.split(",").map(t => t.toLowerCase().replace(/\s+/g, " ").trim())
+      .filter(Boolean).forEach(t => state.tags.add(t));
+  }
+  $("tag-input").value = "";
+  renderTags(); renderAirtable();
+});
+
+/* =================================================================
+   Stage 3 — draft the proposal.
+
+   Wires the tested modules (inlined above from src/*.js) to the page:
+   read a template read-only, read past decks the same way stage 1
+   reads the tender, draft one sample() call per outline section, and
+   export a .pptx built on the uploaded template. Nothing here
+   re-implements provenance, retrieval, or OOXML — that logic is the
+   same code node --test already ran.
+   ================================================================= */
+
+state.stage3 = {
+  template: null,   // { name, arrayBuffer, profile }
+  decks: [],        // [{ name, slides: [{slideNo, text}] }]
+  outline: null,
+  plan: null,
+};
+
+const LAYOUT_HINT_CANDIDATES = {
+  "title-slide": ["title slide", "title"],
+  "title-and-content": ["title and content", "title, content", "content", "title only"],
+  "two-content": ["two content", "comparison"],
+  "section-header": ["section header", "section"],
+  "timeline": ["title and content", "two content"],
+  "team-grid": ["two content", "title and content"],
+  "case-study": ["two content", "title and content"],
+  "table": ["title and content"],
+};
+
+function chooseLayoutForHint(profile, hint) {
+  const candidates = LAYOUT_HINT_CANDIDATES[hint] || ["title and content"];
+  for (const cand of candidates) {
+    const hit = profile.layouts.find(l => (l.name || "").toLowerCase() === cand);
+    if (hit) return hit;
+  }
+  const withBody = profile.layouts.find(l => l.placeholders.some(p => p.type === "body" || p.type === "obj"));
+  return withBody || profile.layouts[0];
+}
+
+function shapesForSlide(layout, title, blocks) {
+  const shapes = [];
+  const titlePh = layout.placeholders.find(p => p.type === "ctrTitle" || p.type === "title");
+  const usedIdx = new Set();
+  if (titlePh) {
+    shapes.push({ want: { idx: titlePh.idx, type: titlePh.type }, paragraphs: [{ text: title }] });
+    usedIdx.add(titlePh.idx);
+  }
+  const bodyPh = layout.placeholders.find(p => !usedIdx.has(p.idx) && (p.type === "body" || p.type === "obj"));
+
+  const paragraphs = [];
+  if (!titlePh) paragraphs.push({ text: title, level: 0 });
+  for (const block of (blocks || [])) {
+    if (block.gap) {
+      paragraphs.push({ text: `[GAP] ${block.gap_note || ""}`, level: 0 });
+    } else if (Array.isArray(block.items) && block.items.length) {
+      for (const item of block.items) paragraphs.push({ text: item.text, level: item.level || 0 });
+    } else if (block.text) {
+      paragraphs.push({ text: block.text, level: 0 });
+    }
+  }
+
+  if (bodyPh) {
+    shapes.push({ want: { idx: bodyPh.idx, type: bodyPh.type }, paragraphs: paragraphs.length ? paragraphs : [{ text: "", level: 0 }] });
+  } else if (!titlePh && paragraphs.length && layout.placeholders[0]) {
+    const any = layout.placeholders[0];
+    shapes.push({ want: { idx: any.idx, type: any.type }, paragraphs });
+  }
+  return shapes;
+}
+
+function updateStage3Availability() {
+  const ready = Boolean(state.doc && state.stage3.template);
+  $("draft-run").disabled = !ready;
+  $("draft-sub").textContent = !state.doc
+    ? "Read a tender in step 1 first."
+    : !state.stage3.template
+      ? "Upload a template to enable drafting."
+      : "Ready to draft.";
+  $("stage3-aside").textContent = state.stage3.plan
+    ? `${state.stage3.plan.slides.length} slide(s) drafted`
+    : ready ? "Ready to draft" : "Read a tender above to begin";
+}
+
+function showTemplateNotice(html) { $("template-notice").innerHTML = html ? `<div class="notice">${html}</div>` : ""; }
+function showDeckNotice(html) { $("deck-notice").innerHTML = html ? `<div class="notice">${html}</div>` : ""; }
+function showDraftNotice(html) { $("draft-notice").innerHTML = html ? `<div class="notice">${html}</div>` : ""; }
+
+function renderTemplateSummary() {
+  const t = state.stage3.template;
+  const el = $("template-summary");
+  if (!t) { el.hidden = true; return; }
+  el.hidden = false;
+  const { profile } = t;
+  const colorEntries = Object.entries(profile.themeColors || {}).slice(0, 8);
+  el.innerHTML = `
+    <div class="grid">
+      <div><span class="k">File</span><div class="v">${esc(t.name)}</div></div>
+      <div><span class="k">Layouts</span><div class="v">${profile.layoutCount}</div></div>
+      <div><span class="k">Slide size</span><div class="v">${profile.slideSize
+        ? `${profile.slideSize.wIn}″ × ${profile.slideSize.hIn}″` : "unknown"}</div></div>
+      <div><span class="k">Fonts</span><div class="v">${esc(profile.themeFonts && profile.themeFonts.major || "?")}
+        / ${esc(profile.themeFonts && profile.themeFonts.minor || "?")}</div></div>
+      <div><span class="k">Speaker notes</span><div class="v">${profile.notesSupported ? "supported" : "not supported"}</div></div>
+    </div>
+    ${colorEntries.length ? `<div><span class="k">Theme colours</span>
+      <div class="swatches">${colorEntries.map(([, hex]) => `<span class="swatch" style="background:${esc(hex)}" title="${esc(hex)}"></span>`).join("")}</div>
+    </div>` : ""}
+    <div><span class="k">Layout names</span>
+      <div class="layout-list">${profile.layouts.map(l => `<span class="chip plain">${esc(l.name || l.part)}</span>`).join("")}</div>
+    </div>`;
+}
+
+async function handleTemplateFile(file) {
+  showTemplateNotice(`Reading <b>${esc(file.name)}</b>…`);
+  try {
+    const ab = await file.arrayBuffer();
+    const { entries } = await unzipAll(ab);
+    const profile = profileTemplate(entries, file.name);
+    if (!profile.layoutCount) {
+      showTemplateNotice(`<b>No slide layouts found in ${esc(file.name)}.</b> This can't be built on — try a different file.`);
+      return;
+    }
+    state.stage3.template = { name: file.name, arrayBuffer: ab, profile };
+    showTemplateNotice("");
+    renderTemplateSummary();
+    updateStage3Availability();
+  } catch (err) {
+    showTemplateNotice(`<b>Could not read ${esc(file.name)}.</b> ${esc(err.message)}`);
+  }
+}
+
+async function readDeckSlides(file) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith(".pdf")) throw new PdfNotice();
+  if (name.endsWith(".pptx")) {
+    const parts = await unzip(await file.arrayBuffer(), n => /^ppt\/slides\/slide\d+\.xml$/.test(n));
+    if (!parts.size) throw new Error("No slides found inside that .pptx.");
+    return [...parts.keys()]
+      .sort((a, b) => Number(a.match(/(\d+)/)[1]) - Number(b.match(/(\d+)/)[1]))
+      .map((k, i) => ({ slideNo: i + 1, text: xmlToText(parts.get(k), ["</a:p>", "</p:sp>"]) }));
+  }
+  const text = await readDocument(file);
+  return [{ slideNo: 1, text }];
+}
+
+function renderDeckList() {
+  const host = $("deck-list");
+  if (!state.stage3.decks.length) { host.innerHTML = ""; return; }
+  host.innerHTML = state.stage3.decks.map((deck, i) => `
+    <div class="file-row">
+      <div><div class="name">${esc(deck.name)}</div>
+        <div class="meta">${deck.slides.length} slide(s) of extracted text</div></div>
+      <button class="remove" data-remove="${i}">Remove</button>
+    </div>`).join("");
+  host.querySelectorAll("[data-remove]").forEach(btn => btn.addEventListener("click", () => {
+    state.stage3.decks.splice(Number(btn.dataset.remove), 1);
+    renderDeckList();
+  }));
+}
+
+async function handleDeckFiles(fileList) {
+  for (const file of Array.from(fileList)) {
+    try {
+      const slides = await readDeckSlides(file);
+      state.stage3.decks.push({ name: file.name, slides });
+    } catch (err) {
+      if (err instanceof PdfNotice) {
+        showDeckNotice(`<b>${esc(file.name)}</b> is a PDF and can't be read in the browser. Extract the `
+          + `text first, then drop the .txt — or paste it into a .txt file.`);
+      } else {
+        showDeckNotice(`<b>Could not read ${esc(file.name)}.</b> ${esc(err.message)}`);
+      }
+    }
+  }
+  renderDeckList();
+}
+
+function flatDeckSlides() {
+  const out = [];
+  for (const deck of state.stage3.decks) for (const s of deck.slides) out.push({ deck: deck.name, slideNo: s.slideNo, text: s.text });
+  return out;
+}
+
+function showDraftProgress(done, total) {
+  const el = $("draft-progress");
+  el.hidden = false;
+  const pct = total ? Math.round((done / total) * 100) : 0;
+  el.innerHTML = `<span>Drafting section ${done} of ${total}…</span>
+    <span class="bar"><i style="width:${pct}%"></i></span><span class="n">${pct}%</span>`;
+}
+function hideDraftProgress() { $("draft-progress").hidden = true; }
+
+function renderCoverageSummary(reconciled) {
+  const el = $("coverage-summary");
+  const total = reconciled.covered.length + reconciled.uncovered.length;
+  const covered = reconciled.covered.length;
+  const pct = total ? Math.round((covered / total) * 100) : 100;
+  el.hidden = false;
+  el.innerHTML = `
+    <span class="meter"><span class="val">${covered}/${total} tender clauses covered</span>
+      <span class="bar"><i style="width:${pct}%"></i></span></span>
+    <span class="count">${reconciled.uncovered.length ? reconciled.uncovered.length + " gap(s)" : "fully covered"}</span>`;
+}
+
+function blockHtml(slideIdx, blockIdx, block) {
+  if (block.gap) {
+    return `<div class="block gap" data-slide="${slideIdx}" data-block="${blockIdx}">
+      <b>[GAP]</b> <span contenteditable="true" data-field="gap_note">${esc(block.gap_note || "")}</span>
+    </div>`;
+  }
+  const sourcesHtml = (block.sources || []).length
+    ? `<div class="sources">${block.sources.map(s => `<span class="chip source">${esc(s)}</span>`).join("")}</div>` : "";
+  if (Array.isArray(block.items) && block.items.length) {
+    const items = block.items.map(it => `<li style="margin-left:${(it.level || 0) * 16}px">${esc(it.text)}</li>`).join("");
+    return `<div class="block" data-slide="${slideIdx}" data-block="${blockIdx}">
+      <ul contenteditable="true" data-field="items">${items}</ul>${sourcesHtml}</div>`;
+  }
+  return `<div class="block" data-slide="${slideIdx}" data-block="${blockIdx}">
+    <div contenteditable="true" data-field="text">${esc(block.text || "")}</div>${sourcesHtml}</div>`;
+}
+
+function renderDraftBody() {
+  const plan = state.stage3.plan;
+  const host = $("draft-body");
+  if (!plan) { host.innerHTML = ""; return; }
+  host.innerHTML = plan.slides.map((slide, i) => `
+    <div class="slide-card">
+      <div class="slide-card-head">
+        <span class="num">${String(i + 1).padStart(2, "0")}</span>
+        <span class="title">${esc(slide.title)}</span>
+        <span class="layout">${esc(slide.layoutName || slide.layoutHint || "")}</span>
+      </div>
+      <div class="blocks">${(slide.blocks || []).map((b, bi) => blockHtml(i, bi, b)).join("")}</div>
+    </div>`).join("");
+
+  host.querySelectorAll('[contenteditable="true"]').forEach(el => {
+    el.addEventListener("blur", () => {
+      const wrap = el.closest(".block");
+      const slideIdx = Number(wrap.dataset.slide);
+      const blockIdx = Number(wrap.dataset.block);
+      const block = state.stage3.plan.slides[slideIdx].blocks[blockIdx];
+      const field = el.dataset.field;
+      if (field === "text") block.text = el.textContent;
+      else if (field === "gap_note") block.gap_note = el.textContent;
+      else if (field === "items") {
+        block.items = [...el.querySelectorAll("li")].map(li => ({
+          text: li.textContent, level: Math.round((parseInt(li.style.marginLeft, 10) || 0) / 16),
+        }));
+      }
+    });
+  });
+}
+
+async function runDraft() {
+  if (!state.doc || !state.stage3.template) { updateStage3Availability(); return; }
+  showDraftNotice("");
+  $("draft-run").disabled = true;
+
+  const sample = await window.claude?.use?.("sample").catch(() => null);
+  if (!sample) {
+    showDraftNotice("Drafting needs Claude access, which is not available in this view. "
+      + "The outline still builds below with every section marked as a gap — fill it in by hand, "
+      + "or export the plan and build the deck through the pptx skill.");
+  }
+
+  const outline = buildOutline(state.doc.triage, {});
+  state.stage3.outline = outline;
+
+  const profile = state.stage3.template.profile;
+  const deckSlides = flatDeckSlides();
+  const total = outline.slides.length;
+  const built = [];
+  showDraftProgress(0, total);
+
+  for (let i = 0; i < outline.slides.length; i++) {
+    const outlineSlide = outline.slides[i];
+    const layout = chooseLayoutForHint(profile, outlineSlide.layoutHint);
+    const section = { id: outlineSlide.id, title: outlineSlide.title, clauseExcerpt: outlineSlide.excerpt || "" };
+    let blocks;
+
+    if (!sample) {
+      blocks = [{ kind: "paragraph", text: null, items: null, sources: [], gap: true,
+        gap_note: "Drafting is unavailable in this view; fill this slide by hand." }];
+    } else {
+      const query = `${outlineSlide.title} ${outlineSlide.excerpt || ""}`;
+      const ranked = rankSlides(query, deckSlides);
+      const { excerpts } = assembleExcerpts(ranked, PROMPT_BUDGET_BYTES - 4096);
+      try {
+        const result = await draftSection(section, layout.placeholders, excerpts, sample);
+        blocks = result.blocks;
+      } catch (err) {
+        const code = err && err.code;
+        if (code === "rate_limited") {
+          showDraftNotice("Claude's usage limit was reached partway through. The sections drafted so far "
+            + "are kept below — draft again once the limit resets to continue.");
+          built.push({ ...outlineSlide, layoutPart: layout.part, layoutPlaceholders: layout.placeholders,
+            layoutName: layout.name, blocks: [{ kind: "paragraph", text: null, items: null, sources: [], gap: true,
+              gap_note: "Not yet drafted (stopped by a usage limit)." }] });
+          for (let j = i + 1; j < outline.slides.length; j++) {
+            const rest = outline.slides[j];
+            const restLayout = chooseLayoutForHint(profile, rest.layoutHint);
+            built.push({ ...rest, layoutPart: restLayout.part, layoutPlaceholders: restLayout.placeholders,
+              layoutName: restLayout.name, blocks: [{ kind: "paragraph", text: null, items: null, sources: [], gap: true,
+                gap_note: "Not yet drafted (stopped by a usage limit)." }] });
+          }
+          i = outline.slides.length;
+          break;
+        }
+        if (code === "not_granted") {
+          showDraftNotice("Claude access was not granted, so remaining sections are left as gaps.");
+          blocks = [{ kind: "paragraph", text: null, items: null, sources: [], gap: true,
+            gap_note: "Claude access was not granted for this view." }];
+        } else {
+          blocks = [{ kind: "paragraph", text: null, items: null, sources: [], gap: true,
+            gap_note: `Drafting failed: ${err && err.message ? err.message : "unknown error"}.` }];
+        }
+      }
+    }
+
+    if (i < outline.slides.length) {
+      built.push({ ...outlineSlide, layoutPart: layout.part, layoutPlaceholders: layout.placeholders,
+        layoutName: layout.name, blocks });
+      showDraftProgress(built.length, total);
+    }
+  }
+
+  const reconciled = reconcileCoverage(state.doc.triage, built);
+  state.stage3.plan = { engagementTitle: state.doc.name || "Proposal draft", slides: reconciled.slides };
+
+  hideDraftProgress();
+  renderCoverageSummary(reconciled);
+  renderDraftBody();
+  updateStage3Availability();
+  $("draft-run").disabled = false;
+  $("export-run").disabled = false;
+  $("export-status").textContent = "Ready to export.";
+  $("export-status").className = "export-status";
+}
+
+async function runExport() {
+  const plan = state.stage3.plan;
+  if (!plan || !state.stage3.template) return;
+  $("export-run").disabled = true;
+  $("export-status").textContent = "Building…";
+  $("export-status").className = "export-status";
+
+  const downloads = await window.claude?.use?.("downloads").catch(() => null);
+  if (!downloads) {
+    $("export-status").textContent = "Downloads are not available in this view.";
+    $("export-status").className = "export-status bad";
+    $("export-run").disabled = false;
+    return;
+  }
+
+  const slideRequests = plan.slides.map(slide => {
+    const layout = { part: slide.layoutPart, placeholders: slide.layoutPlaceholders, name: slide.layoutName };
+    return { layoutName: slide.layoutName || slide.layoutHint, shapes: shapesForSlide(layout, slide.title, slide.blocks) };
+  });
+
+  const buildResult = await buildPptx(state.stage3.template.arrayBuffer, slideRequests);
+  if (buildResult.errors.length) {
+    $("export-status").textContent = `Could not build the deck: ${buildResult.errors[0].message}`;
+    $("export-status").className = "export-status bad";
+    $("export-run").disabled = false;
+    return;
+  }
+
+  const base = (slug(state.doc && state.doc.name || "proposal-draft") || "proposal-draft").slice(0, 60);
+  const result = await exportProposal(downloads, { pptxBuffer: buildResult.buffer, filenameBase: base, plan });
+
+  $("export-run").disabled = false;
+  if (result.status === "saved") {
+    const warnPart = buildResult.warnings.length ? ` (${buildResult.warnings.join(" ")})` : "";
+    $("export-status").textContent = (result.message || `Saved as .${result.format === "pptx" ? "pptx" : "json + .md"}.`) + warnPart;
+    $("export-status").className = "export-status ok";
+  } else if (result.status === "declined") {
+    $("export-status").textContent = "Download was not confirmed.";
+    $("export-status").className = "export-status";
+  } else {
+    $("export-status").textContent = result.message || "Export failed.";
+    $("export-status").className = "export-status bad";
+  }
+}
+
+const templateDrop = $("template-drop");
+["dragenter", "dragover"].forEach(ev => templateDrop.addEventListener(ev, e => { e.preventDefault(); templateDrop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => templateDrop.addEventListener(ev, e => { e.preventDefault(); templateDrop.classList.remove("over"); }));
+templateDrop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) handleTemplateFile(f); });
+$("template-browse").addEventListener("click", () => $("template-file").click());
+$("template-file").addEventListener("change", e => { if (e.target.files[0]) handleTemplateFile(e.target.files[0]); });
+
+const deckDrop = $("deck-drop");
+["dragenter", "dragover"].forEach(ev => deckDrop.addEventListener(ev, e => { e.preventDefault(); deckDrop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => deckDrop.addEventListener(ev, e => { e.preventDefault(); deckDrop.classList.remove("over"); }));
+deckDrop.addEventListener("drop", e => { if (e.dataTransfer.files.length) handleDeckFiles(e.dataTransfer.files); });
+$("deck-browse").addEventListener("click", () => $("deck-file").click());
+$("deck-file").addEventListener("change", e => { if (e.target.files.length) handleDeckFiles(e.target.files); e.target.value = ""; });
+
+$("draft-run").addEventListener("click", runDraft);
+$("export-run").addEventListener("click", runExport);
+
+updateStage3Availability();
+
+renderTags();
+renderAirtable();
+initAirtable();
+</script>
+

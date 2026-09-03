@@ -82,9 +82,18 @@ proposal-assets/
 │   └── html-generic/     # PoC template: 9 layouts, theme, vendored reveal.js (MIT)
 └── knowledge-bank/       # methodology, case-studies, credentials, team, commercials, boilerplate
 examples/acme-erp/        # worked example — fictional client
+tools/proposal-development/  # browser tool: tender in -> shortlist -> first-draft .pptx
+                              # out, built on the firm's own template — see its own README
 ```
 
 Scripts are stdlib-only and each runs standalone with `--help`.
+
+## Proposal Development Tool (browser, v0.1)
+
+A published claude.ai Artifact (not part of the plugin above) that carries the same
+provenance and coverage invariants into an interactive tool: read a tender, shortlist past
+proposals against it from Airtable, then draft and export a first-version `.pptx` built on
+the firm's own PowerPoint template. See `tools/proposal-development/README.md`.
 
 ## Installing on another machine
 

@@ -1,3 +1,8 @@
 __pycache__/
 *.pyc
 proposals/
+
+tools/proposal-development/out/
+tools/proposal-development/tmp/
+tools/proposal-development/test/fixtures/*.potx
+tools/proposal-development/test/fixtures/*.pptx
