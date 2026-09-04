@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "channel_registry.json",
   "title": "Channel Registry",
-  "description": "THE routing table for cm-comms-generator. Single source of truth for what a channel is, what produces it, and what it must and must never carry. Stage 2 reads this to build the audience x channel matrix; route_channels.py (Part 2, not built yet) validates a comms_plan against it before build; qa_comms.py (Part 2, not built yet) checks drafted content against each channel's constraints. The console artifact (aa44b762) carries a copy of this table in its CHANNELS array for standalone rendering — that copy is a snapshot, not a second source of truth. Bump `version` here whenever a channel's shape changes and resync the artifact's comment noting the version it was synced at.",
+  "description": "THE routing table for cm-comms-generator. Single source of truth for what a channel is, what produces it, and what it must and must never carry. Stage 2 reads this to build the audience x channel matrix; scripts/route_channels.py validates a comms_plan against it before build; scripts/qa_comms.py checks drafted content against each channel's constraints. The console artifact (aa44b762) carries a copy of this table in its CHANNELS array for standalone rendering — that copy is a snapshot, not a second source of truth. Bump `version` here whenever a channel's shape changes and resync the artifact's comment noting the version it was synced at.",
   "version": "0.1.0",
   "channels": [
     {

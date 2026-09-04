@@ -190,6 +190,22 @@ than to catch later.
 
 ## Stage 4 — Build (route to each channel's producer)
 
+Validate and sequence the plan first:
+
+```bash
+python skills/cm-comms-generator/scripts/route_channels.py \
+    comms/<run>/comms_plan.json skills/cm-comms-generator/schemas/channel_registry.json \
+    -o comms/<run>/build_manifest.json
+```
+
+This confirms every `channel_run` references a channel the registry actually carries and
+that the plan was built against the registry version currently on disk — it refuses to
+build against a mismatched version rather than silently routing against a stale table.
+It emits one build step per `channel_run` naming the producer; it does not assemble the
+files itself, for the same reason `cm-proposal-generator`'s `build_deck.py` doesn't
+assemble `.pptx` XML — a half-working assembler that mis-routes a banner is worse than a
+manifest a human follows.
+
 Four routes, by channel. All four consume `comms_plan.json` blocks already checked for
 provenance in Stage 3.
 
@@ -250,10 +266,17 @@ video file exists when the run only produced a spec.
 ## Stage 5 — QA
 
 Both invariants, plus channel constraint compliance and cross-channel consistency, all
-required. `qa_comms.py` (Part 2 of the plan this skill scaffolds against — not yet built
-in this v0.1 scaffold) writes results to `qa_report.md` in the same layout and handover
-language as `cm-proposal-generator`'s `qa_deck.py`. Until that script exists, run the same
-five checks by hand and report them the same way:
+required. Run:
+
+```bash
+python skills/cm-comms-generator/scripts/qa_comms.py \
+    comms/<run>/change_brief.json comms/<run>/comms_plan.json -o comms/<run>/qa_report.md
+```
+
+`qa_comms.py` writes `qa_report.md` in the same layout and handover language as
+`cm-proposal-generator`'s `qa_deck.py`, and exits non-zero on any hard failure — treat a
+non-zero exit the same way `qa_deck.py`'s is treated: fix before handover, don't paper
+over it. Five checks, all mechanical:
 
 1. **Message x audience coverage.** Every mandatory `M` reaches every `A` it applies to
    through at least one channel run. Report any uncovered pair explicitly.
