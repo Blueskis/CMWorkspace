@@ -32,7 +32,9 @@ MODULE_ORDER = [
     "build-pptx.js",
     "outline.js",
     "retrieve.js",
+    "triage-edit.js",
     "draft.js",
+    "assistant.js",
     "export.js",
 ]
 
@@ -49,7 +51,7 @@ def build_modules_bundle():
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__)
-    ap.add_argument("-o", "--out", type=Path, default=HERE / "out" / "proposal-development-tool.html")
+    ap.add_argument("-o", "--out", type=Path, default=HERE / "out" / "cm-proposal-reference-tool.html")
     args = ap.parse_args()
 
     if not TEMPLATE.is_file():

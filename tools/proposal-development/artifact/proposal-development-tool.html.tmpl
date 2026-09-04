@@ -1,4 +1,4 @@
-<title>Proposal Development Tool</title>
+<title>CM Proposal Reference Tool</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Libre+Franklin:wght@400;500;600;700&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap">
@@ -666,14 +666,90 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
 .export-status { font-size: 13px; color: var(--muted); }
 .export-status.ok { color: var(--jade); }
 .export-status.bad { color: var(--red); }
+
+/* --- stage 1: correcting the read ------------------------------- */
+
+.clause .head[contenteditable="true"] {
+  outline: none;
+  border-radius: 2px;
+  padding: 1px 3px;
+  margin: -1px -3px;
+  cursor: text;
+}
+.clause .head[contenteditable="true"]:hover { background: var(--surface-2); }
+.clause .head[contenteditable="true"]:focus { background: var(--surface-2); box-shadow: 0 0 0 1px var(--rule-firm); }
+.clause .head[contenteditable="true"]:empty::before { content: attr(data-placeholder); color: var(--faint); font-style: italic; }
+
+select.verdict-select {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  padding: 3px 6px;
+  border-radius: 2px;
+  border: 1px solid var(--rule-firm);
+  background: var(--surface-2);
+  color: var(--muted);
+  cursor: pointer;
+}
+select.verdict-select.core { border-color: var(--seal); color: var(--seal-ink); background: var(--seal-soft); }
+
+.clause-controls { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; justify-content: flex-end; }
+.edited-badge {
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--faint);
+  white-space: nowrap;
+  cursor: help;
+}
+.edited-badge.by-assistant { color: var(--seal); }
+button.remove-clause { padding: 2px 7px; font-size: 11px; color: var(--red); border-color: var(--red-soft); }
+button.remove-clause:hover { background: var(--red-soft); }
+
+.add-clause { padding: 14px 20px; border-top: 1px solid var(--rule); display: flex; flex-direction: column; gap: 8px; }
+.add-clause .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.add-clause input[type="text"] { flex: 1 1 240px; }
+.add-clause select { width: auto; flex: 0 0 auto; }
+
+.assistant-box { border-top: 1px solid var(--rule); padding: 16px 20px; }
+.assistant-box h3 {
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; margin-bottom: 10px;
+}
+.assistant-log { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; max-height: 220px; overflow-y: auto; }
+.assistant-turn { font-size: 13px; padding: 8px 10px; border-radius: 3px; }
+.assistant-turn.user { background: var(--surface-2); color: var(--ink); }
+.assistant-turn.assistant { background: var(--seal-soft); color: var(--seal-ink); }
+.assistant-input-row { display: flex; gap: 8px; }
+.assistant-input-row input[type="text"] { flex: 1 1 auto; }
+.assistant-pending { margin-top: 10px; border: 1px solid var(--rule-firm); border-radius: 3px; padding: 10px 12px; }
+.assistant-pending .edit-row { font-size: 12.5px; color: var(--ink-2); padding: 3px 0; }
+.assistant-pending .btnrow { justify-content: flex-start; margin-top: 8px; }
+.assistant-errors { font-size: 12px; color: var(--red); margin-top: 6px; }
+
+.stale-banner {
+  margin: 0 14px 14px;
+  padding: 13px 15px;
+  border-radius: 3px;
+  font-size: 13.5px;
+  border-left: 3px solid var(--amber);
+  background: var(--amber-soft);
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
 </style>
 
 <header class="masthead">
   <div class="wrap">
     <button type="button" id="theme-toggle" class="quiet theme-toggle" title="Toggle light/dark">Theme</button>
     <div class="brand">
-      <div class="stamp">Change Management Proposal Development</div>
-      <h1>Proposal Development Tool</h1>
+      <div class="stamp">Change Management Proposal Reference</div>
+      <h1>CM Proposal Reference Tool</h1>
       <p>Upload a tender, find the past proposals most similar to it, and draft a
          first version built on your own template — with every claim traced to a
          source or marked as a gap.</p>
@@ -815,6 +891,7 @@ input[type="text"] { font-family: var(--mono); font-size: 12.5px; }
             <span class="src-sub" id="draft-sub">Upload a template to enable drafting.</span></span>
           <button class="primary" id="draft-run" disabled>Draft the proposal</button>
         </div>
+        <div class="stale-banner" id="draft-stale-banner" hidden></div>
         <div id="draft-notice"></div>
         <div id="coverage-summary" hidden></div>
         <div id="draft-progress" hidden></div>
@@ -1072,7 +1149,11 @@ function triage(text) {
 
   const sections = splitSections(cleaned, 25)
     .map(s => ({ ...s, ...scoreSection(s), page: pageFor(s.offset) }))
-    .filter(s => s.body.replace(/\s+/g, " ").trim().split(" ").filter(Boolean).length >= 5);
+    .filter(s => s.body.replace(/\s+/g, " ").trim().split(" ").filter(Boolean).length >= 5)
+    // A stable id per clause — nothing upstream carries one, and the edit
+    // layer (reclassify, rename, remove) needs something to address a
+    // specific clause by that survives a re-render.
+    .map((s, i) => ({ ...s, id: `sec-${i}` }));
 
   const furniture = [...runningHeaders(cleaned)].map(l => l.toLowerCase());
   const refs = new Map();
@@ -1714,6 +1795,68 @@ function renderTags() {
 }
 
 
+const VERDICT_LABEL = { "cm-core": "Core to us", "cm-adjacent": "Related", "not-cm": "Not ours" };
+const VERDICT_OPTIONS = ["cm-core", "cm-adjacent", "not-cm"];
+
+function clauseRow(s) {
+  const editedBadge = s.edited
+    ? `<span class="edited-badge${s.edited.source === "assistant" ? " by-assistant" : ""}"
+        title="was: ${esc(String(s.edited.from))}">edited by ${s.edited.source === "assistant" ? "claude" : "you"}</span>`
+    : "";
+  const removeBtn = s.manual
+    ? `<button class="remove-clause" data-remove-for="${esc(s.id)}">Remove</button>` : "";
+  const verdictOptions = VERDICT_OPTIONS.map(v =>
+    `<option value="${v}"${v === s.verdict ? " selected" : ""}>${esc(VERDICT_LABEL[v])}</option>`).join("");
+
+  return `
+    <div class="clause" data-clause-id="${esc(s.id)}">
+      <span class="ref">${esc(s.ref)}${s.page ? `<span class="pg">page ${s.page}</span>` : ""}</span>
+      <span class="what">
+        <span class="head" contenteditable="true" data-rename-for="${esc(s.id)}"
+          data-placeholder="Untitled clause">${esc(s.heading || "")}</span>
+        <span class="quote">${esc(s.excerpt)}</span>
+        ${s.cues.length ? `<span class="sig"><span class="flag">asks us to deliver:
+          ${esc(s.cues.slice(0, 3).join(", "))}</span></span>` : ""}
+      </span>
+      <span class="clause-controls">
+        ${editedBadge}
+        <select class="verdict-select${s.verdict === "cm-core" ? " core" : ""}" data-verdict-for="${esc(s.id)}">
+          ${verdictOptions}
+        </select>
+        ${removeBtn}
+      </span>
+    </div>`;
+}
+
+/* Applies an edit batch to the current document's triage, re-renders
+   everywhere that triage feeds, and marks any existing draft stale —
+   correcting a clause after drafting must never silently discard the
+   drafted work, but the draft's clauseIndex mapping is now wrong until
+   a re-draft rebuilds it. */
+function applyEditsToDoc(edits, source) {
+  if (!state.doc) return { errors: [] };
+  const { triage: nextTriage, errors } = applyTriageEdits(state.doc.triage, edits, source);
+  state.doc = { ...state.doc, triage: nextTriage };
+  if (state.stage3.plan) state.stage3.stale = true;
+  renderReadout();
+  renderStaleBanner();
+  return { errors };
+}
+
+function renderStaleBanner() {
+  const el = $("draft-stale-banner");
+  if (!el) return;
+  if (state.stage3.plan && state.stage3.stale) {
+    el.hidden = false;
+    el.innerHTML = `<span>The tender read has changed since this draft was built.</span>
+      <button class="primary" id="stale-redraft">Re-draft</button>`;
+    $("stale-redraft").addEventListener("click", () => { state.stage3.stale = false; runDraft(); });
+  } else {
+    el.hidden = true;
+    el.innerHTML = "";
+  }
+}
+
 function renderReadout() {
   const { doc } = state;
   const panel = $("readout");
@@ -1722,21 +1865,6 @@ function renderReadout() {
   const relevant = t.sections.filter(s => s.verdict !== "not-cm")
     .sort((a, b) => b.score - a.score);
   const aside = t.sections.filter(s => s.verdict === "not-cm");
-
-  const VERDICT_LABEL = { "cm-core": "Core to us", "cm-adjacent": "Related", "not-cm": "Not ours" };
-  const clauseRow = s => `
-    <div class="clause">
-      <span class="ref">${esc(s.ref)}${s.page ? `<span class="pg">page ${s.page}</span>` : ""}</span>
-      <span class="what">
-        ${s.heading ? `<span class="head">${esc(s.heading)}</span>` : ""}
-        <span class="quote">${esc(s.excerpt)}</span>
-        ${s.cues.length ? `<span class="sig"><span class="flag">asks us to deliver:
-          ${esc(s.cues.slice(0, 3).join(", "))}</span></span>` : ""}
-      </span>
-      <span class="sig">
-        <span class="verdict ${s.verdict === "cm-core" ? "core" : "adj"}">${esc(VERDICT_LABEL[s.verdict] || s.verdict)}</span>
-      </span>
-    </div>`;
 
   panel.innerHTML = `
     <div class="readout-top">
@@ -1765,30 +1893,193 @@ function renderReadout() {
       ${doc.topics.slice(0, 12).map(t =>
         `<span class="chip plain">${esc(t.term)} <b>${t.n}</b></span>`).join("")}
     </div>` : ""}
-    <div class="clauses">${relevant.slice(0, 12).map(clauseRow).join("")
-      || '<div class="empty">Nothing in this document looks like it\'s ours to answer.</div>'}</div>
+    <div class="clauses">${relevant.map(clauseRow).join("")
+      || '<div class="empty">Nothing in this document looks like it\'s ours to answer. Reclassify one below, or add a clause the read missed.</div>'}</div>
     ${aside.length ? `<details class="setaside">
       <summary>${aside.length} section${aside.length === 1 ? "" : "s"} set aside — worth a
         quick skim of the headings before you trust it</summary>
       <div class="setaside-body clauses">${aside.map(clauseRow).join("")}</div>
-    </details>` : ""}`;
+    </details>` : ""}
+    <div class="add-clause">
+      <span class="topics-k">Add a clause the read missed</span>
+      <div class="row">
+        <label class="sr" for="add-clause-heading">Heading</label>
+        <input type="text" id="add-clause-heading" placeholder="e.g. Orientation Programme">
+        <label class="sr" for="add-clause-verdict">Verdict</label>
+        <select id="add-clause-verdict">
+          <option value="cm-core" selected>Core to us</option>
+          <option value="cm-adjacent">Related</option>
+          <option value="not-cm">Not ours</option>
+        </select>
+        <button class="primary" id="add-clause-run">Add</button>
+      </div>
+    </div>
+    <div class="assistant-box" id="assistant-box" hidden>
+      <h3>Ask Claude about this read</h3>
+      <div class="assistant-log" id="assistant-log"></div>
+      <div class="assistant-input-row">
+        <label class="sr" for="assistant-input">Ask a question or request a correction</label>
+        <input type="text" id="assistant-input" placeholder="e.g. Anything mentioning the orientation programme is ours">
+        <button class="primary" id="assistant-send">Send</button>
+      </div>
+      <div id="assistant-pending"></div>
+      <div id="assistant-errors" class="assistant-errors"></div>
+    </div>`;
   panel.hidden = false;
+
+  panel.querySelectorAll("[data-verdict-for]").forEach(sel => sel.addEventListener("change", () => {
+    applyEditsToDoc([{ op: "reclassify", sectionId: sel.dataset.verdictFor, verdict: sel.value }], "user");
+  }));
+  panel.querySelectorAll("[data-rename-for]").forEach(el => el.addEventListener("blur", () => {
+    const heading = el.textContent.trim();
+    if (!heading) { el.textContent = ""; return; } // an empty rename is a no-op, not an edit
+    applyEditsToDoc([{ op: "rename", sectionId: el.dataset.renameFor, heading }], "user");
+  }));
+  panel.querySelectorAll("[data-remove-for]").forEach(btn => btn.addEventListener("click", () => {
+    applyEditsToDoc([{ op: "remove", sectionId: btn.dataset.removeFor }], "user");
+  }));
+
+  const addBtn = $("add-clause-run");
+  if (addBtn) addBtn.addEventListener("click", () => {
+    const heading = $("add-clause-heading").value.trim();
+    if (!heading) return;
+    const verdict = $("add-clause-verdict").value;
+    applyEditsToDoc([{ op: "add", heading, verdict }], "user");
+    $("add-clause-heading").value = "";
+  });
+
+  initAssistantBox();
 
   const replace = $("replace-doc");
   if (replace) replace.addEventListener("click", () => {
     state.doc = null; state.tags.clear(); tagsSeeded = false;
+    state.stage1 = { transcript: [], assistantAvailable: null };
     $("drop").hidden = false; $("intake-notice").innerHTML = "";
     $("stage1-aside").textContent = "Nothing loaded";
     // A new (or removed) tender invalidates any draft built against the
     // old one's clauses — never leave a stale draft attached to a
     // different document.
-    state.stage3.outline = null; state.stage3.plan = null;
+    state.stage3.outline = null; state.stage3.plan = null; state.stage3.stale = false;
     $("draft-body").innerHTML = ""; $("coverage-summary").hidden = true;
     $("export-run").disabled = true; $("export-status").textContent = "Draft the proposal first.";
     $("export-status").className = "export-status";
     renderReadout(); renderTags(); renderAirtable();
     updateStage3Availability();
   });
+}
+
+/* =================================================================
+   Stage 1 assistant — corrections and questions about the tender
+   read, on top of the direct verdict/heading controls above. Both
+   paths emit the same edit objects and share applyEditsToDoc, so an
+   assistant-proposed reclassify and a manual one behave identically
+   once applied; the only difference is the edited badge's source.
+
+   Edits are never auto-applied: the reply and any proposed edits
+   render as a preview, and the consultant clicks Apply or Discard.
+   ================================================================= */
+
+function renderAssistantLog() {
+  const log = $("assistant-log");
+  if (!log) return;
+  log.innerHTML = state.stage1.transcript.map(turn =>
+    `<div class="assistant-turn ${turn.role}">${esc(turn.text)}</div>`).join("");
+  log.scrollTop = log.scrollHeight;
+}
+
+function renderAssistantPending(pending) {
+  const el = $("assistant-pending");
+  if (!el) return;
+  if (!pending || !pending.edits.length) { el.innerHTML = ""; return; }
+  const label = e => {
+    if (e.op === "reclassify") return `Reclassify "${e.sectionId}" → ${VERDICT_LABEL[e.verdict] || e.verdict}`;
+    if (e.op === "rename") return `Rename "${e.sectionId}" → ${e.heading}`;
+    if (e.op === "add") return `Add clause "${e.heading}" as ${VERDICT_LABEL[e.verdict] || e.verdict || "Core to us"}`;
+    if (e.op === "remove") return `Remove "${e.sectionId}"`;
+    return JSON.stringify(e);
+  };
+  el.innerHTML = `<div class="assistant-pending">
+    <b>Proposed changes</b>
+    ${pending.edits.map(e => `<div class="edit-row">${esc(label(e))}</div>`).join("")}
+    <div class="btnrow">
+      <button class="primary" id="assistant-apply">Apply</button>
+      <button class="quiet" id="assistant-discard">Discard</button>
+    </div>
+  </div>`;
+  $("assistant-apply").addEventListener("click", () => {
+    const { errors } = applyEditsToDoc(pending.edits, "assistant");
+    el.innerHTML = "";
+    if (errors.length) {
+      $("assistant-errors").textContent = errors.map(e => e.reason).join("; ");
+    }
+  });
+  $("assistant-discard").addEventListener("click", () => { el.innerHTML = ""; });
+}
+
+async function initAssistantBox() {
+  const box = $("assistant-box");
+  if (!box) return;
+
+  if (state.stage1.assistantAvailable === null) {
+    const sample = await window.claude?.use?.("sample").catch(() => null);
+    state.stage1.assistantAvailable = Boolean(sample);
+  }
+  box.hidden = !state.stage1.assistantAvailable;
+  if (!state.stage1.assistantAvailable) return;
+
+  renderAssistantLog();
+
+  const send = $("assistant-send");
+  const input = $("assistant-input");
+  if (!send || !input) return;
+
+  const submit = async () => {
+    const instruction = input.value.trim();
+    if (!instruction || send.disabled) return;
+    send.disabled = true;
+    $("assistant-errors").textContent = "";
+    const priorTranscript = state.stage1.transcript.slice();
+    state.stage1.transcript.push({ role: "user", text: instruction });
+    renderAssistantLog();
+    input.value = "";
+
+    try {
+      const sample = await window.claude?.use?.("sample").catch(() => null);
+      if (!sample) { state.stage1.assistantAvailable = false; box.hidden = true; return; }
+      const result = await runAssistant({
+        triage: state.doc.triage, transcript: priorTranscript, instruction, sample,
+      });
+      state.stage1.transcript.push({ role: "assistant", text: result.reply });
+      renderAssistantLog();
+
+      if (result.edits.length) {
+        const { valid, errors } = validateEdits(state.doc.triage, result.edits);
+        if (errors.length) $("assistant-errors").textContent = errors.map(e => e.reason).join("; ");
+        renderAssistantPending(valid.length ? { edits: valid } : null);
+      } else {
+        renderAssistantPending(null);
+      }
+    } catch (err) {
+      const code = err && err.code;
+      if (code === "not_granted" || code === "sampling_disabled") {
+        state.stage1.assistantAvailable = false;
+        box.hidden = true;
+      } else if (code === "rate_limited") {
+        state.stage1.transcript.push({ role: "assistant",
+          text: "Claude's usage limit was reached. Try again in a little while." });
+        renderAssistantLog();
+      } else {
+        state.stage1.transcript.push({ role: "assistant",
+          text: `Something went wrong (${err && err.message ? err.message : "unknown error"}).` });
+        renderAssistantLog();
+      }
+    } finally {
+      send.disabled = false;
+    }
+  };
+
+  send.addEventListener("click", submit);
+  input.addEventListener("keydown", e => { if (e.key === "Enter") submit(); });
 }
 
 /* =================================================================
@@ -1809,11 +2100,13 @@ function ingest(name, text) {
     `${state.doc.triage.counts["cm-core"]} section(s) ours to answer`;
   // A freshly read tender invalidates any prior draft, which was built
   // against a different document's clauses.
-  state.stage3.outline = null; state.stage3.plan = null;
+  state.stage3.outline = null; state.stage3.plan = null; state.stage3.stale = false;
+  state.stage1.transcript = [];
   $("draft-body").innerHTML = ""; $("coverage-summary").hidden = true;
   $("export-run").disabled = true; $("export-status").textContent = "Draft the proposal first.";
   $("export-status").className = "export-status";
   renderReadout(); renderTags(); renderAirtable();
+  renderStaleBanner();
   updateStage3Availability();
   $("readout").scrollIntoView({ behavior: "smooth", block: "nearest" });
 }
@@ -1898,6 +2191,12 @@ state.stage3 = {
   decks: [],        // [{ name, slides: [{slideNo, text}] }]
   outline: null,
   plan: null,
+  stale: false,     // true once a triage edit lands after this plan was built
+};
+
+state.stage1 = {
+  transcript: [],        // [{role: "user"|"assistant", text}], oldest first
+  assistantAvailable: null, // null = not yet probed; true/false once known
 };
 
 const LAYOUT_HINT_CANDIDATES = {
@@ -2210,10 +2509,12 @@ async function runDraft() {
 
   const reconciled = reconcileCoverage(state.doc.triage, built);
   state.stage3.plan = { engagementTitle: state.doc.name || "Proposal draft", slides: reconciled.slides };
+  state.stage3.stale = false;
 
   hideDraftProgress();
   renderCoverageSummary(reconciled);
   renderDraftBody();
+  renderStaleBanner();
   updateStage3Availability();
   $("draft-run").disabled = false;
   $("export-run").disabled = false;

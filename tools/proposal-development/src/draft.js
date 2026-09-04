@@ -56,12 +56,17 @@ function buildSectionPrompt(section, layoutPlaceholders, excerpts) {
   return prompt.replace(sourcesBlock, trimmedBlock);
 }
 
-/* Parse a model completion into blocks, tolerating a fenced ```json
-   wrapper (a common, harmless deviation from "ONLY a JSON object"). */
-function parseDraftJson(completion) {
+/* Strip a fenced ```json wrapper (a common, harmless deviation from "ONLY
+   a JSON object"), shared with assistant.js's reply parsing. */
+function stripJsonFence(completion) {
   let text = String(completion || "").trim();
   const fenced = text.match(/```(?:json)?\s*([\s\S]*?)```/);
   if (fenced) text = fenced[1].trim();
+  return text;
+}
+
+function parseDraftJson(completion) {
+  const text = stripJsonFence(completion);
   const parsed = JSON.parse(text);
   if (!parsed || !Array.isArray(parsed.blocks)) throw new Error("no blocks[] array in response");
   return parsed.blocks;
@@ -148,6 +153,6 @@ async function draftSection(section, layoutPlaceholders, excerpts, sample, opts 
 
 if (typeof module !== "undefined" && module.exports) {
   module.exports = {
-    buildSectionPrompt, parseDraftJson, enforceProvenance, draftSection, PROMPT_BUDGET_BYTES,
+    buildSectionPrompt, stripJsonFence, parseDraftJson, enforceProvenance, draftSection, PROMPT_BUDGET_BYTES,
   };
 }
