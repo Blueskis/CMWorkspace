@@ -1,0 +1,23 @@
+{
+  "org": {"name": "Acme Payroll", "slug": "acme-payroll"},
+  "sender": {"name": "Marcus Bell", "role": "Chief People Officer"},
+  "change_summary": "Payroll moves from monthly to twice-monthly, with self-service payslips.",
+  "audiences": [
+    {"id": "A1", "name": "All staff", "size": "~2,400", "what_is_different": "New pay cadence and portal"},
+    {"id": "A2", "name": "Line managers", "size": "~120", "what_is_different": "Pick up timesheet approval"}
+  ],
+  "messages": [
+    {"id": "M1", "kind": "what", "text": "Payroll moves to twice-monthly pay from 1 October.", "mandatory": true},
+    {"id": "M2", "kind": "who", "text": "All 2,400 staff across UK and Ireland are affected.", "mandatory": true},
+    {"id": "M3", "kind": "why", "text": "Colleagues asked for it in the last two engagement surveys.", "mandatory": true},
+    {"id": "M4", "kind": "when", "text": "Activate your portal account by 14 September 2026.", "mandatory": true},
+    {"id": "M5", "kind": "action", "text": "Check your bank details in the new portal, takes ten minutes.", "mandatory": true},
+    {"id": "M6", "kind": "help", "text": "Questions go to payroll support, 8am-6pm weekdays.", "mandatory": true},
+    {"id": "M7", "kind": "action", "text": "Managers complete 45 minutes of timesheet-approval training.", "mandatory": true, "audience_ids": ["A2"]}
+  ],
+  "timeline": [
+    {"id": "T1", "label": "Portal activation deadline", "date": "2026-09-14", "confirmed": true}
+  ],
+  "open_questions": [],
+  "sources": [{"path": "console-handoff.md", "kind": "console-handoff"}]
+}

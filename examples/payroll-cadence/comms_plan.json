@@ -1,0 +1,78 @@
+{
+  "run_id": "acme-payroll-20260904",
+  "brief_ref": "brief_good.json",
+  "registry_ref": "channel_registry.json",
+  "registry_version": "0.1.0",
+  "coverage_matrix": {
+    "A1": ["email", "banner"],
+    "A2": ["email", "briefing_deck"]
+  },
+  "channel_runs": [
+    {
+      "run_id": "email-A1",
+      "channel_id": "email",
+      "audience_id": "A1",
+      "message_ids": ["M1", "M2", "M3", "M4", "M5", "M6"],
+      "status": "drafted",
+      "blocks": [
+        {"kind": "subject", "content": "Pay cadence changes 1 Oct", "sources": ["M1"]},
+        {"kind": "paragraph", "content": "From 1 October, payroll moves to twice-monthly pay with self-service payslips.", "sources": ["M1"]},
+        {"kind": "paragraph", "content": "All 2,400 staff across UK and Ireland are affected.", "sources": ["M2"]},
+        {"kind": "paragraph", "content": "We're making this change because colleagues asked for it in the last two engagement surveys.", "sources": ["M3"]},
+        {"kind": "paragraph", "content": "Activate your portal account by 14 September 2026.", "sources": ["M4", "T1"]},
+        {"kind": "paragraph", "content": "Check your bank details in the new portal, it takes ten minutes.", "sources": ["M5"]},
+        {"kind": "paragraph", "content": "Questions go to payroll support, 8am-6pm weekdays.", "sources": ["M6"]}
+      ]
+    },
+    {
+      "run_id": "banner-A1",
+      "channel_id": "banner",
+      "audience_id": "A1",
+      "message_ids": ["M1"],
+      "status": "drafted",
+      "blocks": [
+        {"kind": "heading", "content": "Pay moves to twice-monthly from 1 Oct — activate your portal account", "sources": ["M1"]}
+      ]
+    },
+    {
+      "run_id": "email-A2",
+      "channel_id": "email",
+      "audience_id": "A2",
+      "message_ids": ["M1", "M2", "M3", "M4", "M5", "M6", "M7"],
+      "status": "drafted",
+      "blocks": [
+        {"kind": "subject", "content": "Payroll change: what managers need to do", "sources": ["M1"]},
+        {"kind": "paragraph", "content": "From 1 October, payroll moves to twice-monthly pay with self-service payslips.", "sources": ["M1"]},
+        {"kind": "paragraph", "content": "All 2,400 staff across UK and Ireland are affected.", "sources": ["M2"]},
+        {"kind": "paragraph", "content": "We're making this change because colleagues asked for it in the last two engagement surveys.", "sources": ["M3"]},
+        {"kind": "paragraph", "content": "Activate your portal account by 14 September 2026.", "sources": ["M4", "T1"]},
+        {"kind": "paragraph", "content": "Check your bank details in the new portal, it takes ten minutes.", "sources": ["M5"]},
+        {"kind": "paragraph", "content": "Questions go to payroll support, 8am-6pm weekdays.", "sources": ["M6"]},
+        {"kind": "paragraph", "content": "You'll also need to complete 45 minutes of timesheet-approval training.", "sources": ["M7"]}
+      ]
+    },
+    {
+      "run_id": "briefing_deck-A2",
+      "channel_id": "briefing_deck",
+      "audience_id": "A2",
+      "message_ids": ["M1", "M2", "M3", "M4", "M5", "M6", "M7"],
+      "status": "drafted",
+      "blocks": [
+        {"kind": "heading", "content": "What's changing", "sources": ["M1"]},
+        {"kind": "bullets", "content": ["Twice-monthly pay from 1 October", "Self-service payslips via portal"], "sources": ["M1"]},
+        {"kind": "heading", "content": "Who's affected", "sources": ["M2"]},
+        {"kind": "bullets", "content": ["All 2,400 staff across UK and Ireland"], "sources": ["M2"]},
+        {"kind": "heading", "content": "Why", "sources": ["M3"]},
+        {"kind": "bullets", "content": ["Top request in the last two engagement surveys"], "sources": ["M3"]},
+        {"kind": "heading", "content": "Key dates", "sources": ["M4", "T1"]},
+        {"kind": "bullets", "content": ["Activate portal account by 14 September 2026"], "sources": ["M4", "T1"]},
+        {"kind": "heading", "content": "What staff need to do", "sources": ["M5"]},
+        {"kind": "bullets", "content": ["Check bank details in the portal, ten minutes"], "sources": ["M5"]},
+        {"kind": "heading", "content": "Where to get help", "sources": ["M6"]},
+        {"kind": "bullets", "content": ["Payroll support, 8am-6pm weekdays"], "sources": ["M6"]},
+        {"kind": "heading", "content": "What managers need to do", "sources": ["M7"]},
+        {"kind": "bullets", "content": ["Complete 45 minutes of timesheet-approval training"], "sources": ["M7"]}
+      ]
+    }
+  ]
+}

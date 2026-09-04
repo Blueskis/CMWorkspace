@@ -1,0 +1,37 @@
+{
+  "steps": [
+    {
+      "run_id": "email-A1",
+      "channel_id": "email",
+      "audience_id": "A1",
+      "producer": "docx",
+      "status": "live"
+    },
+    {
+      "run_id": "banner-A1",
+      "channel_id": "banner",
+      "audience_id": "A1",
+      "producer": "canva-poster",
+      "status": "live, copy not autofilled",
+      "params": {
+        "design_type": "poster",
+        "verbatim": false
+      },
+      "note": "verbatim is IGNORED for design_type 'poster' \u2014 Canva's generator rewords whatever copy it's given. QA'd copy therefore cannot survive the autofill route. The skill ships a design plus the QA'd copy as text to paste in by hand; it never claims the shipped design already carries the QA'd words."
+    },
+    {
+      "run_id": "email-A2",
+      "channel_id": "email",
+      "audience_id": "A2",
+      "producer": "docx",
+      "status": "live"
+    },
+    {
+      "run_id": "briefing_deck-A2",
+      "channel_id": "briefing_deck",
+      "audience_id": "A2",
+      "producer": "pptx",
+      "status": "live"
+    }
+  ]
+}
