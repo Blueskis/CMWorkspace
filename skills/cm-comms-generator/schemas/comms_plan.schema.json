@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "comms_plan.schema.json",
+  "title": "Comms Plan",
+  "description": "The audience x channel build plan. Stage 2 writes the matrix and the requirement (message) map; Stage 3 fills in drafted content and sources; Stage 4 builds from it; Stage 5 audits against it. Mirrors proposal_plan.schema.json's shape — a slide is here a channel_run, one per audience x channel cell that was actually selected.",
+  "type": "object",
+  "required": ["run_id", "brief_ref", "registry_ref", "channel_runs"],
+  "properties": {
+    "run_id": { "type": "string", "description": "e.g. 'payroll-cadence-20260904'" },
+    "brief_ref": { "type": "string", "description": "Path to the change_brief.json this plan answers" },
+    "registry_ref": { "type": "string", "description": "Path to channel_registry.json used for this run, with the version it was read at" },
+    "registry_version": { "type": "string", "description": "channel_registry.json's version field at plan time. route_channels.py (Part 2) refuses to build against a mismatched registry version." },
+    "coverage_matrix": {
+      "type": "object",
+      "description": "Explicit audience x channel selection, built before drafting. Every audience id must appear; a value of [] is a deliberate 'no channel reaches this audience' finding, not an omission, and fails Stage 5's coverage check unless every message aimed at that audience is marked non-mandatory.",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": "string", "description": "channel id from channel_registry.json" }
+      }
+    },
+    "channel_runs": {
+      "type": "array",
+      "description": "One entry per audience x channel cell actually built. Order does not imply sequencing.",
+      "items": {
+        "type": "object",
+        "required": ["run_id", "channel_id", "audience_id", "message_ids", "blocks"],
+        "properties": {
+          "run_id": { "type": "string", "description": "e.g. 'email-A1'" },
+          "channel_id": { "type": "string", "description": "Must exist in channel_registry.json" },
+          "audience_id": { "type": "string", "pattern": "^A[0-9]+$" },
+          "message_ids": {
+            "type": "array",
+            "description": "Message ids this channel run is answering for this audience. Union across all channel_runs for an audience must cover every mandatory message aimed at it.",
+            "items": { "type": "string", "pattern": "^M[0-9]+$" }
+          },
+          "status": {
+            "enum": ["drafted", "built", "qa-passed", "qa-failed"],
+            "default": "drafted",
+            "description": "Where this run is in the pipeline. planned channels (short_form_video, explainer_video) stop at 'drafted' with a narration_spec.json rather than reaching 'built'."
+          },
+          "blocks": {
+            "type": "array",
+            "description": "Content units for this channel run — a subject line, a body paragraph, a slide bullet, a caption line",
+            "items": {
+              "type": "object",
+              "required": ["kind", "content", "sources"],
+              "properties": {
+                "kind": {
+                  "enum": ["subject", "heading", "paragraph", "bullets", "caption", "cta", "table", "narration-cue", "image", "notes"],
+                  "description": "What role this block plays in the channel's format"
+                },
+                "content": {
+                  "description": "String for prose/subject/cta, array for bullets/captions, object for table",
+                  "type": ["string", "array", "object"]
+                },
+                "sources": {
+                  "type": "array",
+                  "description": "Message ids (M1..) and/or knowledge-bank entry ids this content came from. MUST be non-empty unless gap is true — no third state. Identical rule to proposal_plan.schema.json's block sources.",
+                  "items": { "type": "string" }
+                },
+                "gap": {
+                  "type": "boolean",
+                  "default": false,
+                  "description": "True when neither the brief nor the knowledge bank has coverage. Renders as a visible [GAP]; never substitute generated filler."
+                },
+                "gap_note": { "type": "string", "description": "Required when gap is true — what is missing and which message/audience it leaves exposed" }
+              },
+              "allOf": [
+                {
+                  "if": { "properties": { "gap": { "const": true } }, "required": ["gap"] },
+                  "then": { "required": ["gap_note"] },
+                  "else": { "properties": { "sources": { "minItems": 1 } } }
+                }
+              ]
+            }
+          },
+          "constraint_check": {
+            "type": "object",
+            "description": "Filled by route_channels.py / qa_comms.py (Part 2) against channel_registry.json's constraints for this channel — e.g. subject length, word count, slide count",
+            "additionalProperties": true
+          },
+          "build_output": {
+            "type": "string",
+            "description": "Path to the produced artifact once Stage 4 runs — a .docx/.pptx path, a Canva design URL, or (for planned channels) the narration_spec.json path"
+          }
+        }
+      }
+    }
+  }
+}

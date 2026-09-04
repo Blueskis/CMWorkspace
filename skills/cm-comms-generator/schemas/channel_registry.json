@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "channel_registry.json",
+  "title": "Channel Registry",
+  "description": "THE routing table for cm-comms-generator. Single source of truth for what a channel is, what produces it, and what it must and must never carry. Stage 2 reads this to build the audience x channel matrix; route_channels.py (Part 2, not built yet) validates a comms_plan against it before build; qa_comms.py (Part 2, not built yet) checks drafted content against each channel's constraints. The console artifact (aa44b762) carries a copy of this table in its CHANNELS array for standalone rendering — that copy is a snapshot, not a second source of truth. Bump `version` here whenever a channel's shape changes and resync the artifact's comment noting the version it was synced at.",
+  "version": "0.1.0",
+  "channels": [
+    {
+      "id": "email",
+      "name": "Email",
+      "format": ".docx",
+      "producer": "docx skill",
+      "status": "live",
+      "constraints": {
+        "subject_max_chars": 50,
+        "body_max_words": 400,
+        "note": "One email per audience segment, not one email broadcast to all. Subject line is the hardest constraint in practice — most drafts blow it on the first pass."
+      },
+      "must_carry": [
+        "the mandatory message set (what/who/why/when/action/help) for the audience it targets",
+        "a named sender the audience recognises as authoritative for this change",
+        "a single clear call to action"
+      ],
+      "must_never_carry": [
+        "timeline dates the briefing_deck or newsletter don't also carry, unmarked as a change from a prior communication",
+        "more than one call to action"
+      ]
+    },
+    {
+      "id": "article",
+      "name": "Intranet article",
+      "format": ".docx",
+      "producer": "docx skill",
+      "status": "live",
+      "constraints": {
+        "body_max_words": 900,
+        "note": "Longest-form written channel in the set. Carries context and rationale the email has no room for."
+      },
+      "must_carry": [
+        "the full case for change — why, in more than one sentence",
+        "a link or reference to where to get help",
+        "the same headline dates as every other live channel"
+      ],
+      "must_never_carry": [
+        "a call to action that contradicts the email's",
+        "unconfirmed timeline events presented as settled"
+      ]
+    },
+    {
+      "id": "briefing_deck",
+      "name": "Manager briefing deck",
+      "format": ".pptx",
+      "producer": "pptx skill (template route)",
+      "status": "live",
+      "constraints": {
+        "max_slides": 12,
+        "note": "Built for managers to present to their own teams, not read solo — content has to survive being talked over."
+      },
+      "must_carry": [
+        "talking points a manager can deliver without additional prep",
+        "an FAQ or objection-handling slide sourced from comms-assets/knowledge-bank/faqs",
+        "escalation path — where a manager sends a question they can't answer"
+      ],
+      "must_never_carry": [
+        "information a manager's team should hear from the manager before it appears anywhere else",
+        "dense prose paragraphs — this is a presented artifact, not a report"
+      ]
+    },
+    {
+      "id": "newsletter",
+      "name": "Newsletter",
+      "format": "Canva Doc",
+      "producer": "Canva generate-design, design_type: doc, verbatim: true",
+      "status": "live",
+      "constraints": {
+        "body_max_words": 350,
+        "note": "verbatim: true is honoured only for design_type 'doc'. QA'd copy is placed into the Canva Doc with no AI rewriting — this is the only Canva route where the copy that ships is the copy that was QA'd."
+      },
+      "must_carry": [
+        "the mandatory message set, condensed for a scannable format",
+        "a link or pointer into the article for readers who want the full case for change"
+      ],
+      "must_never_carry": [
+        "a call to action Canva's generator has reworded — verbatim protects this here specifically"
+      ]
+    },
+    {
+      "id": "banner",
+      "name": "Banner",
+      "format": "Canva design + copy to paste",
+      "producer": "Canva generate-design, design_type: poster",
+      "status": "live, copy not autofilled",
+      "constraints": {
+        "max_words": 25,
+        "note": "verbatim is IGNORED for design_type 'poster' — Canva's generator rewords whatever copy it's given. QA'd copy therefore cannot survive the autofill route. The skill ships a design plus the QA'd copy as text to paste in by hand; it never claims the shipped design already carries the QA'd words."
+      },
+      "must_carry": [
+        "the single headline message, not the full mandatory set",
+        "a pointer (URL or QR reference) to a channel with the full detail"
+      ],
+      "must_never_carry": [
+        "a date or figure not also stated in the email or article, since a banner cannot carry sources and can't be corrected as easily as a document once printed or posted",
+        "a call to action inconsistent with the email's"
+      ]
+    },
+    {
+      "id": "short_form_video",
+      "name": "Short-form video",
+      "format": "script + captions + narration_spec.json",
+      "producer": "planned — narration route not wired (see reference/channel-library.md)",
+      "status": "planned",
+      "constraints": {
+        "max_duration_seconds": 60,
+        "note": "No render target in v0.1. The skill produces the script, on-screen captions, and a narration_spec.json (voice direction, per-scene timings, pronunciation notes) so wiring a narration engine later is a build step, not a design step."
+      },
+      "must_carry": [
+        "the single headline message, matching the banner's",
+        "captions covering 100% of spoken narration, for accessibility and sound-off viewing"
+      ],
+      "must_never_carry": [
+        "any claim that a narrated video file exists — it does not until a narration engine is wired"
+      ]
+    },
+    {
+      "id": "explainer_video",
+      "name": "Explainer video",
+      "format": "script + captions + narration_spec.json",
+      "producer": "planned — narration route not wired (see reference/channel-library.md)",
+      "status": "planned",
+      "constraints": {
+        "max_duration_seconds": 180,
+        "note": "Same limitation as short_form_video. Longer format, room for the full mandatory message set plus a worked example or walkthrough."
+      },
+      "must_carry": [
+        "the mandatory message set in full, scene by scene",
+        "captions covering 100% of spoken narration"
+      ],
+      "must_never_carry": [
+        "any claim that a narrated video file exists — it does not until a narration engine is wired"
+      ]
+    }
+  ]
+}

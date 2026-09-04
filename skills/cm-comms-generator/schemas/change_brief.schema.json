@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "change_brief.schema.json",
+  "title": "Change Brief",
+  "description": "Structured extraction of a practitioner's prose brief (plus whatever else they gave us) into the A/M/T id spine. Stage 1 output. Mirrors rfp_brief.schema.json's shape: stable IDs are the spine the rest of the run maps against.",
+  "type": "object",
+  "required": ["org", "sender", "audiences", "messages", "timeline", "sources"],
+  "properties": {
+    "org": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "description": "Organisation or team the change is happening in" },
+        "slug": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$", "description": "Used in the run workspace path comms/<org-slug>-<YYYYMMDD>/. Derived from name if not given." },
+        "sector": { "type": "string" }
+      }
+    },
+    "sender": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "description": "Who the communications are sent as — a named leader, not a generic 'The Programme Team' unless that's genuinely the practitioner's choice" },
+        "role": { "type": "string" },
+        "note": { "type": "string", "description": "Why this sender — recognised authority for this audience is what makes an email get opened" }
+      }
+    },
+    "change_summary": {
+      "type": "string",
+      "description": "One or two sentences: what is changing. Feeds every channel's opening line."
+    },
+    "audiences": {
+      "type": "array",
+      "description": "Every distinct group the change lands on differently. IDs are A1, A2... The console's Step 02 audience segmentation is the primary source for this array.",
+      "items": {
+        "type": "object",
+        "required": ["id", "name", "what_is_different"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^A[0-9]+$" },
+          "name": { "type": "string", "description": "The practitioner's own name for this group — payroll's own vocabulary, not a generic HR segment label" },
+          "size": { "type": ["integer", "string"], "description": "Roughly how many. A string like '~2,400' is fine; do not fabricate false precision" },
+          "what_is_different": { "type": "string", "description": "What changes for this group specifically, as distinct from every other audience" },
+          "sentiment": { "enum": ["supportive", "neutral", "skeptical", "unknown"], "default": "unknown" },
+          "preferred_channels": {
+            "type": "array",
+            "description": "Channel ids this audience actually reads/watches, if known. Informs Stage 2's channel selection but does not override coverage.",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "messages": {
+      "type": "array",
+      "description": "IDs are M1, M2... Every message the change communications must land, including the six mandatory questions (what/who/why/when/action/help), what is explicitly NOT changing, and open unknowns the audience will ask about anyway.",
+      "items": {
+        "type": "object",
+        "required": ["id", "kind", "text"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^M[0-9]+$" },
+          "kind": {
+            "enum": ["what", "who", "why", "when", "action", "help", "not-changing", "unknown"],
+            "description": "The six mandatory questions plus the two categories practitioners habitually omit: what is explicitly not changing, and open unknowns the audience will ask regardless of whether the brief answers them"
+          },
+          "text": { "type": "string", "description": "The message content, in the sender's voice where possible" },
+          "mandatory": { "type": "boolean", "default": true, "description": "False only for 'unknown' entries carried for transparency, not for delivery to every audience" },
+          "audience_ids": {
+            "type": "array",
+            "description": "Which audiences this message applies to. Empty/omitted means all audiences — Stage 5's coverage check treats it that way.",
+            "items": { "type": "string", "pattern": "^A[0-9]+$" }
+          }
+        }
+      }
+    },
+    "timeline": {
+      "type": "array",
+      "description": "IDs are T1, T2... Every date practitioners tend to bury: go-live, cutover windows, training slots, the last day of the old process, review points.",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "date", "confirmed"],
+        "properties": {
+          "id": { "type": "string", "pattern": "^T[0-9]+$" },
+          "label": { "type": "string" },
+          "date": { "type": "string", "description": "ISO 8601 where a real date exists. A placeholder like 'TBC' belongs in open_questions instead, not here as a fabricated date." },
+          "confirmed": { "type": "boolean", "description": "False means provisional. A false-confirmed date reaching a printed banner is exactly the failure Stage 5's cross-channel consistency check exists to catch." },
+          "audience_ids": { "type": "array", "items": { "type": "string", "pattern": "^A[0-9]+$" } }
+        }
+      }
+    },
+    "open_questions": {
+      "type": "array",
+      "description": "Every question the brief-interrogation left unanswered. An unanswered question becomes an entry here, never an invented answer in messages or timeline. Flows through to a visible [GAP] in the plan and report — see reference/brief-interrogation.md.",
+      "items": {
+        "type": "object",
+        "required": ["question"],
+        "properties": {
+          "question": { "type": "string" },
+          "blocks": {
+            "type": "array",
+            "description": "Which M/T/A ids can't be finalised until this is answered",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "description": "Every input the brief was built from — the console handoff, a prose brief document, a follow-up conversation",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind"],
+        "properties": {
+          "path": { "type": "string" },
+          "kind": { "enum": ["console-handoff", "prose-brief", "conversation-notes", "other"] },
+          "parsed_with": { "type": "string" }
+        }
+      }
+    }
+  }
+}
