@@ -1,0 +1,1214 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Change Comms Console</title>
+<style id="app-style">
+:root{
+  color-scheme: light dark;
+  --paper:#F3F5F9;
+  --surface:#FFFFFF;
+  --surface-2:#EAEEF5;
+  --ink:#12161F;
+  --ink-2:#4C5666;
+  --ink-3:#7A8494;
+  --line:#DCE1EA;
+  --line-strong:#BFC7D4;
+  --accent:#2E3D77;
+  --accent-ink:#FFFFFF;
+  --accent-soft:#E4E8F6;
+  --jade:#0B6B54;
+  --jade-soft:#E0F0EA;
+  --amber:#8C5E0C;
+  --amber-soft:#F7EBD5;
+  --clay:#A33D2E;
+  --clay-soft:#F7E4E0;
+  --shadow: 0 1px 2px rgba(18,22,31,.06), 0 8px 24px -16px rgba(18,22,31,.35);
+  --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#0E1117;
+    --surface:#171B23;
+    --surface-2:#1F242E;
+    --ink:#E8EBF2;
+    --ink-2:#A5AEBD;
+    --ink-3:#7B8494;
+    --line:#2A303B;
+    --line-strong:#3B4351;
+    --accent:#97A5EA;
+    --accent-ink:#10131B;
+    --accent-soft:#1C2340;
+    --jade:#4FC7A0;
+    --jade-soft:#12302A;
+    --amber:#D9A54E;
+    --amber-soft:#2E2617;
+    --clay:#E38375;
+    --clay-soft:#33201D;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0E1117;
+  --surface:#171B23;
+  --surface-2:#1F242E;
+  --ink:#E8EBF2;
+  --ink-2:#A5AEBD;
+  --ink-3:#7B8494;
+  --line:#2A303B;
+  --line-strong:#3B4351;
+  --accent:#97A5EA;
+  --accent-ink:#10131B;
+  --accent-soft:#1C2340;
+  --jade:#4FC7A0;
+  --jade-soft:#12302A;
+  --amber:#D9A54E;
+  --amber-soft:#2E2617;
+  --clay:#E38375;
+  --clay-soft:#33201D;
+  --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--font-body);
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:48px;
+}
+@media (prefers-reduced-motion: reduce){ *{transition:none!important; animation:none!important;} }
+
+h1,h2{ font-family:var(--font-display); font-weight:600; text-wrap:balance; margin:0; letter-spacing:-0.01em; }
+h1{ font-size:1.3rem; }
+h2{ font-size:1.05rem; }
+p{ margin:0; }
+
+.appbar{
+  position:sticky; top:0; z-index:20;
+  display:flex; flex-wrap:wrap; align-items:center; gap:16px;
+  padding:12px 24px;
+  background:var(--surface);
+  border-bottom:1px solid var(--line);
+}
+.brand{ display:flex; flex-direction:column; margin-right:auto; gap:2px; }
+.brand small{ color:var(--ink-3); font-size:.78rem; }
+.row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+
+.page{ max-width:880px; margin:0 auto; padding:32px 24px 40px; }
+
+.eyebrow{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--ink-3); margin:0 0 8px; }
+.lede{ color:var(--ink-2); max-width:62ch; margin:0 0 32px; font-size:15px; }
+.hint{ font-size:13px; color:var(--ink-2); margin:0; max-width:62ch; }
+
+.step{ margin-bottom:28px; }
+.step-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:4px; }
+.step-no{ font-family:var(--font-mono); font-size:11px; letter-spacing:0.12em; color:var(--accent); font-weight:600; }
+.step-sub{ color:var(--ink-2); font-size:14px; max-width:62ch; margin:0 0 14px; }
+
+.card{
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:var(--shadow);
+  padding:22px 24px 26px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
+}
+.card-row{ display:flex; gap:16px; flex-wrap:wrap; }
+
+.field{ display:flex; flex-direction:column; gap:6px; }
+.field.grow{ flex:1 1 240px; }
+.field > span{ font-size:.78rem; font-weight:500; color:var(--ink-2); }
+.field > span em{ font-style:normal; font-weight:400; opacity:0.85; }
+
+input[type="text"], textarea{
+  font-family:var(--font-body);
+  font-size:14.5px;
+  color:var(--ink);
+  background:var(--surface);
+  border:1px solid var(--line-strong);
+  border-radius:6px;
+  padding:8px 10px;
+  width:100%;
+  min-width:0;
+}
+textarea{ min-height:250px; line-height:1.6; resize:vertical; }
+::placeholder{ color:var(--ink-3); }
+
+input:focus-visible, textarea:focus-visible, button:focus-visible, .chan:focus-within{
+  outline:2px solid var(--accent);
+  outline-offset:2px;
+  border-radius:4px;
+}
+
+.prompts{
+  background:var(--surface-2);
+  border-radius:8px;
+  padding:14px 16px;
+}
+.cover-head{ display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:10px; }
+.cover-score{
+  font-family:var(--font-mono); font-size:11.5px; font-weight:600;
+  color:var(--ink-3); font-variant-numeric:tabular-nums; white-space:nowrap;
+}
+.cover-score.good{ color:var(--jade); }
+.cover-list{ display:grid; gap:5px; }
+.cover-item{ display:flex; align-items:flex-start; gap:9px; font-size:13.5px; line-height:1.45; }
+.cover-mark{
+  flex:none; width:15px; height:15px; margin-top:2px; border-radius:50%;
+  border:1.5px solid var(--line-strong); background:var(--surface);
+  display:grid; place-items:center;
+}
+.cover-mark svg{ width:9px; height:9px; stroke:var(--accent-ink); stroke-width:3; fill:none; opacity:0; }
+.cover-item.on .cover-mark{ background:var(--jade); border-color:var(--jade); }
+.cover-item.on .cover-mark svg{ opacity:1; }
+.cover-item b{ color:var(--ink); font-weight:600; }
+.cover-item .say{ color:var(--ink-2); }
+.cover-item.on .say{ color:var(--ink-3); }
+.cover-item .opt{ color:var(--ink-3); font-size:12px; }
+.cover-foot{ font-size:12.5px; color:var(--ink-3); margin:12px 0 0; line-height:1.5; }
+
+.btn{
+  appearance:none; cursor:pointer;
+  background:var(--surface); color:var(--ink);
+  border:1px solid var(--line-strong); border-radius:7px;
+  padding:7px 15px; font-size:.87rem; font-weight:500;
+  transition:background .12s ease, border-color .12s ease;
+}
+.btn:hover{ background:var(--surface-2); }
+.btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:600; }
+.btn.primary:hover{ filter:brightness(1.08); }
+.btn.primary:disabled{ opacity:0.6; cursor:default; filter:none; }
+.btn.ghost{ border-color:transparent; background:transparent; color:var(--ink-2); }
+.btn.ghost:hover{ background:var(--surface-2); color:var(--ink); }
+.btn.small{ padding:4px 9px; font-size:.78rem; }
+
+.pill{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:0.03em; text-transform:uppercase;
+  padding:4px 10px; border-radius:999px; font-weight:600; white-space:nowrap;
+}
+.pill-success{ background:var(--jade-soft); color:var(--jade); }
+.pill-warn{ background:var(--amber-soft); color:var(--amber); }
+.pill-channel{ background:var(--surface-2); color:var(--ink-2); }
+
+.aud-list{ display:flex; flex-direction:column; gap:10px; }
+.aud-row{
+  display:grid; gap:10px;
+  grid-template-columns:1.4fr 0.7fr 2fr auto;
+  align-items:start;
+}
+.aud-row input[type="text"]{ width:100%; }
+.aud-row .rm{ align-self:center; }
+@media (max-width:640px){ .aud-row{ grid-template-columns:1fr; } }
+.aud-empty{ font-size:13px; color:var(--ink-3); }
+
+.chan-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(250px,1fr)); gap:10px; }
+.chan{
+  position:relative; display:block; cursor:pointer;
+  background:var(--surface); border:1px solid var(--line);
+  border-radius:8px; padding:13px 14px;
+  transition:border-color .12s ease, background .12s ease;
+}
+.chan:hover{ border-color:var(--line-strong); }
+.chan input{ position:absolute; opacity:0; width:0; height:0; }
+.chan.on{ border-color:var(--accent); background:var(--accent-soft); }
+.chan-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.chan-name{ font-weight:600; font-size:.95rem; }
+.chan-fmt{ font-family:var(--font-mono); font-size:11.5px; color:var(--ink-3); margin-top:3px; }
+.chan-note{ font-size:13px; color:var(--ink-2); margin-top:7px; line-height:1.45; }
+.tick{
+  width:17px; height:17px; flex:none; border-radius:4px;
+  border:1.5px solid var(--line-strong); background:var(--surface);
+  display:grid; place-items:center;
+}
+.chan.on .tick{ background:var(--accent); border-color:var(--accent); }
+.tick svg{ width:10px; height:10px; stroke:var(--accent-ink); stroke-width:2.6; fill:none; opacity:0; }
+.chan.on .tick svg{ opacity:1; }
+
+.legend{ display:flex; flex-wrap:wrap; gap:8px 20px; margin-top:12px; font-size:13px; color:var(--ink-2); }
+.legend div{ display:flex; align-items:center; gap:7px; }
+
+.actions{ display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:18px; }
+
+.notice{
+  margin:-18px 0 30px;
+  padding:11px 14px;
+  background:var(--amber-soft);
+  color:var(--amber);
+  border-radius:8px;
+  font-size:13.5px;
+  line-height:1.5;
+  max-width:62ch;
+}
+.notice code{ background:transparent; color:inherit; font-weight:600; padding:0; }
+
+.restored{
+  display:flex; flex-wrap:wrap; align-items:center; gap:10px;
+  margin-top:12px; padding:9px 12px;
+  background:var(--surface-2); border-radius:7px;
+  font-size:13px; color:var(--ink-2);
+}
+
+#out{ display:none; }
+#out.show{ display:block; }
+.out-top{ display:flex; flex-wrap:wrap; gap:12px; align-items:center; justify-content:space-between; }
+pre{
+  margin:0; padding:14px 16px; overflow-x:auto;
+  background:var(--surface-2); border-radius:8px;
+  font-family:var(--font-mono); font-size:12.5px; line-height:1.6; color:var(--ink-2);
+  white-space:pre-wrap; word-break:break-word; max-height:330px;
+}
+
+.run-list{ display:flex; flex-direction:column; gap:8px; }
+.run-row{
+  display:flex; align-items:center; gap:12px; padding:10px 12px;
+  background:var(--surface-2); border-radius:7px; font-size:13.5px;
+}
+.run-row .name{ font-weight:600; flex:0 0 220px; }
+.run-row .stage{ color:var(--ink-2); flex:1 1 auto; }
+.run-row .stpill{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.03em; text-transform:uppercase;
+  padding:3px 8px; border-radius:999px; font-weight:600; white-space:nowrap; }
+.stpill-wait{ background:var(--surface); color:var(--ink-3); border:1px solid var(--line); }
+.stpill-run{ background:var(--accent-soft); color:var(--accent); }
+.stpill-ok{ background:var(--jade-soft); color:var(--jade); }
+.stpill-warn{ background:var(--amber-soft); color:var(--amber); }
+.stpill-fail{ background:var(--clay-soft); color:var(--clay); }
+
+.results{ display:flex; flex-direction:column; gap:10px; margin-top:14px; }
+.results:empty{ margin-top:0; }
+.result{ padding:14px 16px; border:1px solid var(--line); border-radius:8px; }
+.result h3{ font-family:var(--font-body); font-size:.92rem; font-weight:600; margin:0 0 6px; }
+.result p{ font-size:13px; color:var(--ink-2); line-height:1.5; }
+.result p + p{ margin-top:5px; }
+.result a{ color:var(--accent); font-weight:600; }
+.result .gaps{ margin-top:8px; padding:9px 11px; background:var(--amber-soft); border-radius:6px; }
+.result .gaps p{ color:var(--amber); font-size:12.5px; }
+
+.stamp{
+  margin-top:6px; padding:7px 10px;
+  background:var(--amber-soft); color:var(--amber);
+  border-radius:6px; font-size:12.5px; line-height:1.45;
+}
+
+.banner-msg{
+  padding:11px 14px; border-radius:8px; font-size:13.5px; margin-bottom:14px;
+  background:var(--surface-2); color:var(--ink-2);
+}
+.banner-msg.warn{ background:var(--amber-soft); color:var(--amber); }
+.banner-msg a{ color:inherit; text-decoration:underline; }
+
+footer{ margin-top:36px; padding-top:18px; border-top:1px solid var(--line); }
+footer p{ font-size:13px; color:var(--ink-3); max-width:62ch; }
+footer p + p{ margin-top:8px; }
+footer b{ color:var(--ink-2); font-weight:600; }
+code{ font-family:var(--font-mono); font-size:.88em; background:var(--surface-2); padding:1px 5px; border-radius:3px; color:var(--ink-2); }
+</style>
+
+<header class="appbar">
+  <div class="brand">
+    <h1>Change Comms Console</h1>
+    <small>Describe the change once &mdash; Claude drafts it per audience, for every channel you pick</small>
+  </div>
+  <div class="row">
+    <span class="pill pill-channel" title="Console version">v0.4</span>
+    <button type="button" class="btn ghost small" id="btn-theme" title="Toggle light/dark">Theme</button>
+  </div>
+</header>
+
+<div class="page">
+  <p class="eyebrow">Change Communications</p>
+  <p class="lede">Write the change in your own words, name who it lands on differently, choose the
+     channels, and get a first draft for each audience x channel combination &mdash; a
+     downloadable file, or a Canva link with copy ready to paste in.</p>
+
+  <p class="notice"><b>Drafts here are quick, not checked.</b> Claude writes each one from your
+     brief text alone, right in this browser &mdash; nothing traces back to a source and no QA
+     runs. Read every fact before anything goes anywhere. For the checked route &mdash; every
+     line traced to your brief or the knowledge bank, QA before anything is produced &mdash; run
+     the request below in a Claude conversation instead.</p>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="step-no">01</span>
+      <h2>Describe the change</h2>
+    </div>
+    <p class="step-sub">Prose is fine &mdash; there are no fields to fill in. The more of the prompts
+       below you cover, the fewer gaps come back.</p>
+
+    <div class="card">
+      <label class="field grow">
+        <span>The change, in your own words</span>
+        <textarea id="brief" spellcheck="true" placeholder="e.g. From 1 October we're moving payroll from monthly to twice-monthly, and payslips move to a self-service portal.
+
+Everyone on the payroll is affected — about 2,400 people across the UK and Ireland. They each need to activate a portal account and check their bank details by 14 September; it takes ten minutes. Line managers also pick up timesheet approval, which payroll used to do centrally, so they need 45 minutes of training first.
+
+We're doing it because colleagues asked for it — more frequent pay was the top request in the last two engagement surveys — and because the current system loses vendor support in March 2027.
+
+Total annual pay isn't changing, and neither are contracts, hours or pensions. That matters, because the first thing people will assume is that they're being paid less.
+
+It's going out from Marcus Bell, our Chief People Officer. Questions go to payroll support, 8am–6pm weekdays. We still don't know whether agency contractors see any change to their payment timing."></textarea>
+      </label>
+
+      <div class="prompts">
+        <div class="cover-head">
+          <p class="eyebrow" style="margin:0">Worth covering</p>
+          <span class="cover-score" id="cover-score">&mdash;</span>
+        </div>
+        <div class="cover-list" id="cover"></div>
+        <p class="cover-foot">A read of your text, not a QA result &mdash; the real checks run on the
+           draft. Anything still missing comes back as a visible <code>[GAP]</code> rather than an
+           invented answer, which is often the right outcome.</p>
+      </div>
+
+      <div class="card-row">
+        <label class="field grow">
+          <span>Organisation</span>
+          <input type="text" id="org" placeholder="Used to name the files" autocomplete="organization">
+        </label>
+        <label class="field grow">
+          <span>Sending on behalf of <em>(optional)</em></span>
+          <input type="text" id="sender" placeholder="Name and role of the messenger">
+        </label>
+      </div>
+
+      <label class="field grow">
+        <span>Brand template for the Briefing deck <em>(optional, .pptx or .potx)</em></span>
+        <input type="file" id="template-file" accept=".pptx,.potx">
+      </label>
+      <p class="hint" id="template-hint" hidden>Attached &mdash; the Briefing deck won't build
+         here. It's added to the run request below so the pptx skill profiles the template and
+         builds against its actual layouts, instead of this console's generic one.</p>
+
+      <p class="hint">Brand isn't otherwise collected here. Palette, typography and tone live in a
+         per-client brand profile reused across every change &mdash; Claude uses the one on file,
+         and stops to ask if there isn't one rather than approximating it.</p>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="step-no">02</span>
+      <h2>Name the audiences</h2>
+    </div>
+    <p class="step-sub">A change rarely lands the same way on everyone. Add a row per group that
+       needs something different &mdash; drafting then runs per audience, per channel, not one
+       broadcast draft for all of them. Leave this empty to draft one version for everyone.</p>
+
+    <div class="card">
+      <div class="aud-list" id="auds"></div>
+      <div class="actions" style="margin-top:0">
+        <button type="button" class="btn small" id="add-aud">+ Add audience</button>
+      </div>
+      <p class="hint">e.g. &ldquo;All staff&rdquo;, ~2,400, self-service portal and pay date change &mdash;
+         and separately &ldquo;Line managers&rdquo;, ~120, also pick up timesheet approval.</p>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="step-no">03</span>
+      <h2>Choose the channels</h2>
+    </div>
+    <p class="step-sub">Each routes to a different tool. Every channel produces a reviewable draft and
+       a QA report; the badge says whether the finished artifact can be built right now.</p>
+
+    <div class="chan-grid" id="chans"></div>
+
+    <div class="legend">
+      <div><span class="pill pill-success">Live</span> builds a real file or design automatically</div>
+      <div><span class="pill pill-warn">Copy to paste</span> builds a design, but the copy has to be pasted in by hand</div>
+      <div><span class="pill pill-channel">Planned</span> ships a production spec instead</div>
+    </div>
+    <p class="hint" style="margin-top:8px">Email, Article and Briefing deck download as a real
+       file. Newsletter builds in Canva with your exact copy, unrewritten. Banner also builds in
+       Canva, but Canva's generator rewrites poster copy regardless of what it's given, so the
+       QA'd words ship separately for you to paste in &mdash; see the badge on each. The video
+       channels aren't built here at all; they're listed in the run request for the traced route.</p>
+
+    <div class="actions">
+      <button type="button" class="btn primary" id="go" disabled>Generate first drafts</button>
+      <span class="hint" id="count">Pick at least one channel</span>
+    </div>
+
+    <div class="restored" id="restored" hidden>
+      <span>Picked up where you left off &mdash; this draft is saved in this browser only.</span>
+      <button type="button" class="btn ghost small" id="clear-draft">Start fresh</button>
+    </div>
+  </section>
+
+  <section class="step" id="out">
+    <div class="step-head">
+      <span class="step-no">04</span>
+      <h2>Drafts</h2>
+    </div>
+    <p class="step-sub">Each channel drafts on its own below. For the checked, traced route
+       instead, use the run request underneath.</p>
+
+    <div class="card" id="out-live" style="display:none">
+      <div class="run-list" id="runlist"></div>
+      <div class="results" id="results"></div>
+    </div>
+
+    <div class="card" id="out-fallback">
+      <div class="out-top">
+        <p class="hint" id="outsum">&mdash;</p>
+        <div class="row">
+          <button type="button" class="btn primary small" id="copy">Copy</button>
+          <button type="button" class="btn small" id="dl">Download .md</button>
+        </div>
+      </div>
+      <pre id="req"></pre>
+    </div>
+  </section>
+
+  <footer>
+    <p>Every draft comes back as a <b>first draft for practitioner review</b> &mdash; never an approved
+       send. Sentences trace to what you wrote or to past collateral; anything neither covers comes
+       back as a visible <code>[GAP]</code> rather than a plausible-sounding guess.</p>
+    <p><b>Copy and design are approved separately.</b> A draft can pass every check and still carry a
+       layout no one has signed off.</p>
+  </footer>
+</div>
+
+<!-- docx-js: builds the Email/Article .docx client-side. Pinned to 9.0.0 — the LAST version
+     that ships build/index.umd.js; 9.3.0+ dropped it, and the unpinned URL only 200s off a
+     stale cache. Global: window.docx. -->
+<script src="https://cdn.jsdelivr.net/npm/docx@9.0.0/build/index.umd.js"></script>
+<!-- pptxgenjs: builds the Briefing deck .pptx client-side. Pinned to 3.12.0, the bundle build
+     (includes its own dependencies, so nothing else to load). Global: window.PptxGenJS. -->
+<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // `by` names the producer that actually builds each channel's artifact — the routing table
+  // from skills/cm-comms-generator/schemas/channel_registry.json (v0.1.0, synced 2026-09-04).
+  // That file is the source of truth; this array is a snapshot for standalone rendering —
+  // resync both when a channel's shape changes there.
+  var CHANNELS = [
+    { id:"email", name:"Email", fmt:".docx", by:"docx skill", status:"live",
+      note:"The workhorse. One action, one deadline, a named sender. Built by the docx skill when you run the request below." },
+    { id:"article", name:"Article", fmt:".docx", by:"docx skill", status:"live",
+      note:"The considered version — explains the reasoning at length." },
+    { id:"briefing_deck", name:"Briefing deck", fmt:".pptx", by:"pptx skill", status:"live",
+      note:"A pack a manager presents, with speaker notes and likely questions. Attach a brand template above for the client's actual layout." },
+    { id:"newsletter", name:"Newsletter", fmt:"Canva Doc", by:"Canva", status:"live",
+      note:"Skimmable round-up. Builds in Canva with your exact copy — verbatim, no AI rewriting — when you run the request below." },
+    { id:"banner", name:"Intranet banner", fmt:"Canva design", by:"Canva", status:"partial",
+      note:"A signpost: one message, pointing at the detail elsewhere. Canva's poster generator rewrites whatever copy it's given, so the run request ships a design plus the QA'd words as text to paste in by hand — never an autofilled banner." },
+    { id:"short_form_video", name:"Short-form video", fmt:"Script + captions", by:"planned — narration not wired", status:"planned",
+      note:"30–60s clip. You get a scene spec, timings and captions, plus a narration_spec.json — no narration engine is wired in v0.4, so no audio or video file is produced." },
+    { id:"explainer_video", name:"Explainer video", fmt:"Script + captions", by:"planned — narration not wired", status:"planned",
+      note:"2–3 min walkthrough. Same limitation as short-form: script and spec only, no rendered narration or video." }
+  ];
+
+  var PILL = { live:"pill-success", partial:"pill-warn", blocked:"pill-warn", planned:"pill-channel" };
+  var LABEL = { live:"Live", partial:"Copy to paste", blocked:"Blocked", planned:"Planned" };
+
+  // The six questions qa_comms.py checks a finished draft for, applied here to the RAW TEXT
+  // as a writing prompt. Deliberately weaker than the real audit — this only asks whether you
+  // appear to have mentioned a thing, never whether the draft covers it properly. `required`
+  // items are the six; the rest are strong recommendations from the channel library.
+  var MONTHS = "jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec";
+  var COVERAGE = [
+    { id:"what", required:true, label:"What's changing",
+      say:"the substance, in the reader's terms rather than the programme's",
+      re:/\b(chang|mov(e|ing)|switch|replac|introduc|new |instead of|rolling out|roll out|migrat|from .{1,30} to )/i },
+    { id:"who", required:true, label:"Who's affected",
+      say:"each group, and how differently",
+      re:/\b(everyone|colleagues?|staff|employees?|people|teams?|managers?|affected|impacted|all .{0,12}(staff|colleagues|employees)|\d[\d,]{2,}\s*(people|colleagues|staff|employees))/i },
+    { id:"why", required:true, label:"Why it's happening",
+      say:"the reason, and why now",
+      re:/\b(because|why|reason|so that|in order to|due to|driven by|thanks to|out of support|end of life|asked for)/i },
+    { id:"when", required:true, label:"When",
+      say:"key dates — flag any that aren't confirmed",
+      re:new RegExp("\\b(\\d{1,2}(st|nd|rd|th)?\\s+(" + MONTHS + ")|(" + MONTHS + ")[a-z]*\\s+\\d{1,2}|\\d{1,2}[\\/-]\\d{1,2}[\\/-]\\d{2,4}|\\b20\\d\\d\\b|next (week|month|quarter|year)|from \\d)", "i") },
+    { id:"action", required:true, label:"What people must do",
+      say:"the action, the deadline, and roughly how long it takes",
+      re:/\b(need to|needs to|must|should|required to|have to|action|activate|complete|register|sign up|log in|check your|update your|book|enrol|enroll|attend)/i },
+    { id:"help", required:true, label:"Where to get help",
+      say:"the route when the action fails — the most-omitted field",
+      // Needs a contactable ROUTE, not the word "help" or "support" on its own: "the system
+      // loses vendor support in March" must not read as a help desk, and it did until this
+      // was tightened.
+      re:/([\w.+-]+@[\w-]+\.[a-z]{2,}|\b(service|help)\s?desk\b|\bhelpline\b|\bhotline\b|\bcontact\b|\bget in touch\b|\breach out\b|questions?\s+(go|to|about|can|should|will)|\b(payroll|hr|it|people|technical|finance)\s+support\b|\bsupport\s+(team|desk|line|inbox|mailbox|channel|portal)\b|\bif you (need|have)\s+(help|questions?|any|trouble|problems?)|\bfor help\b|\bhelp is available\b)/i },
+    { id:"notchanging", required:false, label:"What is not changing",
+      say:"named reassurance stops more speculation than anything else",
+      re:/\b(not chang|isn'?t chang|aren'?t chang|unchanged|stays? the same|remains? the same|no change to|will not change|won'?t change)/i },
+    { id:"unknown", required:false, label:"What you don't know yet",
+      say:"comes back as a visible gap, not an invented answer",
+      re:/\b(don'?t know|do not know|unclear|not sure|unsure|still (to be|being)|tbc|to be confirmed|undecided|open question|yet to)/i }
+  ];
+
+  function assessBrief(text) {
+    var t = String(text || "");
+    // Too little text to say anything honest about: report nothing rather than a false negative
+    // on every line, which would read as criticism of an empty box.
+    if (t.trim().length < 40) { return { hits:{}, met:0, requiredTotal:0, missing:[], scored:false }; }
+    var hits = {}, met = 0, missing = [];
+    COVERAGE.forEach(function (c) {
+      var ok = c.re.test(t);
+      hits[c.id] = ok;
+      if (c.required) {
+        if (ok) { met++; } else { missing.push(c); }
+      }
+    });
+    var requiredTotal = COVERAGE.filter(function (c) { return c.required; }).length;
+    return { hits: hits, met: met, requiredTotal: requiredTotal, missing: missing, scored: true };
+  }
+
+  var TICK = '<svg viewBox="0 0 12 12" aria-hidden="true"><polyline points="1.5,6.5 4.5,9.5 10.5,2.5"></polyline></svg>';
+
+  function renderCoverage() {
+    var a = assessBrief($("brief").value);
+    $("cover").innerHTML = COVERAGE.map(function (c) {
+      var on = a.hits[c.id];
+      return '<div class="cover-item' + (on ? " on" : "") + '">' +
+        '<span class="cover-mark">' + TICK + '</span>' +
+        '<span><b>' + esc(c.label) + '</b>' +
+        (c.required ? "" : ' <span class="opt">· recommended</span>') +
+        ' <span class="say">&mdash; ' + esc(c.say) + '</span></span>' +
+      '</div>';
+    }).join("");
+
+    var score = $("cover-score");
+    if (!a.scored) {
+      score.textContent = "—";
+      score.className = "cover-score";
+    } else {
+      score.textContent = a.met + " of " + a.requiredTotal + " covered";
+      score.className = "cover-score" + (a.met === a.requiredTotal ? " good" : "");
+    }
+    return a;
+  }
+
+  // --- Draft persistence -----------------------------------------------------
+  // Per-viewer and private to this browser. Deliberately NOT the artifact capability, which
+  // would save the text into the page for everyone it is shared with — these briefs are
+  // client-confidential change comms. Every access is guarded: storage throws outright in some
+  // embedded contexts, and the page has to render correctly when it does.
+  var STORE_KEY = "cm-comms-console-draft";
+
+  function saveDraft() {
+    try {
+      localStorage.setItem(STORE_KEY, JSON.stringify({
+        brief: $("brief").value, org: $("org").value, sender: $("sender").value,
+        channels: Object.keys(picked),
+        audiences: audiences.map(function (a) { return { name: a.name, size: a.size, diff: a.diff }; }),
+        at: Date.now()
+      }));
+    } catch (e) { /* storage unavailable or full — the page works without it */ }
+  }
+
+  function loadDraft() {
+    var raw = null;
+    try { raw = localStorage.getItem(STORE_KEY); } catch (e) { return false; }
+    if (!raw) { return false; }
+    var d;
+    try { d = JSON.parse(raw); } catch (e) { return false; }
+    if (!d || typeof d !== "object" || !String(d.brief || "").trim()) { return false; }
+    $("brief").value = d.brief || "";
+    $("org").value = d.org || "";
+    $("sender").value = d.sender || "";
+    (d.channels || []).forEach(function (id) {
+      var el = document.querySelector('.chan[data-id="' + id + '"]');
+      var box = el && el.querySelector("input");
+      if (box) { box.checked = true; picked[id] = true; el.classList.add("on"); }
+    });
+    (d.audiences || []).forEach(function (a) {
+      audSeq++;
+      audiences.push({ id: "aud" + audSeq, name: a.name || "", size: a.size || "", diff: a.diff || "" });
+    });
+    renderAudiences();
+    return true;
+  }
+
+  function clearDraft() {
+    try { localStorage.removeItem(STORE_KEY); } catch (e) { /* nothing to clear */ }
+  }
+
+  // Position in this array at request-build time is what assigns the stable A1, A2...
+  // ids the run request and change_brief.json use — not the internal "audN" id, which only
+  // tracks a row through add/remove/edit in this browser session.
+  var audiences = [];
+  var audSeq = 0;
+
+  function audRowHtml(a) {
+    return '<div class="aud-row" data-aud="' + esc(a.id) + '">' +
+      '<label class="field"><span>Audience</span>' +
+        '<input type="text" class="aud-name" placeholder="e.g. All staff" value="' + esc(a.name) + '"></label>' +
+      '<label class="field"><span>Roughly how many</span>' +
+        '<input type="text" class="aud-size" placeholder="~2,400" value="' + esc(a.size) + '"></label>' +
+      '<label class="field"><span>What is different for them</span>' +
+        '<input type="text" class="aud-diff" placeholder="e.g. also picks up timesheet approval" value="' + esc(a.diff) + '"></label>' +
+      '<button type="button" class="btn ghost small rm" data-rm="' + esc(a.id) + '">Remove</button>' +
+    '</div>';
+  }
+
+  function renderAudiences() {
+    var el = $("auds");
+    if (!audiences.length) {
+      el.innerHTML = '<p class="aud-empty">No audiences added — drafting will produce one version for everyone.</p>';
+      return;
+    }
+    el.innerHTML = audiences.map(audRowHtml).join("");
+    Array.prototype.forEach.call(el.querySelectorAll(".aud-row"), function (row) {
+      var id = row.getAttribute("data-aud");
+      var a = audiences.filter(function (x) { return x.id === id; })[0];
+      if (!a) { return; }
+      row.querySelector(".aud-name").addEventListener("input", function () { a.name = this.value; saveDraft(); });
+      row.querySelector(".aud-size").addEventListener("input", function () { a.size = this.value; saveDraft(); });
+      row.querySelector(".aud-diff").addEventListener("input", function () { a.diff = this.value; saveDraft(); });
+    });
+  }
+
+  var picked = Object.create(null);
+  // A File isn't serializable, so this is never persisted to the saved draft — it has to be
+  // re-attached each visit. It only affects the Briefing deck, and only the handoff route:
+  // true template fidelity (preserving the client's actual layouts) needs the real pptx skill's
+  // unzip/edit/rezip, which only runs in a full Claude Code session, not this static page.
+  var templateFile = null;
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c];
+    });
+  }
+
+  function renderChannels() {
+    $("chans").innerHTML = CHANNELS.map(function (c) {
+      return '<label class="chan" data-id="' + c.id + '">' +
+        '<input type="checkbox" value="' + c.id + '">' +
+        '<span class="chan-top">' +
+          '<span class="chan-name">' + esc(c.name) + '</span>' +
+          '<span class="row" style="gap:8px">' +
+            '<span class="pill ' + PILL[c.status] + '">' + LABEL[c.status] + '</span>' +
+            '<span class="tick"><svg viewBox="0 0 12 12" aria-hidden="true">' +
+              '<polyline points="1.5,6.5 4.5,9.5 10.5,2.5"></polyline></svg></span>' +
+          '</span>' +
+        '</span>' +
+        '<span class="chan-fmt">' + esc(c.fmt) + ' · built by ' + esc(c.by) + '</span>' +
+        '<span class="chan-note">' + esc(c.note) + '</span>' +
+      '</label>';
+    }).join("");
+
+    Array.prototype.forEach.call(document.querySelectorAll(".chan"), function (el) {
+      var box = el.querySelector("input");
+      box.addEventListener("change", function () {
+        if (box.checked) { picked[box.value] = true; el.classList.add("on"); }
+        else { delete picked[box.value]; el.classList.remove("on"); }
+        syncCount();
+      });
+    });
+  }
+
+  function chosen() { return CHANNELS.filter(function (c) { return picked[c.id]; }); }
+
+  function syncCount() {
+    var n = chosen().length;
+    var brief = $("brief").value.trim();
+    var a = renderCoverage();
+    $("go").disabled = (n === 0 || brief.length < 40);
+    if (n === 0) {
+      $("count").textContent = "Pick at least one channel";
+    } else if (brief.length < 40) {
+      $("count").textContent = "Add a little more detail about the change";
+    } else if (a.missing.length) {
+      // Never blocking: an unanswered question is a legitimate [GAP], not an error.
+      $("count").textContent = n + (n === 1 ? " channel" : " channels") + " · " +
+        a.missing.length + " question" + (a.missing.length === 1 ? "" : "s") + " unanswered";
+    } else {
+      $("count").textContent = n + (n === 1 ? " channel selected" : " channels selected");
+    }
+    saveDraft();
+  }
+
+  // Message kind -> M-id, in the fixed order the coverage checklist already uses. Matches
+  // schemas/change_brief.schema.json's messages[].kind enum (what/who/why/when/action/help/
+  // not-changing/unknown) so the console's ids and the skill's ids are the same spine, not
+  // two numbering schemes describing one brief.
+  var MESSAGE_KIND = { notchanging: "not-changing" };
+  var COVERAGE_M_ID = {};
+  COVERAGE.forEach(function (c, i) { COVERAGE_M_ID[c.id] = "M" + (i + 1); });
+
+  function buildRequest() {
+    var org = $("org").value.trim() || "the client";
+    var sender = $("sender").value.trim();
+    var picks = chosen();
+    var lines = [];
+    lines.push("Run cm-comms-generator for the change below.");
+    lines.push("");
+    lines.push("ORGANISATION: " + org);
+    if (sender) lines.push("SENDER: " + sender);
+    lines.push("CHANNELS: " + picks.map(function (c) { return c.id; }).join(", "));
+    if (templateFile && picks.some(function (c) { return c.id === "briefing_deck"; })) {
+      lines.push("BRAND TEMPLATE: " + templateFile.name + " — attached to this message.");
+      lines.push("Profile it with profile_template.py before building the Briefing deck, and");
+      lines.push("build against its actual layouts and placeholders, not a generic template.");
+    }
+    lines.push("");
+
+    if (audiences.length) {
+      lines.push("AUDIENCES (assign as A1, A2... in that order in change_brief.json)");
+      audiences.forEach(function (aud, i) {
+        var name = aud.name.trim() || "(unnamed audience " + (i + 1) + ")";
+        var size = aud.size.trim() ? ", ~" + aud.size.trim() : "";
+        var diff = aud.diff.trim() ? " — " + aud.diff.trim() : "";
+        lines.push("- A" + (i + 1) + ": " + name + size + diff);
+      });
+      lines.push("Draft every selected channel per audience above, not one broadcast");
+      lines.push("version — see reference/channel-library.md for which channels a");
+      lines.push("banner-sized message can and can't carry per audience.");
+    } else {
+      lines.push("AUDIENCES: none named — draft one version for everyone (A1: all affected).");
+    }
+    lines.push("");
+
+    lines.push("THE CHANGE");
+    lines.push($("brief").value.trim());
+    lines.push("");
+
+    var a = assessBrief($("brief").value);
+    lines.push("MESSAGES DETECTED IN THE TEXT ABOVE (assign these M-ids in change_brief.json;");
+    lines.push("re-check my wording against the actual text rather than trusting this label):");
+    COVERAGE.forEach(function (c) {
+      var mid = COVERAGE_M_ID[c.id];
+      var kind = MESSAGE_KIND[c.id] || c.id;
+      var status = a.hits[c.id] ? "present" : "NOT ANSWERED — open_question, do not invent";
+      lines.push("- " + mid + " (" + kind + "): " + status);
+    });
+    lines.push("");
+
+    lines.push("WHAT TO DO");
+    lines.push("1. Build change_brief.json from the audiences and messages above — reuse");
+    lines.push("   the A/M ids given, add T ids for every date, and put anything marked");
+    lines.push("   NOT ANSWERED into open_questions rather than inventing it.");
+    lines.push("2. Plan the audience x channel matrix, draft, then run qa_comms.py before");
+    lines.push("   producing anything — every mandatory M must reach every A it targets.");
+    lines.push("3. Route each channel to its producer with route_channels.py and build");
+    lines.push("   what can be built.");
+    lines.push("4. Hand back the drafts, the QA report and the files, and tell me what");
+    lines.push("   is still open.");
+    return lines.join("\n");
+  }
+
+  function showRequest() {
+    var picks = chosen();
+    var runs = buildRuns();
+    $("req").textContent = buildRequest();
+    $("outsum").textContent =
+      picks.length + (picks.length === 1 ? " channel" : " channels") +
+      (audiences.length ? " × " + audiences.length + (audiences.length === 1 ? " audience" : " audiences") : "") +
+      " · " + runs.filter(function (r) { return r.chan.status !== "planned"; }).length + " built or drafted here now";
+    $("out").classList.add("show");
+    $("out").scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+  function withCap(name, cb) {
+    if (!window.claude || typeof window.claude.use !== "function") { cb(null); return; }
+    window.claude.use(name).then(cb, function () { cb(null); });
+  }
+
+  function fallbackCopy(text, done) {
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", "");
+    ta.style.position = "fixed"; ta.style.top = "-1000px";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); done(); } catch (e) { /* left selected to copy by hand */ }
+    document.body.removeChild(ta);
+  }
+
+  // --- Drafting live, in this browser -----------------------------------------------------
+  // Claude drafts each channel's copy through the `sample` capability — a per-call,
+  // viewer-consented ask that runs on the viewer's own Claude usage and needs no connector, so
+  // (unlike the Gamma MCP route this replaced) declaring it doesn't block sharing the page
+  // publicly. Email/Article/Briefing deck package the draft into a real file with docx-js /
+  // pptxgenjs and offer it through the `downloads` capability. Newsletter/Banner draft short
+  // copy and link straight to Canva to paste it in — there's no live Canva connector here.
+
+  var STAGE_LABEL = { wait: "Waiting", run: "Working", ok: "Ready", warn: "Needs attention", fail: "Failed" };
+  var PRODUCED_FILES = Object.create(null);   // run id -> {blob, filename}
+
+  // Channels this console can actually draft. `kind` picks the producer in produceChannel();
+  // anything not listed here (the two video channels) falls straight to "not built here".
+  var PRODUCIBLE = { email: "docx", article: "docx", briefing_deck: "pptx", newsletter: "canva", banner: "canva" };
+
+  // A "run" is one channel drafted for one audience. With no audiences named, each channel
+  // gets exactly one run against an implicit "everyone" audience — the old v0.3 behaviour.
+  // DOM ids and PRODUCED_FILES both key off run.id, never bare chan.id, so two audiences
+  // picking the same channel don't collide.
+  function buildRuns() {
+    var chans = chosen();
+    if (!audiences.length) {
+      return chans.map(function (chan) { return { id: chan.id, chan: chan, aud: null }; });
+    }
+    var runs = [];
+    chans.forEach(function (chan) {
+      audiences.forEach(function (aud, i) {
+        runs.push({ id: chan.id + "--" + aud.id, chan: chan, aud: aud, audLabel: "A" + (i + 1) });
+      });
+    });
+    return runs;
+  }
+
+  function runLabel(run) {
+    if (!run.aud) { return run.chan.name; }
+    var name = run.aud.name.trim() || (run.audLabel + " (unnamed)");
+    return run.chan.name + " — " + name;
+  }
+
+  function setStage(id, kind, text) {
+    var pill = document.getElementById("pill-" + id);
+    var stage = document.getElementById("stage-" + id);
+    if (pill) { pill.className = "stpill stpill-" + kind; pill.textContent = STAGE_LABEL[kind] || kind; }
+    if (stage) { stage.textContent = text; }
+  }
+
+  function renderRunList(runs) {
+    $("runlist").innerHTML = runs.map(function (r) {
+      return '<div class="run-row" id="row-' + esc(r.id) + '">' +
+        '<span class="name">' + esc(runLabel(r)) + '</span>' +
+        '<span class="stage" id="stage-' + esc(r.id) + '">Queued</span>' +
+        '<span class="stpill stpill-wait" id="pill-' + esc(r.id) + '">Waiting</span>' +
+      '</div>';
+    }).join("");
+    $("results").innerHTML = "";
+  }
+
+  function addResult(html) {
+    var el = document.createElement("div");
+    el.className = "result";
+    el.innerHTML = html;
+    $("results").appendChild(el);
+  }
+
+  function sampleErrorCopy(err) {
+    var code = err && err.code;
+    if (code === "not_granted") return "AI drafting isn’t available in this view.";
+    if (code === "rate_limited") return "Too many drafts requested at once — try again shortly.";
+    if (code === "prompt_too_large") return "Your brief is too long to draft in one go — trim it and try again.";
+    if (code === "invalid_json" || code === "empty_completion") return "Claude’s reply didn’t come back in the expected shape — try again.";
+    if (code === "cancelled") return "Drafting was cancelled.";
+    if (code === "refused") return "Claude declined to draft this one — check the brief for anything that reads as sensitive.";
+    if (code === "upstream_error") return "Temporarily unreachable — try again shortly.";
+    if (code === "session_expired" || code === "sampling_disabled" || code === "not_declared" ||
+        code === "capability_disabled" || code === "capability_removed") return "AI drafting isn’t available in this view.";
+    return "Couldn’t draft this channel" + (err && err.message ? ": " + err.message : ".");
+  }
+
+  // Every prompt asks for exactly one JSON shape and repeats the no-inventing rule from the
+  // channel library — the same rule the real skill pipeline enforces, just unchecked here.
+  function contentPrompt(run) {
+    var chan = run.chan, aud = run.aud;
+    var org = $("org").value.trim() || "the organisation";
+    var sender = $("sender").value.trim();
+    var a = assessBrief($("brief").value);
+    var L = [];
+    L.push("Write an internal change communication for " + org + ".");
+    L.push("Channel: " + chan.name + " — " + chan.note);
+    if (aud) {
+      var name = aud.name.trim() || run.audLabel;
+      L.push("Audience: " + name +
+        (aud.size.trim() ? " (roughly " + aud.size.trim() + " people)" : "") +
+        (aud.diff.trim() ? " — what's different for them: " + aud.diff.trim() : ""));
+      L.push("Write specifically for this audience, not a generic broadcast version — lead");
+      L.push("with what's different for them where the brief supports it.");
+    }
+    L.push("");
+    L.push("THE CHANGE, IN THE PRACTITIONER'S OWN WORDS:");
+    L.push($("brief").value.trim());
+    L.push("");
+    if (sender) { L.push("SENDER: " + sender); L.push(""); }
+    L.push("RULES:");
+    L.push("- Use ONLY the facts stated above. Do not invent dates, names, URLs, portal");
+    L.push("  addresses, phone numbers, system names or statistics.");
+    L.push("- Write for the reader, not the programme. Plain language, active voice.");
+    L.push("- Where a fact isn't stated above, write \"[GAP: <what's missing>]\" rather than");
+    L.push("  inventing an answer.");
+    if (a.scored && a.missing.length) {
+      L.push("- These are NOT answered above — leave them as [GAP] rather than guessing:");
+      a.missing.forEach(function (c) { L.push("    * " + c.label + " (" + c.say + ")"); });
+    }
+    L.push("");
+    L.push("Reply with ONLY a JSON object, no other text, matching exactly this shape:");
+    if (chan.id === "email") {
+      L.push('{"subject": string (max 50 chars), "paragraphs": [string, ...]}');
+    } else if (chan.id === "article") {
+      L.push('{"headline": string, "standfirst": string, "paragraphs": [string, ...]}');
+    } else if (chan.id === "briefing_deck") {
+      L.push('{"slides": [{"title": string, "bullets": [string, ...]}, ...]}');
+      L.push("Up to 12 slides, up to 5 bullets per slide.");
+    } else {
+      L.push('{"headline": string, "body": string}');
+    }
+    return L.join("\n");
+  }
+
+  function slugify(s) {
+    return String(s || "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  }
+
+  function fileBase(run) {
+    var org = slugify($("org").value.trim()) || "change";
+    var audPart = run.aud ? "-" + (slugify(run.aud.name) || run.audLabel.toLowerCase()) : "";
+    return org + "-" + run.chan.id + audPart;
+  }
+
+  function buildDocx(chan, content) {
+    if (typeof docx === "undefined" || !docx.Packer) { return Promise.resolve(null); }
+    var D = docx;
+    var children = [];
+    if (chan.id === "email" && content.subject) {
+      children.push(new D.Paragraph({ text: content.subject, heading: D.HeadingLevel.HEADING_1 }));
+    }
+    if (chan.id === "article" && content.headline) {
+      children.push(new D.Paragraph({ text: content.headline, heading: D.HeadingLevel.HEADING_1 }));
+      if (content.standfirst) {
+        children.push(new D.Paragraph({ children: [new D.TextRun({ text: content.standfirst, italics: true })] }));
+      }
+    }
+    (content.paragraphs || []).forEach(function (p) {
+      children.push(new D.Paragraph({ children: [new D.TextRun({ text: String(p) })] }));
+    });
+    children.push(new D.Paragraph({ text: "" }));
+    var sender = $("sender").value.trim();
+    children.push(new D.Paragraph({
+      children: [new D.TextRun({
+        text: "AI-drafted, not checked. Written by Claude from the brief typed into the Change "
+            + "Comms Console. No line is traced to a source and no QA has run, so verify every "
+            + "date, name, figure and link before sending." + (sender ? " Intended sender: " + sender + "." : ""),
+        italics: true, size: 18
+      })]
+    }));
+    try {
+      var doc = new D.Document({
+        creator: "Change Comms Console",
+        title: content.subject || content.headline || chan.name,
+        sections: [{ children: children }]
+      });
+      return D.Packer.toBlob(doc);
+    } catch (e) { return Promise.resolve(null); }
+  }
+
+  function buildPptx(chan, content) {
+    if (typeof PptxGenJS === "undefined") { return Promise.resolve(null); }
+    try {
+      var pptx = new PptxGenJS();
+      (content.slides || []).forEach(function (s) {
+        var slide = pptx.addSlide();
+        slide.addText(String(s.title || ""), { x: 0.5, y: 0.3, w: 9, fontSize: 24, bold: true });
+        var bullets = (s.bullets || []).map(function (b) { return { text: String(b), options: { bullet: true, breakLine: true } }; });
+        if (bullets.length) { slide.addText(bullets, { x: 0.5, y: 1.1, w: 9, h: 5, fontSize: 16 }); }
+      });
+      var notes = pptx.addSlide();
+      notes.addText("AI-drafted, not checked. Verify every date, name, figure and link before presenting.",
+        { x: 0.5, y: 0.4, w: 9, fontSize: 14, italic: true });
+      return pptx.write({ outputType: "blob" });
+    } catch (e) { return Promise.resolve(null); }
+  }
+
+  function offerFile(run, content) {
+    var chan = run.chan;
+    var builder = PRODUCIBLE[chan.id] === "docx" ? buildDocx : PRODUCIBLE[chan.id] === "pptx" ? buildPptx : null;
+    if (!builder) { return Promise.resolve(null); }
+    var ext = PRODUCIBLE[chan.id];
+    return builder(chan, content).then(function (blob) {
+      if (!blob) { return null; }
+      return { blob: blob, filename: fileBase(run) + "." + ext, label: "Download ." + ext };
+    }).catch(function () { return null; });
+  }
+
+  function renderProduced(run, content, file) {
+    var chan = run.chan;
+    var html = '<h3>' + esc(runLabel(run)) + '</h3>';
+    if (chan.id === "banner") {
+      // Poster generation is real, but Canva's generator rewords whatever copy it's given —
+      // verbatim is only honoured for design_type "doc". So the copy drafted here is what
+      // has to be pasted in by hand; presenting it as though it will autofill would be the
+      // one honesty failure this console can't afford.
+      html += '<p><b>' + esc(content.headline || "") + '</b></p>' +
+        '<p>' + esc(content.body || "") + '</p>' +
+        '<p><a href="https://www.canva.com/create/" target="_blank" rel="noopener">Open Canva</a>' +
+        ' — Canva will reword this copy if you let it generate the poster text; paste the words ' +
+        'above in yourself instead.</p>';
+    } else if (PRODUCIBLE[chan.id] === "canva") {
+      html += '<p><b>' + esc(content.headline || "") + '</b></p>' +
+        '<p>' + esc(content.body || "") + '</p>' +
+        '<p><a href="https://www.canva.com/create/" target="_blank" rel="noopener">Open Canva</a>' +
+        ' — paste the copy above into your design.</p>';
+    } else if (file) {
+      html += '<p><button type="button" class="btn small dl-file" data-run="' + esc(run.id) +
+        '">' + esc(file.label) + '</button></p>';
+      PRODUCED_FILES[run.id] = file;
+    } else {
+      // The file library didn't load or the content came back empty — never a dead end.
+      html += '<div class="gaps"><p>Couldn’t build the file here. The drafted text:</p></div>' +
+        (content.subject || content.headline ? '<p><b>' + esc(content.subject || content.headline) + '</b></p>' : "") +
+        (content.paragraphs || []).map(function (p) { return '<p>' + esc(p) + '</p>'; }).join("");
+    }
+    html += '<p class="stamp">AI-drafted, not checked. Verify every date, name, figure and link ' +
+      'before it goes anywhere.</p>';
+    addResult(html);
+    setStage(run.id, "ok", PRODUCIBLE[chan.id] === "canva" ? "Copy ready" : (file ? "File ready" : "Drafted"));
+  }
+
+  function produceChannel(sample, run) {
+    var chan = run.chan;
+    if (!PRODUCIBLE[chan.id]) {
+      setStage(run.id, "warn", "Not built here");
+      addResult('<h3>' + esc(runLabel(run)) + '</h3>' +
+        '<p>Not built here — routes to ' + esc(chan.by) + '. Use the run request below for this channel.</p>');
+      return Promise.resolve();
+    }
+    if (chan.id === "briefing_deck" && templateFile) {
+      // A generic in-browser deck would just be wrong here — the practitioner asked for their
+      // actual template, and only the real pptx skill (run via the request below) can honour it.
+      setStage(run.id, "warn", "Uses your template");
+      addResult('<h3>' + esc(runLabel(run)) + '</h3>' +
+        '<p>A brand template is attached (' + esc(templateFile.name) + ') — built on the actual ' +
+        'client layout when you run the request below, not on a generic one here.</p>');
+      return Promise.resolve();
+    }
+    setStage(run.id, "run", "Drafting…");
+    return sample.json(contentPrompt(run), { modelTier: "default" })
+      .then(function (content) {
+        setStage(run.id, "run", PRODUCIBLE[chan.id] === "canva" ? "Ready" : "Building the file…");
+        return offerFile(run, content).then(function (file) { renderProduced(run, content, file); });
+      })
+      .catch(function (err) {
+        setStage(run.id, "fail", "Failed");
+        addResult('<h3>' + esc(runLabel(run)) + '</h3><p>' + esc(sampleErrorCopy(err)) + '</p>');
+      });
+  }
+
+  function produceAll(sample) {
+    var runs = buildRuns();
+    $("out-live").style.display = "flex";
+    $("out-live").style.flexDirection = "column";
+    $("out").classList.add("show");
+    $("out").scrollIntoView({ behavior: "smooth", block: "start" });
+    renderRunList(runs);
+    var chain = Promise.resolve();
+    runs.forEach(function (run) {
+      chain = chain.then(function () { return produceChannel(sample, run); });
+    });
+    return chain;
+  }
+
+  function handleGenerateClick() {
+    $("go").disabled = true;
+    $("go").textContent = "Drafting…";
+    var restore = function () { $("go").disabled = false; $("go").textContent = "Generate first drafts"; };
+
+    if (!window.claude || typeof window.claude.use !== "function") { restore(); showRequest(); return; }
+    window.claude.use("sample").then(function (sample) {
+      if (!sample) { return null; }
+      return produceAll(sample);
+    }).then(function () { restore(); showRequest(); }, function () { restore(); showRequest(); });
+  }
+
+  renderChannels();
+  renderAudiences();
+  if (loadDraft()) { $("restored").hidden = false; }
+  ["brief", "org", "sender"].forEach(function (id) {
+    $(id).addEventListener("input", syncCount);
+  });
+  syncCount();
+
+  $("add-aud").addEventListener("click", function () {
+    audSeq++;
+    audiences.push({ id: "aud" + audSeq, name: "", size: "", diff: "" });
+    renderAudiences();
+    saveDraft();
+  });
+
+  $("auds").addEventListener("click", function (ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest("[data-rm]") : null;
+    if (!btn) { return; }
+    var id = btn.getAttribute("data-rm");
+    audiences = audiences.filter(function (a) { return a.id !== id; });
+    renderAudiences();
+    saveDraft();
+  });
+
+  $("template-file").addEventListener("change", function () {
+    var files = $("template-file").files;
+    templateFile = files && files[0] ? files[0] : null;
+    $("template-hint").hidden = !templateFile;
+  });
+
+  $("clear-draft").addEventListener("click", function () {
+    clearDraft();
+    $("brief").value = ""; $("org").value = ""; $("sender").value = "";
+    Object.keys(picked).forEach(function (id) { delete picked[id]; });
+    Array.prototype.forEach.call(document.querySelectorAll(".chan"), function (el) {
+      el.classList.remove("on");
+      var box = el.querySelector("input");
+      if (box) { box.checked = false; }
+    });
+    audiences = [];
+    renderAudiences();
+    templateFile = null;
+    $("template-file").value = "";
+    $("template-hint").hidden = true;
+    $("restored").hidden = true;
+    $("out").classList.remove("show");
+    $("out-live").style.display = "none";
+    $("runlist").innerHTML = ""; $("results").innerHTML = "";
+    syncCount();
+    $("brief").focus();
+  });
+
+  // Delegated: the download buttons are rendered after each channel finishes.
+  $("results").addEventListener("click", function (ev) {
+    var btn = ev.target && ev.target.closest ? ev.target.closest(".dl-file") : null;
+    if (!btn) { return; }
+    var file = PRODUCED_FILES[btn.getAttribute("data-run")];
+    if (!file) { return; }
+    withCap("downloads", function (dl) {
+      if (!dl) { alert("Downloads aren’t available in this view."); return; }
+      btn.disabled = true;
+      dl.save({ filename: file.filename, data: file.blob })
+        .then(function () { btn.textContent = "Saved"; },
+              function (e) {
+                btn.disabled = false;
+                if (e && e.code !== "declined") { alert("Could not save the file."); }
+              });
+    });
+  });
+
+  $("go").addEventListener("click", handleGenerateClick);
+
+  $("btn-theme").addEventListener("click", function () {
+    var cur = document.documentElement.getAttribute("data-theme");
+    var isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+  });
+
+  $("copy").addEventListener("click", function () {
+    var btn = this, text = buildRequest();
+    var done = function () {
+      btn.textContent = "Copied";
+      setTimeout(function () { btn.textContent = "Copy"; }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+    } else { fallbackCopy(text, done); }
+  });
+
+  $("dl").addEventListener("click", function () {
+    var org = ($("org").value.trim() || "change").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    withCap("downloads", function (dl) {
+      if (!dl) { alert("Downloads aren't available in this view — use Copy instead."); return; }
+      dl.save({ filename: (org || "change") + "-run-request.md", data: buildRequest() })
+        .catch(function (e) { if (e && e.code !== "declined") alert("Could not save the file."); });
+    });
+  });
+})();
+</script>
