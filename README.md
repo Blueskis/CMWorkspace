@@ -5,6 +5,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 | Skill | What it does |
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
+| `cm-comms-generator` | **v0.1 (scaffold)** — change brief → a change-communications pack, drafted per audience and routed to each channel's producer |
 
 ## Proposal generator (v0.1, MVP)
 
@@ -68,6 +69,56 @@ tag matching), and automated OOXML assembly — `build_deck.py` validates and se
 build, then the `pptx` skill's template workflow executes it. Output is always a **draft
 for practitioner review**, never a submission-ready document.
 
+## Comms generator (v0.1, scaffold)
+
+Takes a change brief (often prose, often the Change Comms Console's handoff) and produces
+a first-draft change-communications pack — per audience, not one draft broadcast to
+everyone — written from the firm's own knowledge bank.
+
+Five stages, the same shape as the proposal generator's, with a three-axis id spine
+instead of one because a comms pack has to answer who, what, and when separately before
+it can answer through which channel:
+
+```
+change brief + inputs ─▶ change_brief.json ─▶ comms_plan.json ─▶ build/ ─▶ qa_report.md
+      INTAKE                 PLAN + DRAFT           BUILD          QA
+```
+
+`A1..` audiences, `M1..` messages (the six mandatory questions, plus what's not changing,
+plus open unknowns), `T1..` timeline events, each flagged confirmed or not.
+
+Two invariants, identical in spirit to the proposal generator's and non-negotiable here
+too:
+
+- **Provenance** — every content block traces to a message id or a knowledge-bank entry
+  id, or carries an explicit `[GAP]` marker. No third state.
+- **Coverage** — every mandatory message reaches every audience it applies to through at
+  least one selected channel. An uncovered message x audience pair fails the run.
+
+**Honest status on the two integrations the plan behind this skill investigated:**
+
+- **Canva** — connected and authenticated, but this account has **no brand kits** and **no
+  brand templates** (both calls returned empty), so the on-brand autofill route is
+  unavailable regardless of how a run is configured. The newsletter uses
+  `generate-design` with `design_type: "doc"` and `verbatim: true` — the one Canva route
+  where supplied copy survives with no AI rewriting. The banner uses `design_type:
+  "poster"`, where `verbatim` is **ignored** — Canva always rewords poster copy — so the
+  banner ships as a design plus QA'd copy to paste in by hand, never as an autofilled
+  design.
+- **ElevenLabs (video narration)** — not integrable in this session: the connector isn't
+  enabled in chat, so its tools aren't loaded and no real call shape can be observed.
+  Both video channels (`short_form_video`, `explainer_video`) stay **planned**: the skill
+  produces a script, captions, and a `narration_spec.json` instead of a rendered file, so
+  wiring a narration engine later is a build step against an already-QA'd spec.
+
+### What this scaffold does and does not include yet
+
+This commit is the **scaffold**: `SKILL.md`, the three schemas, `channel_registry.json`,
+the two reference guides, and the comms knowledge bank. It deliberately does **not**
+include `scripts/qa_comms.py`, `scripts/route_channels.py`, or a worked example under
+`examples/` — those are test-driven and tracked separately. Until they land, Stage 5's
+checks are run by hand against the rules `SKILL.md` states, not by a script.
+
 ## Layout
 
 ```
@@ -77,10 +128,17 @@ skills/cm-proposal-generator/
 ├── schemas/              # rfp_brief, proposal_plan, kb_entry contracts
 └── scripts/              # index_kb, retrieve, profile_template, build_deck,
                           #   render_html, qa_deck
+skills/cm-comms-generator/
+├── SKILL.md              # the five-stage process, A/M/T id spine
+├── reference/             # channel library, brief-interrogation guide
+└── schemas/               # change_brief, comms_plan, channel_registry contracts
+                          #   (scripts/ — qa_comms.py, route_channels.py — not yet built)
 proposal-assets/
 ├── templates/
 │   └── html-generic/     # PoC template: 9 layouts, theme, vendored reveal.js (MIT)
 └── knowledge-bank/       # methodology, case-studies, credentials, team, commercials, boilerplate
+comms-assets/
+└── knowledge-bank/       # narrative, channel-examples, tone-and-style, faqs, glossary
 examples/acme-erp/        # worked example — fictional client
 ```
 
