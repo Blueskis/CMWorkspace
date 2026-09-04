@@ -198,8 +198,12 @@ Rules:
 // Stage 4 — questions
 // ---------------------------------------------------------------------------
 
-export function questionsPrompt(brief, corpus, count) {
-  const procedureSections = corpus.sections.filter((s) => s.classifier === "procedure");
+/**
+ * @param {object[]} procedureSections  the procedure-classified sections to draw
+ *   questions from — the caller's responsibility to chunk if this would exceed the
+ *   byte budget (see generatePlan, which is the only real caller).
+ */
+export function questionsPrompt(brief, procedureSections, count) {
   return `Write exactly ${count} knowledge-check questions for this training, mixing
 multiple-choice and true/false. Write ONLY from the source text below — every question's
 answer must be stated in the section you cite as its source.
@@ -274,7 +278,7 @@ export async function generatePlan(corpus, {
   }
 
   onStage("questions");
-  const questions = await sampleJson(questionsPrompt(brief, corpus, questionCount), { modelTier: MODEL_TIER });
+  const questions = await generateQuestions(sampleJson, brief, corpus, questionCount);
   validateQuestions(questions, questionCount);
 
   onStage("done");
@@ -287,6 +291,32 @@ export async function generatePlan(corpus, {
     questions,
     sectionsById,
   };
+}
+
+/**
+ * Unlike every other stage, the original questions call had no chunking at all — it
+ * dumped every procedure section's FULL text into one prompt. Harmless on the FSD this
+ * was tested against (~11 KB), but any FSD with enough procedure content to cross the
+ * 64 KiB cap would fail this call outright, with no fallback. Chunk the same way
+ * slide-copy does, split the question count proportionally across chunks (at least one
+ * each), then merge and renumber. Known tradeoff: trimming down to exactly `count` after
+ * merging favours earlier chunks, so a very large FSD split across many chunks could
+ * under-cover objectives whose only sources land in a later chunk — qa.js's coverage
+ * check will surface that if it happens, rather than it failing silently.
+ */
+async function generateQuestions(sampleJson, brief, corpus, count) {
+  const procedureSections = corpus.sections.filter((s) => s.classifier === "procedure");
+  const chunks = chunkSections(procedureSections);
+  if (chunks.length <= 1) {
+    return sampleJson(questionsPrompt(brief, procedureSections, count), { modelTier: MODEL_TIER });
+  }
+  const all = [];
+  for (let i = 0; i < chunks.length; i++) {
+    const n = Math.max(1, Math.round((count * (i + 1)) / chunks.length) - Math.round((count * i) / chunks.length));
+    const resp = await sampleJson(questionsPrompt(brief, chunks[i], n), { modelTier: MODEL_TIER });
+    all.push(...(resp.questions ?? []));
+  }
+  return { questions: all.slice(0, count).map((q, i) => ({ ...q, question_id: `Q${i + 1}` })) };
 }
 
 function relevantSections(mod, brief, sections) {

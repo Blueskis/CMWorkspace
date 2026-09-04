@@ -95,3 +95,49 @@ const hugeSize = new TextEncoder().encode(JSON.stringify(hugeChunks[0])).length;
 if (hugeSize > 61440) { console.log("FAIL: truncated section still over budget:", hugeSize); process.exit(1); }
 
 console.log("\nAll chunking edge cases passed.");
+
+// --- questions call must chunk too: an FSD with enough procedure text to cross the
+// 64 KiB cap used to go into ONE unbounded call (the actual bug this section guards
+// against) — now it should split, merge, and renumber to exactly `count` questions.
+console.log("\n### oversized questions chunking");
+const manyProcSections = Array.from({ length: 10 }, (_, i) => ({
+  section_id: `proc#s${i}`, section_path: `Procedure ${i}`, classifier: "procedure",
+  text: "z".repeat(9000),
+}));
+const bigBrief = {
+  system: "Test", process_scope: "test",
+  audiences: [{ audience_id: "a", role_name: "A", tasks: ["x"] }],
+  learning_objectives: [{ lo_id: "LO1", text: "do it", bloom_level: "apply", audience_ids: ["a"], sources: ["proc#s0"] }],
+  out_of_scope: [],
+};
+const bigCorpus = { documents: [{ document_id: "big" }], sections: manyProcSections, assets: [], notes: [] };
+let qCallCount = 0;
+async function chunkedMock(prompt) {
+  const bytes = new TextEncoder().encode(prompt).length;
+  if (bytes > 65536) throw new Error(`prompt exceeds cap: ${bytes} bytes`);
+  if (prompt.startsWith("You are drafting the intake brief")) return bigBrief;
+  if (prompt.startsWith("You are planning the module")) {
+    return { modules: [{ module_id: "m1", title: "M1", order: 1, objective_ids: ["LO1"], slides: [{ slide_id: "s1", role: "content", title: "M1" }] }] };
+  }
+  if (prompt.startsWith("Write the slide content")) {
+    return { slides: [{ slide_id: "s1", role: "content", blocks: [{ slot: "title", kind: "text", content: "T", sources: ["proc#s0"] }] }] };
+  }
+  if (prompt.startsWith("Write exactly")) {
+    qCallCount++;
+    const m = /"question_id": "Q1"\.\."Q(\d+)"/.exec(prompt);
+    const n = m ? parseInt(m[1], 10) : 1;
+    return { questions: Array.from({ length: n }, (_, i) => ({
+      question_id: `Q${i + 1}`, objective_id: "LO1", type: "mcq", stem: `stem ${qCallCount}-${i}`,
+      options: [{ option_id: "a", text: "A" }, { option_id: "b", text: "B" }, { option_id: "c", text: "C" }, { option_id: "d", text: "D" }],
+      key: ["a"], rationale: "because", bloom_level: "apply", audience_ids: ["a"], sources: ["proc#s0"],
+    })) };
+  }
+  throw new Error("unrecognized prompt: " + prompt.slice(0, 80));
+}
+const bigResult = await generatePlan(bigCorpus, { sampleJson: chunkedMock, questionCount: 5 });
+console.log(`  questions calls made: ${qCallCount}, final question count: ${bigResult.questions.questions.length}`);
+if (qCallCount < 2) { console.log("FAIL: expected the questions stage to split into multiple calls"); process.exit(1); }
+if (bigResult.questions.questions.length !== 5) { console.log("FAIL: expected exactly 5 merged questions"); process.exit(1); }
+const ids = bigResult.questions.questions.map((q) => q.question_id);
+if (new Set(ids).size !== 5 || ids.join(",") !== "Q1,Q2,Q3,Q4,Q5") { console.log("FAIL: question ids not renumbered cleanly:", ids); process.exit(1); }
+console.log("\nAll questions-chunking checks passed.");
