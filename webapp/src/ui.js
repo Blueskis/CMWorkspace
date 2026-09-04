@@ -38,6 +38,10 @@ const state = {
   stage: null,
   result: null, // { brief, plan, questions, built, qaResult, qaReport }
   error: null,
+  errorCode: null,
+  errorStage: null,
+  errorRetriable: false,
+  generationResume: null, // { brief?, moduleSkeletons?, modules?, questions? } from a failed run's e.progress
   objectUrls: [],
 };
 
@@ -296,7 +300,9 @@ async function runGenerate(root) {
       sampleJson: (prompt, opts) => sample.json(prompt, opts),
       questionCount: QUESTION_COUNT,
       onStage: (s) => { state.stage = s; render(root); },
+      resume: state.generationResume ?? {},
     });
+    state.generationResume = null; // fully succeeded — nothing left to resume from
 
     state.stage = "building";
     render(root);
@@ -336,7 +342,13 @@ async function runGenerate(root) {
     const RETRIABLE = new Set(["invalid_json", "upstream_error", "rate_limited", "refused", "empty_completion"]);
     state.error = e.message || String(e);
     state.errorCode = code;
+    state.errorStage = state.stage; // which of brief/module-plan/slide-copy/questions/building was in flight
     state.errorRetriable = RETRIABLE.has(code);
+    // generatePlan() attaches whatever it had already completed to e.progress before
+    // throwing — carry it forward so "Try again" resumes past the stages (and, within
+    // slide-copy, the individual modules) that already succeeded, instead of re-asking
+    // Claude for them again identically.
+    state.generationResume = e?.progress ?? state.generationResume ?? null;
     state.step = "error";
   }
   render(root);
@@ -420,7 +432,7 @@ function startOver(root) {
   Object.assign(state, {
     step: "upload", templateFile: null, sourceFiles: [], profile: null, assignment: null,
     overrides: {}, corpus: null, stage: null, result: null, error: null,
-    errorCode: null, errorRetriable: false,
+    errorCode: null, errorStage: null, errorRetriable: false, generationResume: null,
   });
   render(root);
 }
@@ -447,12 +459,20 @@ const ERROR_COPY = {
 
 function renderError(root) {
   const copy = ERROR_COPY[state.errorCode];
+  const stageLabel = STAGE_LABELS[state.errorStage];
+  const resumedStages = Object.entries(state.generationResume ?? {})
+    .filter(([, v]) => v != null && (!Array.isArray(v) || v.length > 0))
+    .map(([k]) => k);
   root.replaceChildren(
     el("div", { class: "panel" }, [
       el("h2", {}, "Something went wrong"),
       el("div", { class: "notice notice--error" }, [
+        stageLabel ? el("p", { class: "mono muted" }, `Failed at: ${stageLabel}`) : null,
         el("p", {}, state.error),
         copy ? el("p", { class: "muted" }, copy) : null,
+        state.errorRetriable && resumedStages.length
+          ? el("p", { class: "muted" }, "Trying again will resume from here — earlier steps that already succeeded won't be re-asked.")
+          : null,
       ]),
       el("div", { class: "panel__actions" }, [
         state.errorRetriable && state.corpus

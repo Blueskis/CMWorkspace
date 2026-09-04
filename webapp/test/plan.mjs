@@ -141,3 +141,61 @@ if (bigResult.questions.questions.length !== 5) { console.log("FAIL: expected ex
 const ids = bigResult.questions.questions.map((q) => q.question_id);
 if (new Set(ids).size !== 5 || ids.join(",") !== "Q1,Q2,Q3,Q4,Q5") { console.log("FAIL: question ids not renumbered cleanly:", ids); process.exit(1); }
 console.log("\nAll questions-chunking checks passed.");
+
+// --- resumable retry: a failure partway through must expose e.progress, and passing
+// that back in as `resume` must skip re-asking whatever already succeeded ---
+console.log("\n### resumable retry");
+let briefCalls = 0, modulePlanCalls = 0, slideCopyCalls = 0, questionsCalls = 0;
+let failModulePlanOnce = true;
+async function partialFailMock(prompt) {
+  if (prompt.startsWith("You are drafting the intake brief")) {
+    briefCalls++;
+    return bigBrief;
+  }
+  if (prompt.startsWith("You are planning the module")) {
+    modulePlanCalls++;
+    if (failModulePlanOnce) {
+      failModulePlanOnce = false;
+      const err = new Error("the reply held no JSON value");
+      err.code = "invalid_json";
+      throw err;
+    }
+    return { modules: [{ module_id: "m1", title: "M1", order: 1, objective_ids: ["LO1"], slides: [{ slide_id: "s1", role: "content", title: "M1" }] }] };
+  }
+  if (prompt.startsWith("Write the slide content")) {
+    slideCopyCalls++;
+    return { slides: [{ slide_id: "s1", role: "content", blocks: [{ slot: "title", kind: "text", content: "T", sources: ["proc#s0"] }] }] };
+  }
+  if (prompt.startsWith("Write exactly")) {
+    questionsCalls++;
+    return { questions: [{ question_id: "Q1", objective_id: "LO1", type: "mcq", stem: "s",
+      options: [{ option_id: "a", text: "A" }, { option_id: "b", text: "B" }, { option_id: "c", text: "C" }, { option_id: "d", text: "D" }],
+      key: ["a"], rationale: "r", bloom_level: "apply", audience_ids: ["a"], sources: ["proc#s0"] }] };
+  }
+  throw new Error("unrecognized prompt: " + prompt.slice(0, 80));
+}
+
+let caught = null;
+try {
+  await generatePlan(bigCorpus, { sampleJson: partialFailMock, questionCount: 1 });
+  console.log("FAIL: expected the module-plan call to throw");
+  process.exit(1);
+} catch (e) {
+  caught = e;
+}
+if (!caught.progress || !caught.progress.brief) {
+  console.log("FAIL: expected e.progress to carry the already-completed brief");
+  process.exit(1);
+}
+if (caught.progress.moduleSkeletons) {
+  console.log("FAIL: module-plan failed — its result should NOT be in progress");
+  process.exit(1);
+}
+console.log(`  first attempt: brief=${briefCalls} modulePlan=${modulePlanCalls} (failed) — e.progress.brief present: ${!!caught.progress.brief}`);
+
+const resumed = await generatePlan(bigCorpus, { sampleJson: partialFailMock, questionCount: 1, resume: caught.progress });
+if (briefCalls !== 1) { console.log(`FAIL: brief should not be re-asked on resume, got ${briefCalls} calls`); process.exit(1); }
+if (modulePlanCalls !== 2) { console.log(`FAIL: expected module-plan retried exactly once more, got ${modulePlanCalls}`); process.exit(1); }
+if (!resumed.plan.modules.length) { console.log("FAIL: resumed run produced no modules"); process.exit(1); }
+console.log(`  after resume: brief=${briefCalls} (not re-asked) modulePlan=${modulePlanCalls} slideCopy=${slideCopyCalls} questions=${questionsCalls}`);
+console.log("\nResumable retry works correctly.");

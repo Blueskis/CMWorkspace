@@ -246,55 +246,81 @@ across different objectives rather than clustering on one.`;
  *   sampleJson(prompt, options) -> Promise<any>   — injected so tests can mock it;
  *     defaults to the real `sample.json` from claude.use("sample")
  *   questionCount, onStage(stageName)
+ *   resume — { brief?, moduleSkeletons?, modules?, questions? }: stages already
+ *     completed by a PRIOR failed run, to skip re-asking. Every sample() failure is one
+ *     independent call that costs the viewer real usage and real time (30-90s is
+ *     typical); a viewer who hits a failure on, say, the questions stage should not have
+ *     to re-sit through brief/module-plan/slide-copy succeeding again identically on
+ *     retry. On throw, generatePlan attaches whatever it completed to `error.progress`
+ *     in this same shape — callers should stash it and pass it back in as `resume` on
+ *     the next attempt (see ui.js's runGenerate/renderError for the reference caller).
  */
 export async function generatePlan(corpus, {
   sampleJson,
   questionCount = 5,
   onStage = () => {},
+  resume = {},
 } = {}) {
   if (!sampleJson) throw new Error("generatePlan requires a sampleJson function");
 
-  onStage("brief");
-  const brief = await sampleJson(briefPrompt(corpus), { modelTier: MODEL_TIER });
-  validateBrief(brief);
+  let brief = resume.brief ?? null;
+  let moduleSkeletons = resume.moduleSkeletons ?? null;
+  const modules = resume.modules ? [...resume.modules] : [];
+  let questions = resume.questions ?? null;
 
-  onStage("module-plan");
-  const { modules: moduleSkeletons } = await sampleJson(modulePlanPrompt(corpus, brief), { modelTier: MODEL_TIER });
-  if (!Array.isArray(moduleSkeletons) || moduleSkeletons.length === 0) {
-    throw new Error("Module plan came back empty — try again, or check the source documents parsed correctly.");
-  }
-
-  onStage("slide-copy");
-  const sectionsById = Object.fromEntries(corpus.sections.map((s) => [s.section_id, s]));
-  const modules = [];
-  for (const mod of moduleSkeletons) {
-    // Sections this module actually needs: whatever its slides will plausibly cite —
-    // approximated here as every section under the objectives it serves, which keeps
-    // the call's input bounded without the model having to ask a follow-up.
-    const relevant = relevantSections(mod, brief, corpus.sections);
-    const chunks = chunkSections(relevant);
-    let slides = [];
-    for (const chunk of chunks) {
-      const resp = await sampleJson(slideCopyPrompt(mod, chunk, corpus), { modelTier: MODEL_TIER });
-      slides = slides.concat(resp.slides ?? []);
+  try {
+    if (!brief) {
+      onStage("brief");
+      brief = await sampleJson(briefPrompt(corpus), { modelTier: MODEL_TIER });
+      validateBrief(brief);
     }
-    modules.push({ ...mod, slides: dedupeSlides(slides.length ? slides : mod.slides) });
+
+    if (!moduleSkeletons) {
+      onStage("module-plan");
+      ({ modules: moduleSkeletons } = await sampleJson(modulePlanPrompt(corpus, brief), { modelTier: MODEL_TIER }));
+      if (!Array.isArray(moduleSkeletons) || moduleSkeletons.length === 0) {
+        throw new Error("Module plan came back empty — try again, or check the source documents parsed correctly.");
+      }
+    }
+
+    onStage("slide-copy");
+    const sectionsById = Object.fromEntries(corpus.sections.map((s) => [s.section_id, s]));
+    const doneModuleIds = new Set(modules.map((m) => m.module_id));
+    for (const mod of moduleSkeletons) {
+      if (doneModuleIds.has(mod.module_id)) continue; // already built on a previous attempt
+      // Sections this module actually needs: whatever its slides will plausibly cite —
+      // approximated here as every section under the objectives it serves, which keeps
+      // the call's input bounded without the model having to ask a follow-up.
+      const relevant = relevantSections(mod, brief, corpus.sections);
+      const chunks = chunkSections(relevant);
+      let slides = [];
+      for (const chunk of chunks) {
+        const resp = await sampleJson(slideCopyPrompt(mod, chunk, corpus), { modelTier: MODEL_TIER });
+        slides = slides.concat(resp.slides ?? []);
+      }
+      modules.push({ ...mod, slides: dedupeSlides(slides.length ? slides : mod.slides) });
+    }
+
+    if (!questions) {
+      onStage("questions");
+      questions = await generateQuestions(sampleJson, brief, corpus, questionCount);
+      validateQuestions(questions, questionCount);
+    }
+
+    onStage("done");
+    return {
+      brief,
+      plan: {
+        run_id: (corpus.documents[0]?.document_id ?? "run") + "-" + new Date().toISOString().slice(0, 10),
+        brief_ref: "brief", modules, unused_assets: [],
+      },
+      questions,
+      sectionsById,
+    };
+  } catch (e) {
+    if (e && typeof e === "object") e.progress = { brief, moduleSkeletons, modules, questions };
+    throw e;
   }
-
-  onStage("questions");
-  const questions = await generateQuestions(sampleJson, brief, corpus, questionCount);
-  validateQuestions(questions, questionCount);
-
-  onStage("done");
-  return {
-    brief,
-    plan: {
-      run_id: (corpus.documents[0]?.document_id ?? "run") + "-" + new Date().toISOString().slice(0, 10),
-      brief_ref: "brief", modules, unused_assets: [],
-    },
-    questions,
-    sectionsById,
-  };
 }
 
 /**
