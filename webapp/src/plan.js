@@ -20,6 +20,21 @@
 const MAX_INPUT_BYTES = 60 * 1024; // sample's cap is 64 KiB; leave headroom for instructions
 const MODEL_TIER = "complex"; // this is drafting work, not a quick lookup
 
+// Stable marker lines around each prompt's worked example — every example block must be
+// literal, JSON.parse-able JSON (see test/plan.mjs's "example blocks are valid JSON"
+// guard). These markers exist purely so tests can locate and extract that block; they are
+// not JSON syntax and are never mistaken for it because they sit outside the braces.
+const EXAMPLE_START = "--- EXAMPLE (shape only — write real content) ---";
+const EXAMPLE_END = "--- END EXAMPLE ---";
+
+/** Pull the JSON example out of a prompt built with EXAMPLE_START/EXAMPLE_END markers. */
+export function extractExample(promptText) {
+  const start = promptText.indexOf(EXAMPLE_START);
+  const end = promptText.indexOf(EXAMPLE_END);
+  if (start === -1 || end === -1 || end <= start) return null;
+  return promptText.slice(start + EXAMPLE_START.length, end).trim();
+}
+
 function byteLength(s) {
   return new TextEncoder().encode(s).length;
 }
@@ -70,19 +85,36 @@ export function briefPrompt(corpus) {
 specification document (or similar). Below is the document's complete outline —
 every section's id, path, classifier, and a short preview (not the full text).
 
-Return ONLY a JSON object with this exact shape — your entire reply must be the JSON
-value alone, with no explanation, preamble, or commentary before or after it:
+Return ONLY a JSON object shaped exactly like this example — your entire reply must be
+the JSON value alone, with no explanation, preamble, or commentary before or after it.
+Use the example only to see the shape; write real content drawn from the outline below.
+
+${EXAMPLE_START}
 {
-  "system": string (name of the system/process this trains),
-  "process_scope": string (1-2 sentences: what this training covers and does not),
-  "audiences": [{"audience_id": string (short, kebab-case), "role_name": string, "tasks": [string]}],
-  "learning_objectives": [{"lo_id": "LO1"..."LOn", "text": string (observable verb, not "understand"),
-    "bloom_level": "remember"|"understand"|"apply"|"analyze"|"evaluate"|"create",
-    "audience_ids": [string], "sources": [section_id, ...] (must be real ids from the outline below)}],
-  "out_of_scope": [{"section_id": string, "reason": string}]
-    (every section classified "procedure" below that you do NOT plan to teach MUST appear here
-     with a reason — this is checked mechanically, so do not omit one)
+  "system": "Supplier Block/Unblock",
+  "process_scope": "Covers how requesters submit and approvers process supplier block and unblock requests. Does not cover supplier master data creation.",
+  "audiences": [
+    {"audience_id": "requester", "role_name": "AP Requester", "tasks": ["submit a block request", "attach supporting documents"]}
+  ],
+  "learning_objectives": [
+    {"lo_id": "LO1", "text": "Submit a supplier block request with required documentation", "bloom_level": "apply", "audience_ids": ["requester"], "sources": ["doc#4.2"]}
+  ],
+  "out_of_scope": [
+    {"section_id": "doc#7.1", "reason": "Covers supplier master creation, which is a separate training"}
+  ]
 }
+${EXAMPLE_END}
+
+Field notes:
+- "system": name of the system/process this trains.
+- "process_scope": 1-2 sentences on what this training covers and does not.
+- "audiences[].audience_id": short, kebab-case.
+- "learning_objectives[].lo_id": sequential "LO1", "LO2", ... "LOn".
+- "learning_objectives[].text": an observable verb, not "understand".
+- "learning_objectives[].bloom_level": one of "remember", "understand", "apply", "analyze", "evaluate", "create".
+- "learning_objectives[].sources": must be real section_ids from the outline below.
+- "out_of_scope": every section classified "procedure" below that you do NOT plan to
+  teach MUST appear here with a reason — this is checked mechanically, so do not omit one.
 
 Rules:
 - Never invent a procedure, field, or rule the outline doesn't support — if a section's
@@ -115,15 +147,41 @@ ${JSON.stringify(outline, null, 0)}
 Screenshots available to place, each already tied to the section it illustrates:
 ${JSON.stringify(screenshotSections, null, 0)}
 
-Return ONLY a JSON object: {"modules": [...]} — your entire reply must be the JSON value
-alone, no explanation before or after it. Each module:
+Return ONLY a JSON object shaped exactly like this example — your entire reply must be
+the JSON value alone, no explanation before or after it. Use the example only to see the
+shape; write real modules and slides drawn from the brief and outline above.
+
+${EXAMPLE_START}
 {
-  "module_id": string (kebab-case), "title": string, "order": integer,
-  "objective_ids": [lo_id, ...] (from the brief; [] for non-LO modules like welcome/summary),
-  "slides": [{"slide_id": string, "role": one of
-      "title-slide" | "section-header" | "content" | "two-content" | "picture" | "diagram",
-    "title": string}]
+  "modules": [
+    {
+      "module_id": "cover",
+      "title": "Cover",
+      "order": 1,
+      "objective_ids": [],
+      "slides": [
+        {"slide_id": "cover-1", "role": "title-slide", "title": "Supplier Block/Unblock Training"}
+      ]
+    },
+    {
+      "module_id": "mod-lo1",
+      "title": "Submitting a Block Request",
+      "order": 2,
+      "objective_ids": ["LO1"],
+      "slides": [
+        {"slide_id": "s-lo1-1", "role": "content", "title": "Submitting a Block Request"},
+        {"slide_id": "s-lo1-2", "role": "diagram", "title": "Approval Workflow"}
+      ]
+    }
+  ]
 }
+${EXAMPLE_END}
+
+Field notes:
+- "module_id": kebab-case, unique.
+- "objective_ids": lo_id values from the brief; [] for non-LO modules like welcome/summary.
+- "slides[].role": one of "title-slide", "section-header", "content", "two-content",
+  "picture", "diagram".
 
 Follow this canonical arc, using only the modules that earn their place (skip any whose
 entry criteria the outline doesn't support — do not pad):
@@ -165,28 +223,44 @@ ${JSON.stringify(moduleSections.map((s) => ({ section_id: s.section_id, section_
 Screenshots available for this module's "picture"-role slides:
 ${JSON.stringify(screenshots.map((a) => ({ asset_id: a.asset_id, section_id: a.section_id, caption: a.caption_candidate })), null, 0)}
 
-Return ONLY a JSON object: {"slides": [...]} — your entire reply must be the JSON value
-alone, no explanation before or after it. One entry per slide in the module, in order:
+Return ONLY a JSON object shaped exactly like this example — your entire reply must be
+the JSON value alone, no explanation before or after it. Use the example only to see the
+shape; write real slide content drawn only from the source sections above.
+
+${EXAMPLE_START}
 {
-  "slide_id": string, "role": (copy from the module plan),
-  "speaker_notes": string (optional, one line),
-  "blocks": [
-    {"slot": "title", "kind": "text", "content": string, "sources": [section_id]},
-    {"slot": "body"|"body2", "kind": "bullets", "content": [string, ...] (each <=10 words), "sources": [section_id,...]},
-    {"slot": "body", "kind": "table", "content": {"headers": [string], "rows": [[string]]}, "sources": [...]},
-    {"slot": "picture", "kind": "image", "content": {"asset_id": string, "caption": string}, "sources": [section_id]}
-      (asset_id MUST be from the screenshot list above),
-    {"slot": "body", "kind": "diagram", "content": {"diagram_type": "process"|"swimlane"|"decision"|"hierarchy"|"timeline",
-      "spec": {...}}, "sources": [...]}
+  "slides": [
+    {
+      "slide_id": "s-lo1-1",
+      "role": "content",
+      "speaker_notes": "Walk through the request form field by field.",
+      "blocks": [
+        {"slot": "title", "kind": "text", "content": "Submitting a Block Request", "sources": ["doc#4.2"]},
+        {"slot": "body", "kind": "bullets", "content": ["Open the Supplier Block form", "Enter the supplier ID", "Attach the block reason"], "sources": ["doc#4.2"]},
+        {"slot": "body", "kind": "diagram", "content": {"diagram_type": "process", "spec": {"steps": ["Requester submits", "Approver reviews", "System blocks supplier"]}}, "sources": ["doc#4.2"]}
+      ]
+    }
   ]
 }
+${EXAMPLE_END}
 
-Diagram spec shapes:
-  process:   {"steps": [string, ...]}
-  swimlane:  {"roles": [string,...], "steps": [{"step": string, "role": string}, ...]}
-  decision:  {"rules": [{"condition": string, "outcome": string}, ...]}
-  hierarchy: {"root": {"name": string, "children": [{"name": string, "children": [...]}]}}
-  timeline:  {"milestones": [{"label": string, "date": string}, ...]}
+One entry per slide in the module, in order. Field notes:
+- "slide_id" and "role": copy from the module plan.
+- "speaker_notes": optional, one line.
+- "blocks[].slot": "title", "body", "body2", or "picture".
+- "blocks[].kind" and "content" pair up as:
+  - "text": content is a string (used for the title block).
+  - "bullets": content is an array of strings, each <=10 words.
+  - "table": content is {"headers": [string, ...], "rows": [[string, ...], ...]}.
+  - "image": content is {"asset_id": string, "caption": string} — asset_id MUST be
+    from the screenshot list above.
+  - "diagram": content is {"diagram_type": ..., "spec": ...} — diagram_type is one of
+    "process", "swimlane", "decision", "hierarchy", "timeline", and spec is shaped
+    to match: process -> {"steps": [string, ...]}; swimlane -> {"roles": [string, ...],
+    "steps": [{"step": string, "role": string}, ...]}; decision -> {"rules":
+    [{"condition": string, "outcome": string}, ...]}; hierarchy -> {"root": {"name":
+    string, "children": [{"name": string, "children": []}]}}; timeline -> {"milestones":
+    [{"label": string, "date": string}, ...]}.
 
 Rules:
 - EVERY block must carry a non-empty "sources" array of real section_ids from the list
@@ -217,23 +291,221 @@ ${JSON.stringify(brief.learning_objectives, null, 0)}
 Procedure sections (their full text) to draw questions from:
 ${JSON.stringify(procedureSections.map((s) => ({ section_id: s.section_id, text: s.text })), null, 0)}
 
-Return ONLY a JSON object: {"questions": [...]}, exactly ${count} entries — your entire
-reply must be the JSON value alone, no explanation before or after it:
+Return ONLY a JSON object shaped exactly like this example, with exactly ${count}
+entries in "questions" — your entire reply must be the JSON value alone, no explanation
+before or after it. Use the example only to see the shape; write real questions drawn
+only from the source text above.
+
+${EXAMPLE_START}
 {
-  "question_id": "Q1".."Q${count}", "objective_id": lo_id, "type": "mcq"|"true-false",
-  "stem": string (test the task, not trivia — put the learner in the situation and ask
-    what happens or what to do, not "what is X called"),
-  "options": [{"option_id": string, "text": string}]
-    (mcq: exactly 4, one correct plus 3 plausible distractors drawn from adjacent content
-     in the source, never an obviously-wrong throwaway; true-false: exactly 2, "True"/"False"),
-  "key": [option_id] (exactly one entry),
-  "rationale": string (why the key is correct, citing the source),
-  "bloom_level": (from the matching objective), "audience_ids": [string],
-  "sources": [section_id] (must be real ids; the answer must actually be stated there)
+  "questions": [
+    {
+      "question_id": "Q1",
+      "objective_id": "LO1",
+      "type": "mcq",
+      "stem": "A requester submits a block request without an attached reason. What happens next?",
+      "options": [
+        {"option_id": "a", "text": "The system rejects the submission"},
+        {"option_id": "b", "text": "The approver is notified anyway"},
+        {"option_id": "c", "text": "The request is auto-approved"},
+        {"option_id": "d", "text": "The supplier is deleted"}
+      ],
+      "key": ["a"],
+      "rationale": "Section doc#4.2 states the reason field is required before submission.",
+      "bloom_level": "apply",
+      "audience_ids": ["requester"],
+      "sources": ["doc#4.2"]
+    },
+    {
+      "question_id": "Q2",
+      "objective_id": "LO1",
+      "type": "true-false",
+      "stem": "An approver can unblock a supplier without a business justification.",
+      "options": [
+        {"option_id": "t", "text": "True"},
+        {"option_id": "f", "text": "False"}
+      ],
+      "key": ["f"],
+      "rationale": "Section doc#4.2 requires a justification for every unblock.",
+      "bloom_level": "understand",
+      "audience_ids": ["requester"],
+      "sources": ["doc#4.2"]
+    }
+  ]
 }
+${EXAMPLE_END}
+
+Field notes:
+- "question_id": "Q1".."Q${count}" — sequential, one per entry.
+- "type": "mcq" or "true-false".
+- "stem": test the task, not trivia — put the learner in the situation and ask what
+  happens or what to do, not "what is X called".
+- "options": mcq needs exactly 4 (one correct plus 3 plausible distractors drawn from
+  adjacent content in the source, never an obviously-wrong throwaway); true-false needs
+  exactly 2, with text "True"/"False".
+- "key": exactly one option_id.
+- "rationale": why the key is correct, citing the source.
+- "bloom_level": from the matching objective.
+- "sources": must be real section_ids; the answer must actually be stated there.
 
 Mix types across the ${count} questions rather than using only one type. Spread questions
 across different objectives rather than clustering on one.`;
+}
+
+// ---------------------------------------------------------------------------
+// salvage — recovering a value from a reply the platform's own tolerant JSON
+// reader rejected (invalid_json). Never throws; returns null when nothing usable
+// can be recovered. See sample.d.ts: the platform already tries the whole reply,
+// then one Markdown fence body, then first-`{`/`[`-to-last-`}`/`]` — the case this
+// exists for is everything past that: two JSON values in one reply (the platform
+// refuses those on purpose), or a reply cut off mid-value.
+// ---------------------------------------------------------------------------
+
+function safeJsonParse(text) {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined; // sentinel for "did not parse" — JSON.parse never itself yields undefined
+  }
+}
+
+const FENCE_RE = /```(?:[A-Za-z0-9_-]*)?\s*\n?([\s\S]*?)```/g;
+
+/** Every top-level balanced {...} / [...] span in `text`, string-literal-aware. */
+function findBalancedSpans(text) {
+  const spans = [];
+  const n = text.length;
+  let i = 0;
+  while (i < n) {
+    const c = text[i];
+    if (c === "{" || c === "[") {
+      let depth = 0;
+      let inString = false;
+      let escape = false;
+      let j = i;
+      for (; j < n; j++) {
+        const cj = text[j];
+        if (inString) {
+          if (escape) escape = false;
+          else if (cj === "\\") escape = true;
+          else if (cj === '"') inString = false;
+          continue;
+        }
+        if (cj === '"') { inString = true; continue; }
+        if (cj === "{" || cj === "[") depth++;
+        else if (cj === "}" || cj === "]") {
+          depth--;
+          if (depth === 0) break;
+        }
+      }
+      if (depth === 0 && j < n) {
+        spans.push(text.slice(i, j + 1));
+        i = j + 1;
+        continue;
+      }
+    }
+    i++;
+  }
+  return spans;
+}
+
+/** String-literal-aware scan of the open-bracket stack and whether `s` ends inside a string. */
+function scanBracketState(s) {
+  const stack = [];
+  let inString = false;
+  let escape = false;
+  for (let i = 0; i < s.length; i++) {
+    const c = s[i];
+    if (inString) {
+      if (escape) escape = false;
+      else if (c === "\\") escape = true;
+      else if (c === '"') inString = false;
+      continue;
+    }
+    if (c === '"') { inString = true; continue; }
+    if (c === "{" || c === "[") stack.push(c);
+    else if (c === "}" || c === "]") stack.pop();
+  }
+  return { stack, inString };
+}
+
+/** Last resort: the reply was cut off mid-value. Trim back a bounded amount and close
+ * whatever brackets (and string) were left open. */
+function tryCloseUnterminated(text) {
+  const start = text.search(/[{[]/);
+  if (start === -1) return undefined;
+  const s = text.slice(start);
+
+  // Only a genuinely unterminated span (still inside a string, or with brackets left
+  // open at the very end) is a "cut short" case worth closing. A span that is already
+  // bracket-balanced but still fails to parse is invalid JSON, not a truncated one —
+  // trimming characters off a balanced-but-malformed span (e.g. a pseudo-JSON template
+  // echo) can "recover" a trivial, meaningless value like `{}`, which is worse than
+  // reporting no recovery at all.
+  const fullState = scanBracketState(s);
+  if (fullState.stack.length === 0 && !fullState.inString) return undefined;
+
+  const maxTrim = Math.min(s.length, 500);
+  for (let trim = 0; trim <= maxTrim; trim++) {
+    const candidate = trim === 0 ? s : s.slice(0, s.length - trim);
+    if (!candidate) break;
+    const { stack, inString } = scanBracketState(candidate);
+    let repaired = candidate;
+    if (inString) repaired += '"';
+    repaired = repaired.replace(/[,:\s]+$/, "");
+    for (let k = stack.length - 1; k >= 0; k--) repaired += stack[k] === "{" ? "}" : "]";
+    const attempt = safeJsonParse(repaired);
+    if (attempt !== undefined) return attempt;
+  }
+  return undefined;
+}
+
+/**
+ * Try to recover a JSON value from a raw reply the platform's own reader rejected.
+ * Returns the parsed value, or `null` when nothing usable can be recovered. Never throws.
+ */
+export function tryRepairJson(text) {
+  if (typeof text !== "string" || !text.trim()) return null;
+
+  let attempt = safeJsonParse(text);
+  if (attempt !== undefined) return attempt;
+
+  FENCE_RE.lastIndex = 0;
+  let m;
+  while ((m = FENCE_RE.exec(text))) {
+    attempt = safeJsonParse(m[1]);
+    if (attempt !== undefined) return attempt;
+  }
+
+  const spans = findBalancedSpans(text).sort((a, b) => b.length - a.length);
+  for (const span of spans) {
+    attempt = safeJsonParse(span);
+    if (attempt !== undefined) return attempt;
+  }
+
+  attempt = tryCloseUnterminated(text);
+  if (attempt !== undefined) return attempt;
+
+  return null;
+}
+
+/**
+ * The one place every stage calls into `sample.json`. Additive only: the happy path is
+ * unchanged. On an `invalid_json` rejection, attempt `tryRepairJson` on the raw reply
+ * (`e.text`) before giving up — this is what recovers the "two JSON values in one reply"
+ * case the platform itself refuses to parse, and the "cut short" case. Only rethrows
+ * (keeping `e.text` intact) when repair also fails.
+ */
+async function callSampleJson(sampleJson, prompt, opts) {
+  try {
+    return await sampleJson(prompt, opts);
+  } catch (e) {
+    if (e && typeof e === "object" && e.code === "invalid_json" && typeof e.text === "string") {
+      const repaired = tryRepairJson(e.text);
+      if (repaired !== null) return repaired;
+    }
+    throw e;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -271,13 +543,13 @@ export async function generatePlan(corpus, {
   try {
     if (!brief) {
       onStage("brief");
-      brief = await sampleJson(briefPrompt(corpus), { modelTier: MODEL_TIER });
+      brief = await callSampleJson(sampleJson, briefPrompt(corpus), { modelTier: MODEL_TIER });
       validateBrief(brief);
     }
 
     if (!moduleSkeletons) {
       onStage("module-plan");
-      ({ modules: moduleSkeletons } = await sampleJson(modulePlanPrompt(corpus, brief), { modelTier: MODEL_TIER }));
+      ({ modules: moduleSkeletons } = await callSampleJson(sampleJson, modulePlanPrompt(corpus, brief), { modelTier: MODEL_TIER }));
       if (!Array.isArray(moduleSkeletons) || moduleSkeletons.length === 0) {
         throw new Error("Module plan came back empty — try again, or check the source documents parsed correctly.");
       }
@@ -295,7 +567,7 @@ export async function generatePlan(corpus, {
       const chunks = chunkSections(relevant);
       let slides = [];
       for (const chunk of chunks) {
-        const resp = await sampleJson(slideCopyPrompt(mod, chunk, corpus), { modelTier: MODEL_TIER });
+        const resp = await callSampleJson(sampleJson, slideCopyPrompt(mod, chunk, corpus), { modelTier: MODEL_TIER });
         slides = slides.concat(resp.slides ?? []);
       }
       modules.push({ ...mod, slides: dedupeSlides(slides.length ? slides : mod.slides) });
@@ -338,12 +610,12 @@ async function generateQuestions(sampleJson, brief, corpus, count) {
   const procedureSections = corpus.sections.filter((s) => s.classifier === "procedure");
   const chunks = chunkSections(procedureSections);
   if (chunks.length <= 1) {
-    return sampleJson(questionsPrompt(brief, procedureSections, count), { modelTier: MODEL_TIER });
+    return callSampleJson(sampleJson, questionsPrompt(brief, procedureSections, count), { modelTier: MODEL_TIER });
   }
   const all = [];
   for (let i = 0; i < chunks.length; i++) {
     const n = Math.max(1, Math.round((count * (i + 1)) / chunks.length) - Math.round((count * i) / chunks.length));
-    const resp = await sampleJson(questionsPrompt(brief, chunks[i], n), { modelTier: MODEL_TIER });
+    const resp = await callSampleJson(sampleJson, questionsPrompt(brief, chunks[i], n), { modelTier: MODEL_TIER });
     all.push(...(resp.questions ?? []));
   }
   return { questions: all.slice(0, count).map((q, i) => ({ ...q, question_id: `Q${i + 1}` })) };

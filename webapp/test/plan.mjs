@@ -1,4 +1,7 @@
-import { generatePlan, chunkSections, briefPrompt, modulePlanPrompt, slideCopyPrompt, questionsPrompt } from "../src/plan.js";
+import {
+  generatePlan, chunkSections, briefPrompt, modulePlanPrompt, slideCopyPrompt,
+  questionsPrompt, tryRepairJson, extractExample,
+} from "../src/plan.js";
 import { parseDocx } from "../src/parse-docx.js";
 import { readFileSync } from "node:fs";
 
@@ -199,3 +202,131 @@ if (modulePlanCalls !== 2) { console.log(`FAIL: expected module-plan retried exa
 if (!resumed.plan.modules.length) { console.log("FAIL: resumed run produced no modules"); process.exit(1); }
 console.log(`  after resume: brief=${briefCalls} (not re-asked) modulePlan=${modulePlanCalls} slideCopy=${slideCopyCalls} questions=${questionsCalls}`);
 console.log("\nResumable retry works correctly.");
+
+// --- tryRepairJson: recovering from a reply the platform's own tolerant reader rejected ---
+// This is the fix for the reported bug: a prompt whose worked example was itself invalid
+// pseudo-JSON produced replies that mirrored that shape and never parsed at all. Repair
+// cannot help THAT case (nothing valid to recover) but must help every other shape of
+// invalid_json the platform can still hand back: two JSON values in one reply (the
+// platform explicitly refuses to guess between them) and a reply cut short.
+console.log("\n### tryRepairJson");
+
+// unrepairable: a pseudo-JSON echo (bare type tokens, no real value to recover)
+const pseudoJson = '{"system": string (a name), "x": 1}';
+if (tryRepairJson(pseudoJson) !== null) { console.log("FAIL: expected pseudo-JSON echo to be unrepairable"); process.exit(1); }
+console.log("  pseudo-JSON echo -> null (unrepairable) OK");
+
+// genuinely hopeless input
+if (tryRepairJson("") !== null) { console.log("FAIL: expected empty string to be unrepairable"); process.exit(1); }
+if (tryRepairJson("not json at all, just prose.") !== null) { console.log("FAIL: expected plain prose to be unrepairable"); process.exit(1); }
+if (tryRepairJson(undefined) !== null) { console.log("FAIL: expected undefined input to be unrepairable"); process.exit(1); }
+console.log("  hopeless input -> null OK");
+
+// valid JSON inside a ```json fence
+const fenced = "Sure, here it is:\n```json\n{\"a\": 1, \"b\": [1, 2, 3]}\n```\nLet me know if you need changes.";
+const fencedResult = tryRepairJson(fenced);
+if (!fencedResult || fencedResult.a !== 1 || !Array.isArray(fencedResult.b)) { console.log("FAIL: expected fenced JSON to be recovered", fencedResult); process.exit(1); }
+console.log("  fenced JSON -> recovered OK");
+
+// valid JSON with one sentence before and after
+const sentenceWrapped = 'Here you go:\n{"name": "widget", "count": 3}\nHope that helps!';
+const sentenceResult = tryRepairJson(sentenceWrapped);
+if (!sentenceResult || sentenceResult.name !== "widget" || sentenceResult.count !== 3) { console.log("FAIL: expected sentence-wrapped JSON to be recovered", sentenceResult); process.exit(1); }
+console.log("  sentence-wrapped JSON -> recovered OK");
+
+// two JSON values in one reply — the exact case the platform's own reader refuses
+const twoValues = 'First attempt: {"name": "first", "n": 1}\nActually, better: {"name": "second", "n": 2}';
+const twoValuesResult = tryRepairJson(twoValues);
+if (!twoValuesResult || typeof twoValuesResult.name !== "string" || typeof twoValuesResult.n !== "number") { console.log("FAIL: expected one valid object recovered from two-value reply", twoValuesResult); process.exit(1); }
+console.log("  two JSON values in one reply -> recovered one valid object OK");
+
+// an unterminated tail (cut short mid-value)
+const cutShort = '{"questions": [{"question_id": "Q1", "type": "mcq", "options": ["a", "b"';
+const cutShortResult = tryRepairJson(cutShort);
+if (!cutShortResult || !Array.isArray(cutShortResult.questions) || cutShortResult.questions[0].question_id !== "Q1") { console.log("FAIL: expected unterminated tail to be recovered", cutShortResult); process.exit(1); }
+console.log("  unterminated tail -> recovered OK");
+
+console.log("\nAll tryRepairJson checks passed.");
+
+// --- every prompt's worked example must be JSON.parse-able on its own — the guard
+// against this exact bug class returning ---
+console.log("\n### prompt example blocks are valid JSON");
+const dummyBrief = {
+  system: "Test", process_scope: "test",
+  audiences: [{ audience_id: "a", role_name: "A", tasks: ["x"] }],
+  learning_objectives: [{ lo_id: "LO1", text: "do it", bloom_level: "apply", audience_ids: ["a"], sources: [corpus.sections[0].section_id] }],
+  out_of_scope: [],
+};
+const dummyModule = { module_id: "m1", title: "M1", slides: [{ slide_id: "s1", role: "content", title: "M1" }] };
+const dummyModuleSections = corpus.sections.slice(0, 2);
+const promptsToCheck = [
+  ["briefPrompt", briefPrompt(corpus)],
+  ["modulePlanPrompt", modulePlanPrompt(corpus, dummyBrief)],
+  ["slideCopyPrompt", slideCopyPrompt(dummyModule, dummyModuleSections, corpus)],
+  ["questionsPrompt", questionsPrompt(dummyBrief, procSections.slice(0, 2), 3)],
+];
+for (const [name, promptText] of promptsToCheck) {
+  const example = extractExample(promptText);
+  if (!example) { console.log(`FAIL: ${name} has no extractable example block`); process.exit(1); }
+  let parsed;
+  try {
+    parsed = JSON.parse(example);
+  } catch (err) {
+    console.log(`FAIL: ${name}'s example block is not valid JSON: ${err.message}`);
+    console.log(example);
+    process.exit(1);
+  }
+  if (parsed === null || typeof parsed !== "object") { console.log(`FAIL: ${name}'s example block did not parse to an object`); process.exit(1); }
+  console.log(`  ${name}: example block parses OK (${example.length} bytes)`);
+}
+console.log("\nAll prompt example blocks are valid JSON.");
+
+// --- callSampleJson salvage path, exercised through generatePlan() ---
+console.log("\n### invalid_json salvage via generatePlan()");
+async function repairableMock(prompt) {
+  if (prompt.startsWith("You are drafting the intake brief")) {
+    const err = new Error("the reply held no JSON value");
+    err.code = "invalid_json";
+    err.text = 'Here is the brief:\n' + JSON.stringify(bigBrief) + '\nLet me know if you need anything else.';
+    throw err;
+  }
+  if (prompt.startsWith("You are planning the module")) {
+    return { modules: [{ module_id: "m1", title: "M1", order: 1, objective_ids: ["LO1"], slides: [{ slide_id: "s1", role: "content", title: "M1" }] }] };
+  }
+  if (prompt.startsWith("Write the slide content")) {
+    return { slides: [{ slide_id: "s1", role: "content", blocks: [{ slot: "title", kind: "text", content: "T", sources: ["proc#s0"] }] }] };
+  }
+  if (prompt.startsWith("Write exactly")) {
+    return { questions: [{ question_id: "Q1", objective_id: "LO1", type: "mcq", stem: "s",
+      options: [{ option_id: "a", text: "A" }, { option_id: "b", text: "B" }, { option_id: "c", text: "C" }, { option_id: "d", text: "D" }],
+      key: ["a"], rationale: "r", bloom_level: "apply", audience_ids: ["a"], sources: ["proc#s0"] }] };
+  }
+  throw new Error("unrecognized prompt: " + prompt.slice(0, 80));
+}
+const repairedResult = await generatePlan(bigCorpus, { sampleJson: repairableMock, questionCount: 1 });
+if (!repairedResult?.brief?.system) { console.log("FAIL: expected generatePlan to complete via salvaged brief"); process.exit(1); }
+console.log("  repairable invalid_json -> generatePlan completed with no error surfaced OK");
+
+async function unrepairableMock(prompt) {
+  if (prompt.startsWith("You are drafting the intake brief")) {
+    const err = new Error("the reply held no JSON value");
+    err.code = "invalid_json";
+    err.text = '{"system": string (a name), "x": 1}'; // pseudo-JSON echo — nothing to recover
+    throw err;
+  }
+  throw new Error("unrecognized prompt: " + prompt.slice(0, 80));
+}
+let unrepairableCaught = null;
+try {
+  await generatePlan(bigCorpus, { sampleJson: unrepairableMock, questionCount: 1 });
+  console.log("FAIL: expected unrepairable invalid_json to still throw");
+  process.exit(1);
+} catch (e) {
+  unrepairableCaught = e;
+}
+if (unrepairableCaught.code !== "invalid_json") { console.log("FAIL: expected the rethrown error to keep .code"); process.exit(1); }
+if (typeof unrepairableCaught.text !== "string") { console.log("FAIL: expected the rethrown error to keep .text"); process.exit(1); }
+if (!unrepairableCaught.progress) { console.log("FAIL: expected the rethrown error to carry .progress"); process.exit(1); }
+console.log("  unrepairable invalid_json -> still throws, carrying .text and .progress OK");
+
+console.log("\nAll invalid_json salvage checks passed.");

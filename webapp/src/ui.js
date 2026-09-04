@@ -41,6 +41,7 @@ const state = {
   errorCode: null,
   errorStage: null,
   errorRetriable: false,
+  errorReplyText: null, // the raw reply text from a failed sample.json() call, when any streamed
   generationResume: null, // { brief?, moduleSkeletons?, modules?, questions? } from a failed run's e.progress
   objectUrls: [],
 };
@@ -344,6 +345,7 @@ async function runGenerate(root) {
     state.errorCode = code;
     state.errorStage = state.stage; // which of brief/module-plan/slide-copy/questions/building was in flight
     state.errorRetriable = RETRIABLE.has(code);
+    state.errorReplyText = typeof e?.text === "string" ? e.text : null;
     // generatePlan() attaches whatever it had already completed to e.progress before
     // throwing — carry it forward so "Try again" resumes past the stages (and, within
     // slide-copy, the individual modules) that already succeeded, instead of re-asking
@@ -432,7 +434,8 @@ function startOver(root) {
   Object.assign(state, {
     step: "upload", templateFile: null, sourceFiles: [], profile: null, assignment: null,
     overrides: {}, corpus: null, stage: null, result: null, error: null,
-    errorCode: null, errorStage: null, errorRetriable: false, generationResume: null,
+    errorCode: null, errorStage: null, errorRetriable: false, errorReplyText: null,
+    generationResume: null,
   });
   render(root);
 }
@@ -472,6 +475,13 @@ function renderError(root) {
         copy ? el("p", { class: "muted" }, copy) : null,
         state.errorRetriable && resumedStages.length
           ? el("p", { class: "muted" }, "Trying again will resume from here — earlier steps that already succeeded won't be re-asked.")
+          : null,
+        state.errorReplyText
+          ? el("div", {}, [
+              el("p", { class: "muted" }, "Claude's raw reply:"),
+              el("pre", { class: "qa-report" }, state.errorReplyText.slice(0, 600)
+                + (state.errorReplyText.length > 600 ? "…" : "")),
+            ])
           : null,
       ]),
       el("div", { class: "panel__actions" }, [

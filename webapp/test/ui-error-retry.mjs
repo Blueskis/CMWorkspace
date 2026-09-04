@@ -70,6 +70,10 @@ async function mockSample(prompt) {
       failNextCall = false;
       const err = new Error("the reply held no JSON value");
       err.code = "invalid_json";
+      // An unrepairable raw reply (a pseudo-JSON template echo, not a truncated real
+      // value) — tryRepairJson() cannot salvage this, so it must reach the error step
+      // with the raw text preserved for the "Claude's raw reply" preview.
+      err.text = '{"system": string (a name), "process_scope": string (1-2 sentences)}';
       throw err;
     }
     const m = /"section_id":\s*"([^"]+)"/.exec(prompt);
@@ -136,6 +140,8 @@ const errorText = getText(findAll(rootEl, (n) => n.className === "notice notice-
 console.log("error step shows:", errorText);
 assert.ok(errorText.includes("the reply held no JSON value"), "expected the raw sample.json() message to be shown");
 assert.ok(errorText.includes("isn't"), "expected the invalid_json explanatory copy to be shown");
+assert.ok(errorText.includes("Claude's raw reply"), "expected the raw-reply preview label to be shown");
+assert.ok(errorText.includes('{"system": string (a name)'), "expected the raw reply preview text itself to be shown");
 
 const tryAgainBtn = findAll(rootEl, (n) => n.tag === "button" && getText(n) === "Try again")[0];
 assert.ok(tryAgainBtn, "expected a 'Try again' button for a retriable (invalid_json) failure");
