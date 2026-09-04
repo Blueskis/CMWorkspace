@@ -326,7 +326,17 @@ async function runGenerate(root) {
     state.stage = "done";
     state.step = "done";
   } catch (e) {
+    // sample()/sample.json() reject a {code, message, text?} object, never a plain Error
+    // — branch on .code, per its own contract, not on .message. A viewer-initiated retry
+    // (never an automatic one — the platform is explicit that invalid_json in particular
+    // must not be retried from code) is worth offering for the error classes the spec
+    // itself calls retriable; state.corpus/profile/assignment are untouched by a failed
+    // runGenerate(), so retrying re-enters here directly without re-uploading anything.
+    const code = e?.code;
+    const RETRIABLE = new Set(["invalid_json", "upstream_error", "rate_limited", "refused", "empty_completion"]);
     state.error = e.message || String(e);
+    state.errorCode = code;
+    state.errorRetriable = RETRIABLE.has(code);
     state.step = "error";
   }
   render(root);
@@ -410,6 +420,7 @@ function startOver(root) {
   Object.assign(state, {
     step: "upload", templateFile: null, sourceFiles: [], profile: null, assignment: null,
     overrides: {}, corpus: null, stage: null, result: null, error: null,
+    errorCode: null, errorRetriable: false,
   });
   render(root);
 }
@@ -418,13 +429,36 @@ function startOver(root) {
 // error step
 // ---------------------------------------------------------------------------
 
+// Copy for the error classes the sample() contract calls out by name — everything else
+// falls back to the raw message. Matches sample.d.ts's own grouping: retriable-with-a-
+// button, permanent/hide-the-feature, or "tell the viewer, they may try again later".
+const ERROR_COPY = {
+  invalid_json: "Claude's reply for this step didn't come back as usable data. This isn't " +
+    "cached, so trying again usually works — if it keeps happening, the source content " +
+    "for this step may be unusually large or unusual in a way worth reporting.",
+  upstream_error: "A temporary issue reaching Claude. This one usually clears up on retry.",
+  rate_limited: "Too many requests right now (yours or Claude's usage limit). Wait a moment before trying again.",
+  refused: "Claude declined to continue with this content. Retrying with the same input will likely give the same result.",
+  empty_completion: "Claude's reply for this step came back empty. Try again, or check the source documents parsed as expected.",
+  not_granted: "This page doesn't have permission to use Claude in this view — generation isn't available here.",
+  sampling_disabled: "Claude isn't available for this account or organisation in this view.",
+  session_expired: "Your session needs to be refreshed — reload the page and try again.",
+};
+
 function renderError(root) {
+  const copy = ERROR_COPY[state.errorCode];
   root.replaceChildren(
     el("div", { class: "panel" }, [
       el("h2", {}, "Something went wrong"),
-      el("div", { class: "notice notice--error" }, el("p", {}, state.error)),
+      el("div", { class: "notice notice--error" }, [
+        el("p", {}, state.error),
+        copy ? el("p", { class: "muted" }, copy) : null,
+      ]),
       el("div", { class: "panel__actions" }, [
-        el("button", { class: "btn btn--primary", onclick: () => { state.step = "upload"; state.error = null; render(root); } }, "Start over"),
+        state.errorRetriable && state.corpus
+          ? el("button", { class: "btn btn--primary", onclick: () => { state.error = null; state.errorCode = null; runGenerate(root); } }, "Try again")
+          : null,
+        el("button", { class: state.errorRetriable && state.corpus ? "btn" : "btn btn--primary", onclick: () => startOver(root) }, "Start over"),
       ]),
     ])
   );

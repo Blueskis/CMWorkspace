@@ -70,7 +70,8 @@ export function briefPrompt(corpus) {
 specification document (or similar). Below is the document's complete outline —
 every section's id, path, classifier, and a short preview (not the full text).
 
-Return ONLY a JSON object with this exact shape:
+Return ONLY a JSON object with this exact shape — your entire reply must be the JSON
+value alone, with no explanation, preamble, or commentary before or after it:
 {
   "system": string (name of the system/process this trains),
   "process_scope": string (1-2 sentences: what this training covers and does not),
@@ -114,7 +115,8 @@ ${JSON.stringify(outline, null, 0)}
 Screenshots available to place, each already tied to the section it illustrates:
 ${JSON.stringify(screenshotSections, null, 0)}
 
-Return ONLY a JSON object: {"modules": [...]}. Each module:
+Return ONLY a JSON object: {"modules": [...]} — your entire reply must be the JSON value
+alone, no explanation before or after it. Each module:
 {
   "module_id": string (kebab-case), "title": string, "order": integer,
   "objective_ids": [lo_id, ...] (from the brief; [] for non-LO modules like welcome/summary),
@@ -163,7 +165,8 @@ ${JSON.stringify(moduleSections.map((s) => ({ section_id: s.section_id, section_
 Screenshots available for this module's "picture"-role slides:
 ${JSON.stringify(screenshots.map((a) => ({ asset_id: a.asset_id, section_id: a.section_id, caption: a.caption_candidate })), null, 0)}
 
-Return ONLY a JSON object: {"slides": [...]} — one entry per slide in the module, in order:
+Return ONLY a JSON object: {"slides": [...]} — your entire reply must be the JSON value
+alone, no explanation before or after it. One entry per slide in the module, in order:
 {
   "slide_id": string, "role": (copy from the module plan),
   "speaker_notes": string (optional, one line),
@@ -214,7 +217,8 @@ ${JSON.stringify(brief.learning_objectives, null, 0)}
 Procedure sections (their full text) to draw questions from:
 ${JSON.stringify(procedureSections.map((s) => ({ section_id: s.section_id, text: s.text })), null, 0)}
 
-Return ONLY a JSON object: {"questions": [...]}, exactly ${count} entries:
+Return ONLY a JSON object: {"questions": [...]}, exactly ${count} entries — your entire
+reply must be the JSON value alone, no explanation before or after it:
 {
   "question_id": "Q1".."Q${count}", "objective_id": lo_id, "type": "mcq"|"true-false",
   "stem": string (test the task, not trivia — put the learner in the situation and ask
