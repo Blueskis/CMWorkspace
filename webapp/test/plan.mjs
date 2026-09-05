@@ -330,3 +330,72 @@ if (!unrepairableCaught.progress) { console.log("FAIL: expected the rethrown err
 console.log("  unrepairable invalid_json -> still throws, carrying .text and .progress OK");
 
 console.log("\nAll invalid_json salvage checks passed.");
+
+// --- MAX_SLIDES_PER_CALL: a module with many slides must be batched into multiple
+// slideCopyPrompt calls (this is the exact failure a real viewer hit — a dense module's
+// full slide list in one call got cut off mid-JSON). Also confirms batch-level resume:
+// a failure partway through a module's batches must not discard the batches that already
+// succeeded.
+console.log("\n### slide-copy output batching + batch-level resume");
+const manyModuleSlides = Array.from({ length: 9 }, (_, i) => ({ slide_id: `s${i + 1}`, role: "content", title: `Slide ${i + 1}` }));
+const bigModuleSkeleton = { module_id: "mass", title: "Mass Processing", order: 1, objective_ids: ["LO1"], slides: manyModuleSlides };
+let slideCopyCallCount = 0;
+let slideCopyBatchSizes = [];
+let failOnBatch = 2; // 1-indexed call number to fail, once
+async function batchingMock(prompt) {
+  if (prompt.startsWith("You are drafting the intake brief")) return bigBrief;
+  if (prompt.startsWith("You are planning the module")) return { modules: [bigModuleSkeleton] };
+  if (prompt.startsWith("Write the slide content")) {
+    slideCopyCallCount++;
+    const m = /"slides":\s*(\[[\s\S]*?\])\s*}\s*,\s*"role"/.exec(prompt) || /"module_id":"mass"[\s\S]*?"slides":(\[.*?\])\}/.exec(prompt);
+    // pull the requested slide_ids straight out of the embedded module JSON rather than
+    // guessing the batch boundary from call count, so this test is honest about what the
+    // prompt actually asked for.
+    const moduleJsonMatch = /Module: (\{.*?\})\n\nSource sections/s.exec(prompt);
+    const reqSlideIds = moduleJsonMatch ? JSON.parse(moduleJsonMatch[1]).slides.map((s) => s.slide_id) : [];
+    slideCopyBatchSizes.push(reqSlideIds.length);
+    if (slideCopyCallCount === failOnBatch) {
+      const err = new Error("the reply held no JSON value");
+      err.code = "invalid_json";
+      err.text = "I'm sorry, I can't produce that content."; // no JSON at all — genuinely unrepairable
+      throw err;
+    }
+    return { slides: reqSlideIds.map((id) => ({ slide_id: id, role: "content",
+      blocks: [{ slot: "title", kind: "text", content: id, sources: ["proc#s0"] }] })) };
+  }
+  if (prompt.startsWith("Write exactly")) {
+    return { questions: [{ question_id: "Q1", objective_id: "LO1", type: "mcq", stem: "s",
+      options: [{ option_id: "a", text: "A" }, { option_id: "b", text: "B" }, { option_id: "c", text: "C" }, { option_id: "d", text: "D" }],
+      key: ["a"], rationale: "r", bloom_level: "apply", audience_ids: ["a"], sources: ["proc#s0"] }] };
+  }
+  throw new Error("unrecognized prompt: " + prompt.slice(0, 80));
+}
+
+let batchingCaught = null;
+try {
+  await generatePlan(bigCorpus, { sampleJson: batchingMock, questionCount: 1 });
+  console.log("FAIL: expected the 2nd slide-copy batch to throw");
+  process.exit(1);
+} catch (e) {
+  batchingCaught = e;
+}
+console.log(`  batch sizes requested before failure: ${slideCopyBatchSizes.join(", ")}`);
+if (slideCopyBatchSizes.some((n) => n > 4)) { console.log("FAIL: a slide-copy call asked for more than MAX_SLIDES_PER_CALL slides"); process.exit(1); }
+const partialModule = batchingCaught.progress.modules.find((m) => m.module_id === "mass");
+if (!partialModule || partialModule.slides.length !== 4) {
+  console.log(`FAIL: expected e.progress to preserve exactly 4 already-completed slides (batch 1), got ${partialModule?.slides.length}`);
+  process.exit(1);
+}
+console.log(`  e.progress preserved ${partialModule.slides.length} slides from the succeeded batch before the failure`);
+
+slideCopyCallCount = 0;
+slideCopyBatchSizes = [];
+failOnBatch = -1; // don't fail again on resume
+const resumedBatching = await generatePlan(bigCorpus, { sampleJson: batchingMock, questionCount: 1, resume: batchingCaught.progress });
+const finalMassModule = resumedBatching.plan.modules.find((m) => m.module_id === "mass");
+if (finalMassModule.slides.length !== 9) { console.log(`FAIL: expected all 9 slides after resume, got ${finalMassModule.slides.length}`); process.exit(1); }
+const finalIds = finalMassModule.slides.map((s) => s.slide_id).sort();
+if (new Set(finalIds).size !== 9) { console.log("FAIL: duplicate or missing slide_ids after resume:", finalIds); process.exit(1); }
+console.log(`  after resume: ${slideCopyCallCount} more call(s) made, module now has all ${finalMassModule.slides.length} slides (no duplicates, no gaps)`);
+
+console.log("\nAll slide-copy batching + resume checks passed.");

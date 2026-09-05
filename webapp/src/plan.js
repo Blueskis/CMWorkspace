@@ -20,6 +20,15 @@
 const MAX_INPUT_BYTES = 60 * 1024; // sample's cap is 64 KiB; leave headroom for instructions
 const MODEL_TIER = "complex"; // this is drafting work, not a quick lookup
 
+// slideCopyPrompt asks for full content (title + bullets + speaker_notes + any diagram
+// spec) for EVERY slide in a module, in one reply — chunkSections only bounds the INPUT
+// side (source section text), not this OUTPUT side. A module the module-plan stage packed
+// with many slides (a dense mass-processing module, say) can still demand a reply long
+// enough to hit the length limit mid-JSON, which surfaces as invalid_json's "cut short"
+// variant — a real failure hit in production, not a hypothetical. Capping slides per call
+// bounds the output the same way chunkSections already bounds the input.
+const MAX_SLIDES_PER_CALL = 4;
+
 // Stable marker lines around each prompt's worked example — every example block must be
 // literal, JSON.parse-able JSON (see test/plan.mjs's "example blocks are valid JSON"
 // guard). These markers exist purely so tests can locate and extract that block; they are
@@ -580,20 +589,43 @@ export async function generatePlan(corpus, {
 
     onStage("slide-copy");
     const sectionsById = Object.fromEntries(corpus.sections.map((s) => [s.section_id, s]));
-    const doneModuleIds = new Set(modules.map((m) => m.module_id));
+    // slides already written for a module on a prior attempt (from e.progress.modules) —
+    // batch-level, not just module-level, so a large module's 3rd-of-5 batch failing
+    // doesn't throw away the 2 that already succeeded on retry.
+    const doneSlideIdsByModule = new Map(modules.map((m) => [m.module_id, new Set(m.slides.map((s) => s.slide_id))]));
     for (const mod of moduleSkeletons) {
-      if (doneModuleIds.has(mod.module_id)) continue; // already built on a previous attempt
+      if (!mod.slides.length) { // an edge case, not the common path: a module the model gave no slides at all
+        if (!modules.find((m) => m.module_id === mod.module_id)) modules.push({ ...mod, slides: [] });
+        continue;
+      }
+      const alreadyDone = doneSlideIdsByModule.get(mod.module_id) ?? new Set();
+      const remaining = mod.slides.filter((s) => !alreadyDone.has(s.slide_id));
+      if (!remaining.length) continue; // this module was fully completed already (or has no slides to begin with)
+
       // Sections this module actually needs: whatever its slides will plausibly cite —
       // approximated here as every section under the objectives it serves, which keeps
       // the call's input bounded without the model having to ask a follow-up.
       const relevant = relevantSections(mod, brief, corpus.sections);
-      const chunks = chunkSections(relevant);
-      let slides = [];
-      for (const chunk of chunks) {
-        const resp = await callSampleJson(sampleJson, slideCopyPrompt(mod, chunk, corpus), { modelTier: MODEL_TIER });
-        slides = slides.concat(resp.slides ?? []);
+      const inputChunks = chunkSections(relevant);
+      // Cap OUTPUT per call too: batch the module's own slide list, independent of the
+      // input chunking above, so a module with many slides never asks for all of their
+      // content in one reply (see MAX_SLIDES_PER_CALL's own comment for why this matters).
+      for (let i = 0; i < remaining.length; i += MAX_SLIDES_PER_CALL) {
+        const slideBatch = remaining.slice(i, i + MAX_SLIDES_PER_CALL);
+        const batchMod = { ...mod, slides: slideBatch };
+        let batchSlides = [];
+        for (const chunk of inputChunks) {
+          const resp = await callSampleJson(sampleJson, slideCopyPrompt(batchMod, chunk, corpus), { modelTier: MODEL_TIER });
+          batchSlides = batchSlides.concat(resp.slides ?? []);
+        }
+        batchSlides = dedupeSlides(batchSlides.length ? batchSlides : slideBatch);
+        // Record this batch's slides into `modules` (the array e.progress captures on
+        // throw) immediately, not after the whole module finishes — a later batch's
+        // failure must not discard this one.
+        let entry = modules.find((m) => m.module_id === mod.module_id);
+        if (!entry) { entry = { ...mod, slides: [] }; modules.push(entry); }
+        entry.slides = dedupeSlides(entry.slides.concat(batchSlides));
       }
-      modules.push({ ...mod, slides: dedupeSlides(slides.length ? slides : mod.slides) });
     }
 
     if (!questions) {
