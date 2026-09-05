@@ -24,6 +24,7 @@ import { getJSZip, parseXml } from "./env.js";
 import { targetPlaceholders } from "./map-layouts.js";
 import { emu, xmlEscape, findAll, attr, resolveTarget } from "./xml.js";
 import { renderDiagram } from "./render-diagram.js";
+import { linesNeeded, fitFontSize } from "./text-fit.js";
 
 const P_NS = "http://schemas.openxmlformats.org/presentationml/2006/main";
 const A_NS = "http://schemas.openxmlformats.org/drawingml/2006/main";
@@ -34,6 +35,10 @@ const CONTENT_TYPE_BY_EXT = {
   png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg",
   gif: "image/gif", bmp: "image/bmp", emf: "image/x-emf", wmf: "image/x-wmf",
 };
+
+// Body-text fit range — distinct from render-diagram.js's own 8-14pt diagram-label range;
+// bullets get to stay bigger before conceding to a shrink.
+const BODY_SIZES = [16, 15, 14, 13, 12];
 
 const MINIMAL_SLIDE = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <p:sld xmlns:a="${A_NS}" xmlns:r="${R_NS}" xmlns:p="${P_NS}"><p:cSld><p:spTree>
@@ -105,6 +110,26 @@ function textShapeXml(sid, name, ph, geom, paragraphs, anchor = "t") {
 </p:sp>`;
 }
 
+/**
+ * A text box with no <p:ph> wiring at all — same body as textShapeXml, minus the
+ * placeholder reference. Needed because composeSlide can put TWO text/bullets blocks in
+ * one slide (a two-content slide sharing one body placeholder, or a body block sitting
+ * beside a picture/diagram that also fell back to that same placeholder): only one shape
+ * per slide may claim a given <p:ph idx="N"/>, so every group member after the first
+ * renders as a free-floating box instead, positioned by composeSlide/splitSharedRect
+ * exactly like a real placeholder would be. Mirrors render-diagram.js's own label shapes
+ * (txBox="1", empty <p:nvPr/>, <a:noFill/>).
+ */
+function freeTextShapeXml(sid, name, geom, paragraphs, anchor = "t") {
+  const [x, y, w, h] = geom;
+  return `<p:sp>
+  <p:nvSpPr><p:cNvPr id="${sid}" name="${xmlEscape(name)}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr>
+  <p:spPr><a:xfrm><a:off x="${emu(x)}" y="${emu(y)}"/><a:ext cx="${emu(w)}" cy="${emu(h)}"/></a:xfrm>
+  <a:prstGeom prst="rect"><a:avLst/></a:prstGeom><a:noFill/></p:spPr>
+  <p:txBody><a:bodyPr wrap="square" anchor="${anchor}"><a:normAutofit/></a:bodyPr><a:lstStyle/>${paragraphs.join("")}</p:txBody>
+</p:sp>`;
+}
+
 function tableShapeXml(sid, name, geom, headers, rows) {
   const [x, y, w, h] = geom;
   const colW = Math.floor(emu(w) / headers.length);
@@ -156,50 +181,270 @@ const notesSlideXml = (text) => `<?xml version="1.0" encoding="UTF-8" standalone
 </p:spTree></p:cSld></p:notes>`;
 
 // ---------------------------------------------------------------------------
-// slot resolution
+// slide composition — placeholder resolution, plus splitting a shared bucket
 // ---------------------------------------------------------------------------
 
+// Tuned defaults for splitSharedRect's side-by-side/stack layouts — exported so the unit
+// tests (test/compose-slide.mjs) can assert against the exact numbers rather than
+// duplicating them, and so a future tuning pass has one place to change. Not values
+// dictated anywhere else in the codebase; a reasonable reading of the pptx skill's
+// structural rules (>=0.3-0.5in spacing, no overlap, no overflow) applied to two shapes
+// sharing what used to be one placeholder's rect.
+export const GUTTER_IN = 0.35; // horizontal gap between side-by-side columns
+export const MIN_COL_W_IN = 1.2; // a text column narrower than this is unreadable — floor it
+// Shared rect narrower than this: side-by-side never works, stack instead. Chosen so the
+// two thresholds stay mutually reachable: at exactly this width, an unclamped text column
+// (MEDIA_COL_FRAC's worst case) sits right at MIN_COL_W_IN, so the "clamp the text column,
+// let media absorb the rest" branch just below can still actually fire for a slightly
+// wider rect — with a larger floor (e.g. the 4.5in a first pass at this constant used) the
+// clamp branch becomes unreachable dead code, since textW only grows as w grows past the
+// floor.
+export const MIN_SPLIT_W_IN = 2.7;
+export const PORTRAIT_ASPECT = 0.9; // image aspect (w/h) below this reads as "tall" -> narrower column
+export const WIDE_ASPECT = 2.2; // image aspect above this reads as "wide" -> stack instead
+export const MEDIA_COL_FRAC = 0.45; // default media share of the shared rect's width
+export const PORTRAIT_MEDIA_COL_FRAC = 0.35; // narrower share for a portrait image
+export const STACK_TEXT_FRAC = 0.4; // stacked layout: text gets the top 40% of height
+export const CAPTION_STRIP_H_IN = 0.4; // height carved for a caption under its media
+export const BLOCK_GAP_IN = 0.35; // vertical gap between stacked text and media
+
 /**
- * Resolve a semantic slot to a concrete placeholder + geometry on the chosen layout.
- * Returns null when the layout genuinely cannot host the slot.
+ * Divide one shared placeholder/fullBleed rect between 2+ blocks that all resolved to the
+ * SAME bucket under the old per-block logic (see composeSlide) — this is what stops a
+ * picture and a body block from landing on the identical rectangle.
+ *
+ * `items` is [{block, isMedia, aspect}] in slide order; exactly one media item is the
+ * shape plan.js's prompts actually produce (one picture/diagram block beside one bullets
+ * block on a "content"-role slide). With zero media items (two plain-text blocks sharing
+ * one bucket — the two-content-on-a-one-body-placeholder case) every item gets an equal
+ * column instead. `opts.mediaPosition` is the slide's optional "left"|"right"|"below"
+ * override; the default is media on the right.
+ *
+ * Returns [{block, geom}] in the same order as `items`.
  */
-function resolveSlot(slot, targets, slideSize) {
+export function splitSharedRect(rect, items, opts = {}) {
+  const [x, y, w, h] = rect;
+  const mediaPosition = opts.mediaPosition ?? null;
+  const mediaItems = items.filter((it) => it.isMedia);
+
+  // Case B — no media: equal columns, left-to-right in slide order. (Only the 2-item case
+  // is a real deck shape today; a 3rd plain-text item sharing one bucket just gets a 3rd
+  // equal column with 2 gutters rather than crashing.)
+  if (mediaItems.length === 0) {
+    const n = items.length;
+    const colW = (w - GUTTER_IN * (n - 1)) / n;
+    return items.map((it, i) => ({ block: it.block, geom: [x + i * (colW + GUTTER_IN), y, colW, h] }));
+  }
+
+  // The common case: one media item, the rest is text. (More than one media item sharing a
+  // bucket isn't a shape plan.js's prompts produce — a slide carries at most one
+  // picture/diagram block — so extra media items are just folded into "the text side"
+  // below rather than inventing an unused 3-up layout.)
+  const media = mediaItems[0];
+
+  const wide = media.aspect != null && media.aspect > WIDE_ASPECT;
+  const explicitSide = mediaPosition === "left" || mediaPosition === "right";
+  // An explicit left/right always wins over the wide-aspect heuristic — only the DEFAULT
+  // behavior for a very wide image is to stack instead of squeezing it into a column.
+  const forceStack = mediaPosition === "below" || w < MIN_SPLIT_W_IN || (wide && !explicitSide);
+
+  if (forceStack) {
+    // Case C — stack: text on top (read first), media below.
+    const textH = h * STACK_TEXT_FRAC;
+    const mediaH = h - BLOCK_GAP_IN - textH;
+    const textRect = [x, y, w, textH];
+    const mediaRect = [x, y + textH + BLOCK_GAP_IN, w, mediaH];
+    return items.map((it) => ({ block: it.block, geom: it === media ? mediaRect : textRect }));
+  }
+
+  // Case A — side by side. A portrait image gets a narrower column so its own height
+  // doesn't force the bullet column to starve trying to match a tall aspect ratio.
+  const mediaFrac = media.aspect != null && media.aspect < PORTRAIT_ASPECT ? PORTRAIT_MEDIA_COL_FRAC : MEDIA_COL_FRAC;
+  let mediaW = w * mediaFrac;
+  let textW = w - GUTTER_IN - mediaW;
+  if (textW < MIN_COL_W_IN) {
+    // Bullets tolerate a narrow column worse than an aspect-fitted image tolerates a
+    // narrower box, so the media column absorbs the shortfall, never the text column.
+    textW = MIN_COL_W_IN;
+    mediaW = w - GUTTER_IN - textW;
+  }
+  const mediaOnLeft = mediaPosition === "left";
+  const mediaRect = mediaOnLeft ? [x, y, mediaW, h] : [x + textW + GUTTER_IN, y, mediaW, h];
+  const textRect = mediaOnLeft ? [x + mediaW + GUTTER_IN, y, textW, h] : [x, y, textW, h];
+  return items.map((it) => ({ block: it.block, geom: it === media ? mediaRect : textRect }));
+}
+
+/** True for a block that renders through the plain text/bullets branch of the content
+ * pass — i.e. everything except a successfully-rendered image/diagram/table. A gap block
+ * always renders as text regardless of its nominal kind (see the content pass's own
+ * isGap handling), so it belongs on this side of the line too. */
+function rendersAsText(block) {
+  return !!block.gap || !["image", "diagram", "table"].includes(block.kind);
+}
+
+/**
+ * Resolve every block on a slide to a concrete {ph, geom} in one pass, instead of
+ * resolving each block independently (the old resolveSlot). Independent resolution is
+ * exactly what caused the reported bug: a body block and a picture block on a template
+ * with no picture placeholder (real-training-template.pptx, no-picture.pptx) both fall
+ * back to targets.bodies[0] and get the IDENTICAL rectangle, so the image paints over the
+ * bullets. Grouping by the placeholder each block would have claimed, then subdividing
+ * only when 2+ blocks actually collide, keeps every already-working single-block slide
+ * (title, a lone body, a real pic+caption picture slide) byte-for-byte unchanged — that's
+ * the regression safety net for the other 6 templates in the build matrix — while making
+ * a colliding pair sit beside each other instead of on top of each other.
+ *
+ * @param {object[]} blocks       slide.blocks, in slide order
+ * @param {object} targets        targetPlaceholders() result for this slide's layout
+ * @param {object} slideSize      profile.slide_size
+ * @param {object} opts
+ *   assets         asset_id -> {bytes,...}, so an image block's pixel aspect ratio is
+ *                  known before rendering (for the portrait/wide branches below). A
+ *                  missing/unreadable asset defaults to "normal" aspect — no narrowing,
+ *                  no forced stack; the real "asset not found" warning still fires later,
+ *                  in the per-block render loop, unchanged.
+ *   mediaPosition  the slide's optional "left"|"right"|"below" override (top-level
+ *                  media_position field, alongside slide_id) — plan.js's new vocabulary.
+ * @returns {Map<object, {ph: object|null, geom: number[]}|null>} keyed by block identity;
+ *   a value of null/undefined means "this layout has no such slot" — the caller warns and
+ *   drops the block, exactly as resolveSlot's null return used to.
+ */
+export function composeSlide(blocks, targets, slideSize, { assets = new Map(), mediaPosition = null } = {}) {
   const fullBleed = [0.6, 1.6, slideSize.w_in - 1.2, slideSize.h_in - 2.4];
   const geomOf = (ph, fallback) =>
     ph?.geometry ? [ph.geometry.x_in, ph.geometry.y_in, ph.geometry.w_in, ph.geometry.h_in] : fallback;
 
-  switch (slot) {
-    case "title":
-      return targets.title
-        ? { ph: targets.title, geom: geomOf(targets.title, [0.6, 0.6, slideSize.w_in - 1.2, 1.1]) }
-        : null;
-    case "subtitle": {
-      const ph = targets.subTitle ?? targets.bodies[0];
-      return ph ? { ph, geom: geomOf(ph, [0.6, 4.0, slideSize.w_in - 1.2, 1.0]) } : null;
+  const resolved = new Map();
+  const rest = [];
+
+  // 1. title/subtitle — a slide never has two, so these never conflict with anything.
+  // Reuses resolveSlot's own fallbacks verbatim.
+  for (const block of blocks) {
+    if (block.slot === "title") {
+      if (targets.title) resolved.set(block, { ph: targets.title, geom: geomOf(targets.title, [0.6, 0.6, slideSize.w_in - 1.2, 1.1]) });
+      continue;
     }
-    case "body": {
-      const ph = targets.bodies[0];
-      return ph ? { ph, geom: geomOf(ph, fullBleed) } : null;
+    if (block.slot === "subtitle") {
+      const ph = targets.subTitle ?? targets.bodies[0] ?? null;
+      if (ph) resolved.set(block, { ph, geom: geomOf(ph, [0.6, 4.0, slideSize.w_in - 1.2, 1.0]) });
+      continue;
     }
-    case "body2": {
-      const ph = targets.bodies[1] ?? targets.bodies[0];
-      return ph ? { ph, geom: geomOf(ph, fullBleed) } : null;
-    }
-    case "caption": {
-      // On a picture layout the caption is the body slot; skip if there isn't one.
-      const ph = targets.bodies[0];
-      return ph ? { ph, geom: geomOf(ph, null) } : null;
-    }
-    case "picture": {
-      if (targets.pic) return { ph: targets.pic, geom: geomOf(targets.pic, fullBleed), native: true };
-      // Fallback for a template with no picture placeholder: use the body's geometry
-      // but emit a free-floating <p:pic> rather than filling a placeholder.
-      const ph = targets.bodies[0];
-      return ph ? { ph, geom: geomOf(ph, fullBleed), native: false } : { ph: null, geom: fullBleed, native: false };
-    }
-    default:
-      return null;
+    rest.push(block);
   }
+
+  // 2. bucket key for everything else — the placeholder identity each block WOULD have
+  // claimed under the old per-block logic. Using the placeholder object itself (or a
+  // string sentinel when there's no real placeholder at all) as the Map key means two
+  // slots that legitimately fall back to the same object — e.g. "body2" falling back to
+  // bodies[0] when the layout only has one body placeholder — collide into one bucket for
+  // free, with no separate idx bookkeeping needed.
+  function bucketFor(block) {
+    switch (block.slot) {
+      case "body": {
+        const ph = targets.bodies[0] ?? null;
+        return ph ? { ph, key: ph } : null; // no body placeholder at all — drop, as before
+      }
+      case "body2": {
+        const ph = targets.bodies[1] ?? targets.bodies[0] ?? null;
+        return ph ? { ph, key: ph } : null;
+      }
+      case "caption": {
+        // On a picture layout the caption is the body slot; on a "content" layout it's
+        // whatever body block/picture already claimed bodies[0] — either way, no body
+        // placeholder means nowhere to put a caption, same as before.
+        const ph = targets.bodies[0] ?? null;
+        return ph ? { ph, key: ph } : null;
+      }
+      case "picture": {
+        if (targets.pic) return { ph: targets.pic, key: targets.pic };
+        // No picture placeholder: fall back to the body's geometry, but a picture block
+        // NEVER gets dropped outright (matches resolveSlot's old { ph: null, geom:
+        // fullBleed } fallback) — even a template with zero usable placeholders still
+        // gets a free-floating, full-bleed picture.
+        const ph = targets.bodies[0] ?? null;
+        return { ph, key: ph ?? "fullbleed" };
+      }
+      default:
+        return null;
+    }
+  }
+
+  const buckets = new Map();
+  for (const block of rest) {
+    const b = bucketFor(block);
+    if (!b) { resolved.set(block, null); continue; }
+    if (!buckets.has(b.key)) buckets.set(b.key, []);
+    buckets.get(b.key).push(block);
+  }
+
+  const indexInSlide = new Map(blocks.map((b, i) => [b, i]));
+
+  for (const [key, groupBlocks] of buckets) {
+    const anyPh = key !== "fullbleed" ? key : null; // the key IS the placeholder object (or the sentinel)
+    const bucketGeom = anyPh ? geomOf(anyPh, fullBleed) : fullBleed;
+
+    // 4. Group of size 1 — the overwhelming majority case. Bucket's own geometry,
+    // unchanged from resolveSlot.
+    if (groupBlocks.length === 1) {
+      resolved.set(groupBlocks[0], { ph: anyPh, geom: bucketGeom });
+      continue;
+    }
+
+    // 5. Group of size 2+ — pull out any "caption" block that immediately FOLLOWS (next
+    // index in the slide's own block list) a kind:"image"/"diagram" block also in this
+    // same group. That adjacency is the caption's association rule (documented in
+    // plan.js's slide-copy prompt: "place a caption block immediately after the
+    // image/diagram block it captions"). Everything else gets split by splitSharedRect;
+    // the caption is carved out of its media's own final rect afterward.
+    const captionForMedia = new Map(); // media block -> its caption block
+    const splitCandidates = [];
+    for (const block of groupBlocks) {
+      if (block.slot === "caption") {
+        const idx = indexInSlide.get(block);
+        const prevBlock = idx != null && idx > 0 ? blocks[idx - 1] : null;
+        const prevIsMediaInGroup =
+          prevBlock && groupBlocks.includes(prevBlock) && (prevBlock.kind === "image" || prevBlock.kind === "diagram");
+        if (prevIsMediaInGroup) {
+          captionForMedia.set(prevBlock, block);
+          continue;
+        }
+      }
+      splitCandidates.push(block);
+    }
+
+    const splitItems = splitCandidates.map((block) => {
+      const isMedia = block.kind === "image" || block.kind === "diagram";
+      let aspect = null;
+      if (block.kind === "image") {
+        const asset = assets.get(block.content?.asset_id);
+        const px = asset?.bytes ? imagePixelSize(asset.bytes) : null;
+        if (px && px.width && px.height) aspect = px.width / px.height;
+      }
+      return { block, isMedia, aspect };
+    });
+
+    const splitResults = splitSharedRect(bucketGeom, splitItems, { mediaPosition });
+
+    splitResults.forEach(({ block, geom }, i) => {
+      // Only one shape per slide may claim a given <p:ph idx="N"/> — the group's first
+      // member keeps the bucket's real placeholder; every other text/bullets member (an
+      // image/diagram/table never wires into <p:ph> anyway) renders as a free text box.
+      const ph = i === 0 ? anyPh : (rendersAsText(block) ? null : anyPh);
+      let finalGeom = geom;
+
+      const caption = captionForMedia.get(block);
+      if (caption) {
+        const [mx, my, mw, mh] = geom;
+        const innerGap = 0.05; // small breathing room between media and its caption strip
+        const newMediaH = mh - CAPTION_STRIP_H_IN - innerGap;
+        resolved.set(caption, { ph: null, geom: [mx, my + newMediaH + innerGap, mw, CAPTION_STRIP_H_IN] });
+        finalGeom = [mx, my, mw, newMediaH];
+      }
+      resolved.set(block, { ph, geom: finalGeom });
+    });
+  }
+
+  return resolved;
 }
 
 // ---------------------------------------------------------------------------
@@ -408,8 +653,15 @@ export async function buildPptx({ templateBytes, profile, assignment, plan, asse
     let nextShapeId = 2;
     let slideRels = await zip.file(`ppt/slides/_rels/${file}.rels`).async("string");
 
+    // One composition pass per slide, not one resolution per block — see composeSlide's
+    // own doc comment for why: resolving blocks independently is exactly what let a body
+    // and a picture block land on the identical rectangle.
+    const composed = composeSlide(slide.blocks ?? [], targets, slideSize, {
+      assets, mediaPosition: slide.media_position ?? null,
+    });
+
     for (const block of slide.blocks ?? []) {
-      const resolved = resolveSlot(block.slot, targets, slideSize);
+      const resolved = composed.get(block);
       if (!resolved) {
         warnings.push(`${slide.slide_id}: layout has no "${block.slot}" slot — block dropped`);
         continue;
@@ -463,17 +715,42 @@ export async function buildPptx({ templateBytes, profile, assignment, plan, asse
           block.content.headers, block.content.rows));
       } else {
         const text = isGap ? `[GAP] ${block.gap_note ?? ""}` : block.content;
+        const bulletLines = Array.isArray(text) ? text : [text];
+        // A body block's column is no longer always the placeholder's original full
+        // width — composeSlide may have narrowed it to sit beside a picture/diagram — so
+        // sizing can't just inherit the template's default any more. Fit explicitly with
+        // the same math render-diagram.js uses for its labels (text-fit.js): step down
+        // through BODY_SIZES and warn rather than silently overflow if even the smallest
+        // doesn't fit. Titles are never subdivided by composeSlide (always a group of
+        // one) and keep their template-inherited size, unaffected.
+        const sizePt = !isTitle
+          ? fitFontSize(
+              (pt) => bulletLines.reduce((sum, line) => sum + linesNeeded(line, geom[2] - 0.2, pt), 0),
+              geom[3] - 0.2,
+              BODY_SIZES
+            )
+          : null;
+        if (!isTitle && sizePt == null) {
+          warnings.push(`${slide.slide_id}: body text may not fit its column even at ${BODY_SIZES.at(-1)}pt — shorten the bullets or move the visual`);
+        }
+        const effectiveSize = isTitle ? null : sizePt ?? BODY_SIZES.at(-1);
         const paragraphs =
           Array.isArray(text)
-            ? text.map((line) => paraXml(line, { bullet: !isTitle, bold: isTitle }))
+            ? text.map((line) => paraXml(line, { bullet: !isTitle, bold: isTitle, sizePt: effectiveSize }))
             : [paraXml(text, {
                 bullet: false,
                 bold: isTitle,
                 align: ph?.type === "ctrTitle" ? "ctr" : null,
+                sizePt: effectiveSize,
               })];
         if (ph) {
           shapes.push(textShapeXml(nextShapeId++, block.slot, ph, geom, paragraphs,
             ph.type === "ctrTitle" ? "ctr" : "t"));
+        } else {
+          // No placeholder to claim (composeSlide gave this the free-text-box branch —
+          // see freeTextShapeXml's doc comment) — still needs to be emitted, just not
+          // wired into a <p:ph>.
+          shapes.push(freeTextShapeXml(nextShapeId++, block.slot, geom, paragraphs));
         }
       }
     }

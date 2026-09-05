@@ -193,8 +193,13 @@ entry criteria the outline doesn't support — do not pad):
   6. roles and responsibilities (content or two-content, if more than one role touches the process)
   7. one task-walkthrough module PER named procedure, sized by how much the outline dwells on
      it — a section mentioned once earns a bullet inside a broader module, not its own module.
-     Use "picture" slides for steps a screenshot is available for (see the list above); use
-     "diagram" for any conditional/branching logic ("if X then Y") described in prose.
+     A screenshot can go two ways — pick per step, not by a blanket rule: use role "content"
+     (screenshot placed beside 3-5 short bullets, composed side by side automatically) when
+     the step's explanation is short enough to sit next to the image; use role "picture"
+     (screenshot fills the slide) when the screenshot itself needs the room — a dense form
+     with many fields, a full launchpad/worklist view, or a screen the learner must read in
+     detail. Use "diagram" for any conditional/branching logic ("if X then Y") described in
+     prose.
   8. exceptions and common errors (content or picture, if the outline documents error states)
   9. where to get help (content, always, one slide)
   10. summary and next steps (section-header, always)
@@ -239,6 +244,16 @@ ${EXAMPLE_START}
         {"slot": "body", "kind": "bullets", "content": ["Open the Supplier Block form", "Enter the supplier ID", "Attach the block reason"], "sources": ["doc#4.2"]},
         {"slot": "body", "kind": "diagram", "content": {"diagram_type": "process", "spec": {"steps": ["Requester submits", "Approver reviews", "System blocks supplier"]}}, "sources": ["doc#4.2"]}
       ]
+    },
+    {
+      "slide_id": "s-lo1-2",
+      "role": "content",
+      "media_position": "right",
+      "blocks": [
+        {"slot": "title", "kind": "text", "content": "Reviewing the Request", "sources": ["doc#4.2"]},
+        {"slot": "body", "kind": "bullets", "content": ["Open the request from the worklist", "Check the reason code", "Approve or reject"], "sources": ["doc#4.2"]},
+        {"slot": "picture", "kind": "image", "content": {"asset_id": "img-review-1", "caption": "Review screen"}, "sources": ["doc#4.2"]}
+      ]
     }
   ]
 }
@@ -246,8 +261,16 @@ ${EXAMPLE_END}
 
 One entry per slide in the module, in order. Field notes:
 - "slide_id" and "role": copy from the module plan.
+- "media_position": optional, top level alongside "slide_id" — "left" | "right" | "below" —
+  overrides the automatic default (media on the right) for how this slide's media block
+  sits beside its text block when both are present.
 - "speaker_notes": optional, one line.
-- "blocks[].slot": "title", "body", "body2", or "picture".
+- "blocks[].slot": "title", "body", "body2", "picture", or "caption".
+- A "content"-role slide's blocks MAY include both a "body" bullets block and a
+  "picture" (or a second "body"-slotted diagram) block — these are composed side by side
+  automatically, no separate placeholder needed. Keep bullets to 3-5 short items when a
+  slide also carries a picture/diagram; a slide with only a body block can run longer.
+  Place a "caption" block immediately after the image/diagram block it captions.
 - "blocks[].kind" and "content" pair up as:
   - "text": content is a string (used for the title block).
   - "bullets": content is an array of strings, each <=10 words.

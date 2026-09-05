@@ -20,6 +20,8 @@ const VALIDATE =
   "/root/.claude/skills/synced/9e312654-67aa-495a-bc6d-0685e7943d94_a893b1e2-c16b-4ff3-a80a-f61ace8bb8c0/pptx/scripts/office/validate.py";
 
 const screenshot = readFileSync("test/fixtures/screenshot.png");
+const screenshotNormal = readFileSync("test/fixtures/screenshot-normal.png");
+const screenshotPortrait = readFileSync("test/fixtures/screenshot-portrait.png");
 
 const plan = {
   modules: [
@@ -106,7 +108,62 @@ const plan = {
       ],
     },
     {
-      module_id: "close", order: 5, slides: [
+      // Exercises composeSlide's new side-by-side/stack paths — the decisive case is a
+      // "content"-role slide (never a dedicated "picture" layout, so this always lands on
+      // a template's single body placeholder) carrying BOTH a body block and a
+      // picture/diagram block. Under the old per-block resolveSlot both blocks fell back
+      // to the identical bodies[0] rectangle; the overlap check below is what would have
+      // caught that.
+      module_id: "composed", order: 6, slides: [
+        { slide_id: "cmp-image", role: "content", blocks: [
+          { slot: "title", kind: "text", content: "Composed — Image Beside Text" },
+          { slot: "body", kind: "bullets", content: [
+            "Open the request from the worklist",
+            "Check the reason code",
+            "Confirm the supplier ID matches",
+            "Approve or reject",
+          ] },
+          { slot: "picture", kind: "image", content: { asset_id: "img-normal", caption: "Review screen" } },
+        ] },
+        { slide_id: "cmp-diagram", role: "content", blocks: [
+          { slot: "title", kind: "text", content: "Composed — Diagram Beside Text" },
+          { slot: "body", kind: "bullets", content: [
+            "Requester submits with a reason code",
+            "System validates the supplier ID",
+            "Approver reviews and decides",
+          ] },
+          { slot: "body", kind: "diagram", content: { diagram_type: "process", spec: {
+            steps: ["Submit", "Validate", "Decide"] } } },
+        ] },
+        { slide_id: "cmp-caption", role: "content", blocks: [
+          { slot: "title", kind: "text", content: "Composed — Captioned Media" },
+          { slot: "body", kind: "bullets", content: [
+            "Locate the block request",
+            "Review the attached justification",
+          ] },
+          { slot: "picture", kind: "image", content: { asset_id: "img-normal" } },
+          { slot: "caption", kind: "text", content: "Figure 1: Manage Supplier Block Requests" },
+        ] },
+        { slide_id: "cmp-portrait", role: "content", blocks: [
+          { slot: "title", kind: "text", content: "Composed — Portrait Image" },
+          { slot: "body", kind: "bullets", content: [
+            "Open the mobile approval screen",
+            "Scroll to review every field",
+          ] },
+          { slot: "picture", kind: "image", content: { asset_id: "img-portrait" } },
+        ] },
+        { slide_id: "cmp-widescreen", role: "content", blocks: [
+          { slot: "title", kind: "text", content: "Composed — Ultra-Wide Image" },
+          { slot: "body", kind: "bullets", content: [
+            "The worklist spans every open request",
+            "Filter by status to narrow the view",
+          ] },
+          { slot: "picture", kind: "image", content: { asset_id: "img1" } },
+        ] },
+      ],
+    },
+    {
+      module_id: "close", order: 7, slides: [
         { slide_id: "gap-1", role: "content", blocks: [
           { slot: "title", kind: "text", content: "Open Question" },
           { slot: "body", kind: "bullets", content: ["placeholder"], gap: true,
@@ -122,7 +179,11 @@ const plan = {
   ],
 };
 
-const assets = new Map([["img1", { bytes: screenshot, ext: "png", alt: "Worklist screenshot" }]]);
+const assets = new Map([
+  ["img1", { bytes: screenshot, ext: "png", alt: "Worklist screenshot" }],
+  ["img-normal", { bytes: screenshotNormal, ext: "png", alt: "Review screen" }],
+  ["img-portrait", { bytes: screenshotPortrait, ext: "png", alt: "Mobile approval screen" }],
+]);
 
 const templates = [
   ...readdirSync("test/fixtures/templates").filter((f) => f.endsWith(".pptx"))
@@ -150,6 +211,20 @@ for (const [path, label] of templates) {
   }
   console.log(`\n${label}  (${slideCount} slides${pictureFallback ? ", picture fallback" : ""})`);
   console.log(`  validate.py: ${verdict}`);
+
+  // The decisive assertion for the body+picture composition fix: no two top-level shapes
+  // on any slide overlap, and every shape stays within the slide's bounds. This is what
+  // would have caught the original bug (a body block and a picture block both landing on
+  // the identical bodies[0] rectangle) — see test/check_overlap.py's own docstring.
+  let overlapVerdict;
+  try {
+    overlapVerdict = execFileSync("python3", ["test/check_overlap.py", out], { encoding: "utf8" }).trim();
+  } catch (e) {
+    overlapVerdict = "FAILED:\n" + (e.stdout || e.message).trim();
+    failures++;
+  }
+  console.log(`  overlap check: ${overlapVerdict}`);
+
   warnings.slice(0, 4).forEach((w) => console.log(`  warn: ${w}`));
   if (warnings.length > 4) console.log(`  ... and ${warnings.length - 4} more warnings`);
 }

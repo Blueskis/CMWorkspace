@@ -86,8 +86,10 @@ learners most often get wrong on the job.
 **The core of the deck; always include, one module per named procedure (Rule 2 decides
 the split).** Each walkthrough module pairs numbered steps with the screenshot that
 illustrates each one (`reference/screenshot-placement.md`), in the FSD's own step order.
-Where the FSD documents an approval threshold, a routing rule, or any other conditional
-logic, render it as a `decision` diagram rather than prose — see
+Prefer pairing each step's bullets with its screenshot on one slide (side by side) when
+the explanation is short; reserve a screenshot-only slide for a screen that needs full
+size to read. Where the FSD documents an approval threshold, a routing rule, or any other
+conditional logic, render it as a `decision` diagram rather than prose — see
 `reference/diagram-patterns.md`.
 
 ### 8. Knowledge check (per module)

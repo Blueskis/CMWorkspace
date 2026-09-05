@@ -56,6 +56,11 @@
                 "slide_id": { "type": "string", "description": "e.g. 'task-walkthrough-approve-po-2'" },
                 "layout": { "type": "string", "description": "Layout name or part-stem from template_profile.json — must exist in the approved template" },
                 "title": { "type": "string" },
+                "media_position": {
+                  "type": "string",
+                  "enum": ["left", "right", "below"],
+                  "description": "Optional override for how this slide's media block sits beside its text block when both are present; the builder composes them side by side (media right) by default."
+                },
                 "audiences": {
                   "type": "array",
                   "items": { "type": "string" },
@@ -63,7 +68,7 @@
                 },
                 "blocks": {
                   "type": "array",
-                  "description": "Content units placed into the layout's placeholders",
+                  "description": "Content units placed into the layout's placeholders. A slide may hold both a text block (bullets/paragraph) and a media block (image/diagram) targeting the same content area — the builder composes them side by side rather than stacking them.",
                   "items": {
                     "type": "object",
                     "required": ["placeholder", "kind", "content", "sources"],

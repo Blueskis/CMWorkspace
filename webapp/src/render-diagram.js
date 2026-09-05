@@ -19,11 +19,9 @@
  */
 
 import { emu, xmlEscape } from "./xml.js";
+import { linesNeeded, fitFontSize, textHeightIn } from "./text-fit.js";
 
-const PT_PER_INCH = 72;
-const FONT_SIZES = [14, 12, 11, 10, 9, 8];
-const CHAR_WIDTH_FACTOR = 0.52; // average glyph width as a fraction of font size
-const LINE_HEIGHT_FACTOR = 1.25;
+const FONT_SIZES = [14, 12, 11, 10, 9, 8]; // diagram-label range — distinct from body's 12-16pt
 const PALETTE_CYCLE = ["accent1", "accent2", "accent3", "accent4", "accent5", "accent6"];
 
 export class DiagramSpecError extends Error {}
@@ -33,19 +31,11 @@ export class DiagramOverflowError extends Error {}
 // Text fit
 // ---------------------------------------------------------------------------
 
-function linesNeeded(text, boxWIn, fontPt) {
-  const charsPerLine = Math.max(1, Math.floor((boxWIn * PT_PER_INCH) / (fontPt * CHAR_WIDTH_FACTOR)));
-  return Math.max(1, Math.ceil(String(text).length / charsPerLine));
-}
-
 function fitFont(text, boxWIn, boxHIn) {
-  for (const size of FONT_SIZES) {
-    const lines = linesNeeded(text, boxWIn, size);
-    if ((lines * size * LINE_HEIGHT_FACTOR) / PT_PER_INCH <= boxHIn) return size;
-  }
+  const size = fitFontSize((pt) => linesNeeded(text, boxWIn, pt), boxHIn, FONT_SIZES);
+  if (size != null) return size;
   const smallest = FONT_SIZES[FONT_SIZES.length - 1];
-  const lines = linesNeeded(text, boxWIn, smallest);
-  const neededH = (lines * smallest * LINE_HEIGHT_FACTOR) / PT_PER_INCH;
+  const neededH = textHeightIn(linesNeeded(text, boxWIn, smallest), smallest);
   throw new DiagramOverflowError(
     `diagram label will not fit: "${text}" needs ${neededH.toFixed(2)}in tall at ${smallest}pt ` +
       `(box is ${boxWIn.toFixed(2)}x${boxHIn.toFixed(2)}in). Shorten the label or split the diagram.`

@@ -17,6 +17,14 @@ and classified; this covers what to do with them once you have them.
    never one slide with four thumbnails crammed in. A shrunk screenshot is unreadable and
    defeats the entire purpose of including it.
 
+2a. **Prefer side by side when the step's explanation is short.** A screenshot with 3-5
+   short explanatory bullets reads better next to the bullets than as two separate slides —
+   use a "content"-role slide with a body block and a picture block together, not a
+   dedicated "picture" slide, when the step doesn't need the screenshot at full size. Fall
+   back to a full-slide "picture" role only when the screenshot itself needs the room (a
+   dense form, a full worklist, small print that would shrink further in a half-width
+   column).
+
 3. **Aspect-fit, never distort.** `inject_slide_xml.py`'s `picture` command aspect-fits
    automatically, centered in the target bbox — don't fight this by hand-stretching an
    image to fill a placeholder exactly. A letterboxed screenshot is more readable than a

@@ -243,9 +243,38 @@ export function targetPlaceholders(profile, layoutPart) {
   const phs = layout.placeholders;
   let title = phs.find((p) => p.type === "ctrTitle") ?? phs.find((p) => p.type === "title") ?? null;
   const pic = phs.find((p) => p.type === "pic") ?? null;
+  // Plain x-ascending broke a real template (test/fixtures/templates/real-training-
+  // template.pptx): its "content" layout has ONE big content placeholder plus one small,
+  // unrelated text strip sitting a hair to its left (x 0.45 vs 0.46in) — x-ascending put
+  // the tiny strip in bodies[0], so a "body" block landed in a 0.43in-tall box instead of
+  // the real content area. Pure area-descending (the old comparator) has the opposite
+  // problem: on a genuine two-column layout, two SIMILARLY SIZED placeholders sitting side
+  // by side sort in whichever order they happen to be a few square inches bigger, not by
+  // which one is actually on the left — composeSlide then indexes bodies[0]/[1] as "left
+  // column"/"right column" arbitrarily.
+  //
+  // Only sort by x when the two placeholders are close enough in area to plausibly be
+  // column-peers in the same row (a real two-content layout); otherwise a placeholder
+  // meaningfully bigger than the rest is almost certainly the primary content area
+  // regardless of its x position (a small secondary strip, caption slot, or footer-ish
+  // placeholder should never outrank it), so area-descending still wins. A placeholder
+  // with no recorded geometry sorts last, stably, rather than reordering the others.
+  const AREA_PEER_TOLERANCE = 0.15; // fraction of the larger area the two must be within
   let bodies = bodyPlaceholders(layout)
     .slice()
-    .sort((a, b) => areaFraction(b, profile.slide_size) - areaFraction(a, profile.slide_size));
+    .sort((a, b) => {
+      const areaA = areaFraction(a, profile.slide_size);
+      const areaB = areaFraction(b, profile.slide_size);
+      const arePeers = areaA > 0 && areaB > 0 && Math.abs(areaA - areaB) / Math.max(areaA, areaB) < AREA_PEER_TOLERANCE;
+      if (arePeers) {
+        const ax = a.geometry?.x_in, bx = b.geometry?.x_in;
+        if (ax == null && bx == null) return 0;
+        if (ax == null) return 1;
+        if (bx == null) return -1;
+        return ax - bx;
+      }
+      return areaB - areaA;
+    });
   const subTitle = phs.find((p) => p.type === "subTitle") ?? null;
 
   if (!title && !subTitle && bodies.length >= 1) {

@@ -7,6 +7,11 @@
  * exact rules; this is a direct translation, not a redesign.
  */
 
+// Advisory-only visual-variety thresholds (see the "## 6" block below) — this repo's own
+// judgment call, not a number qa_training.py or any spec dictates. Hoisted to module scope
+// so audit() and renderReport() share one definition rather than each hardcoding "3".
+const REPEAT_RUN_MIN = 3;
+
 export function audit(brief, plan, corpus, questions) {
   const objectives = Object.fromEntries((brief.learning_objectives ?? []).map((o) => [o.lo_id, o]));
   const outOfScope = new Set((brief.out_of_scope ?? []).map((e) => e.section_id));
@@ -95,10 +100,41 @@ export function audit(brief, plan, corpus, questions) {
     }
   }
 
+  // --- advisory: visual variety (not a hard failure — see hardFail() below, which does
+  // not read either of these two fields, so adding them can't change any existing
+  // pass/fail verdict). Two independent, cheap-to-compute signals a human reviewer
+  // benefits from seeing but that don't warrant blocking a build: a "content"-shaped
+  // slide with no image/diagram/table at all (a candidate for the new side-by-side
+  // composition this release adds), and a long run of slides sharing one layout role
+  // (a deck that reads as monotonous even if every individual slide is fine).
+  const CONTENT_ROLES = new Set(["content", "two-content"]);
+  const VISUAL_KINDS = new Set(["image", "diagram", "table"]);
+  const flatSlides = [];
+  for (const mod of plan.modules ?? []) for (const slide of mod.slides ?? []) flatSlides.push(slide);
+
+  const noVisualSlides = flatSlides
+    .filter((s) => CONTENT_ROLES.has(s.role) && !(s.blocks ?? []).some((b) => VISUAL_KINDS.has(b.kind)))
+    .map((s) => s.slide_id);
+
+  // plan.modules here is whatever shape the caller passed in (same as everywhere else in
+  // this function) — not resorted by `order` the way build-pptx.js's own flattening does
+  // before it walks slides. Exact module order isn't worth importing build-pptx's sort
+  // for a non-blocking count; noted as a known minor gap rather than silently assumed away.
+  const repeatedLayoutRuns = [];
+  let runRole = null;
+  let runIds = [];
+  const flushRun = () => { if (runRole && runIds.length >= REPEAT_RUN_MIN) repeatedLayoutRuns.push({ role: runRole, slide_ids: [...runIds] }); };
+  for (const s of flatSlides) {
+    if (s.role === runRole) runIds.push(s.slide_id);
+    else { flushRun(); runRole = s.role; runIds = [s.slide_id]; }
+  }
+  flushRun();
+
   return {
     objectives, loNoSlide, loNoQuestion, questionsChecked, questionErrors,
     missingProvenance, gapMissingNote, uncoveredProcedures, sections,
     unplacedScreenshots, unusedDeclared, lowResPlacedUnacked,
+    noVisualSlides, repeatedLayoutRuns,
   };
 }
 
@@ -181,6 +217,18 @@ export function renderReport(result, planRunId) {
     } else {
       push("No structural defects found in the question bank.");
     }
+  }
+
+  push("", "## 6. Visual variety (advisory)", "");
+  if (result.noVisualSlides.length) {
+    push(`${result.noVisualSlides.length} content slide(s) have no image, diagram, or table:`, "");
+    result.noVisualSlides.forEach((id) => push(`- \`${id}\``));
+  } else {
+    push("Every content slide carries at least one visual element.");
+  }
+  if (result.repeatedLayoutRuns.length) {
+    push("", `${result.repeatedLayoutRuns.length} run(s) of ${REPEAT_RUN_MIN}+ consecutive slides share the same layout role:`, "");
+    result.repeatedLayoutRuns.forEach((r) => push(`- \`${r.role}\`: ${r.slide_ids.join(", ")}`));
   }
 
   push("", "## Handover", "");
