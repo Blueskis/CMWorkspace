@@ -65,6 +65,7 @@
   .btn-small{padding:5px 10px; font-size:12px;}
   .btn-danger{color:var(--bad); border-color:var(--bad);}
   .btn-danger:hover{background:var(--clay-soft);}
+  .btn-danger.armed{background:var(--bad); border-color:var(--bad); color:#fff;}
 
   .topbar{display:flex; align-items:center; gap:16px; padding:12px 20px; border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:5;}
   .brand-mark{display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-weight:600; font-size:18px; flex:0 0 auto;}
@@ -91,6 +92,9 @@
   .lib-item .lib-meta{font-size:11px; color:var(--muted);}
   .lib-remove{flex:0 0 auto; border:none; background:none; color:var(--bad); cursor:pointer; font-size:16px; line-height:1; padding:6px; border-radius:6px;}
   .lib-remove:hover{background:var(--clay-soft);}
+  .lib-confirm{flex-direction:column; align-items:stretch; gap:8px; padding:10px; border:1px solid var(--bad); border-radius:8px; background:var(--clay-soft);}
+  .lib-confirm-text{font-size:12.5px; color:var(--ink); margin:0;}
+  .lib-confirm-actions{display:flex; gap:8px;}
   .no-db-note{font-size:12px; color:var(--muted); background:var(--surface-2); border-radius:8px; padding:10px; line-height:1.5; margin-bottom:16px;}
   .generate-box{border-top:1px solid var(--border); padding-top:14px;}
   .generate-box h3{font-family:var(--font-display); font-size:14px; margin:0 0 4px;}
@@ -933,6 +937,9 @@
     brands: [], currentId: null,
     profile: exampleProfile(),
     saveTimer: null, saving: false,
+    // Which library row (if any) is showing its "delete this?" confirm in place of the ×
+    // button. Not persisted — a transient UI state, reset on any re-render trigger.
+    pendingDeleteId: null,
   };
 
   const els = {};
@@ -981,21 +988,49 @@
       return;
     }
     for (const b of state.brands) {
+      const label = b.name || "Untitled brand";
+
+      // Artifacts run inside a sandboxed iframe that swallows window.confirm — it returns
+      // false immediately without ever showing a dialog, which made the old confirm()-gated
+      // delete silently do nothing. This renders its own in-page confirm instead: clicking ×
+      // swaps the row for a Delete/Cancel pair rather than opening a native dialog.
+      if (state.pendingDeleteId === b.id) {
+        const box = document.createElement("div");
+        box.className = "lib-row lib-confirm";
+        box.innerHTML =
+          '<p class="lib-confirm-text"></p>' +
+          '<div class="lib-confirm-actions">' +
+            '<button type="button" class="btn btn-small btn-danger" data-act="confirm">Delete</button>' +
+            '<button type="button" class="btn btn-small btn-ghost" data-act="cancel">Cancel</button>' +
+          '</div>';
+        box.querySelector(".lib-confirm-text").textContent = 'Delete "' + label + '"? This can’t be undone.';
+        box.querySelector('[data-act="confirm"]').addEventListener("click", () => {
+          state.pendingDeleteId = null;
+          removeBrand(b.id);
+        });
+        box.querySelector('[data-act="cancel"]').addEventListener("click", () => {
+          state.pendingDeleteId = null;
+          renderLibrary();
+        });
+        els.libraryList.appendChild(box);
+        continue;
+      }
+
       const row = document.createElement("div");
       row.className = "lib-row";
       const btn = document.createElement("button");
       btn.className = "lib-item" + (b.id === state.currentId ? " active" : "");
       btn.innerHTML = '<span class="lib-name"></span><span class="lib-meta"></span>';
-      btn.querySelector(".lib-name").textContent = b.name || "Untitled brand";
+      btn.querySelector(".lib-name").textContent = label;
       btn.querySelector(".lib-meta").textContent = "Updated " + fmtWhen(b.updatedAt);
       btn.addEventListener("click", () => selectBrand(b.id));
       const rm = document.createElement("button");
       rm.type = "button";
       rm.className = "lib-remove";
-      rm.setAttribute("aria-label", "Delete " + (b.name || "Untitled brand"));
+      rm.setAttribute("aria-label", "Delete " + label);
       rm.title = "Delete this brand";
       rm.textContent = "×";
-      rm.addEventListener("click", () => removeBrand(b.id));
+      rm.addEventListener("click", () => { state.pendingDeleteId = b.id; renderLibrary(); });
       row.appendChild(btn);
       row.appendChild(rm);
       els.libraryList.appendChild(row);
@@ -1263,15 +1298,16 @@
     }
   }
 
-  // Permanently removes a saved brand from the library. If it's the one currently open in the
-  // editor, drops back to a fresh blank profile rather than leaving the editor pointed at a
-  // brand that no longer exists. The library list itself updates from subscribeLibrary's
-  // onSnapshot once the delete lands, not from an optimistic local edit here.
+  // Permanently removes a saved brand from the library. Confirmation happens in the calling
+  // UI (renderLibrary's inline Delete/Cancel pair) before this is ever called — not here, and
+  // not via window.confirm, which the artifact sandbox swallows (see renderLibrary). If this
+  // was the brand open in the editor, drops back to a fresh blank profile rather than leaving
+  // the editor pointed at one that no longer exists. The library list itself updates from
+  // subscribeLibrary's onSnapshot once the delete lands, not from an optimistic local edit here.
   async function removeBrand(id) {
     if (!state.db) return;
     const b = state.brands.find((x) => x.id === id);
     const label = (b && b.name) || "Untitled brand";
-    if (!confirm('Delete "' + label + '" from the library? This can’t be undone.')) return;
     try {
       try {
         await state.db.doc("brands/" + id).collection("assets").doc("logo").delete();
@@ -1304,17 +1340,37 @@
   // blank state overwrites that same entry (via scheduleSave/doSave) instead of creating a
   // new one; if it isn't saved yet (still the example), the first autosave after this creates
   // a fresh blank library entry, same as editing the example by hand already does.
-  async function resetAll() {
-    const ok = confirm("Reset all fields for this brand? This clears colours, fonts, style, logo, voice and messaging, and can't be undone.");
-    if (!ok) return;
+  function performResetAll() {
     const empty = C.createEmptyProfile();
     empty.meta.created = new Date().toISOString();
     empty.meta.updated = empty.meta.created;
     state.profile = empty;
     renderAll();
-    if (state.db && state.currentId) await saveLogoDoc(null);
+    if (state.db && state.currentId) saveLogoDoc(null);
     scheduleSave();
     showToast("All fields reset.", "good");
+  }
+
+  // Same reasoning as removeBrand: window.confirm never shows a dialog inside the artifact
+  // sandbox and just resolves false, so a confirm()-gated reset silently did nothing. This
+  // arms the button on the first click (relabelling it, no destructive action yet) and only
+  // resets on a second click while armed; a blur or a few seconds of inaction disarms it.
+  let resetArmTimer = null;
+  function disarmResetAll() {
+    clearTimeout(resetArmTimer);
+    resetArmTimer = null;
+    els.resetAllBtn.textContent = "Reset all";
+    els.resetAllBtn.classList.remove("armed");
+  }
+  function handleResetAllClick() {
+    if (resetArmTimer) {
+      disarmResetAll();
+      performResetAll();
+      return;
+    }
+    els.resetAllBtn.textContent = "Click again to confirm";
+    els.resetAllBtn.classList.add("armed");
+    resetArmTimer = setTimeout(disarmResetAll, 4000);
   }
 
   // ---------- logo upload ----------
@@ -1487,7 +1543,8 @@
     els.exportMdBtn.addEventListener("click", exportMd);
     els.newBrandBtn.addEventListener("click", newBrand);
     els.genBtn.addEventListener("click", runGenerate);
-    els.resetAllBtn.addEventListener("click", resetAll);
+    els.resetAllBtn.addEventListener("click", handleResetAllClick);
+    els.resetAllBtn.addEventListener("blur", disarmResetAll);
 
     // Same toggle logic as the Change Comms Console artifact: session-only, no persistence —
     // it starts from the OS preference each time the page loads.
