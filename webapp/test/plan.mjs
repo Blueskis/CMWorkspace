@@ -1,6 +1,6 @@
 import {
   generatePlan, chunkSections, briefPrompt, modulePlanPrompt, slideCopyPrompt,
-  questionsPrompt, tryRepairJson, extractExample,
+  questionsPrompt, tryRepairJson, extractExample, describeJsonFailure,
 } from "../src/plan.js";
 import { parseDocx } from "../src/parse-docx.js";
 import { readFileSync } from "node:fs";
@@ -246,7 +246,76 @@ const cutShortResult = tryRepairJson(cutShort);
 if (!cutShortResult || !Array.isArray(cutShortResult.questions) || cutShortResult.questions[0].question_id !== "Q1") { console.log("FAIL: expected unterminated tail to be recovered", cutShortResult); process.exit(1); }
 console.log("  unterminated tail -> recovered OK");
 
+// --- malformed-but-COMPLETE replies. These are the cases the real FSD provokes: its
+// section text contains literal quoted labels (BL99 "Legacy block - reason not recorded",
+// the "Procurement" space) and 60 line breaks, and a model copying one into a value
+// verbatim emits JSON that is finished but unparseable. All four were unrepairable until
+// the sanitize passes were added.
+const innerQuotes = '{"slides":[{"slide_id":"s1","blocks":[{"slot":"body","kind":"bullets","content":["Reason code BL99 "Legacy block - reason not recorded" applies","Use the "Procurement" space"],"sources":["d#3.3"]}]}]}';
+const innerQuotesResult = tryRepairJson(innerQuotes);
+if (!innerQuotesResult) { console.log("FAIL: expected unescaped inner quotes to be repaired"); process.exit(1); }
+const recoveredBullets = innerQuotesResult.slides[0].blocks[0].content;
+// the quoted label must survive as CONTENT, not be silently dropped or mangled
+if (recoveredBullets[0] !== 'Reason code BL99 "Legacy block - reason not recorded" applies'
+  || recoveredBullets[1] !== 'Use the "Procurement" space') {
+  console.log("FAIL: inner-quote repair lost or mangled the text", recoveredBullets); process.exit(1);
+}
+console.log("  unescaped inner quotes -> repaired, quoted labels preserved verbatim OK");
+
+const rawNewline = '{"slides":[{"slide_id":"s1","speaker_notes":"First line.\nSecond line.","blocks":[]}]}';
+const rawNewlineResult = tryRepairJson(rawNewline);
+if (!rawNewlineResult || rawNewlineResult.slides[0].speaker_notes !== "First line.\nSecond line.") {
+  console.log("FAIL: expected raw line break in a string to be repaired", rawNewlineResult); process.exit(1);
+}
+console.log("  raw line break inside a string -> repaired OK");
+
+const trailingComma = '{"slides":[{"slide_id":"s1","blocks":[],}]}';
+if (!tryRepairJson(trailingComma)) { console.log("FAIL: expected trailing comma to be repaired"); process.exit(1); }
+console.log("  trailing comma -> repaired OK");
+
+// The sentence that defeats a naive "a quote before a comma closes the string" rule —
+// taken verbatim from the real FSD's section 5.3. Keep this exact case: it is why
+// quoteClosesString has to look PAST the comma at what the container expects next.
+const sec53 = 'All user entry runs through the SAP Fiori launchpad space "Procurement", page "Supplier Governance". Classic GUI access is retained only for the mass job.';
+const sec53Reply = '{"slides":[{"slide_id":"s1","speaker_notes":"' + sec53 + '","blocks":[]}]}';
+const sec53Result = tryRepairJson(sec53Reply);
+if (!sec53Result || sec53Result.slides[0].speaker_notes !== sec53) {
+  console.log("FAIL: expected the real 5.3 sentence to be recovered verbatim", sec53Result?.slides?.[0]?.speaker_notes);
+  process.exit(1);
+}
+console.log("  quote-before-comma (real FSD 5.3 sentence) -> repaired verbatim OK");
+
+const bothAtOnce = '{"a":"he said "hi"\nthen left","b":1}';
+const bothResult = tryRepairJson(bothAtOnce);
+if (!bothResult || bothResult.a !== 'he said "hi"\nthen left' || bothResult.b !== 1) {
+  console.log("FAIL: expected quotes+newline together to be repaired", bothResult); process.exit(1);
+}
+console.log("  unescaped quote AND line break together -> repaired OK");
+
 console.log("\nAll tryRepairJson checks passed.");
+
+// --- describeJsonFailure: the error screen must distinguish a genuinely cut-short reply
+// from a complete-but-malformed one. Conflating them (a bare slice(0,600) made every
+// reply look truncated) is what sent two rounds of fixes after the wrong root cause.
+console.log("\n### describeJsonFailure");
+
+const dTruncated = describeJsonFailure('{"slides":[{"slide_id":"s1","role":"picture","blocks":[{"slot":"title"');
+if (!dTruncated.truncated) { console.log("FAIL: a cut-short reply must report truncated=true"); process.exit(1); }
+console.log(`  cut-short reply -> truncated=true, length=${dTruncated.length} OK`);
+
+const dMalformed = describeJsonFailure(innerQuotes);
+if (dMalformed.truncated) { console.log("FAIL: a complete-but-malformed reply must NOT report truncated=true"); process.exit(1); }
+if (dMalformed.length !== innerQuotes.length) { console.log("FAIL: reported length must be the true reply length"); process.exit(1); }
+console.log(`  complete-but-malformed reply -> truncated=false, length=${dMalformed.length} OK`);
+
+// the snippet must show the text AROUND the parse error, not just the start of the reply
+const longPrefix = '{"pad":"' + "x".repeat(3000) + '","bad":"he said "hi""}';
+const dLong = describeJsonFailure(longPrefix);
+if (dLong.position === null || dLong.position < 3000) { console.log("FAIL: expected the parse error position deep in the reply", dLong.position); process.exit(1); }
+if (!dLong.snippet.includes("he said")) { console.log("FAIL: snippet must show the text around the error, not the first 600 chars"); process.exit(1); }
+console.log(`  error 3000+ chars in -> position=${dLong.position}, snippet centred on the fault OK`);
+
+console.log("\nAll describeJsonFailure checks passed.");
 
 // --- every prompt's worked example must be JSON.parse-able on its own — the guard
 // against this exact bug class returning ---

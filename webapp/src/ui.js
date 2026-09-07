@@ -10,7 +10,7 @@
 import { parseSources } from "./parse.js";
 import { profileTemplate } from "./profile-template.js";
 import { resolveLayoutRoles, ROLES, ROLE_LABELS } from "./map-layouts.js";
-import { generatePlan } from "./plan.js";
+import { generatePlan, describeJsonFailure } from "./plan.js";
 import { buildPptx } from "./build-pptx.js";
 import { audit, hardFail, renderReport } from "./qa.js";
 import { SAMPLE_TEMPLATE, SAMPLE_FSD } from "./sample-data.js";
@@ -444,13 +444,34 @@ function startOver(root) {
 // error step
 // ---------------------------------------------------------------------------
 
+/**
+ * Show what was actually wrong with an unparseable reply. Deliberately NOT a plain
+ * `slice(0, 600)`: that made every failure look truncated regardless of whether it was,
+ * and sent two rounds of fixes after the wrong cause. State the real length, say whether
+ * the reply genuinely ends mid-value, and show the text around the parse error.
+ */
+function renderReplyDiagnosis(text) {
+  const d = describeJsonFailure(text);
+  if (!d) return null;
+  const headline = d.truncated
+    ? `Claude's reply was ${d.length} characters and ends mid-value — it was cut short.`
+    : `Claude's reply was ${d.length} characters and is complete, but its JSON is malformed`
+      + (d.position === null ? "." : ` at character ${d.position}.`);
+  return el("div", {}, [
+    el("p", { class: "muted" }, headline),
+    el("p", { class: "muted" }, d.message),
+    el("pre", { class: "qa-report" }, d.snippet),
+  ]);
+}
+
 // Copy for the error classes the sample() contract calls out by name — everything else
 // falls back to the raw message. Matches sample.d.ts's own grouping: retriable-with-a-
 // button, permanent/hide-the-feature, or "tell the viewer, they may try again later".
 const ERROR_COPY = {
-  invalid_json: "Claude's reply for this step didn't come back as usable data. This isn't " +
-    "cached, so trying again usually works — if it keeps happening, the source content " +
-    "for this step may be unusually large or unusual in a way worth reporting.",
+  invalid_json: "Claude's reply for this step didn't come back as usable data. Malformed " +
+    "replies are repaired automatically where possible, so reaching this screen means the " +
+    "reply couldn't be salvaged. This isn't cached — trying again usually works. The " +
+    "details below say exactly what was wrong; they're worth reporting if it persists.",
   upstream_error: "A temporary issue reaching Claude. This one usually clears up on retry.",
   rate_limited: "Too many requests right now (yours or Claude's usage limit). Wait a moment before trying again.",
   refused: "Claude declined to continue with this content. Retrying with the same input will likely give the same result.",
@@ -476,13 +497,7 @@ function renderError(root) {
         state.errorRetriable && resumedStages.length
           ? el("p", { class: "muted" }, "Trying again will resume from here — earlier steps that already succeeded won't be re-asked.")
           : null,
-        state.errorReplyText
-          ? el("div", {}, [
-              el("p", { class: "muted" }, "Claude's raw reply:"),
-              el("pre", { class: "qa-report" }, state.errorReplyText.slice(0, 600)
-                + (state.errorReplyText.length > 600 ? "…" : "")),
-            ])
-          : null,
+        state.errorReplyText ? renderReplyDiagnosis(state.errorReplyText) : null,
       ]),
       el("div", { class: "panel__actions" }, [
         state.errorRetriable && state.corpus

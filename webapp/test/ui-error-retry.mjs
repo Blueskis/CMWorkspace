@@ -140,8 +140,13 @@ const errorText = getText(findAll(rootEl, (n) => n.className === "notice notice-
 console.log("error step shows:", errorText);
 assert.ok(errorText.includes("the reply held no JSON value"), "expected the raw sample.json() message to be shown");
 assert.ok(errorText.includes("isn't"), "expected the invalid_json explanatory copy to be shown");
-assert.ok(errorText.includes("Claude's raw reply"), "expected the raw-reply preview label to be shown");
-assert.ok(errorText.includes('{"system": string (a name)'), "expected the raw reply preview text itself to be shown");
+assert.ok(errorText.includes("Claude's reply was"), "expected the reply diagnosis line to be shown");
+assert.ok(errorText.includes('{"system": string (a name)'), "expected the raw reply text itself to be shown");
+// This reply is complete, just malformed — the diagnosis must say so rather than letting
+// it read as truncated, which is exactly the misreading that cost two rounds of fixes.
+assert.ok(errorText.includes("is complete, but its JSON is malformed"),
+  "a complete-but-malformed reply must not be described as cut short");
+assert.ok(/reply was \d+ characters/.test(errorText), "expected the reply's true length to be reported");
 
 const tryAgainBtn = findAll(rootEl, (n) => n.tag === "button" && getText(n) === "Try again")[0];
 assert.ok(tryAgainBtn, "expected a 'Try again' button for a retriable (invalid_json) failure");

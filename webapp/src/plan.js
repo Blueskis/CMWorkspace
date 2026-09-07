@@ -22,11 +22,16 @@ const MODEL_TIER = "complex"; // this is drafting work, not a quick lookup
 
 // slideCopyPrompt asks for full content (title + bullets + speaker_notes + any diagram
 // spec) for EVERY slide in a module, in one reply — chunkSections only bounds the INPUT
-// side (source section text), not this OUTPUT side. A module the module-plan stage packed
-// with many slides (a dense mass-processing module, say) can still demand a reply long
-// enough to hit the length limit mid-JSON, which surfaces as invalid_json's "cut short"
-// variant — a real failure hit in production, not a hypothetical. Capping slides per call
-// bounds the output the same way chunkSections already bounds the input.
+// side (source section text), not this OUTPUT side, so a module packed with many slides
+// can demand an unboundedly long reply. Capping slides per call bounds the output the
+// same way chunkSections bounds the input, and makes each call's failure cheaper to retry.
+//
+// Honest history: this was originally added believing it fixed a reported invalid_json
+// failure, on the evidence of a raw reply that looked cut off mid-JSON. It was not — that
+// reply only LOOKED truncated because the error screen sliced it to 600 characters for
+// display (see describeJsonFailure, which exists so that misreading can't recur). The real
+// cause was malformed JSON in a complete reply. This cap is kept because bounding the
+// output is right on its own merits, not because it fixed that bug.
 const MAX_SLIDES_PER_CALL = 4;
 
 // Stable marker lines around each prompt's worked example — every example block must be
@@ -35,6 +40,15 @@ const MAX_SLIDES_PER_CALL = 4;
 // not JSON syntax and are never mistaken for it because they sit outside the braces.
 const EXAMPLE_START = "--- EXAMPLE (shape only — write real content) ---";
 const EXAMPLE_END = "--- END EXAMPLE ---";
+
+// The source documents genuinely contain quoted labels (BL99 "Legacy block - reason not
+// recorded", the "Procurement" space) and multi-line passages. Copying one into a value
+// without escaping it makes the whole reply unparseable and fails the run, so say so
+// explicitly rather than relying on the model to get it right by default.
+const JSON_HYGIENE = `Two rules about the JSON itself, because the source text below contains both:
+- Escape every double quote inside a text value as \\" — the source quotes things like
+  BL99 "Legacy block - reason not recorded", and an unescaped quote breaks the whole reply.
+- Never put a real line break inside a value. Replace it with a space.`;
 
 /** Pull the JSON example out of a prompt built with EXAMPLE_START/EXAMPLE_END markers. */
 export function extractExample(promptText) {
@@ -98,6 +112,8 @@ Return ONLY a JSON object shaped exactly like this example — your entire reply
 the JSON value alone, with no explanation, preamble, or commentary before or after it.
 Use the example only to see the shape; write real content drawn from the outline below.
 
+${JSON_HYGIENE}
+
 ${EXAMPLE_START}
 {
   "system": "Supplier Block/Unblock",
@@ -159,6 +175,8 @@ ${JSON.stringify(screenshotSections, null, 0)}
 Return ONLY a JSON object shaped exactly like this example — your entire reply must be
 the JSON value alone, no explanation before or after it. Use the example only to see the
 shape; write real modules and slides drawn from the brief and outline above.
+
+${JSON_HYGIENE}
 
 ${EXAMPLE_START}
 {
@@ -240,6 +258,8 @@ ${JSON.stringify(screenshots.map((a) => ({ asset_id: a.asset_id, section_id: a.s
 Return ONLY a JSON object shaped exactly like this example — your entire reply must be
 the JSON value alone, no explanation before or after it. Use the example only to see the
 shape; write real slide content drawn only from the source sections above.
+
+${JSON_HYGIENE}
 
 ${EXAMPLE_START}
 {
@@ -327,6 +347,8 @@ Return ONLY a JSON object shaped exactly like this example, with exactly ${count
 entries in "questions" — your entire reply must be the JSON value alone, no explanation
 before or after it. Use the example only to see the shape; write real questions drawn
 only from the source text above.
+
+${JSON_HYGIENE}
 
 ${EXAMPLE_START}
 {
@@ -492,6 +514,139 @@ function tryCloseUnterminated(text) {
   return undefined;
 }
 
+/** Index of the next non-whitespace character at or after `i`, or text.length at EOF. */
+function nextNonSpaceIndex(text, i) {
+  while (i < text.length && /\s/.test(text[i])) i++;
+  return i;
+}
+function nextNonSpace(text, i) {
+  const j = nextNonSpaceIndex(text, i);
+  return j < text.length ? text[j] : "";
+}
+
+/** Characters a JSON value may legally begin with. */
+const VALUE_STARTS = /[-0-9"{[tfn]/;
+
+/**
+ * Decide whether the quote at `i` really ends the string, or is an unescaped quote inside
+ * it. `stack` is the enclosing container chain ("{" or "[").
+ *
+ * A purely local rule ("closes if followed by , : } ]") is not good enough on the real
+ * source text: the FSD contains `space "Procurement", page "Supplier Governance"`, where an
+ * inner quote sits immediately before a comma and a local rule ends the string in the wrong
+ * place. So for a comma, look past it — inside an object the next token must be the next
+ * key (a quote), and inside an array it must be the start of a value. In that sentence the
+ * comma is followed by ` page`, which is neither, so the quote is correctly read as content.
+ */
+function quoteClosesString(text, i, stack) {
+  const nIdx = nextNonSpaceIndex(text, i + 1);
+  const n = nIdx < text.length ? text[nIdx] : "";
+  if (n === "" || n === ":" || n === "}" || n === "]") return true;
+  if (n !== ",") return false; // a letter, digit or punctuation follows: an inner quote
+  const after = nextNonSpace(text, nIdx + 1);
+  if (after === "") return true;
+  return stack[stack.length - 1] === "{"
+    ? after === '"' // the next thing in an object must be a key
+    : VALUE_STARTS.test(after);
+}
+
+/**
+ * Re-emit `text` with the malformations a model actually produces repaired, string-aware.
+ *
+ * Each flag is a separate, escalating repair so the least invasive fix that works wins —
+ * `quotes` in particular is a heuristic that can misfire (an inner quote that happens to
+ * sit right before a comma reads as a closing quote), so it is only ever reached after
+ * the safe passes have failed.
+ *
+ *  - controls: a raw newline or tab inside a string literal. The source FSD has 60 line
+ *    breaks in its section text; copying a passage verbatim into a value produces these.
+ *  - commas: a trailing comma before } or ].
+ *  - quotes: an unescaped double quote inside a string value. The source text really does
+ *    contain quoted labels (`BL99 "Legacy block - reason not recorded"`, the "Procurement"
+ *    space), and quoting one into a value without escaping it breaks the whole reply.
+ */
+function sanitizeJsonText(text, { controls = false, commas = false, quotes = false } = {}) {
+  let out = "";
+  let inString = false;
+  const stack = []; // enclosing containers, so the quote rule knows what may follow a comma
+
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+
+    if (!inString) {
+      if (c === '"') { inString = true; out += c; continue; }
+      if (c === "{" || c === "[") stack.push(c);
+      else if (c === "}" || c === "]") stack.pop();
+      if (commas && c === ",") {
+        const n = nextNonSpace(text, i + 1);
+        if (n === "}" || n === "]") continue; // drop it
+      }
+      out += c;
+      continue;
+    }
+
+    if (c === "\\") {
+      const n = text[i + 1];
+      if (n === undefined) { out += "\\\\"; continue; }
+      if ('"\\/bfnrtu'.includes(n)) { out += c + n; i++; continue; } // a valid escape, keep it
+      out += "\\\\" + n; i++; continue; // an invalid one, so the backslash was literal
+    }
+    if (c === '"') {
+      if (quotes && !quoteClosesString(text, i, stack)) { out += '\\"'; continue; }
+      inString = false; out += c; continue;
+    }
+    if (c < " ") {
+      if (!controls) { out += c; continue; }
+      out += c === "\n" ? "\\n" : c === "\r" ? "\\r" : c === "\t" ? "\\t"
+        : "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0");
+      continue;
+    }
+    out += c;
+  }
+  return out;
+}
+
+// Least invasive first: never apply the risky quote heuristic to a reply a safer pass fixes.
+const SANITIZE_PASSES = [
+  { controls: true },
+  { controls: true, commas: true },
+  { controls: true, commas: true, quotes: true },
+];
+
+/**
+ * Describe WHY a reply would not parse, for the error screen.
+ *
+ * This exists because of a real misdiagnosis: the error screen previously showed a bare
+ * `text.slice(0, 600)`, so every failing reply looked cut off mid-JSON whether it was or
+ * not, and two rounds of fixes chased a truncation that was never happening. Report the
+ * true length, say plainly whether the reply actually ends mid-value, and show the text
+ * AROUND the parse error rather than the first 600 characters of a reply whose problem
+ * may be 4000 characters in.
+ *
+ * @returns {{length:number, truncated:boolean, message:string, position:number|null,
+ *            snippet:string, caretOffset:number}|null}
+ */
+export function describeJsonFailure(text) {
+  if (typeof text !== "string" || !text) return null;
+  let message = "";
+  try {
+    JSON.parse(text);
+    return { length: text.length, truncated: false, message: "This reply parses as JSON.", position: null, snippet: text.slice(0, 600), caretOffset: -1 };
+  } catch (e) {
+    message = e.message;
+  }
+
+  const posMatch = /at position (\d+)/.exec(message);
+  const position = posMatch ? Number(posMatch[1]) : null;
+  const { stack, inString } = scanBracketState(text);
+  const truncated = stack.length > 0 || inString;
+
+  const centre = position ?? text.length;
+  const from = Math.max(0, centre - 220);
+  const snippet = text.slice(from, Math.min(text.length, centre + 220));
+  return { length: text.length, truncated, message, position, snippet, caretOffset: centre - from };
+}
+
 /**
  * Try to recover a JSON value from a raw reply the platform's own reader rejected.
  * Returns the parsed value, or `null` when nothing usable can be recovered. Never throws.
@@ -517,6 +672,23 @@ export function tryRepairJson(text) {
 
   attempt = tryCloseUnterminated(text);
   if (attempt !== undefined) return attempt;
+
+  // Everything above assumes the reply is well-formed JSON somewhere inside a wrapper, or
+  // simply cut short. The remaining case is a COMPLETE reply whose JSON is malformed — a
+  // raw line break or an unescaped quote inside a string value. Escalate through the
+  // sanitize passes, over the whole reply and over each balanced span, and take the first
+  // that parses. Least invasive pass first, so a reply that only needed its control
+  // characters escaped never has the riskier quote heuristic applied to it.
+  const candidates = [text, ...spans];
+  for (const pass of SANITIZE_PASSES) {
+    for (const candidate of candidates) {
+      attempt = safeJsonParse(sanitizeJsonText(candidate, pass));
+      if (attempt !== undefined) return attempt;
+      // A malformed reply can also be a cut-short one; close it after sanitizing.
+      attempt = tryCloseUnterminated(sanitizeJsonText(candidate, pass));
+      if (attempt !== undefined) return attempt;
+    }
+  }
 
   return null;
 }
