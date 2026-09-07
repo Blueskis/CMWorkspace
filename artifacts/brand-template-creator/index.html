@@ -1,29 +1,53 @@
 <title>Brand Vault</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Instrument+Serif&family=Libre+Caslon+Text:wght@400;700&family=Newsreader:wght@400;500;600&family=Spectral:wght@400;600&family=Zilla+Slab:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Archivo:wght@500;700&family=Sora:wght@400;600;700&family=Manrope:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600&family=Bricolage+Grotesque:wght@500;700&display=swap">
 <style>
+  /* Palette, type and shadow tokens ported from the Change Comms Console artifact, so the
+     two consoles read as one system. --bg/--muted/--border/--good/--bad/--warn are kept as
+     aliases so the rest of this file's rules don't need touching. */
   :root{
-    --bg:#f1efe9; --surface:#ffffff; --surface-2:#e9e6dd; --ink:#1e1c18; --muted:#6f6a5e;
-    --border:#dcd8cc; --accent:#2f5d50; --accent-ink:#ffffff; --accent-soft:#e3ede9;
-    --good:#2f7d4f; --bad:#b3261e; --warn:#b5451c; --shadow: 0 1px 2px rgba(30,28,24,.06), 0 6px 20px rgba(30,28,24,.05);
-    --font-display:'Fraunces', Georgia, serif; --font-body:'IBM Plex Sans', Arial, sans-serif; --font-mono:'IBM Plex Mono', Consolas, monospace;
+    color-scheme: light dark;
+    --paper:#F3F5F9; --surface:#FFFFFF; --surface-2:#EAEEF5;
+    --ink:#12161F; --ink-2:#4C5666; --ink-3:#5A6372;
+    --line:#DCE1EA; --line-strong:#BFC7D4;
+    --accent:#2E3D77; --accent-ink:#FFFFFF; --accent-soft:#E4E8F6;
+    --jade:#0B6B54; --jade-soft:#E0F0EA; --amber:#8C5E0C; --amber-soft:#F7EBD5;
+    --clay:#A33D2E; --clay-soft:#F7E4E0;
+    --shadow: 0 1px 2px rgba(18,22,31,.06), 0 8px 24px -16px rgba(18,22,31,.35);
+    --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --bg:var(--paper); --muted:var(--ink-2); --border:var(--line); --border-strong:var(--line-strong);
+    --good:var(--jade); --bad:var(--clay); --warn:var(--amber);
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#17181b; --surface:#1f2024; --surface-2:#26282d; --ink:#ece9e2; --muted:#a19b8c;
-      --border:#34363b; --accent:#6fb79a; --accent-ink:#0d1210; --accent-soft:#223530;
-      --good:#5fbf85; --bad:#e5776b; --warn:#e2a15c; --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 24px rgba(0,0,0,.35);
+      --paper:#0E1117; --surface:#171B23; --surface-2:#1F242E;
+      --ink:#E8EBF2; --ink-2:#A5AEBD; --ink-3:#7B8494;
+      --line:#2A303B; --line-strong:#3B4351;
+      --accent:#97A5EA; --accent-ink:#10131B; --accent-soft:#1C2340;
+      --jade:#4FC7A0; --jade-soft:#12302A; --amber:#D9A54E; --amber-soft:#2E2617;
+      --clay:#E38375; --clay-soft:#33201D;
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+      --bg:var(--paper); --muted:var(--ink-2); --border:var(--line); --border-strong:var(--line-strong);
+      --good:var(--jade); --bad:var(--clay); --warn:var(--amber);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#17181b; --surface:#1f2024; --surface-2:#26282d; --ink:#ece9e2; --muted:#a19b8c;
-    --border:#34363b; --accent:#6fb79a; --accent-ink:#0d1210; --accent-soft:#223530;
-    --good:#5fbf85; --bad:#e5776b; --warn:#e2a15c; --shadow:0 1px 2px rgba(0,0,0,.3), 0 6px 24px rgba(0,0,0,.35);
+    --paper:#0E1117; --surface:#171B23; --surface-2:#1F242E;
+    --ink:#E8EBF2; --ink-2:#A5AEBD; --ink-3:#7B8494;
+    --line:#2A303B; --line-strong:#3B4351;
+    --accent:#97A5EA; --accent-ink:#10131B; --accent-soft:#1C2340;
+    --jade:#4FC7A0; --jade-soft:#12302A; --amber:#D9A54E; --amber-soft:#2E2617;
+    --clay:#E38375; --clay-soft:#33201D;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+    --bg:var(--paper); --muted:var(--ink-2); --border:var(--line); --border-strong:var(--line-strong);
+    --good:var(--jade); --bad:var(--clay); --warn:var(--amber);
   }
   *{box-sizing:border-box;}
   body{background:var(--bg); color:var(--ink); font-family:var(--font-body); margin:0;}
   .app{min-height:100%; display:flex; flex-direction:column;}
   button{font-family:inherit;}
-  input,textarea,select{font-family:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--border); border-radius:8px; padding:8px 10px; font-size:13.5px;}
+  input,textarea,select{font-family:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--border-strong); border-radius:8px; padding:8px 10px; font-size:13.5px;}
   input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
   textarea{resize:vertical; width:100%;}
   label{font-size:12px; color:var(--muted); display:block; margin:0 0 4px;}
@@ -32,13 +56,15 @@
   .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
   .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;}
 
-  .btn{border-radius:8px; border:1px solid var(--border); background:var(--surface); color:var(--ink); padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer;}
+  .btn{border-radius:8px; border:1px solid var(--border-strong); background:var(--surface); color:var(--ink); padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer;}
   .btn:hover{border-color:var(--accent);}
   .btn:disabled{opacity:.5; cursor:default;}
   .btn-primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
   .btn-accent{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); width:100%; margin-top:10px;}
   .btn-ghost{background:transparent;}
   .btn-small{padding:5px 10px; font-size:12px;}
+  .btn-danger{color:var(--bad); border-color:var(--bad);}
+  .btn-danger:hover{background:var(--clay-soft);}
 
   .topbar{display:flex; align-items:center; gap:16px; padding:12px 20px; border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:5;}
   .brand-mark{display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-weight:600; font-size:18px; flex:0 0 auto;}
@@ -148,6 +174,8 @@
       <span id="saveStatus" class="save-status"></span>
     </div>
     <div class="topbar-actions">
+      <button id="themeToggleBtn" class="btn btn-ghost btn-small" title="Toggle light/dark">Theme</button>
+      <button id="resetAllBtn" class="btn btn-ghost btn-small btn-danger" title="Clear every field on this brand">Reset all</button>
       <button id="exportMdBtn" class="btn btn-ghost">Export .md</button>
       <button id="exportJsonBtn" class="btn btn-primary">Export .json</button>
     </div>
@@ -1200,6 +1228,24 @@
     if (state.db) await createBrandFromCurrent();
   }
 
+  // Clears every field on the brand currently open in the editor — the name included — back
+  // to blank, rather than deleting it from the library. If this brand is already saved, the
+  // blank state overwrites that same entry (via scheduleSave/doSave) instead of creating a
+  // new one; if it isn't saved yet (still the example), the first autosave after this creates
+  // a fresh blank library entry, same as editing the example by hand already does.
+  async function resetAll() {
+    const ok = confirm("Reset all fields for this brand? This clears colours, fonts, style, logo, voice and messaging, and can't be undone.");
+    if (!ok) return;
+    const empty = C.createEmptyProfile();
+    empty.meta.created = new Date().toISOString();
+    empty.meta.updated = empty.meta.created;
+    state.profile = empty;
+    renderAll();
+    if (state.db && state.currentId) await saveLogoDoc(null);
+    scheduleSave();
+    showToast("All fields reset.", "good");
+  }
+
   // ---------- logo upload ----------
   function readFileAsDataUrl(file) {
     return new Promise((resolve, reject) => {
@@ -1353,7 +1399,7 @@
   // ---------- wiring ----------
   function wire() {
     [
-      "nameInput", "saveStatus", "exportMdBtn", "exportJsonBtn",
+      "nameInput", "saveStatus", "themeToggleBtn", "resetAllBtn", "exportMdBtn", "exportJsonBtn",
       "libraryPane", "libraryList", "noDbNote", "generateBox", "genDesc", "genOverwrite", "genBtn", "genStatus", "newBrandBtn",
       "editorPane", "tabs", "presetGrid", "descriptorsInput", "imageryInput", "layoutFeelInput",
       "colorRows",
@@ -1370,6 +1416,15 @@
     els.exportMdBtn.addEventListener("click", exportMd);
     els.newBrandBtn.addEventListener("click", newBrand);
     els.genBtn.addEventListener("click", runGenerate);
+    els.resetAllBtn.addEventListener("click", resetAll);
+
+    // Same toggle logic as the Change Comms Console artifact: session-only, no persistence —
+    // it starts from the OS preference each time the page loads.
+    els.themeToggleBtn.addEventListener("click", () => {
+      const cur = document.documentElement.getAttribute("data-theme");
+      const isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+    });
 
     els.tabs.addEventListener("click", (e) => {
       const btn = e.target.closest(".tab");
