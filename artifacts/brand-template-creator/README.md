@@ -51,7 +51,13 @@ If you change the export or import logic, edit the code inside those markers dir
   logo kept separately under `brands/<id>/assets/logo` so the library list stays light. Every viewer
   who can edit the artifact can read and write every brand in the library — this is meant to work as
   a shared library for a firm's CoE, not a private workspace, so be aware of that before you share the
-  link with a wider group.
+  link with a wider group. Each brand in the library has its own delete (×) button, with a confirm
+  prompt — deleting the brand currently open in the editor drops back to a fresh blank profile rather
+  than leaving the editor pointed at something that no longer exists.
+- **Theme**: the topbar's Theme button toggles light/dark for the session (same behaviour as the
+  Change Comms Console artifact) — it isn't remembered between visits, so it starts from the browser's
+  own preference each time. **Reset all** clears every field on the currently open brand back to
+  blank, after a confirm prompt; it doesn't remove the brand from the library, only its contents.
 - **AI generation** (`sample` capability): describe the client in a couple of sentences and Claude
   proposes a full profile. By default it only fills in fields that are still empty — a manual edit is
   never silently overwritten — with an explicit toggle to overwrite everything instead. A malformed

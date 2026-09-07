@@ -83,11 +83,14 @@
   .library-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
   .library-head h2{font-family:var(--font-display); font-size:14px; margin:0; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
   .library-list{display:flex; flex-direction:column; gap:6px; margin-bottom:16px;}
-  .lib-item{display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:9px 10px; border-radius:8px; border:1px solid transparent; background:transparent; cursor:pointer; text-align:left; width:100%;}
+  .lib-row{display:flex; align-items:stretch; gap:4px;}
+  .lib-item{display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; padding:9px 10px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--ink); cursor:pointer; text-align:left; flex:1; min-width:0;}
   .lib-item:hover{background:var(--surface-2);}
   .lib-item.active{background:var(--accent-soft); border-color:var(--accent);}
   .lib-item .lib-name{font-weight:600; font-size:13.5px;}
   .lib-item .lib-meta{font-size:11px; color:var(--muted);}
+  .lib-remove{flex:0 0 auto; border:none; background:none; color:var(--bad); cursor:pointer; font-size:16px; line-height:1; padding:6px; border-radius:6px;}
+  .lib-remove:hover{background:var(--clay-soft);}
   .no-db-note{font-size:12px; color:var(--muted); background:var(--surface-2); border-radius:8px; padding:10px; line-height:1.5; margin-bottom:16px;}
   .generate-box{border-top:1px solid var(--border); padding-top:14px;}
   .generate-box h3{font-family:var(--font-display); font-size:14px; margin:0 0 4px;}
@@ -117,7 +120,7 @@
   .contrast-badge.fail{background:color-mix(in srgb, var(--bad) 16%, transparent); color:var(--bad);}
 
   .preset-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:18px;}
-  .preset-card{border:1px solid var(--border); border-radius:10px; padding:9px; cursor:pointer; background:var(--surface); text-align:left;}
+  .preset-card{border:1px solid var(--border); border-radius:10px; padding:9px; cursor:pointer; background:var(--surface); color:var(--ink); text-align:left;}
   .preset-card:hover{border-color:var(--accent);}
   .preset-card.active{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent);}
   .preset-swatches{display:flex; gap:3px; margin-bottom:6px;}
@@ -236,14 +239,14 @@
 
       <section class="panel" data-panel="type">
         <h2>Typography</h2>
-        <p class="sub">Pick from the curated list for a live preview, or type any Google Fonts name &mdash; the fallback stack is what actually ships in the export.</p>
+        <p class="sub">Pick from the curated list for a live preview, or type any Google Fonts name &mdash; the backup font is what shows if that font can't load.</p>
         <div class="row2">
           <div class="field">
             <label for="headingFontInput">Heading font</label>
             <input type="text" id="headingFontInput" list="fontList" placeholder="e.g. Fraunces" />
           </div>
           <div class="field">
-            <label for="headingFallbackInput">Heading fallback stack</label>
+            <label for="headingFallbackInput">Backup heading font</label>
             <input type="text" id="headingFallbackInput" placeholder="Georgia, serif" />
           </div>
         </div>
@@ -253,23 +256,23 @@
             <input type="text" id="bodyFontInput" list="fontList" placeholder="e.g. IBM Plex Sans" />
           </div>
           <div class="field">
-            <label for="bodyFallbackInput">Body fallback stack</label>
+            <label for="bodyFallbackInput">Backup body font</label>
             <input type="text" id="bodyFallbackInput" placeholder="Arial, sans-serif" />
           </div>
         </div>
         <datalist id="fontList"></datalist>
         <div class="row3">
           <div class="field">
-            <label for="headingWeightInput">Heading weight</label>
-            <input type="number" id="headingWeightInput" min="100" max="900" step="100" />
+            <label for="headingWeightInput">Heading style</label>
+            <select id="headingWeightInput"></select>
           </div>
           <div class="field">
-            <label for="bodyWeightInput">Body weight</label>
-            <input type="number" id="bodyWeightInput" min="100" max="900" step="100" />
+            <label for="bodyWeightInput">Body style</label>
+            <select id="bodyWeightInput"></select>
           </div>
           <div class="field">
-            <label for="scaleRatioInput">Type scale ratio</label>
-            <input type="number" id="scaleRatioInput" min="1" max="2" step="0.01" />
+            <label for="scaleRatioInput">Heading size</label>
+            <select id="scaleRatioInput"></select>
           </div>
         </div>
       </section>
@@ -860,6 +863,36 @@
   const CURATED_FONTS = ["Fraunces", "Instrument Serif", "Libre Caslon Text", "Newsreader", "Spectral", "Zilla Slab",
     "IBM Plex Sans", "IBM Plex Mono", "Archivo", "Sora", "Manrope", "DM Sans", "Space Grotesk", "Bricolage Grotesque"];
 
+  // Plain-language stand-ins for the numeric CSS values a layman doesn't need to see. "Weight"
+  // becomes a named style (as Word/PowerPoint's Bold-ish options read); "type scale ratio"
+  // (how much bigger headings are than body text) becomes a named size step. Values match
+  // every STYLE_PRESETS entry above exactly, so switching presets never lands on an unlisted
+  // number; fillNamedSelect() below adds a "Custom" option for anything else (an AI-generated
+  // or imported profile), so no value is ever silently lost.
+  const WEIGHT_OPTIONS = [
+    { v: 400, label: "Normal" },
+    { v: 500, label: "Medium" },
+    { v: 600, label: "Semibold" },
+    { v: 700, label: "Bold" },
+    { v: 800, label: "Extra bold" },
+  ];
+  const SCALE_OPTIONS = [
+    { v: 1.2, label: "Subtle" },
+    { v: 1.25, label: "Balanced" },
+    { v: 1.3, label: "Noticeable" },
+    { v: 1.33, label: "Bold" },
+    { v: 1.4, label: "Dramatic" },
+  ];
+
+  function fillNamedSelect(selectEl, options, value) {
+    const num = Number(value);
+    const known = options.some((o) => o.v === num);
+    let html = options.map((o) => '<option value="' + o.v + '">' + o.label + '</option>').join("");
+    if (!known && Number.isFinite(num)) html += '<option value="' + num + '">Custom (' + num + ')</option>';
+    selectEl.innerHTML = html;
+    selectEl.value = String(Number.isFinite(num) ? num : options[0].v);
+  }
+
   function exampleProfile() {
     const p = C.createEmptyProfile();
     applyPreset(p, STYLE_PRESETS[1]);
@@ -948,13 +981,24 @@
       return;
     }
     for (const b of state.brands) {
+      const row = document.createElement("div");
+      row.className = "lib-row";
       const btn = document.createElement("button");
       btn.className = "lib-item" + (b.id === state.currentId ? " active" : "");
       btn.innerHTML = '<span class="lib-name"></span><span class="lib-meta"></span>';
       btn.querySelector(".lib-name").textContent = b.name || "Untitled brand";
       btn.querySelector(".lib-meta").textContent = "Updated " + fmtWhen(b.updatedAt);
       btn.addEventListener("click", () => selectBrand(b.id));
-      els.libraryList.appendChild(btn);
+      const rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "lib-remove";
+      rm.setAttribute("aria-label", "Delete " + (b.name || "Untitled brand"));
+      rm.title = "Delete this brand";
+      rm.textContent = "×";
+      rm.addEventListener("click", () => removeBrand(b.id));
+      row.appendChild(btn);
+      row.appendChild(rm);
+      els.libraryList.appendChild(row);
     }
   }
 
@@ -1025,9 +1069,9 @@
     els.headingFallbackInput.value = t.headingFallback || "";
     els.bodyFontInput.value = t.bodyFont || "";
     els.bodyFallbackInput.value = t.bodyFallback || "";
-    els.headingWeightInput.value = t.headingWeight || 600;
-    els.bodyWeightInput.value = t.bodyWeight || 400;
-    els.scaleRatioInput.value = t.scaleRatio || 1.25;
+    fillNamedSelect(els.headingWeightInput, WEIGHT_OPTIONS, t.headingWeight || 600);
+    fillNamedSelect(els.bodyWeightInput, WEIGHT_OPTIONS, t.bodyWeight || 400);
+    fillNamedSelect(els.scaleRatioInput, SCALE_OPTIONS, t.scaleRatio || 1.25);
     els.fontList.innerHTML = CURATED_FONTS.map((f) => '<option value="' + f + '">').join("");
   }
 
@@ -1216,6 +1260,33 @@
       renderAll();
     } catch (e) {
       showToast("Could not load that brand: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+
+  // Permanently removes a saved brand from the library. If it's the one currently open in the
+  // editor, drops back to a fresh blank profile rather than leaving the editor pointed at a
+  // brand that no longer exists. The library list itself updates from subscribeLibrary's
+  // onSnapshot once the delete lands, not from an optimistic local edit here.
+  async function removeBrand(id) {
+    if (!state.db) return;
+    const b = state.brands.find((x) => x.id === id);
+    const label = (b && b.name) || "Untitled brand";
+    if (!confirm('Delete "' + label + '" from the library? This can’t be undone.')) return;
+    try {
+      try {
+        await state.db.doc("brands/" + id).collection("assets").doc("logo").delete();
+      } catch (e) { /* no logo doc to delete — fine */ }
+      await state.db.doc("brands/" + id).delete();
+      if (id === state.currentId) {
+        state.currentId = null;
+        state.profile = C.createEmptyProfile();
+        state.profile.meta.created = new Date().toISOString();
+        state.profile.meta.updated = state.profile.meta.created;
+        renderAll();
+      }
+      showToast("Deleted " + label + ".", "good");
+    } catch (e) {
+      showToast("Could not delete: " + (e && e.message ? e.message : e), "bad");
     }
   }
 
