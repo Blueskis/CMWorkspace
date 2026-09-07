@@ -116,6 +116,12 @@ export function audit(brief, plan, corpus, questions) {
     .filter((s) => CONTENT_ROLES.has(s.role) && !(s.blocks ?? []).some((b) => VISUAL_KINDS.has(b.kind)))
     .map((s) => s.slide_id);
 
+  // advisory: placeholder slides — planned slides plan.js could not get real content for
+  // (a slide-copy batch that could only be partially recovered, or a short reply). These
+  // are genuine, renderable slides (see plan.js's makePlaceholderSlide), never a hard
+  // failure — a human reviewer just needs to know which ones still need writing.
+  const placeholderSlides = flatSlides.filter((s) => s._placeholder).map((s) => s.slide_id);
+
   // plan.modules here is whatever shape the caller passed in (same as everywhere else in
   // this function) — not resorted by `order` the way build-pptx.js's own flattening does
   // before it walks slides. Exact module order isn't worth importing build-pptx's sort
@@ -134,7 +140,7 @@ export function audit(brief, plan, corpus, questions) {
     objectives, loNoSlide, loNoQuestion, questionsChecked, questionErrors,
     missingProvenance, gapMissingNote, uncoveredProcedures, sections,
     unplacedScreenshots, unusedDeclared, lowResPlacedUnacked,
-    noVisualSlides, repeatedLayoutRuns,
+    noVisualSlides, repeatedLayoutRuns, placeholderSlides,
   };
 }
 
@@ -229,6 +235,14 @@ export function renderReport(result, planRunId) {
   if (result.repeatedLayoutRuns.length) {
     push("", `${result.repeatedLayoutRuns.length} run(s) of ${REPEAT_RUN_MIN}+ consecutive slides share the same layout role:`, "");
     result.repeatedLayoutRuns.forEach((r) => push(`- \`${r.role}\`: ${r.slide_ids.join(", ")}`));
+  }
+
+  push("", "## 7. Placeholder content (advisory)", "");
+  if (result.placeholderSlides.length) {
+    push(`${result.placeholderSlides.length} slide(s) could not be generated and carry placeholder text — these need writing before handover:`, "");
+    result.placeholderSlides.forEach((id) => push(`- \`${id}\``));
+  } else {
+    push("Every planned slide has generated content.");
   }
 
   push("", "## Handover", "");

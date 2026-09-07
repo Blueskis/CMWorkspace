@@ -457,9 +457,16 @@ function renderReplyDiagnosis(text) {
     ? `Claude's reply was ${d.length} characters and ends mid-value — it was cut short.`
     : `Claude's reply was ${d.length} characters and is complete, but its JSON is malformed`
       + (d.position === null ? "." : ` at character ${d.position}.`);
+  // This reply already failed and reached the error screen (nothing in it was usable for
+  // the batch it was answering) — but other slides embedded in the same raw text may still
+  // be intact. Say so, so the failure doesn't read as a total loss when it wasn't one.
+  const salvage = d.recoveredSlides.length
+    ? `${d.recoveredSlides.length} slide(s) elsewhere in this reply still parsed fine: ${d.recoveredSlides.join(", ")}.`
+    : null;
   return el("div", {}, [
     el("p", { class: "muted" }, headline),
     el("p", { class: "muted" }, d.message),
+    salvage ? el("p", { class: "muted" }, salvage) : null,
     el("pre", { class: "qa-report" }, d.snippet),
   ]);
 }

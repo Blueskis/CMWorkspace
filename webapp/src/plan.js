@@ -320,7 +320,13 @@ Rules:
   {"gap": true, "gap_note": "what's missing"} on that block instead of guessing — never
   invent content to fill a gap.
 - Bullets are terse (<=10 words); put the elaboration in speaker_notes instead.
-- Field, screen, and role names come from the source text verbatim — never paraphrase a name.`;
+- Field, screen, and role names come from the source text verbatim — never paraphrase a name.
+- A "diagram" block's "content" is the deepest nesting in this whole reply — close it out
+  fully before moving on: content -> spec -> its array(s) -> back out. For a "decision"
+  diagram this closing sequence looks exactly like \`...]}},"sources":[...]}\` — three
+  closes (array, spec, content) before "sources", which sits on the BLOCK, not inside
+  "content". Finish one slide object completely, brace by brace, before starting the next
+  one — a single missed "}" anywhere in this reply invalidates the entire batch.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -425,6 +431,35 @@ function safeJsonParse(text) {
 
 const FENCE_RE = /```(?:[A-Za-z0-9_-]*)?\s*\n?([\s\S]*?)```/g;
 
+/**
+ * Index of the matching close for the {/[ at text[i], scanning LOCALLY (depth starts
+ * fresh at i) and string/escape-aware — or -1 if depth never returns to 0 before EOF.
+ * "Locally" matters: a global brace deficit earlier in the text does not stop a
+ * well-formed span starting after it from being found (see harvestSlides).
+ */
+function findSpanEnd(text, i) {
+  const n = text.length;
+  let depth = 0;
+  let inString = false;
+  let escape = false;
+  for (let j = i; j < n; j++) {
+    const cj = text[j];
+    if (inString) {
+      if (escape) escape = false;
+      else if (cj === "\\") escape = true;
+      else if (cj === '"') inString = false;
+      continue;
+    }
+    if (cj === '"') { inString = true; continue; }
+    if (cj === "{" || cj === "[") depth++;
+    else if (cj === "}" || cj === "]") {
+      depth--;
+      if (depth === 0) return j;
+    }
+  }
+  return -1;
+}
+
 /** Every top-level balanced {...} / [...] span in `text`, string-literal-aware. */
 function findBalancedSpans(text) {
   const spans = [];
@@ -433,26 +468,8 @@ function findBalancedSpans(text) {
   while (i < n) {
     const c = text[i];
     if (c === "{" || c === "[") {
-      let depth = 0;
-      let inString = false;
-      let escape = false;
-      let j = i;
-      for (; j < n; j++) {
-        const cj = text[j];
-        if (inString) {
-          if (escape) escape = false;
-          else if (cj === "\\") escape = true;
-          else if (cj === '"') inString = false;
-          continue;
-        }
-        if (cj === '"') { inString = true; continue; }
-        if (cj === "{" || cj === "[") depth++;
-        else if (cj === "}" || cj === "]") {
-          depth--;
-          if (depth === 0) break;
-        }
-      }
-      if (depth === 0 && j < n) {
+      const j = findSpanEnd(text, i);
+      if (j !== -1) {
         spans.push(text.slice(i, j + 1));
         i = j + 1;
         continue;
@@ -461,6 +478,61 @@ function findBalancedSpans(text) {
     i++;
   }
   return spans;
+}
+
+function looksLikeSlide(v) {
+  return !!v && typeof v === "object" && typeof v.slide_id === "string" && Array.isArray(v.blocks);
+}
+
+/** Parse a single candidate span as a slide, escalating through the sanitize passes
+ * before giving up — a span damaged only by an unescaped quote or raw newline is still
+ * harvestable, same as a whole-reply repair would recover it. */
+function parseCandidateSlide(span) {
+  let v = safeJsonParse(span);
+  if (v !== undefined) return v;
+  for (const pass of SANITIZE_PASSES) {
+    v = safeJsonParse(sanitizeJsonText(span, pass));
+    if (v !== undefined) return v;
+  }
+  return undefined;
+}
+
+/**
+ * Recover individual slide objects out of a raw reply that failed to parse as a whole —
+ * one dropped brace deep inside a diagram spec must not destroy every OTHER slide in the
+ * same reply. De-duplicated by slide_id; when `wantedIds` is given, only slides matching
+ * one of those ids are kept (guards against grabbing a slide-shaped object that belongs to
+ * a different batch entirely, in the rare case a reply echoes stray content).
+ *
+ * Scanning rule, verified empirically: when a balanced span at `i` fails to parse (or
+ * parses but isn't slide-shaped, or isn't a wanted id), resume scanning at i+1 — NOT at
+ * the end of that span. A single dropped brace makes the span starting at the damaged
+ * slide's own "{" swallow everything after it (looking for the depth-0 point it now
+ * finds only near EOF); skipping past that swallowed span would skip every later slide
+ * too. Continuing one character at a time instead lets the scan dive past the corrupted
+ * span and pick up the next slide's own "{" directly.
+ */
+export function harvestSlides(text, wantedIds) {
+  if (typeof text !== "string" || !text) return [];
+  const wanted = wantedIds ? new Set(wantedIds) : null;
+  const bySlideId = new Map();
+  const n = text.length;
+  let i = 0;
+  while (i < n) {
+    if (text[i] === "{") {
+      const j = findSpanEnd(text, i);
+      if (j !== -1) {
+        const value = parseCandidateSlide(text.slice(i, j + 1));
+        if (looksLikeSlide(value) && (!wanted || wanted.has(value.slide_id))) {
+          if (!bySlideId.has(value.slide_id)) bySlideId.set(value.slide_id, value);
+          i = j + 1;
+          continue;
+        }
+      }
+    }
+    i++;
+  }
+  return [...bySlideId.values()];
 }
 
 /** String-literal-aware scan of the open-bracket stack and whether `s` ends inside a string. */
@@ -624,14 +696,14 @@ const SANITIZE_PASSES = [
  * may be 4000 characters in.
  *
  * @returns {{length:number, truncated:boolean, message:string, position:number|null,
- *            snippet:string, caretOffset:number}|null}
+ *            snippet:string, caretOffset:number, recoveredSlides:string[]}|null}
  */
 export function describeJsonFailure(text) {
   if (typeof text !== "string" || !text) return null;
   let message = "";
   try {
     JSON.parse(text);
-    return { length: text.length, truncated: false, message: "This reply parses as JSON.", position: null, snippet: text.slice(0, 600), caretOffset: -1 };
+    return { length: text.length, truncated: false, message: "This reply parses as JSON.", position: null, snippet: text.slice(0, 600), caretOffset: -1, recoveredSlides: [] };
   } catch (e) {
     message = e.message;
   }
@@ -639,38 +711,72 @@ export function describeJsonFailure(text) {
   const posMatch = /at position (\d+)/.exec(message);
   const position = posMatch ? Number(posMatch[1]) : null;
   const { stack, inString } = scanBracketState(text);
-  const truncated = stack.length > 0 || inString;
+  // A missing brace deep inside the reply leaves the same open bracket stack at EOF as a
+  // genuinely truncated reply does — that conflation is what sent two rounds of fixes
+  // after a truncation that was never happening. The real signal is WHERE the parse
+  // failed: a truncated reply's error sits at (or right at) the end of the text; a
+  // structural error — like the one dropped brace this fix targets — sits well before
+  // it, with a complete document's worth of (malformed) text still following.
+  const nearEnd = position !== null && position >= text.length - 2;
+  const truncated = position === null ? (stack.length > 0 || inString) : nearEnd && (stack.length > 0 || inString);
 
   const centre = position ?? text.length;
   const from = Math.max(0, centre - 220);
   const snippet = text.slice(from, Math.min(text.length, centre + 220));
-  return { length: text.length, truncated, message, position, snippet, caretOffset: centre - from };
+  // Slide-shaped objects still recoverable from this reply, regardless of the overall
+  // parse failure — lets the error screen say how much of the reply wasn't a total loss.
+  const recoveredSlides = harvestSlides(text).map((s) => s.slide_id);
+  return { length: text.length, truncated, message, position, snippet, caretOffset: centre - from, recoveredSlides };
 }
 
 /**
  * Try to recover a JSON value from a raw reply the platform's own reader rejected.
  * Returns the parsed value, or `null` when nothing usable can be recovered. Never throws.
  */
+/**
+ * Does `candidate` look like a "slides" reply that is silently missing slides the raw
+ * text promised? Every repair pass below finds SOME balanced, parseable value inside a
+ * damaged reply — the danger is a pass succeeding on a fragment that stops short of one
+ * damaged slide and quietly returns fewer slides than the batch actually asked for, with
+ * no error to signal the loss. Observed for real: a single dropped brace deep in one
+ * slide's diagram spec let the balanced-span pass parse a "valid" object spanning only
+ * the slides *before* the damage, silently dropping every slide after it, AND misplacing
+ * that slide's own "sources" field a level too deep in the process (semantically wrong,
+ * not just short) — while still returning a value that looks like total success. Reject
+ * any candidate like that so the caller falls through to null, letting the slide-copy
+ * loop's own harvestSlides(e.text, ...) do a proper per-slide salvage instead — verified
+ * to recover every UNDAMAGED slide byte-exact rather than truncating the batch.
+ */
+function isIncompleteSlideBatch(rawText, candidate) {
+  if (!candidate || typeof candidate !== "object" || !Array.isArray(candidate.slides)) return false;
+  const promised = (rawText.match(/"slide_id"\s*:/g) ?? []).length;
+  return promised > 1 && candidate.slides.length < promised;
+}
+
 export function tryRepairJson(text) {
   if (typeof text !== "string" || !text.trim()) return null;
 
-  let attempt = safeJsonParse(text);
+  // Every candidate below funnels through this so no pass — present or future — can
+  // silently accept a slides reply that dropped slides the raw text promised.
+  const accept = (value) => (value !== undefined && !isIncompleteSlideBatch(text, value) ? value : undefined);
+
+  let attempt = accept(safeJsonParse(text));
   if (attempt !== undefined) return attempt;
 
   FENCE_RE.lastIndex = 0;
   let m;
   while ((m = FENCE_RE.exec(text))) {
-    attempt = safeJsonParse(m[1]);
+    attempt = accept(safeJsonParse(m[1]));
     if (attempt !== undefined) return attempt;
   }
 
   const spans = findBalancedSpans(text).sort((a, b) => b.length - a.length);
   for (const span of spans) {
-    attempt = safeJsonParse(span);
+    attempt = accept(safeJsonParse(span));
     if (attempt !== undefined) return attempt;
   }
 
-  attempt = tryCloseUnterminated(text);
+  attempt = accept(tryCloseUnterminated(text));
   if (attempt !== undefined) return attempt;
 
   // Everything above assumes the reply is well-formed JSON somewhere inside a wrapper, or
@@ -682,15 +788,59 @@ export function tryRepairJson(text) {
   const candidates = [text, ...spans];
   for (const pass of SANITIZE_PASSES) {
     for (const candidate of candidates) {
-      attempt = safeJsonParse(sanitizeJsonText(candidate, pass));
+      attempt = accept(safeJsonParse(sanitizeJsonText(candidate, pass)));
       if (attempt !== undefined) return attempt;
       // A malformed reply can also be a cut-short one; close it after sanitizing.
-      attempt = tryCloseUnterminated(sanitizeJsonText(candidate, pass));
+      attempt = accept(tryCloseUnterminated(sanitizeJsonText(candidate, pass)));
+      if (attempt !== undefined) return attempt;
+    }
+  }
+
+  // Targeted last resort: JSON.parse's own error names the spot precisely ("Expected ','
+  // or '}' after property value ... at position N") when N lands on a }/] that should
+  // have been preceded by one more }. Gated on that exact message so it never fires on a
+  // pseudo-JSON echo or plain prose (see the tests) — those fail with a different message
+  // ("Unexpected token") and are correctly left to return null, not coerced into `{}`.
+  //
+  // isIncompleteSlideBatch above already rejects this pass's most dangerous failure mode
+  // (silently dropping trailing slides) the same as every other pass, but a multi-slide
+  // batch is still skipped here entirely: inserting the brace at the position JSON.parse
+  // names closes whatever object is still open THERE, one object short of where the drop
+  // actually happened, which can misplace a field (a block's "sources" ends up nested
+  // inside its own "content") without changing the slide COUNT — a corruption the count
+  // check can't see. harvestSlides is what exists to avoid that for a slide-copy batch.
+  const isSlideBatch = (text.match(/"slide_id"\s*:/g) ?? []).length > 1;
+  if (!isSlideBatch) {
+    attempt = accept(tryInsertMissingBraces(text));
+    if (attempt !== undefined) return attempt;
+    for (const span of spans) {
+      attempt = accept(tryInsertMissingBraces(span));
       if (attempt !== undefined) return attempt;
     }
   }
 
   return null;
+}
+
+const MISSING_BRACE_RE = /^Expected ',' or '}' after property value in JSON at position (\d+)/;
+
+/** See tryRepairJson's last pass: insert one `}` at each such error position, up to a
+ * few times, and stop the moment the message no longer matches this exact shape. */
+function tryInsertMissingBraces(text, maxInsertions = 3) {
+  let candidate = text;
+  for (let n = 0; n < maxInsertions; n++) {
+    try {
+      return JSON.parse(candidate);
+    } catch (e) {
+      const m = MISSING_BRACE_RE.exec(e.message);
+      if (!m) return undefined;
+      const pos = Number(m[1]);
+      const ch = candidate[pos];
+      if (ch !== "}" && ch !== "]") return undefined;
+      candidate = candidate.slice(0, pos) + "}" + candidate.slice(pos);
+    }
+  }
+  return undefined;
 }
 
 /**
@@ -784,19 +934,51 @@ export async function generatePlan(corpus, {
       // content in one reply (see MAX_SLIDES_PER_CALL's own comment for why this matters).
       for (let i = 0; i < remaining.length; i += MAX_SLIDES_PER_CALL) {
         const slideBatch = remaining.slice(i, i + MAX_SLIDES_PER_CALL);
+        const batchIds = slideBatch.map((s) => s.slide_id);
         const batchMod = { ...mod, slides: slideBatch };
         let batchSlides = [];
         for (const chunk of inputChunks) {
-          const resp = await callSampleJson(sampleJson, slideCopyPrompt(batchMod, chunk, corpus), { modelTier: MODEL_TIER });
-          batchSlides = batchSlides.concat(resp.slides ?? []);
+          try {
+            const resp = await callSampleJson(sampleJson, slideCopyPrompt(batchMod, chunk, corpus), { modelTier: MODEL_TIER });
+            batchSlides = batchSlides.concat(resp.slides ?? []);
+          } catch (e) {
+            // A single dropped brace deep in one slide's diagram spec must not cost the
+            // whole batch — salvage whatever else in this call's own raw reply still
+            // parses as a slide before deciding whether to give up on it. Only surface
+            // the failure to the viewer when NOTHING here was recoverable; a partial
+            // recovery is kept and the run continues — whatever's still missing becomes
+            // a placeholder slide below, never silence (see the deleted `slideBatch`
+            // fallback this replaces: skeleton slides have no `blocks`, so that fallback
+            // was substituting content-free slides that render blank and pass QA clean).
+            const harvested = e && typeof e === "object" && e.code === "invalid_json" && typeof e.text === "string"
+              ? harvestSlides(e.text, batchIds)
+              : [];
+            if (!harvested.length) throw e;
+            batchSlides = batchSlides.concat(harvested);
+          }
         }
-        batchSlides = dedupeSlides(batchSlides.length ? batchSlides : slideBatch);
+        batchSlides = dedupeSlides(batchSlides);
         // Record this batch's slides into `modules` (the array e.progress captures on
         // throw) immediately, not after the whole module finishes — a later batch's
         // failure must not discard this one.
         let entry = modules.find((m) => m.module_id === mod.module_id);
         if (!entry) { entry = { ...mod, slides: [] }; modules.push(entry); }
         entry.slides = dedupeSlides(entry.slides.concat(batchSlides));
+      }
+    }
+
+    // Any planned slide nobody ever actually wrote content for — a batch that could only
+    // be partially harvested above, or a reply that simply returned fewer slides than it
+    // was asked for without erroring at all — gets a real, visibly-flagged placeholder
+    // slide instead of silently having no `blocks` (which renders blank and passes every
+    // mechanical QA check, since qa.js iterates `slide.blocks ?? []`).
+    for (const mod of moduleSkeletons) {
+      if (!mod.slides.length) continue;
+      let entry = modules.find((m) => m.module_id === mod.module_id);
+      if (!entry) { entry = { ...mod, slides: [] }; modules.push(entry); }
+      const gotIds = new Set(entry.slides.map((s) => s.slide_id));
+      for (const skeleton of mod.slides) {
+        if (!gotIds.has(skeleton.slide_id)) entry.slides.push(makePlaceholderSlide(skeleton));
       }
     }
 
@@ -861,6 +1043,25 @@ function relevantSections(mod, brief, sections) {
 function dedupeSlides(slides) {
   const seen = new Set();
   return slides.filter((s) => (seen.has(s.slide_id) ? false : (seen.add(s.slide_id), true)));
+}
+
+// Exported so qa.js and tests can recognize a placeholder slide (and the exact wording it
+// carries) without duplicating the string.
+export const PLACEHOLDER_TEXT = "[content not generated — please complete]";
+
+/** A real, renderable slide for a planned slide the model never actually produced content
+ * for — gap:true on both blocks so qa.js's provenance check (sources or gap:true) treats
+ * it the same as any other flagged gap, not a hard-fail missing-provenance defect. */
+function makePlaceholderSlide(skeleton) {
+  return {
+    slide_id: skeleton.slide_id,
+    role: skeleton.role,
+    _placeholder: true,
+    blocks: [
+      { slot: "title", kind: "text", content: skeleton.title ?? skeleton.slide_id, gap: true, gap_note: PLACEHOLDER_TEXT },
+      { slot: "body", kind: "text", content: PLACEHOLDER_TEXT, gap: true, gap_note: PLACEHOLDER_TEXT },
+    ],
+  };
 }
 
 function validateBrief(brief) {

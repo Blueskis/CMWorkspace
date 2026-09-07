@@ -1,6 +1,7 @@
 import {
   generatePlan, chunkSections, briefPrompt, modulePlanPrompt, slideCopyPrompt,
   questionsPrompt, tryRepairJson, extractExample, describeJsonFailure,
+  harvestSlides, PLACEHOLDER_TEXT,
 } from "../src/plan.js";
 import { parseDocx } from "../src/parse-docx.js";
 import { readFileSync } from "node:fs";
@@ -317,6 +318,64 @@ console.log(`  error 3000+ chars in -> position=${dLong.position}, snippet centr
 
 console.log("\nAll describeJsonFailure checks passed.");
 
+// --- tryRepairJson must never silently return a slides reply short of what the raw text
+// promised. Caught during independent verification of this fix, not in the original
+// design: the pre-existing "largest balanced span" pass can find a technically-valid
+// object that happens to end right before a damaged slide, silently dropping every slide
+// after it — AND, in this exact case, misplacing the damaged slide's own "sources" field
+// a level too deep in the bargain. That is worse than an error: it looks like success.
+// tryRepairJson must return null here so the slide-copy loop's own harvestSlides(e.text)
+// does a proper per-slide salvage instead (verified above to recover the 3 undamaged
+// slides byte-exact) rather than silently shipping a 2-slide, partially-corrupted result.
+console.log("\n### tryRepairJson must not silently drop trailing slides from a batch");
+
+const mkBatchSlide = (id) => `{"slide_id":"${id}","role":"content","speaker_notes":"n","blocks":[{"slot":"title","kind":"text","content":"T ${id}","sources":["fsd#7.6"]},{"slot":"body","kind":"bullets","content":["a","b"],"sources":["fsd#7.6"]}]}`;
+const diagBatchSlide = `{"slide_id":"s-ex-2","role":"content","speaker_notes":"n","blocks":[{"slot":"title","kind":"text","content":"T","sources":["fsd#7.6"]},{"slot":"body","kind":"diagram","content":{"diagram_type":"decision","spec":{"branches":[{"condition":"All suppliers succeeded","outcome":"Return code 0"},{"condition":"Any supplier failed","outcome":"Return code 8, evaluated by job chain"}]}},"sources":["fsd#7.6"]}]}`;
+const goodBatch = `{"slides":[${mkBatchSlide("s-ex-1")},${diagBatchSlide},${mkBatchSlide("s-ex-3")},${mkBatchSlide("s-ex-4")}]}`;
+const brokenBatch = goodBatch.replace(`}]}},"sources":["fsd#7.6"]}]},{"slide_id":"s-ex-3"`, `}]},"sources":["fsd#7.6"]}]},{"slide_id":"s-ex-3"`);
+if (goodBatch === brokenBatch) { console.log("FAIL: test setup didn't actually corrupt the reply"); process.exit(1); }
+const batchRepairResult = tryRepairJson(brokenBatch);
+if (batchRepairResult !== null) {
+  console.log("FAIL: expected tryRepairJson to refuse a slides reply short of what the raw text promised, got", JSON.stringify(batchRepairResult));
+  process.exit(1);
+}
+console.log("  4-slide batch with one damaged diagram slide -> tryRepairJson correctly returns null (defers to harvestSlides)");
+
+// And the fallback it defers to must actually deliver: end-to-end through generatePlan.
+console.log("\n### generatePlan recovers undamaged slides and placeholders only the damaged one");
+const batchModuleSkeleton = { module_id: "m-batch", title: "Batch", order: 1, objective_ids: ["LO1"],
+  slides: ["s-ex-1", "s-ex-2", "s-ex-3", "s-ex-4"].map((id) => ({ slide_id: id, role: "content", title: id })) };
+async function batchCorruptionMock(prompt) {
+  if (prompt.startsWith("You are drafting the intake brief")) return bigBrief;
+  if (prompt.startsWith("You are planning the module")) return { modules: [batchModuleSkeleton] };
+  if (prompt.startsWith("Write the slide content")) {
+    const err = new Error("the reply held no JSON value");
+    err.code = "invalid_json"; err.text = brokenBatch;
+    throw err;
+  }
+  if (prompt.startsWith("Write exactly")) {
+    return { questions: [{ question_id: "Q1", objective_id: "LO1", type: "mcq", stem: "s",
+      options: [{ option_id: "a", text: "A" }, { option_id: "b", text: "B" }, { option_id: "c", text: "C" }, { option_id: "d", text: "D" }],
+      key: ["a"], rationale: "r", bloom_level: "apply", audience_ids: ["a"], sources: ["proc#s0"] }] };
+  }
+  throw new Error("unrecognized prompt: " + prompt.slice(0, 80));
+}
+const batchCorruptionResult = await generatePlan(bigCorpus, { sampleJson: batchCorruptionMock, questionCount: 1 });
+const batchMod = batchCorruptionResult.plan.modules.find((m) => m.module_id === "m-batch");
+const gotIds = batchMod.slides.map((s) => s.slide_id).sort();
+if (JSON.stringify(gotIds) !== JSON.stringify(["s-ex-1", "s-ex-2", "s-ex-3", "s-ex-4"])) {
+  console.log("FAIL: expected all 4 planned slides present (3 real + 1 placeholder), got", gotIds); process.exit(1);
+}
+const placeholders = batchMod.slides.filter((s) => s._placeholder).map((s) => s.slide_id);
+if (placeholders.length !== 1 || placeholders[0] !== "s-ex-2") {
+  console.log("FAIL: expected exactly s-ex-2 (the damaged slide) to be a placeholder, got", placeholders); process.exit(1);
+}
+const s1 = batchMod.slides.find((s) => s.slide_id === "s-ex-1");
+if (s1._placeholder || !s1.blocks.some((b) => b.kind === "bullets")) {
+  console.log("FAIL: expected s-ex-1 (undamaged) to keep its real bullet content, got", JSON.stringify(s1)); process.exit(1);
+}
+console.log("  3 undamaged slides kept real content, only the damaged diagram slide became a placeholder");
+
 // --- every prompt's worked example must be JSON.parse-able on its own — the guard
 // against this exact bug class returning ---
 console.log("\n### prompt example blocks are valid JSON");
@@ -468,3 +527,199 @@ if (new Set(finalIds).size !== 9) { console.log("FAIL: duplicate or missing slid
 console.log(`  after resume: ${slideCopyCallCount} more call(s) made, module now has all ${finalMassModule.slides.length} slides (no duplicates, no gaps)`);
 
 console.log("\nAll slide-copy batching + resume checks passed.");
+
+// --- harvestSlides: recovering individual slides out of a reply that fails to parse as a
+// whole. This is the fix for the real reported bug: a diagram spec closed one brace short
+// destroyed all four slides in the batch. See harvestSlides' own docstring for why the
+// scan must resume at i+1 (not past the failed span) on a rejected candidate.
+console.log("\n### harvestSlides");
+
+function makeSlideReply(id, extra = "") {
+  return `{"slide_id":"${id}","role":"content","speaker_notes":"Notes for ${id}.","blocks":[{"slot":"title","kind":"text","content":"Title ${id}","sources":["fsd#7.6"]},{"slot":"body","kind":"bullets","content":["Point one for ${id}","Point two"],"sources":["fsd#7.6"]}${extra}]}`;
+}
+const diagramBlock = `,{"slot":"body","kind":"diagram","content":{"diagram_type":"decision","spec":{"branches":[{"condition":"All suppliers succeeded","outcome":"Return code 0"},{"condition":"Any failed","outcome":"Return code 8"}]}},"sources":["fsd#7.6"]}`;
+const goodReply = `{"slides":[${makeSlideReply("s1")},${makeSlideReply("s2", diagramBlock)},${makeSlideReply("s3")},${makeSlideReply("s4")}]}`;
+// the model's actual mistake: one dropped "}" inside the diagram spec's "content"
+const brokenReply = goodReply.replace(`}]}},"sources"`, `}]},"sources"`);
+const goodParsed = JSON.parse(goodReply);
+
+const harvested = harvestSlides(brokenReply, ["s1", "s2", "s3", "s4"]);
+const harvestedIds = harvested.map((s) => s.slide_id).sort();
+if (harvestedIds.join(",") !== "s1,s3,s4") {
+  console.log("FAIL: expected exactly s1, s3, s4 recovered (s2 damaged and lost)", harvestedIds);
+  process.exit(1);
+}
+for (const id of ["s1", "s3", "s4"]) {
+  const got = JSON.stringify(harvested.find((s) => s.slide_id === id));
+  const want = JSON.stringify(goodParsed.slides.find((s) => s.slide_id === id));
+  if (got !== want) { console.log(`FAIL: ${id} not byte-exact after harvest`, got, want); process.exit(1); }
+}
+console.log("  reproduction reply -> recovered s1, s3, s4 byte-exact, s2 correctly lost OK");
+
+// a reply cut off mid-slide must still yield every slide completed before the cut
+const cutIndex = goodReply.indexOf(makeSlideReply("s3")) + 40; // partway into s3
+const truncatedReply = goodReply.slice(0, cutIndex);
+const harvestedTruncated = harvestSlides(truncatedReply, ["s1", "s2", "s3", "s4"]).map((s) => s.slide_id).sort();
+if (harvestedTruncated.join(",") !== "s1,s2") {
+  console.log("FAIL: expected s1, s2 recovered from a reply cut off partway into s3", harvestedTruncated);
+  process.exit(1);
+}
+console.log("  reply cut off mid-slide -> recovered every slide completed before the cut OK");
+
+// plain prose has nothing to harvest
+if (harvestSlides("Sorry, I can't help with that.").length !== 0) {
+  console.log("FAIL: expected no slides harvested from plain prose");
+  process.exit(1);
+}
+console.log("  plain prose -> nothing harvested OK");
+
+console.log("\nAll harvestSlides checks passed.");
+
+// --- describeJsonFailure: an interior brace deficit must not be misreported as truncated.
+// A missing brace deep in the reply leaves the same open-bracket stack at EOF a genuinely
+// truncated reply would — the fix is to also check WHERE the parse failed: well before the
+// end means structural, not cut short.
+console.log("\n### describeJsonFailure — interior imbalance is not truncation");
+const dInterior = describeJsonFailure(brokenReply);
+if (dInterior.truncated) {
+  console.log("FAIL: an interior dropped brace must report truncated=false, not read as cut short");
+  process.exit(1);
+}
+console.log(`  dropped brace deep inside a complete reply -> truncated=false (position=${dInterior.position}, length=${dInterior.length}) OK`);
+if (!dInterior.recoveredSlides.includes("s1") || !dInterior.recoveredSlides.includes("s3") || !dInterior.recoveredSlides.includes("s4")) {
+  console.log("FAIL: expected describeJsonFailure to report the recoverable slides too", dInterior.recoveredSlides);
+  process.exit(1);
+}
+console.log(`  recoveredSlides reports the salvageable slides: ${dInterior.recoveredSlides.join(", ")} OK`);
+
+console.log("\nAll describeJsonFailure interior-imbalance checks passed.");
+
+// --- generatePlan: a slide-copy batch that only partially harvests must not fail the run —
+// the good slides are kept, the run continues, and the one slide that couldn't be read
+// becomes a real placeholder slide, not a silent content-free skeleton.
+console.log("\n### generatePlan — partial slide-copy salvage completes the run with a placeholder");
+const fourSlideModule = {
+  module_id: "mod-diagram", title: "Diagram Module", order: 1, objective_ids: ["LO1"],
+  slides: [
+    { slide_id: "s1", role: "content", title: "Slide One" },
+    { slide_id: "s2", role: "content", title: "Slide Two" },
+    { slide_id: "s3", role: "content", title: "Slide Three" },
+    { slide_id: "s4", role: "content", title: "Slide Four" },
+  ],
+};
+async function partialHarvestMock(prompt) {
+  if (prompt.startsWith("You are drafting the intake brief")) return bigBrief;
+  if (prompt.startsWith("You are planning the module")) return { modules: [fourSlideModule] };
+  if (prompt.startsWith("Write the slide content")) {
+    const err = new Error("the reply held no JSON value");
+    err.code = "invalid_json";
+    err.text = brokenReply;
+    throw err;
+  }
+  if (prompt.startsWith("Write exactly")) {
+    return { questions: [{ question_id: "Q1", objective_id: "LO1", type: "mcq", stem: "s",
+      options: [{ option_id: "a", text: "A" }, { option_id: "b", text: "B" }, { option_id: "c", text: "C" }, { option_id: "d", text: "D" }],
+      key: ["a"], rationale: "r", bloom_level: "apply", audience_ids: ["a"], sources: ["proc#s0"] }] };
+  }
+  throw new Error("unrecognized prompt: " + prompt.slice(0, 80));
+}
+const partialResult = await generatePlan(bigCorpus, { sampleJson: partialHarvestMock, questionCount: 1 });
+const partialMod = partialResult.plan.modules.find((m) => m.module_id === "mod-diagram");
+if (!partialMod) { console.log("FAIL: expected the module to be present in the completed plan"); process.exit(1); }
+const bySlideId = Object.fromEntries(partialMod.slides.map((s) => [s.slide_id, s]));
+if (!bySlideId.s1 || !bySlideId.s3 || !bySlideId.s4) {
+  console.log("FAIL: expected s1, s3, s4 to keep their real generated content", Object.keys(bySlideId));
+  process.exit(1);
+}
+if (bySlideId.s1.blocks[0].content !== "Title s1") { console.log("FAIL: s1's real content was not preserved"); process.exit(1); }
+if (!bySlideId.s2 || !bySlideId.s2._placeholder) {
+  console.log("FAIL: expected s2 (the one damaged slide) to be a placeholder", bySlideId.s2);
+  process.exit(1);
+}
+const s2Body = bySlideId.s2.blocks.find((b) => b.slot === "body");
+if (s2Body.gap_note !== PLACEHOLDER_TEXT) { console.log("FAIL: placeholder body block should carry the placeholder text", s2Body); process.exit(1); }
+console.log("  run completed with no error surfaced: s1/s3/s4 real, s2 is a flagged placeholder OK");
+
+console.log("\nAll partial-salvage generatePlan checks passed.");
+
+// --- generatePlan: when NOTHING in a batch's raw reply is harvestable, the failure must
+// still reach the caller, and e.progress must still carry whatever earlier batches (or
+// modules) already completed — this is unchanged from before harvesting was added.
+console.log("\n### generatePlan — nothing harvestable still throws, still preserves earlier progress");
+let sawSecondModule = false;
+async function nothingHarvestableMock(prompt) {
+  if (prompt.startsWith("You are drafting the intake brief")) return bigBrief;
+  if (prompt.startsWith("You are planning the module")) {
+    return { modules: [
+      { module_id: "mod-a", title: "A", order: 1, objective_ids: ["LO1"], slides: [{ slide_id: "a1", role: "content", title: "A1" }] },
+      { module_id: "mod-b", title: "B", order: 2, objective_ids: ["LO1"], slides: [{ slide_id: "b1", role: "content", title: "B1" }] },
+    ] };
+  }
+  if (prompt.startsWith("Write the slide content")) {
+    if (prompt.includes('"module_id":"mod-a"')) {
+      return { slides: [{ slide_id: "a1", role: "content", blocks: [{ slot: "title", kind: "text", content: "A1", sources: ["proc#s0"] }] }] };
+    }
+    sawSecondModule = true;
+    const err = new Error("the reply held no JSON value");
+    err.code = "invalid_json";
+    err.text = "I'm sorry, I can't produce that content."; // genuinely nothing to harvest
+    throw err;
+  }
+  throw new Error("unrecognized prompt: " + prompt.slice(0, 80));
+}
+let nothingHarvestableCaught = null;
+try {
+  await generatePlan(bigCorpus, { sampleJson: nothingHarvestableMock, questionCount: 1 });
+  console.log("FAIL: expected mod-b's unrecoverable batch to throw");
+  process.exit(1);
+} catch (e) {
+  nothingHarvestableCaught = e;
+}
+if (!sawSecondModule) { console.log("FAIL: test setup didn't reach mod-b as expected"); process.exit(1); }
+if (nothingHarvestableCaught.code !== "invalid_json") { console.log("FAIL: expected the rethrown error to keep .code"); process.exit(1); }
+const modA = nothingHarvestableCaught.progress?.modules?.find((m) => m.module_id === "mod-a");
+if (!modA || modA.slides.length !== 1 || modA.slides[0].slide_id !== "a1") {
+  console.log("FAIL: expected e.progress to preserve mod-a's already-completed slide", nothingHarvestableCaught.progress);
+  process.exit(1);
+}
+console.log("  nothing harvestable in mod-b's reply -> still throws, mod-a's earlier progress preserved OK");
+
+console.log("\nAll nothing-harvestable checks passed.");
+
+// --- generatePlan: a reply returning FEWER slides than requested — no error at all, just
+// a short reply — must never leave a blocks-less slide in the plan (the deleted
+// `batchSlides.length ? batchSlides : slideBatch` fallback used to do exactly that, since
+// module-plan skeleton slides carry no `blocks` array and render blank).
+console.log("\n### generatePlan — a short (but valid) reply gets a placeholder, never a blocks-less slide");
+async function shortReplyMock(prompt) {
+  if (prompt.startsWith("You are drafting the intake brief")) return bigBrief;
+  if (prompt.startsWith("You are planning the module")) {
+    return { modules: [{ module_id: "mod-short", title: "Short", order: 1, objective_ids: ["LO1"], slides: [
+      { slide_id: "x1", role: "content", title: "X1" },
+      { slide_id: "x2", role: "content", title: "X2" },
+    ] }] };
+  }
+  if (prompt.startsWith("Write the slide content")) {
+    // only ever writes the first slide it was asked for — no error, just short
+    return { slides: [{ slide_id: "x1", role: "content", blocks: [{ slot: "title", kind: "text", content: "X1", sources: ["proc#s0"] }] }] };
+  }
+  if (prompt.startsWith("Write exactly")) {
+    return { questions: [{ question_id: "Q1", objective_id: "LO1", type: "mcq", stem: "s",
+      options: [{ option_id: "a", text: "A" }, { option_id: "b", text: "B" }, { option_id: "c", text: "C" }, { option_id: "d", text: "D" }],
+      key: ["a"], rationale: "r", bloom_level: "apply", audience_ids: ["a"], sources: ["proc#s0"] }] };
+  }
+  throw new Error("unrecognized prompt: " + prompt.slice(0, 80));
+}
+const shortResult = await generatePlan(bigCorpus, { sampleJson: shortReplyMock, questionCount: 1 });
+const shortMod = shortResult.plan.modules.find((m) => m.module_id === "mod-short");
+for (const slide of shortMod.slides) {
+  if (!Array.isArray(slide.blocks) || slide.blocks.length === 0) {
+    console.log(`FAIL: slide ${slide.slide_id} has no blocks — a content-free slide leaked through`, slide);
+    process.exit(1);
+  }
+}
+const x2 = shortMod.slides.find((s) => s.slide_id === "x2");
+if (!x2._placeholder) { console.log("FAIL: expected the never-returned x2 to be a placeholder", x2); process.exit(1); }
+console.log("  short reply -> x1 real, x2 is a flagged placeholder with real blocks (never blocks-less) OK");
+
+console.log("\nAll short-reply checks passed.");
