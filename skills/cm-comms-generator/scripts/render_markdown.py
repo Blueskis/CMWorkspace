@@ -46,7 +46,9 @@ def channel_label(channel, registry):
     entry = registry["channels"].get(channel) or {}
     return entry.get("label", channel)
 
-# Parts an email renders as a labelled header line rather than a body section.
+# Parts an email renders as a labelled header line rather than a body section. Reused for
+# edm too — the header shape is the same even though edm's subject_max_chars is its own
+# limit, not inherited from the email channel (see channel_registry.json).
 EMAIL_HEADER_PARTS = ("subject", "preheader")
 # Same idea for an article: the furniture above the body copy.
 ARTICLE_HEADER_PARTS = ("headline", "standfirst")
@@ -306,6 +308,44 @@ def render_banner(plan, mode):
     return out
 
 
+def render_edm(plan, mode):
+    """Subject/preheader as header lines, headline as the on-screen H1, cta called out."""
+    out = []
+    headers, body = [], []
+    for _, part in ordered_parts(plan):
+        (headers if part.get("part_kind") in EMAIL_HEADER_PARTS else body).append(part)
+
+    for part in headers:
+        label = part.get("part_kind", "").capitalize()
+        out.append(f"**{label}:** {body_of(part)}")
+        line = sources_line(part, mode)
+        if line:
+            out.append(line)
+    if headers:
+        out.append("---")
+
+    words = 0
+    for part in body:
+        kind = part.get("part_kind")
+        if kind == "headline":
+            out.append(f"# {body_of(part)}")
+        elif kind == "cta":
+            out.append(f"**Call to action:** {body_of(part)}")
+        else:
+            if part.get("title"):
+                out.append(f"### {part['title']}")
+            out.append(body_of(part))
+        line = sources_line(part, mode)
+        if line:
+            out.append(line)
+        words += all_words(part)
+
+    out.append("---")
+    out.append(f"*Body length: {words} words — excludes the subject and preheader, which is "
+               f"the same scope qa_comms.py checks `max_words` against.*")
+    return out
+
+
 def render_deck(plan, mode):
     out = []
     total = sum(1 for _ in ordered_parts(plan))
@@ -445,6 +485,7 @@ def render(plan, brand, mode, registry):
         "briefing_deck": lambda: render_deck(plan, mode),
         "newsletter": lambda: render_newsletter(plan, mode),
         "banner": lambda: render_banner(plan, mode),
+        "edm": lambda: render_edm(plan, mode),
         "short_form_video": lambda: render_video(plan, brand, mode),
         "explainer_video": lambda: render_video(plan, brand, mode),
     }

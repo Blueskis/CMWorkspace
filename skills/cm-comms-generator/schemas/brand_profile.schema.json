@@ -183,6 +183,17 @@
             "byline_required": { "type": "boolean" }
           }
         },
+        "edm": {
+          "type": "object",
+          "description": "A marketing/comms-style HTML send, distinct from the direct email channel — its own subject-line convention, not inherited from email.",
+          "properties": {
+            "subject_max_chars": { "type": "integer" },
+            "preheader_max_chars": { "type": "integer" },
+            "max_words": { "type": "integer" },
+            "html_width_px": { "type": "integer" },
+            "sender_display_name": { "type": "string" }
+          }
+        },
         "briefing_deck": {
           "type": "object",
           "properties": {

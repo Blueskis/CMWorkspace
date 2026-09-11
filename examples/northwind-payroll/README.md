@@ -15,11 +15,13 @@ brand_profile.json                 Northwind's approved palette, voice and chann
 email/comms_plan.json              run 1 — email to A1 (all colleagues)          -> .docx
 article/comms_plan.json            run 2 — intranet article to A1                -> .docx
 briefing_deck/comms_plan.json      run 3 — manager cascade deck to A2             -> .pptx
-banner/comms_plan.json             run 4 — intranet banner to A1                 -> Canva
-explainer_video/comms_plan.json    run 5 — portal walkthrough for A1             -> ElevenLabs (narration only)
+banner/comms_plan.json             run 4 — intranet banner to A1                 -> local HTML render
+newsletter/comms_plan.json         run 5 — all-colleague newsletter round-up to A1 -> local HTML render
+edm/comms_plan.json                run 6 — activation EDM to A1                  -> local HTML render
+explainer_video/comms_plan.json    run 7 — portal walkthrough for A1             -> ElevenLabs (narration only)
 ```
 
-Five channel runs off **one** brief. That is the structural point: the brief is authored once
+Seven channel runs off **one** brief. That is the structural point: the brief is authored once
 and reused, so no two drafts can disagree about a date.
 
 ## Reproduce it
@@ -32,7 +34,7 @@ python skills/cm-proposal-generator/scripts/index_kb.py \
     proposal-assets/knowledge-bank -o /tmp/nw/kb_index.json
 
 # Draft + QA every channel
-for ch in email article briefing_deck banner explainer_video; do
+for ch in email article briefing_deck banner newsletter edm explainer_video; do
   python skills/cm-comms-generator/scripts/render_markdown.py \
       examples/northwind-payroll/$ch/comms_plan.json \
       --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/$ch/draft.md
@@ -62,10 +64,21 @@ done
 python skills/cm-comms-generator/scripts/apply_brand.py \
     examples/northwind-payroll/brand_profile.json -o /tmp/nw/briefing_deck/deck_theme.json
 
-# --- Handoff artifacts for the lanes with no reachable producer ---
+# --- Local, brand-applied HTML render — the live route for banner, newsletter, edm ---
+for ch in banner newsletter edm; do
+  python skills/cm-comms-generator/scripts/render_comms_html.py \
+      examples/northwind-payroll/$ch/comms_plan.json \
+      --brief examples/northwind-payroll/change_brief.json \
+      --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/$ch/comms_$ch.html
+done
+
+# --- Canva remains available as an alternative for a client with an approved Brand
+#     Template — see channel_registry.json's notes on banner/newsletter ---
 python skills/cm-comms-generator/scripts/canva_brief.py \
     examples/northwind-payroll/banner/comms_plan.json \
     --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/banner/canva_brief.json
+
+# --- Handoff artifact for the lane with no reachable producer ---
 python skills/cm-comms-generator/scripts/video_spec.py \
     examples/northwind-payroll/explainer_video/comms_plan.json \
     --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/explainer_video/video_spec.json
@@ -81,19 +94,34 @@ check and tell you if it is missing.
 | `email` | 10 | 13 | 0 | 1 | `skill:docx` — 4 steps |
 | `article` | 11 | 13 | 0 | 1 | `skill:docx` — 4 steps |
 | `briefing_deck` | 9 | 23 | 0 | 1 | `skill:pptx` — 3 steps |
-| `banner` | 5 | 5 | 0 | 0 | `mcp:Canva` — handoff only |
+| `banner` | 5 | 5 | 0 | 0 | `local:render_comms_html` — 2 steps |
+| `newsletter` | 10 | 10 | 0 | 0 | `local:render_comms_html` — 2 steps |
+| `edm` | 11 | 12 | 0 | 0 | `local:render_comms_html` — 2 steps |
 | `explainer_video` | 6 | 10 | 0 | 0 | `mcp:ElevenLabs` — handoff only, narration lane |
 
 Every channel exits 0. The two `.docx` builds pass the `docx` skill's own OOXML validator and
 `verify_docx.py`. `apply_brand.py` prints five contrast ratios, all passing Northwind's 4.5:1
-floor. The explainer spec estimates ~101s against a 240s limit and flags two scenes whose script
-over-runs their planned duration.
+floor. `render_comms_html.py` re-checks the same five pairs before it writes a file and prints
+0 unknown tokens for all three design-driven channels. The explainer spec estimates ~101s
+against a 240s limit and flags two scenes whose script over-runs their planned duration.
 
 ## What it demonstrates
 
-**One brief, five channels, four producers.** Every plan draws on the same
+**One brief, seven channels, five producers.** Every plan draws on the same
 `change_brief.json`; the briefing deck targets `A2` while the rest target `A1`. Each routes to
 a different tool, and `route_channel.py` works out which without any of the plans naming one.
+
+**Design and copy, produced by the same run.** Banner, newsletter and edm used to hand off to
+Canva because no MCP connector was reachable. `render_comms_html.py` now renders a
+self-contained, brand-applied `.html` file directly — no connector, no npm package, nothing
+pending on a client's Canva Brand Template. It reuses `apply_brand.py`'s contrast check (the
+same WCAG floor `qa_comms.py` enforces) and refuses to write a file if either the QA gate or
+the contrast check fails. Canva stays available as a documented alternative for a client that
+specifically wants a Canva asset — `canva_brief.py`, above, still produces that handoff.
+
+**EDM is not email with a different name.** It has its own `subject_max_chars` (60, not
+email's 50) and its own preheader — a mail-client convention email's plan shape has no part
+for. Both are enforced by the registry's `edm` entry, not inherited from `email`.
 
 **Audience-subset coverage.** The email targets `A1` only. `M5` — the manager training
 message — is aimed at `A2` and `A3`, so the QA report lists it as *out of scope for this run*
@@ -123,14 +151,14 @@ points at. It is also not required to carry a signature — a banner is unattrib
 Force the banner to full-comm coverage and it fails, which is the check working, not a bug.
 
 **Copy and design are approved separately.** No client `.potx` or Canva Brand Template ships
-here, so the deck and the banner both carry
+here, so the deck, banner, newsletter and edm all carry
 `design_provenance: "generated-unapproved"`. QA passes the copy and *warns* on the design —
-the artifacts still need client sign-off before anything is published.
+the artifacts still need client sign-off before anything is published, even though
+`render_comms_html.py` produced a real, finished `.html` file and not a handoff brief.
 
-**Two lanes with no producer, still delivering.** The banner and explainer video route to
-connectors that are unreachable — Canva needs authorizing, and ElevenLabs is disabled in chat.
-Both exit 0 and produce a real handoff artifact: a design brief with per-field copy and canvas
-dimensions, and a video spec with a scene table, VO timing and a WebVTT caption file.
+**One lane with no producer, still delivering.** Explainer video routes to a connector that is
+unreachable — ElevenLabs is disabled in this chat. It exits 0 and produces a real handoff
+artifact instead: a video spec with a scene table, VO timing and a WebVTT caption file.
 
 **Stated limits fail, registry defaults warn.** Northwind's profile states a 50-character
 subject limit, which the draft respects. It states no `max_words`, so the registry's 300-word
@@ -171,6 +199,8 @@ Ways the pipeline must refuse to proceed. Each exits non-zero; all operate on co
 | o | Set `channel` to something unknown | router rejects it against the registry |
 | p | Blank `approval.approved_by` for `apply_brand.py` | refuses to emit a theme |
 | q | Hand `video_spec.py` an email plan | wrong channel for this producer |
+| r | Hand `render_comms_html.py` an email plan | `REFUSED: channel 'email' has no comms-html route` |
+| s | Strip a banner block's `sources` and render it | `REFUSED: QA has 1 failure(s)` — no file written |
 
 ## Before using any of this for real
 

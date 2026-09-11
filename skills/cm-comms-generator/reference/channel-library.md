@@ -1,6 +1,6 @@
 # Channel Library
 
-The seven channels `cm-comms-generator` drafts, what each is actually for, and how each one
+The eight channels `cm-comms-generator` drafts, what each is actually for, and how each one
 fails. Read the rules before the catalogue — they decide more outcomes than the anatomy does.
 
 Which tool builds each one, and what to do when it is unreachable, is in
@@ -87,16 +87,20 @@ link with no statement of what it does. Sending to all-staff because segmenting 
 traffic to a hub; sustaining visibility between milestones.
 
 **Anatomy.** `headline` → `subhead` → `cta` (label + destination) → `placement-spec` (pixel
-dimensions, safe area, display window, alt text).
+dimensions, safe area, display window).
 
 **Constraints.** No unique content — everything on a banner must exist in full somewhere it
-links to. Contrast against the accessibility floor. On most tenancies the text is baked into the
-image, so it is unsearchable and invisible to screen readers: **alt text is mandatory, not
-optional**, and it must carry the message, not describe the picture.
+links to. Contrast against the accessibility floor. The default production route
+(`render_comms_html.py`) renders headline, subhead and CTA as real text in the DOM — readable
+by a screen reader and selectable, not baked into an image. The alternative route through Canva
+(`canva_brief.py`, for a client with an approved Brand Template) exports a raster image instead,
+and on that route **alt text is mandatory, not optional**, and must carry the message, not
+describe the picture.
 
 **Failure modes.** A banner as the only channel for an action. Text outside the safe area,
 clipped on narrow viewports. A stale banner outliving its milestone. Announcing news to people
-who have not been told through an owned channel first.
+who have not been told through an owned channel first. On the Canva route specifically: shipping
+an image with no alt text.
 
 ---
 
@@ -143,6 +147,36 @@ in the last section that matters.
 **Failure modes.** Burying a deadline in item four. Sections that depend on each other in order.
 Recycling the email verbatim, which tells subscribers the newsletter carries nothing new. Letting
 the round-up become the only place an action was ever stated.
+
+---
+
+## EDM (email direct mail)
+
+**Purpose.** A marketing-styled, brand-applied HTML send — distinct from the direct
+`email` channel in shape, not just format. `email` is the plain, durable record; EDM is the
+designed activation send with its own subject-line convention.
+
+**The right choice when** the action itself is the whole message — an activation, an
+enrolment, a single click — and it benefits from a designed, branded layout rather than
+plain text; when the send needs to look like a finished, on-brand artifact from the moment
+it lands, not a plain-text placeholder awaiting a designer.
+
+**Anatomy** — the `part_kind` sequence: `subject` → `preheader` → `headline` →
+`whats-changing` → `whats-not-changing` → `who-is-affected` → `your-action` → `timeline` →
+`help` → `cta` → `signoff`.
+
+**Constraints.** Subject ≤ 60 characters — deliberately different from email's 50, because an
+EDM subject sits in a marketing-style inbox context, not a corporate one; preheader ≤ 90;
+total ≤ 200 words, tighter than email's 300 because a designed send carries less text per
+screen. One `cta`, and it must resolve to a destination — a `cta` with no URL embedded in its
+text renders as plain emphasis with a warning at build time rather than a broken button.
+
+**Failure modes.** Treating it as email with a paint job — email's 300-word body dumped
+into a 200-word layout, which either overflows the design or gets silently trimmed
+somewhere it shouldn't be. A `cta` with no destination, invisible because the render still
+succeeds. Reusing the email's subject line instead of writing one to the EDM's own 60-character
+limit. Shipping it with `design_provenance: "generated-unapproved"` and no plan to get client
+sign-off on the design before send, only the copy.
 
 ---
 

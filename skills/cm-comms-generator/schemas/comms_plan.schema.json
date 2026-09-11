@@ -20,7 +20,7 @@
     },
 
     "channel": {
-      "enum": ["email", "article", "briefing_deck", "newsletter", "banner",
+      "enum": ["email", "article", "briefing_deck", "newsletter", "banner", "edm",
                "short_form_video", "explainer_video"],
       "description": "Exactly one per run. Cross-channel consistency comes from the shared brief, never from copying text between drafts. Each channel routes to a producer declared in channel_registry.json."
     },

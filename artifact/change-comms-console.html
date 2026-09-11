@@ -311,7 +311,7 @@ code{ font-family:var(--font-mono); font-size:.88em; background:var(--surface-2)
 <div class="page">
   <p class="eyebrow">Change Communications</p>
   <p class="lede">Write the change in your own words, choose the channels, and get a first draft
-     for each one &mdash; a downloadable file, or a Canva link with copy ready to paste in.</p>
+     for each one &mdash; a downloadable file, or copy ready to hand to the run request below.</p>
 
   <p class="notice"><b>Drafts here are quick, not checked.</b> Claude writes each one from your
      brief text alone, right in this browser &mdash; nothing traces back to a source and no QA
@@ -392,9 +392,11 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
       <div><span class="pill pill-channel">Planned</span> ships a production spec instead</div>
     </div>
     <p class="hint" style="margin-top:8px">Email, Article and Briefing deck download as a real
-       file. Newsletter and Banner draft the copy here and link straight to Canva to paste it
-       in &mdash; there's no live Canva connector on this page. The video channels aren't built
-       here at all; they're listed in the run request for the traced route.</p>
+       file. Newsletter, Banner and EDM draft the copy here &mdash; the brand-applied
+       <code>.html</code> file itself is built locally by <code>render_comms_html.py</code>
+       through the run request below, with no connector or design tool involved. The video
+       channels aren't built here at all; they're listed in the run request for the traced
+       route.</p>
 
     <div class="actions">
       <button type="button" class="btn primary" id="go" disabled>Generate first drafts</button>
@@ -461,10 +463,12 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
       note:"The considered version — explains the reasoning at length." },
     { id:"briefing_deck", name:"Briefing deck", fmt:".pptx", by:"pptx skill", status:"live",
       note:"A pack a manager presents, with speaker notes and likely questions. Attach a brand template above for the client's actual layout." },
-    { id:"newsletter", name:"Newsletter", fmt:"Document", by:"Canva", status:"live",
-      note:"Skimmable round-up. Builds in Canva when you run the request below." },
-    { id:"banner", name:"Intranet banner", fmt:"Canva design", by:"Canva", status:"live",
-      note:"A signpost: one message, pointing at the detail elsewhere." },
+    { id:"newsletter", name:"Newsletter", fmt:".html", by:"render_comms_html.py", status:"live",
+      note:"Skimmable round-up. Drafts here; the brand-applied file builds locally when you run the request below — no connector needed." },
+    { id:"banner", name:"Intranet banner", fmt:".html", by:"render_comms_html.py", status:"live",
+      note:"A signpost: one message, pointing at the detail elsewhere. Drafts here; the brand-applied file builds locally when you run the request below." },
+    { id:"edm", name:"EDM (email direct mail)", fmt:".html", by:"render_comms_html.py", status:"live",
+      note:"A designed, brand-applied activation send — its own subject line and 200-word limit, not email with a paint job. Drafts here; the email-safe file builds locally when you run the request below." },
     { id:"short_form_video", name:"Short-form video", fmt:"Script + captions", by:"ElevenLabs narration", status:"planned",
       note:"30–90s clip. You get a scene spec, timings and captions; ElevenLabs narrates it once that connector is enabled." },
     { id:"explainer_video", name:"Explainer video", fmt:"Script + captions", by:"ElevenLabs narration", status:"planned",
@@ -714,15 +718,18 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
   // viewer-consented ask that runs on the viewer's own Claude usage and needs no connector, so
   // (unlike the Gamma MCP route this replaced) declaring it doesn't block sharing the page
   // publicly. Email/Article/Briefing deck package the draft into a real file with docx-js /
-  // pptxgenjs and offer it through the `downloads` capability. Newsletter/Banner draft short
-  // copy and link straight to Canva to paste it in — there's no live Canva connector here.
+  // pptxgenjs and offer it through the `downloads` capability. Newsletter/Banner/EDM draft
+  // copy here only — the brand-applied .html itself needs render_comms_html.py (contrast
+  // checking, QA gating, the actual brand theme), none of which this static page can run, so
+  // building the real file is left to the run request below.
 
   var STAGE_LABEL = { wait: "Waiting", run: "Working", ok: "Ready", warn: "Needs attention", fail: "Failed" };
   var PRODUCED_FILES = Object.create(null);   // channel id -> {blob, filename}
 
   // Channels this console can actually draft. `kind` picks the producer in produceChannel();
   // anything not listed here (the two video channels) falls straight to "not built here".
-  var PRODUCIBLE = { email: "docx", article: "docx", briefing_deck: "pptx", newsletter: "canva", banner: "canva" };
+  var PRODUCIBLE = { email: "docx", article: "docx", briefing_deck: "pptx",
+                      newsletter: "local-html", banner: "local-html", edm: "local-html" };
 
   function setStage(id, kind, text) {
     var pill = document.getElementById("pill-" + id);
@@ -796,6 +803,11 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
     } else if (chan.id === "briefing_deck") {
       L.push('{"slides": [{"title": string, "bullets": [string, ...]}, ...]}');
       L.push("Up to 12 slides, up to 5 bullets per slide.");
+    } else if (chan.id === "edm") {
+      L.push('{"subject": string (max 60 chars), "preheader": string (max 90 chars),');
+      L.push(' "headline": string, "body": string (max 200 words total), "cta": {"text": string, "url": string}}');
+      L.push("EDM is not email with a different name — write to its own 60-char subject and");
+      L.push("200-word budget, don't reuse the email draft's subject or body.");
     } else {
       L.push('{"headline": string, "body": string}');
     }
@@ -873,11 +885,20 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
 
   function renderProduced(chan, content, file) {
     var html = '<h3>' + esc(chan.name) + '</h3>';
-    if (PRODUCIBLE[chan.id] === "canva") {
+    if (PRODUCIBLE[chan.id] === "local-html") {
+      if (chan.id === "edm" && content.subject) {
+        html += '<p><b>Subject:</b> ' + esc(content.subject) + '</p>';
+        if (content.preheader) { html += '<p><b>Preheader:</b> ' + esc(content.preheader) + '</p>'; }
+      }
       html += '<p><b>' + esc(content.headline || "") + '</b></p>' +
-        '<p>' + esc(content.body || "") + '</p>' +
-        '<p><a href="https://www.canva.com/create/" target="_blank" rel="noopener">Open Canva</a>' +
-        ' — paste the copy above into your design.</p>';
+        '<p>' + esc(content.body || "") + '</p>';
+      if (content.cta && content.cta.text) {
+        html += '<p><b>Call to action:</b> ' + esc(content.cta.text) +
+          (content.cta.url ? ' &rarr; ' + esc(content.cta.url) : '') + '</p>';
+      }
+      html += '<p>This copy builds into the brand-applied <code>.html</code> file by ' +
+        '<code>render_comms_html.py</code> when you run the request below — no connector or ' +
+        'design tool needed.</p>';
     } else if (file) {
       html += '<p><button type="button" class="btn small dl-file" data-ch="' + esc(chan.id) +
         '">' + esc(file.label) + '</button></p>';
@@ -891,7 +912,7 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
     html += '<p class="stamp">AI-drafted, not checked. Verify every date, name, figure and link ' +
       'before it goes anywhere.</p>';
     addResult(html);
-    setStage(chan.id, "ok", PRODUCIBLE[chan.id] === "canva" ? "Copy ready" : (file ? "File ready" : "Drafted"));
+    setStage(chan.id, "ok", PRODUCIBLE[chan.id] === "local-html" ? "Copy ready" : (file ? "File ready" : "Drafted"));
   }
 
   function produceChannel(sample, chan) {
@@ -913,7 +934,7 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
     setStage(chan.id, "run", "Drafting…");
     return sample.json(contentPrompt(chan), { modelTier: "default" })
       .then(function (content) {
-        setStage(chan.id, "run", PRODUCIBLE[chan.id] === "canva" ? "Ready" : "Building the file…");
+        setStage(chan.id, "run", PRODUCIBLE[chan.id] === "local-html" ? "Ready" : "Building the file…");
         return offerFile(chan, content).then(function (file) { renderProduced(chan, content, file); });
       })
       .catch(function (err) {

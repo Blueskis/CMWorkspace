@@ -1,0 +1,198 @@
+{
+  "run_id": "northwind-newsletter-20260902",
+  "brief_ref": "../change_brief.json",
+  "brand_profile_ref": "../brand_profile.json",
+  "channel": "newsletter",
+  "client": "Northwind Foods",
+  "engagement_title": "Payroll change — newsletter round-up",
+  "design_provenance": "generated-unapproved",
+  "target_audience_ids": ["A1"],
+  "sender": "Northwind People team",
+  "send_window": "2026-09-02 to 2026-09-14",
+  "review_by": "Priya Raghavan",
+
+  "sections": [
+    {
+      "section_id": "headline",
+      "title": "Headline",
+      "order": 1,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "nl-headline",
+          "part_kind": "headline",
+          "title": "Headline",
+          "blocks": [
+            { "kind": "text", "content": "Payday just got more frequent",
+              "sources": ["cc-go-live-email-example"] }
+          ]
+        },
+        {
+          "slide_id": "nl-standfirst",
+          "part_kind": "standfirst",
+          "title": "Standfirst",
+          "blocks": [
+            { "kind": "text",
+              "content": "From 1 October you're paid twice a month instead of once — here's what to do before then, and what stays exactly the same.",
+              "sources": ["brief:change.what_is_changing"] }
+          ]
+        },
+        {
+          "slide_id": "nl-who",
+          "part_kind": "who-is-affected",
+          "title": "Who this affects",
+          "blocks": [
+            { "kind": "text",
+              "content": "All 2,400 colleagues across UK and Ireland sites.",
+              "sources": ["brief:audiences.A1"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "whats-changing",
+      "title": "What's changing",
+      "order": 2,
+      "message_ids": ["M1"],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T3"],
+      "slides": [
+        {
+          "slide_id": "nl-whats-changing",
+          "part_kind": "section-heading",
+          "title": "New pay dates from 1 October",
+          "blocks": [
+            { "kind": "text",
+              "content": "From 1 October you'll be paid twice a month — on the 15th and the last working day — instead of once.",
+              "sources": ["brief:key_messages.M1"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "whats-not-changing",
+      "title": "What's not changing",
+      "order": 3,
+      "message_ids": ["M2", "M6"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "nl-whats-not-changing",
+          "part_kind": "section-heading",
+          "title": "Your total pay, job and contract",
+          "blocks": [
+            { "kind": "bullets",
+              "content": [
+                "Your total annual pay is unchanged — same amount, across two dates instead of one.",
+                "No change to anyone's job, grade, hours or contract — just how and when pay is processed."
+              ],
+              "sources": ["brief:key_messages.M2", "brief:key_messages.M6"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "your-action",
+      "title": "What you need to do",
+      "order": 4,
+      "message_ids": ["M4"],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T1"],
+      "slides": [
+        {
+          "slide_id": "nl-your-action",
+          "part_kind": "section-heading",
+          "title": "Activate your portal account by 14 September",
+          "blocks": [
+            { "kind": "text",
+              "content": "Activate your portal account and check your bank details. About ten minutes.",
+              "sources": ["brief:key_messages.M4", "brief:audiences.A1.required_action"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "timeline",
+      "title": "Key dates",
+      "order": 5,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T1", "T3"],
+      "slides": [
+        {
+          "slide_id": "nl-timeline",
+          "part_kind": "timeline",
+          "title": "Key dates",
+          "blocks": [
+            { "kind": "bullets",
+              "content": [
+                "14 September — activate your portal account",
+                "1 October — first semi-monthly pay period begins"
+              ],
+              "sources": ["brief:milestones.T1", "brief:milestones.T3"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "help",
+      "title": "Where to get help",
+      "order": 6,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "nl-help",
+          "part_kind": "help",
+          "title": "Questions",
+          "blocks": [
+            { "kind": "text",
+              "content": "Questions go to Payroll support at payroll.support@northwindfoods.example, Monday to Friday 8am to 6pm. From Marcus Bell, Chief People Officer.",
+              "sources": ["brief:governance.help_route", "brief:governance.sender"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "cta",
+      "title": "Call to action",
+      "order": 7,
+      "message_ids": ["M4"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "nl-cta",
+          "part_kind": "cta",
+          "title": "Call to action",
+          "blocks": [
+            { "kind": "text", "content": "Activate your account now",
+              "sources": ["brief:audiences.A1.required_action"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "placement",
+      "title": "Placement",
+      "order": 8,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "nl-placement",
+          "part_kind": "placement-spec",
+          "title": "Placement",
+          "blocks": [
+            { "kind": "bullets",
+              "content": [
+                "September all-colleague newsletter, lead item",
+                "Distributed by email and posted to the intranet newsletter archive"
+              ],
+              "sources": ["cc-newsletter-placement-example"] }
+          ]
+        }
+      ]
+    }
+  ]
+}
