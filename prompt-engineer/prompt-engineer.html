@@ -1,0 +1,1186 @@
+<title>Prompt Engineer</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+  :root {
+    --bg: #eef2f1;
+    --surface: #ffffff;
+    --surface-2: #e2e8e6;
+    --border: #c7d1ce;
+    --border-strong: #a9b8b4;
+    --text: #16221f;
+    --text-dim: #4c5c58;
+    --text-faint: #7c8b87;
+    --accent: #0f7a6c;
+    --accent-strong: #0b5c52;
+    --accent-contrast: #ffffff;
+    --warn-bg: #fbeee0;
+    --warn-text: #6d4310;
+    --warn-border: #e8c896;
+    --danger: #9a3b2c;
+    --focus-ring: #0f7a6c;
+    --shadow: 0 1px 2px rgba(20, 30, 28, 0.06), 0 4px 14px rgba(20, 30, 28, 0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0e1613;
+      --surface: #16211d;
+      --surface-2: #1c2e28;
+      --border: #2c433c;
+      --border-strong: #3c5951;
+      --text: #e7f1ee;
+      --text-dim: #a9bdb7;
+      --text-faint: #7c948c;
+      --accent: #35c2a6;
+      --accent-strong: #58d6bc;
+      --accent-contrast: #06201b;
+      --warn-bg: #2e2213;
+      --warn-text: #f3cf9a;
+      --warn-border: #5b4420;
+      --danger: #e0836e;
+      --focus-ring: #58d6bc;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 18px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0e1613;
+    --surface: #16211d;
+    --surface-2: #1c2e28;
+    --border: #2c433c;
+    --border-strong: #3c5951;
+    --text: #e7f1ee;
+    --text-dim: #a9bdb7;
+    --text-faint: #7c948c;
+    --accent: #35c2a6;
+    --accent-strong: #58d6bc;
+    --accent-contrast: #06201b;
+    --warn-bg: #2e2213;
+    --warn-text: #f3cf9a;
+    --warn-border: #5b4420;
+    --danger: #e0836e;
+    --focus-ring: #58d6bc;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 18px rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 28px 16px 72px;
+  }
+
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .masthead h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .masthead .tagline {
+    font-size: 0.82rem;
+    color: var(--text-faint);
+  }
+
+  .stepper {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+  .stepper .step {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    min-width: 0;
+  }
+  .stepper .step .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    font-weight: 600;
+    flex: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .stepper .step span.label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .stepper .step.active {
+    border-color: var(--accent);
+    color: var(--text);
+    font-weight: 600;
+  }
+  .stepper .step.active .num {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .stepper .step.done {
+    color: var(--text-dim);
+  }
+  .stepper .step.done .num {
+    background: var(--surface-2);
+    color: var(--accent-strong);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card + .card { margin-top: 14px; }
+
+  h2.screen-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 4px;
+  }
+  .screen-sub {
+    font-size: 0.86rem;
+    color: var(--text-dim);
+    margin: 0 0 16px;
+  }
+
+  label.field-label {
+    display: block;
+    font-size: 0.86rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  textarea, select, input[type="text"] {
+    width: 100%;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 10px 12px;
+    resize: vertical;
+  }
+  textarea:focus, select:focus, input[type="text"]:focus {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+    border-color: var(--focus-ring);
+  }
+  textarea.brief-input {
+    min-height: 130px;
+  }
+  textarea.q-input {
+    min-height: 56px;
+  }
+
+  .hint {
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    margin-top: 5px;
+  }
+  .hint strong { color: var(--text-dim); font-weight: 600; }
+
+  .notice {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 0.78rem;
+    color: var(--warn-text);
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-radius: 8px;
+    padding: 9px 11px;
+    margin-top: 12px;
+  }
+  .notice .dot {
+    flex: none;
+    margin-top: 2px;
+  }
+
+  .banner {
+    font-size: 0.8rem;
+    color: var(--text-dim);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 9px 11px;
+    margin-bottom: 16px;
+  }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .archetype-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .archetype-row select {
+    width: auto;
+    max-width: 100%;
+    font-size: 0.82rem;
+    padding: 6px 10px;
+  }
+  .archetype-row .archetype-note {
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    width: 100%;
+  }
+
+  .section-divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 18px 0;
+  }
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    margin: 0 0 12px;
+  }
+
+  .tailored-cta {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .actions.spread { justify-content: space-between; }
+
+  button {
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  button:focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+  button.primary {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  button.primary:hover { background: var(--accent-strong); }
+  button.secondary {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+  button.secondary:hover { border-color: var(--accent); }
+  button.ghost {
+    background: transparent;
+    color: var(--accent-strong);
+    border-color: transparent;
+    padding: 10px 4px;
+  }
+  button.ghost:hover { text-decoration: underline; }
+  button:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+
+  .error-msg {
+    font-size: 0.8rem;
+    color: var(--danger);
+    margin-top: 10px;
+    display: none;
+  }
+  .error-msg.show { display: block; }
+
+  .promptblock {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+    margin: 0;
+  }
+
+  .prompt-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .copied-flag {
+    font-size: 0.78rem;
+    color: var(--accent-strong);
+    font-weight: 600;
+    align-self: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .copied-flag.show { opacity: 1; }
+
+  .spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    animation: spin 0.7s linear infinite;
+    vertical-align: -2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .spinner { animation-duration: 1.6s; }
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  footer.foot-note {
+    text-align: center;
+    font-size: 0.74rem;
+    color: var(--text-faint);
+    margin-top: 26px;
+  }
+
+  [hidden] { display: none !important; }
+</style>
+
+<div class="wrap">
+  <div class="masthead">
+    <h1>Prompt Engineer</h1>
+    <div class="tagline">Turn a rough ask into a prompt worth pasting</div>
+  </div>
+
+  <div class="stepper" id="stepper">
+    <div class="step" data-step="0"><span class="num">1</span><span class="label">Brief</span></div>
+    <div class="step" data-step="1"><span class="num">2</span><span class="label">Clarify</span></div>
+    <div class="step" data-step="2"><span class="num">3</span><span class="label">Prompt</span></div>
+  </div>
+
+  <!-- Screen 1: Brief -->
+  <section class="card" id="screen-brief">
+    <h2 class="screen-title">What do you want the AI to do?</h2>
+    <p class="screen-sub">Describe it in a sentence or two, the way you'd tell a colleague.</p>
+
+    <div class="field">
+      <label class="field-label" for="brief-input">Your brief</label>
+      <textarea id="brief-input" class="brief-input" placeholder="e.g. Write a comms email to staff about a system go-live next Tuesday, and explain what will change for them."></textarea>
+      <div class="notice">
+        <span class="dot">&#9432;</span>
+        <span>If you use the tailored-question or polish option below, this text is sent to Claude and billed to your own account. Do not paste client-confidential or personal information here.</span>
+      </div>
+      <div class="error-msg" id="brief-error">Add a sentence describing what you want before continuing.</div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="brief-continue">Continue</button>
+    </div>
+  </section>
+
+  <!-- Screen 2: Clarify -->
+  <section class="card" id="screen-clarify" hidden>
+    <h2 class="screen-title">A few quick questions</h2>
+    <p class="screen-sub">Every question is optional. Skip anything and a sensible default is used instead.</p>
+
+    <div class="archetype-row">
+      <span class="chip" id="archetype-chip">Write / Draft</span>
+      <select id="archetype-select" aria-label="Change the task type"></select>
+      <div class="archetype-note">Not quite right? Pick a different task type above.</div>
+    </div>
+
+    <div id="banner-no-sample" class="banner" hidden>
+      Tailored questions are off for this session. Everything below still works on its own.
+    </div>
+
+    <div id="questions-static"></div>
+
+    <div id="tailored-block" hidden>
+      <hr class="section-divider">
+      <p class="section-label">Tailored to your brief</p>
+      <div id="questions-tailored"></div>
+    </div>
+
+    <hr class="section-divider" id="tailored-cta-divider" hidden>
+    <div class="tailored-cta" id="tailored-cta" hidden>
+      <button class="secondary" id="ask-tailored-btn">Get 2 tailored questions</button>
+      <span class="hint" id="tailored-status"></span>
+    </div>
+
+    <div class="actions spread">
+      <button class="secondary" id="clarify-back">Back</button>
+      <button class="primary" id="clarify-generate">Generate prompt</button>
+    </div>
+  </section>
+
+  <!-- Screen 3: Prompt -->
+  <section class="card" id="screen-prompt" hidden>
+    <h2 class="screen-title">Your prompt</h2>
+    <p class="screen-sub">Copy this into Claude, or any AI assistant, as your first message.</p>
+
+    <div class="prompt-toolbar">
+      <span class="copied-flag" id="copied-flag">Copied</span>
+      <button class="secondary" id="polish-btn" hidden>Polish with Claude</button>
+      <button class="primary" id="copy-btn">Copy prompt</button>
+    </div>
+    <pre class="promptblock" id="prompt-output"></pre>
+    <div class="hint" id="polish-status" style="margin-top:10px;"></div>
+
+    <div class="actions">
+      <button class="secondary" id="prompt-back">Back to Clarify</button>
+    </div>
+  </section>
+
+  <footer class="foot-note">Nothing you type here is saved. Refreshing the page starts over.</footer>
+</div>
+
+<script>
+// ===== LOGIC START =====
+// Pure logic only: classification, question bank, prompt assembly.
+// No DOM access here. Exposed as the single global `PE`.
+(function () {
+  var ARCHETYPES = [
+    { id: "write", label: "Write / Draft", keywords: [
+      "write", "draft", "compose", "email", "letter", "announcement", "message"
+    ] },
+    { id: "summarize", label: "Summarize / Extract", keywords: [
+      "summarize", "summarise", "summary", "extract", "key points", "key risks",
+      "pull the key", "condense", "shorten", "tl;dr"
+    ] },
+    { id: "analyze", label: "Analyse / Decide", keywords: [
+      "analyse", "analyze", "decide", "decision", "should we", "evaluate",
+      "compare", "pros and cons", "recommend"
+    ] },
+    { id: "research", label: "Research", keywords: [
+      "research", "find out", "investigate", "look into", "gather information"
+    ] },
+    { id: "rewrite", label: "Rewrite / Edit", keywords: [
+      "rewrite", "proofread", "polish", "improve this", "revise", "clean up",
+      "tighten this", "edit this"
+    ] },
+    { id: "code", label: "Code / Build", keywords: [
+      "code", "script", "function", "bug", "python", "javascript", "debug",
+      "fix this", "program", "sql", "typescript", "regex"
+    ] },
+    { id: "brainstorm", label: "Brainstorm", keywords: [
+      "brainstorm", "ideas for", "idea for", "name for", "options for",
+      "suggest names", "suggest ideas"
+    ] },
+    { id: "teach", label: "Teach / Explain", keywords: [
+      "explain", "teach", "how does", "what is", "help me understand",
+      "eli5", "in simple terms"
+    ] }
+  ];
+
+  var CORE_QUESTIONS = [
+    {
+      id: "role", block: "Role",
+      label: "What role or expertise should Claude bring to this?",
+      placeholder: "e.g. a senior editor, a data analyst, a patient teacher",
+      default: "A capable generalist with relevant expertise for this task."
+    },
+    {
+      id: "audience", block: "Context",
+      label: "Who is the output for?",
+      placeholder: "e.g. my manager, a customer, myself",
+      default: "A general audience with no specialist background assumed."
+    },
+    {
+      id: "inputs", block: "Inputs",
+      label: "What will you paste or attach alongside this prompt, if anything?",
+      placeholder: "e.g. the report text, the script, a data table",
+      default: "Nothing else; work from the task description alone."
+    },
+    {
+      id: "format", block: "Output format",
+      label: "What output format and length do you want?",
+      placeholder: "e.g. bullet points under 200 words, a one-page memo, a table",
+      default: "Plain prose, organized with headings where useful, as short as possible while covering everything asked for."
+    },
+    {
+      id: "must_avoid", block: "Constraints",
+      label: "Anything Claude should avoid doing or saying?",
+      placeholder: "e.g. no jargon, no bullet points, do not guess numbers",
+      default: "No specific exclusions."
+    },
+    {
+      id: "success", block: "Success criteria",
+      label: "What does a good result look like?",
+      placeholder: "e.g. someone could act on it without asking questions",
+      default: "The output fully answers the request and is usable as-is."
+    }
+  ];
+
+  var ARCHETYPE_QUESTIONS = {
+    write: [
+      { id: "write_key_points", block: "Constraints",
+        label: "What key points must be included?",
+        placeholder: "e.g. the new go-live date, who to contact with questions",
+        default: "Cover whatever points are implied by the brief; do not add unrelated points." },
+      { id: "write_examples", block: "Context",
+        label: "Any examples or reference material to match the style of?",
+        placeholder: "e.g. a previous email, the brand voice guide",
+        default: "No style reference given; use clear, professional prose." },
+      { id: "write_cta", block: "Constraints",
+        label: "Is there a call to action or next step to include?",
+        placeholder: "e.g. reply by Friday, attend the town hall",
+        default: "No explicit call to action needed." }
+    ],
+    summarize: [
+      { id: "summarize_focus", block: "Context",
+        label: "What should the summary focus on?",
+        placeholder: "e.g. the decisions made, the biggest risks",
+        default: "The main conclusions, decisions, and risks." },
+      { id: "summarize_length", block: "Output format",
+        label: "How much should it be reduced?",
+        placeholder: "e.g. five bullet points, one paragraph",
+        default: "Reduce to the essential points only, roughly a tenth of the original length." },
+      { id: "summarize_omit", block: "Constraints",
+        label: "Anything safe to leave out entirely?",
+        placeholder: "e.g. methodology, background context",
+        default: "Leave out background and methodology unless they affect the conclusions." }
+    ],
+    analyze: [
+      { id: "analyze_options", block: "Context",
+        label: "What are the options or choices being weighed?",
+        placeholder: "e.g. one department vs three, build vs buy",
+        default: "Infer the options from the brief." },
+      { id: "analyze_criteria", block: "Method",
+        label: "What criteria matter most in the decision?",
+        placeholder: "e.g. cost, risk, time to value, staff impact",
+        default: "Cost, risk, and time to value, in that order, unless stated otherwise." },
+      { id: "analyze_recommendation", block: "Success criteria",
+        label: "Do you want a firm recommendation or just the analysis?",
+        placeholder: "e.g. recommend one option, or just lay out the trade-offs",
+        default: "A firm recommendation, with the reasoning shown." }
+    ],
+    research: [
+      { id: "research_scope", block: "Context",
+        label: "What should the research focus on, and what is out of scope?",
+        placeholder: "e.g. only public sources, only the last two years",
+        default: "Focus on directly relevant, credible information; skip tangents." },
+      { id: "research_depth", block: "Method",
+        label: "How deep should it go?",
+        placeholder: "e.g. a quick overview, a thorough review",
+        default: "A solid overview, not an exhaustive review." },
+      { id: "research_sources", block: "Constraints",
+        label: "Any source types to prefer or avoid?",
+        placeholder: "e.g. prefer primary sources, avoid forums",
+        default: "No source preference given; use good judgment and flag uncertainty." }
+    ],
+    rewrite: [
+      { id: "rewrite_goal", block: "Method",
+        label: "What should change: tone, length, clarity, structure?",
+        placeholder: "e.g. make it more concise and less formal",
+        default: "Improve clarity and flow while preserving the original meaning." },
+      { id: "rewrite_keep", block: "Constraints",
+        label: "Anything that must stay exactly as written?",
+        placeholder: "e.g. the numbers, a direct quote, the closing line",
+        default: "Nothing is protected; the whole text may be improved." },
+      { id: "rewrite_audience_shift", block: "Context",
+        label: "Is the audience changing from the original text?",
+        placeholder: "e.g. written for engineers, now needs to work for executives",
+        default: "The audience is unchanged from the original text." }
+    ],
+    code: [
+      { id: "code_language", block: "Context",
+        label: "What language or framework is this in?",
+        placeholder: "e.g. Python 3.11, React, PostgreSQL",
+        default: "Infer the language and framework from the code or brief." },
+      { id: "code_constraints", block: "Constraints",
+        label: "Any constraints: performance, style guide, dependencies?",
+        placeholder: "e.g. no new dependencies, must match the existing style",
+        default: "No special constraints; follow common best practice for the language." },
+      { id: "code_testing", block: "Method",
+        label: "Should Claude include tests, or just the fix or feature?",
+        placeholder: "e.g. add a unit test for the fix",
+        default: "Explain the change briefly; add tests only if trivial to include." }
+    ],
+    brainstorm: [
+      { id: "brainstorm_quantity", block: "Output format",
+        label: "How many ideas do you want?",
+        placeholder: "e.g. five, twenty, as many as possible",
+        default: "Around eight to ten ideas." },
+      { id: "brainstorm_constraints", block: "Constraints",
+        label: "Any constraints the ideas must fit?",
+        placeholder: "e.g. budget, timeline, team size",
+        default: "No hard constraints given; favor variety over feasibility." },
+      { id: "brainstorm_novelty", block: "Method",
+        label: "Do you want safe options, bold ones, or a mix?",
+        placeholder: "e.g. mostly practical, one or two wild ideas",
+        default: "A mix, from safe to bold, clearly labeled." }
+    ],
+    teach: [
+      { id: "teach_level", block: "Context",
+        label: "What is the learner's current level?",
+        placeholder: "e.g. complete beginner, some background, expert in a related field",
+        default: "A complete beginner to this topic." },
+      { id: "teach_method", block: "Method",
+        label: "Should Claude use an analogy, a step-by-step build-up, or examples?",
+        placeholder: "e.g. a real-world analogy, worked examples",
+        default: "Use a simple analogy plus one concrete example." },
+      { id: "teach_check", block: "Success criteria",
+        label: "Should Claude check the learner's understanding at the end?",
+        placeholder: "e.g. one question, a short quiz",
+        default: "End with one short question to check understanding." }
+    ]
+  };
+
+  var BLOCK_ORDER = [
+    "Role", "Task", "Context", "Inputs", "Method",
+    "Output format", "Constraints", "Success criteria"
+  ];
+  var CONDITIONAL_BLOCKS = { "Inputs": true, "Method": true };
+
+  function classify(brief) {
+    if (typeof brief !== "string" || brief.trim() === "") {
+      return { error: "empty" };
+    }
+    var text = brief.toLowerCase();
+    var best = null;
+    var bestScore = 0;
+    for (var i = 0; i < ARCHETYPES.length; i++) {
+      var a = ARCHETYPES[i];
+      var score = 0;
+      for (var k = 0; k < a.keywords.length; k++) {
+        if (text.indexOf(a.keywords[k]) !== -1) score++;
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        best = a.id;
+      }
+    }
+    if (!best) best = "write";
+    return { archetype: best };
+  }
+
+  function getQuestions(archetypeId) {
+    var specific = ARCHETYPE_QUESTIONS[archetypeId] || ARCHETYPE_QUESTIONS.write;
+    return CORE_QUESTIONS.concat(specific);
+  }
+
+  function tighten(brief) {
+    return String(brief == null ? "" : brief).trim().replace(/[ \t]+/g, " ");
+  }
+
+  function resolvedOrDefault(q, answers) {
+    var v = answers && Object.prototype.hasOwnProperty.call(answers, q.id) ? answers[q.id] : "";
+    var trimmed = (typeof v === "string" ? v : "").trim();
+    return trimmed !== "" ? trimmed : q.default;
+  }
+
+  function resolvedOnly(q, answers) {
+    var v = answers && Object.prototype.hasOwnProperty.call(answers, q.id) ? answers[q.id] : "";
+    var trimmed = (typeof v === "string" ? v : "").trim();
+    return trimmed !== "" ? trimmed : null;
+  }
+
+  function linesForBlock(questions, blockName, answers, mode) {
+    var out = [];
+    for (var i = 0; i < questions.length; i++) {
+      var q = questions[i];
+      if (q.block !== blockName) continue;
+      var val = mode === "conditional" ? resolvedOnly(q, answers) : resolvedOrDefault(q, answers);
+      if (val) out.push(val);
+    }
+    return out;
+  }
+
+  function appendAiLines(lines, aiList) {
+    if (!aiList || !Array.isArray(aiList)) return lines;
+    for (var i = 0; i < aiList.length; i++) {
+      var t = String(aiList[i] == null ? "" : aiList[i]).trim();
+      if (t) lines.push(t);
+    }
+    return lines;
+  }
+
+  function assemble(opts) {
+    opts = opts || {};
+    var archetypeId = opts.archetypeId;
+    var brief = opts.brief;
+    var answers = opts.answers || {};
+    var aiAnswers = opts.aiAnswers;
+    var questions = getQuestions(archetypeId);
+
+    var blocks = [];
+
+    blocks.push(["Role", linesForBlock(questions, "Role", answers, "default")]);
+    blocks.push(["Task", [tighten(brief)]]);
+
+    var contextLines = linesForBlock(questions, "Context", answers, "default");
+    appendAiLines(contextLines, aiAnswers && aiAnswers.context);
+    blocks.push(["Context", contextLines]);
+
+    blocks.push(["Inputs", linesForBlock(questions, "Inputs", answers, "conditional")]);
+    blocks.push(["Method", linesForBlock(questions, "Method", answers, "conditional")]);
+    blocks.push(["Output format", linesForBlock(questions, "Output format", answers, "default")]);
+
+    var constraintLines = linesForBlock(questions, "Constraints", answers, "default");
+    appendAiLines(constraintLines, aiAnswers && aiAnswers.constraints);
+    blocks.push(["Constraints", constraintLines]);
+
+    blocks.push(["Success criteria", linesForBlock(questions, "Success criteria", answers, "default")]);
+
+    var out = [];
+    for (var i = 0; i < blocks.length; i++) {
+      var heading = blocks[i][0];
+      var lines = blocks[i][1];
+      if (!lines || lines.length === 0) continue;
+      out.push(heading + ":\n" + lines.join("\n"));
+    }
+    return out.join("\n\n");
+  }
+
+  var PE = {
+    ARCHETYPES: ARCHETYPES,
+    CORE_QUESTIONS: CORE_QUESTIONS,
+    ARCHETYPE_QUESTIONS: ARCHETYPE_QUESTIONS,
+    BLOCK_ORDER: BLOCK_ORDER,
+    classify: classify,
+    getQuestions: getQuestions,
+    assemble: assemble
+  };
+
+  if (typeof globalThis !== "undefined") globalThis.PE = PE;
+  if (typeof window !== "undefined") window.PE = PE;
+})();
+// ===== LOGIC END =====
+</script>
+
+<script>
+// DOM wiring and the `sample` integration. Not covered by the unit tests;
+// verified by hand in the published artifact.
+(function () {
+  var state = {
+    screen: 0,
+    brief: "",
+    archetypeId: "write",
+    answers: {},
+    tailoredQuestions: [], // [{ text, answer }]
+    lastPrompt: "",
+    lastAiAnswers: null
+  };
+
+  var sampleFn = null;
+  var sampleAvailable = false; // resolved and not yet marked permanently unusable
+  var sampleClassifyBackoffUntil = 0;
+
+  var el = {
+    stepper: document.getElementById("stepper"),
+    screenBrief: document.getElementById("screen-brief"),
+    screenClarify: document.getElementById("screen-clarify"),
+    screenPrompt: document.getElementById("screen-prompt"),
+    briefInput: document.getElementById("brief-input"),
+    briefError: document.getElementById("brief-error"),
+    briefContinue: document.getElementById("brief-continue"),
+    archetypeChip: document.getElementById("archetype-chip"),
+    archetypeSelect: document.getElementById("archetype-select"),
+    bannerNoSample: document.getElementById("banner-no-sample"),
+    questionsStatic: document.getElementById("questions-static"),
+    tailoredBlock: document.getElementById("tailored-block"),
+    questionsTailored: document.getElementById("questions-tailored"),
+    tailoredCtaDivider: document.getElementById("tailored-cta-divider"),
+    tailoredCta: document.getElementById("tailored-cta"),
+    askTailoredBtn: document.getElementById("ask-tailored-btn"),
+    tailoredStatus: document.getElementById("tailored-status"),
+    clarifyBack: document.getElementById("clarify-back"),
+    clarifyGenerate: document.getElementById("clarify-generate"),
+    promptOutput: document.getElementById("prompt-output"),
+    copyBtn: document.getElementById("copy-btn"),
+    copiedFlag: document.getElementById("copied-flag"),
+    polishBtn: document.getElementById("polish-btn"),
+    polishStatus: document.getElementById("polish-status"),
+    promptBack: document.getElementById("prompt-back")
+  };
+
+  // ---- archetype select options ----
+  PE.ARCHETYPES.forEach(function (a) {
+    var opt = document.createElement("option");
+    opt.value = a.id;
+    opt.textContent = a.label;
+    el.archetypeSelect.appendChild(opt);
+  });
+
+  function labelFor(id) {
+    for (var i = 0; i < PE.ARCHETYPES.length; i++) {
+      if (PE.ARCHETYPES[i].id === id) return PE.ARCHETYPES[i].label;
+    }
+    return id;
+  }
+
+  function showScreen(index) {
+    state.screen = index;
+    el.screenBrief.hidden = index !== 0;
+    el.screenClarify.hidden = index !== 1;
+    el.screenPrompt.hidden = index !== 2;
+    Array.prototype.forEach.call(el.stepper.querySelectorAll(".step"), function (stepEl) {
+      var n = Number(stepEl.getAttribute("data-step"));
+      stepEl.classList.toggle("active", n === index);
+      stepEl.classList.toggle("done", n < index);
+    });
+    window.scrollTo({ top: 0, behavior: "instant" in window ? "instant" : "auto" });
+  }
+
+  // ---- Screen 1: Brief ----
+  el.briefContinue.addEventListener("click", function () {
+    var brief = el.briefInput.value;
+    var result = PE.classify(brief);
+    if (result.error) {
+      el.briefError.classList.add("show");
+      el.briefInput.focus();
+      return;
+    }
+    el.briefError.classList.remove("show");
+    state.brief = brief;
+    state.archetypeId = result.archetype;
+    state.answers = {};
+    state.tailoredQuestions = [];
+    renderClarify();
+    showScreen(1);
+  });
+
+  // ---- Screen 2: Clarify ----
+  function renderClarify() {
+    el.archetypeChip.textContent = labelFor(state.archetypeId);
+    el.archetypeSelect.value = state.archetypeId;
+
+    el.questionsStatic.innerHTML = "";
+    var questions = PE.getQuestions(state.archetypeId);
+    questions.forEach(function (q) {
+      el.questionsStatic.appendChild(buildQuestionField(q));
+    });
+
+    renderTailoredQuestions();
+    renderSampleAffordances();
+  }
+
+  function buildQuestionField(q) {
+    var wrap = document.createElement("div");
+    wrap.className = "field";
+
+    var label = document.createElement("label");
+    label.className = "field-label";
+    label.setAttribute("for", "q-" + q.id);
+    label.textContent = q.label;
+    wrap.appendChild(label);
+
+    var input = document.createElement("textarea");
+    input.className = "q-input";
+    input.id = "q-" + q.id;
+    input.placeholder = q.placeholder || "";
+    input.value = state.answers[q.id] || "";
+    input.addEventListener("input", function () {
+      state.answers[q.id] = input.value;
+    });
+    wrap.appendChild(input);
+
+    var hint = document.createElement("div");
+    hint.className = "hint";
+    hint.innerHTML = "If skipped: <strong>" + escapeHtml(q.default) + "</strong>";
+    wrap.appendChild(hint);
+
+    return wrap;
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;");
+  }
+
+  el.archetypeSelect.addEventListener("change", function () {
+    state.archetypeId = el.archetypeSelect.value;
+    // Keep answers for question ids shared across archetypes (the core set);
+    // archetype-specific answers for the old archetype are simply not shown again.
+    state.tailoredQuestions = [];
+    renderClarify();
+  });
+
+  el.clarifyBack.addEventListener("click", function () {
+    showScreen(0);
+  });
+
+  el.clarifyGenerate.addEventListener("click", function () {
+    var aiAnswers = null;
+    var answeredTailored = state.tailoredQuestions.filter(function (t) {
+      return t.answer && t.answer.trim() !== "";
+    });
+    if (answeredTailored.length > 0) {
+      aiAnswers = { context: [], constraints: [] };
+      answeredTailored.forEach(function (t) {
+        aiAnswers.context.push(t.text + " " + t.answer.trim());
+      });
+    }
+    var prompt = PE.assemble({
+      archetypeId: state.archetypeId,
+      brief: state.brief,
+      answers: state.answers,
+      aiAnswers: aiAnswers
+    });
+    state.lastPrompt = prompt;
+    state.lastAiAnswers = aiAnswers;
+    el.promptOutput.textContent = prompt;
+    el.polishStatus.textContent = "";
+    showScreen(2);
+  });
+
+  // ---- Tailored questions (sample) ----
+  function renderTailoredQuestions() {
+    el.questionsTailored.innerHTML = "";
+    if (state.tailoredQuestions.length === 0) {
+      el.tailoredBlock.hidden = true;
+      return;
+    }
+    el.tailoredBlock.hidden = false;
+    state.tailoredQuestions.forEach(function (t, idx) {
+      var wrap = document.createElement("div");
+      wrap.className = "field";
+
+      var label = document.createElement("label");
+      label.className = "field-label";
+      label.setAttribute("for", "qt-" + idx);
+      label.textContent = t.text;
+      wrap.appendChild(label);
+
+      var input = document.createElement("textarea");
+      input.className = "q-input";
+      input.id = "qt-" + idx;
+      input.value = t.answer || "";
+      input.addEventListener("input", function () {
+        t.answer = input.value;
+      });
+      wrap.appendChild(input);
+
+      var hint = document.createElement("div");
+      hint.className = "hint";
+      hint.textContent = "Optional. Skip if it doesn't apply.";
+      wrap.appendChild(hint);
+
+      el.questionsTailored.appendChild(wrap);
+    });
+  }
+
+  function renderSampleAffordances() {
+    if (!sampleAvailable) {
+      el.bannerNoSample.hidden = false;
+      el.tailoredCta.hidden = true;
+      el.tailoredCtaDivider.hidden = true;
+      return;
+    }
+    el.bannerNoSample.hidden = true;
+    if (state.tailoredQuestions.length > 0) {
+      el.tailoredCta.hidden = true;
+      el.tailoredCtaDivider.hidden = true;
+    } else {
+      el.tailoredCta.hidden = false;
+      el.tailoredCtaDivider.hidden = false;
+    }
+  }
+
+  el.askTailoredBtn.addEventListener("click", function () {
+    askForTailoredQuestions();
+  });
+
+  function askForTailoredQuestions() {
+    if (!sampleFn || Date.now() < sampleClassifyBackoffUntil) return;
+    el.askTailoredBtn.disabled = true;
+    el.tailoredStatus.innerHTML = '<span class="spinner"></span> Thinking...';
+
+    var prompt =
+      "A person is about to write a prompt for an AI assistant. Their brief:\n\n" +
+      state.brief +
+      "\n\nTask type: " + labelFor(state.archetypeId) +
+      "\n\nSuggest exactly 2 short follow-up questions that would meaningfully sharpen this " +
+      "prompt (things not already obvious from the brief). Reply with only a JSON array of " +
+      "2 short strings, no other text. Example: [\"Question one?\", \"Question two?\"]";
+
+    sampleFn
+      .json(prompt, { modelTier: "quick", cache: true })
+      .then(function (data) {
+        var list = Array.isArray(data) ? data : [];
+        var qs = list
+          .filter(function (x) { return typeof x === "string" && x.trim() !== ""; })
+          .slice(0, 2)
+          .map(function (text) { return { text: text.trim(), answer: "" }; });
+        if (qs.length === 0) {
+          el.tailoredStatus.textContent = "Claude didn't return usable questions this time.";
+          el.askTailoredBtn.disabled = false;
+          return;
+        }
+        state.tailoredQuestions = qs;
+        el.tailoredStatus.textContent = "";
+        renderTailoredQuestions();
+        renderSampleAffordances();
+      })
+      .catch(function (e) {
+        handleSampleError(e, el.tailoredStatus, el.askTailoredBtn);
+      });
+  }
+
+  function handleSampleError(e, statusEl, buttonEl) {
+    var code = e && e.code;
+    if (code === "not_granted" || code === "sampling_disabled" || code === "not_declared" ||
+        code === "capability_disabled" || code === "capability_removed") {
+      // Permanent for this view: hide the feature quietly.
+      sampleAvailable = false;
+      renderSampleAffordances();
+      statusEl.textContent = "";
+      return;
+    }
+    if (code === "rate_limited") {
+      sampleClassifyBackoffUntil = Date.now() + 30000;
+      statusEl.textContent = "Busy right now. Try again in a bit.";
+      if (buttonEl) buttonEl.disabled = false;
+      return;
+    }
+    if (code === "cancelled") {
+      statusEl.textContent = "";
+      if (buttonEl) buttonEl.disabled = false;
+      return;
+    }
+    // invalid_json, refused, empty_completion, upstream_error, etc.
+    statusEl.textContent = "Could not get an answer this time. You can carry on without it.";
+    if (buttonEl) buttonEl.disabled = false;
+  }
+
+  // ---- Screen 3: Prompt ----
+  el.copyBtn.addEventListener("click", function () {
+    var text = el.promptOutput.textContent;
+    var done = function () {
+      el.copiedFlag.classList.add("show");
+      setTimeout(function () { el.copiedFlag.classList.remove("show"); }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(done, function () { fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  });
+
+  function fallbackCopy(text, done) {
+    var ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand("copy"); } catch (e) { /* ignore */ }
+    document.body.removeChild(ta);
+    done();
+  }
+
+  el.promptBack.addEventListener("click", function () {
+    showScreen(1);
+  });
+
+  el.polishBtn.addEventListener("click", function () {
+    if (!sampleFn) return;
+    el.polishBtn.disabled = true;
+    el.polishStatus.innerHTML = '<span class="spinner"></span> Polishing...';
+
+    var basePrompt = state.lastPrompt;
+    var instruction =
+      "Improve the wording, flow, and precision of the following AI prompt without changing " +
+      "its meaning, removing any of its section headings, or dropping any instruction it " +
+      "contains. Keep the same section headings and overall structure. Reply with only the " +
+      "improved prompt text, no preamble, no commentary, no code fences.\n\n---\n\n" +
+      basePrompt;
+
+    sampleFn(instruction, { modelTier: "default", cache: false })
+      .then(function (result) {
+        el.promptOutput.textContent = result.text;
+        el.polishStatus.textContent = result.truncated
+          ? "Polished (cut short by length; the original is still a full prompt if you'd rather use it)."
+          : "Polished by Claude.";
+        el.polishBtn.disabled = false;
+      })
+      .catch(function (e) {
+        if (e && e.text) {
+          // Partial text streamed before failure; nothing reliable to show, keep the deterministic prompt.
+        }
+        handleSampleError(e, el.polishStatus, el.polishBtn);
+        if (e && (e.code === "not_granted" || e.code === "sampling_disabled" ||
+            e.code === "not_declared" || e.code === "capability_disabled" ||
+            e.code === "capability_removed")) {
+          el.polishBtn.hidden = true;
+        }
+      });
+  });
+
+  // ---- sample() availability (checked once at load, never called here) ----
+  (function initSample() {
+    if (!window.claude || typeof window.claude.use !== "function") {
+      finishInit();
+      return;
+    }
+    window.claude.use("sample").then(function (fn) {
+      sampleFn = fn;
+      sampleAvailable = !!fn;
+      finishInit();
+    }, function () {
+      sampleFn = null;
+      sampleAvailable = false;
+      finishInit();
+    });
+  })();
+
+  function finishInit() {
+    el.polishBtn.hidden = !sampleAvailable;
+    renderSampleAffordances();
+  }
+
+  showScreen(0);
+})();
+</script>
