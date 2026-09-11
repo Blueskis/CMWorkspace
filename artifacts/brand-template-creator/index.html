@@ -1,0 +1,1651 @@
+<title>Brand Vault</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Instrument+Serif&family=Libre+Caslon+Text:wght@400;700&family=Newsreader:wght@400;500;600&family=Spectral:wght@400;600&family=Zilla+Slab:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&family=Archivo:wght@500;700&family=Sora:wght@400;600;700&family=Manrope:wght@400;600;700&family=DM+Sans:wght@400;500;700&family=Space+Grotesk:wght@500;600&family=Bricolage+Grotesque:wght@500;700&display=swap">
+<style>
+  /* Palette, type and shadow tokens ported from the Change Comms Console artifact, so the
+     two consoles read as one system. --bg/--muted/--border/--good/--bad/--warn are kept as
+     aliases so the rest of this file's rules don't need touching. */
+  :root{
+    color-scheme: light dark;
+    --paper:#F3F5F9; --surface:#FFFFFF; --surface-2:#EAEEF5;
+    --ink:#12161F; --ink-2:#4C5666; --ink-3:#5A6372;
+    --line:#DCE1EA; --line-strong:#BFC7D4;
+    --accent:#2E3D77; --accent-ink:#FFFFFF; --accent-soft:#E4E8F6;
+    --jade:#0B6B54; --jade-soft:#E0F0EA; --amber:#8C5E0C; --amber-soft:#F7EBD5;
+    --clay:#A33D2E; --clay-soft:#F7E4E0;
+    --shadow: 0 1px 2px rgba(18,22,31,.06), 0 8px 24px -16px rgba(18,22,31,.35);
+    --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+    --bg:var(--paper); --muted:var(--ink-2); --border:var(--line); --border-strong:var(--line-strong);
+    --good:var(--jade); --bad:var(--clay); --warn:var(--amber);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#0E1117; --surface:#171B23; --surface-2:#1F242E;
+      --ink:#E8EBF2; --ink-2:#A5AEBD; --ink-3:#7B8494;
+      --line:#2A303B; --line-strong:#3B4351;
+      --accent:#97A5EA; --accent-ink:#10131B; --accent-soft:#1C2340;
+      --jade:#4FC7A0; --jade-soft:#12302A; --amber:#D9A54E; --amber-soft:#2E2617;
+      --clay:#E38375; --clay-soft:#33201D;
+      --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+      --bg:var(--paper); --muted:var(--ink-2); --border:var(--line); --border-strong:var(--line-strong);
+      --good:var(--jade); --bad:var(--clay); --warn:var(--amber);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0E1117; --surface:#171B23; --surface-2:#1F242E;
+    --ink:#E8EBF2; --ink-2:#A5AEBD; --ink-3:#7B8494;
+    --line:#2A303B; --line-strong:#3B4351;
+    --accent:#97A5EA; --accent-ink:#10131B; --accent-soft:#1C2340;
+    --jade:#4FC7A0; --jade-soft:#12302A; --amber:#D9A54E; --amber-soft:#2E2617;
+    --clay:#E38375; --clay-soft:#33201D;
+    --shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 24px -16px rgba(0,0,0,.8);
+    --bg:var(--paper); --muted:var(--ink-2); --border:var(--line); --border-strong:var(--line-strong);
+    --good:var(--jade); --bad:var(--clay); --warn:var(--amber);
+  }
+  *{box-sizing:border-box;}
+  body{background:var(--bg); color:var(--ink); font-family:var(--font-body); margin:0;}
+  .app{min-height:100%; display:flex; flex-direction:column;}
+  button{font-family:inherit;}
+  input,textarea,select{font-family:inherit; color:var(--ink); background:var(--surface); border:1px solid var(--border-strong); border-radius:8px; padding:8px 10px; font-size:13.5px;}
+  input:focus,textarea:focus,select:focus,button:focus-visible{outline:2px solid var(--accent); outline-offset:1px;}
+  textarea{resize:vertical; width:100%;}
+  label{font-size:12px; color:var(--muted); display:block; margin:0 0 4px;}
+  .field{margin-bottom:14px;}
+  .field input[type="text"], .field input[type="number"], .field textarea, .field select{width:100%;}
+  .row2{display:grid; grid-template-columns:1fr 1fr; gap:10px;}
+  .row3{display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px;}
+
+  .btn{border-radius:8px; border:1px solid var(--border-strong); background:var(--surface); color:var(--ink); padding:8px 14px; font-size:13px; font-weight:600; cursor:pointer;}
+  .btn:hover{border-color:var(--accent);}
+  .btn:disabled{opacity:.5; cursor:default;}
+  .btn-primary{background:var(--accent); color:var(--accent-ink); border-color:var(--accent);}
+  .btn-accent{background:var(--accent); color:var(--accent-ink); border-color:var(--accent); width:100%; margin-top:10px;}
+  .btn-ghost{background:transparent;}
+  .btn-small{padding:5px 10px; font-size:12px;}
+  .btn-danger{color:var(--bad); border-color:var(--bad);}
+  .btn-danger:hover{background:var(--clay-soft);}
+  .btn-danger.armed{background:var(--bad); border-color:var(--bad); color:#fff;}
+
+  .topbar{display:flex; align-items:center; gap:16px; padding:12px 20px; border-bottom:1px solid var(--border); background:var(--surface); position:sticky; top:0; z-index:5;}
+  .brand-mark{display:flex; align-items:center; gap:8px; font-family:var(--font-display); font-weight:600; font-size:18px; flex:0 0 auto;}
+  .brand-mark .tm-icon{color:var(--accent); font-size:15px;}
+  .topbar-mid{display:flex; align-items:center; gap:10px; flex:1; min-width:0;}
+  .name-input{font-family:var(--font-display); font-size:16px; font-weight:600; border:1px solid transparent; background:transparent; padding:6px 8px; max-width:420px; width:100%;}
+  .name-input:hover, .name-input:focus{border-color:var(--border); background:var(--surface);}
+  .save-status{font-size:12px; color:var(--muted); white-space:nowrap;}
+  .topbar-actions{display:flex; gap:8px; flex:0 0 auto;}
+
+  .layout{display:grid; grid-template-columns:250px minmax(0,1fr) 340px; gap:0; flex:1; min-height:0;}
+  @media (max-width: 1080px){ .layout{grid-template-columns:1fr;} }
+
+  .library{border-right:1px solid var(--border); background:var(--surface); padding:16px; overflow-y:auto;}
+  @media (max-width: 1080px){ .library{border-right:none; border-bottom:1px solid var(--border);} }
+  .library-head{display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .library-head h2{font-family:var(--font-display); font-size:14px; margin:0; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  .library-list{display:flex; flex-direction:column; gap:6px; margin-bottom:16px;}
+  .lib-row{display:flex; align-items:stretch; gap:4px;}
+  .lib-item{display:flex; flex-direction:column; align-items:flex-start; justify-content:center; gap:2px; padding:9px 10px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--ink); cursor:pointer; text-align:left; flex:1; min-width:0;}
+  .lib-item:hover{background:var(--surface-2);}
+  .lib-item.active{background:var(--accent-soft); border-color:var(--accent);}
+  .lib-item .lib-name{font-weight:600; font-size:13.5px;}
+  .lib-item .lib-meta{font-size:11px; color:var(--muted);}
+  .lib-remove{flex:0 0 auto; border:none; background:none; color:var(--bad); cursor:pointer; font-size:16px; line-height:1; padding:6px; border-radius:6px;}
+  .lib-remove:hover{background:var(--clay-soft);}
+  .lib-confirm{flex-direction:column; align-items:stretch; gap:8px; padding:10px; border:1px solid var(--bad); border-radius:8px; background:var(--clay-soft);}
+  .lib-confirm-text{font-size:12.5px; color:var(--ink); margin:0;}
+  .lib-confirm-actions{display:flex; gap:8px;}
+  .no-db-note{font-size:12px; color:var(--muted); background:var(--surface-2); border-radius:8px; padding:10px; line-height:1.5; margin-bottom:16px;}
+  .generate-box{border-top:1px solid var(--border); padding-top:14px;}
+  .generate-box h3{font-family:var(--font-display); font-size:14px; margin:0 0 4px;}
+  .generate-box .hint{font-size:11.5px; color:var(--muted); margin:0 0 8px; line-height:1.4;}
+  .check-row{display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink); margin:8px 0;}
+  .check-row input{margin:0;}
+  .gen-status{font-size:12px; color:var(--muted); min-height:16px; margin:8px 0 0;}
+
+  .editor{padding:16px 20px 40px; overflow-y:auto; min-width:0;}
+  .tabs{display:flex; gap:4px; border-bottom:1px solid var(--border); margin-bottom:18px; flex-wrap:wrap;}
+  .tab{background:none; border:none; padding:9px 12px; font-size:13px; font-weight:600; color:var(--muted); cursor:pointer; border-bottom:2px solid transparent; margin-bottom:-1px;}
+  .tab:hover{color:var(--ink);}
+  .tab.active{color:var(--accent); border-bottom-color:var(--accent);}
+  .panel{display:none;}
+  .panel.active{display:block; max-width:640px;}
+  .panel h2{font-family:var(--font-display); font-size:19px; margin:0 0 4px;}
+  .panel .sub{font-size:12.5px; color:var(--muted); margin:0 0 18px;}
+
+  .color-row{display:grid; grid-template-columns:26px 96px 1fr auto; gap:10px; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);}
+  .color-row:last-child{border-bottom:none;}
+  .color-role{font-size:12.5px; font-weight:600; text-transform:capitalize;}
+  .color-swatch-input{width:26px; height:26px; padding:0; border-radius:6px; border:1px solid var(--border); cursor:pointer;}
+  .color-hex{font-family:var(--font-mono); font-size:12.5px; width:96px;}
+  .color-note{font-size:12.5px;}
+  .contrast-badge{font-family:var(--font-mono); font-size:11px; padding:3px 7px; border-radius:5px; white-space:nowrap; background:var(--surface-2); color:var(--muted);}
+  .contrast-badge.pass{background:color-mix(in srgb, var(--good) 18%, transparent); color:var(--good);}
+  .contrast-badge.fail{background:color-mix(in srgb, var(--bad) 16%, transparent); color:var(--bad);}
+
+  .preset-grid{display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:18px;}
+  .preset-card{border:1px solid var(--border); border-radius:10px; padding:9px; cursor:pointer; background:var(--surface); color:var(--ink); text-align:left;}
+  .preset-card:hover{border-color:var(--accent);}
+  .preset-card.active{border-color:var(--accent); box-shadow:0 0 0 1px var(--accent);}
+  .preset-swatches{display:flex; gap:3px; margin-bottom:6px;}
+  .preset-swatches span{width:16px; height:16px; border-radius:4px; display:inline-block; border:1px solid rgba(0,0,0,.08);}
+  .preset-card .p-name{font-size:12px; font-weight:700;}
+  .preset-card .p-desc{font-size:10.5px; color:var(--muted);}
+
+  .logo-drop{border:1px dashed var(--border); border-radius:10px; padding:20px; text-align:center; margin-bottom:14px; background:var(--surface-2);}
+  .logo-drop img{max-height:80px; max-width:100%;}
+  .logo-drop .placeholder{color:var(--muted); font-size:12.5px;}
+
+  .term-row{display:grid; grid-template-columns:1fr 1fr auto; gap:8px; margin-bottom:8px;}
+  .term-remove{border:none; background:none; color:var(--bad); cursor:pointer; font-size:16px; line-height:1; padding:6px;}
+
+  .preview{background:var(--surface-2); padding:16px; overflow-y:auto; border-left:1px solid var(--border);}
+  @media (max-width: 1080px){ .preview{border-left:none; border-top:1px solid var(--border);} }
+  .preview h2{font-family:var(--font-display); font-size:14px; margin:0 0 12px; text-transform:uppercase; letter-spacing:.06em; color:var(--muted);}
+  .preview-stack{display:flex; flex-direction:column; gap:16px;}
+  .mock{border-radius:10px; overflow:hidden; box-shadow:var(--shadow); background:#fff;}
+  .mock-label{font-size:10.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.06em; margin:0 0 6px;}
+
+  .p-slide{aspect-ratio:16/9; padding:7% 8%; display:flex; flex-direction:column; justify-content:center; gap:.6em; background:var(--p-background,#f4f4f2); font-family:var(--p-body-font, var(--font-body));}
+  .p-slide .p-accentbar{width:52px; height:5px; border-radius:3px; background:var(--p-accent,#e0a526);}
+  .p-slide .p-title{font-family:var(--p-heading-font, var(--font-display)); font-weight:var(--p-heading-weight,600); font-size:clamp(16px,3.4vw,26px); color:var(--p-primary,#0b3d91); line-height:1.15; margin:0;}
+  .p-slide .p-subtitle{font-size:clamp(10px,1.5vw,13px); color:var(--p-ink,#1a1a1a); opacity:.85; margin:0;}
+  .p-slide .p-foot{display:flex; align-items:center; gap:8px; margin-top:auto; padding-top:10px;}
+  .p-slide .p-foot img{height:18px; width:auto;}
+  .p-slide .p-foot .p-foot-mark{width:18px; height:18px; border-radius:4px; background:var(--p-primary,#0b3d91); color:var(--p-surface,#fff); font-size:10px; display:flex; align-items:center; justify-content:center; font-weight:700;}
+  .p-slide .p-foot span.p-tag{font-size:9.5px; color:var(--p-muted,#6b6b6b);}
+
+  .p-banner{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:14px 18px; background:var(--p-primary,#0b3d91); font-family:var(--p-body-font, var(--font-body));}
+  .p-banner .p-tagline{font-family:var(--p-heading-font, var(--font-display)); font-weight:var(--p-heading-weight,600); color:var(--p-surface,#fff); font-size:14px; margin:0;}
+  .p-banner .p-mark{width:28px; height:28px; border-radius:6px; background:var(--p-accent,#e0a526); color:var(--p-primary,#0b3d91); font-weight:700; font-size:12px; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+  .p-banner img.p-mark{background:var(--p-surface,#fff); object-fit:contain; padding:3px;}
+
+  .p-news{padding:16px 18px; background:var(--p-surface,#fff); font-family:var(--p-body-font, var(--font-body)); border-top:4px solid var(--p-accent,#e0a526);}
+  .p-news .p-row{display:flex; align-items:center; gap:10px; margin-bottom:8px;}
+  .p-news .p-mast{font-family:var(--p-heading-font, var(--font-display)); font-weight:var(--p-heading-weight,600); font-size:19px; color:var(--p-primary,#0b3d91); margin:0;}
+  .p-news .p-oneliner{font-size:11.5px; color:var(--p-muted,#6b6b6b); margin:0;}
+  .p-news img.p-mark{height:22px; width:auto;}
+  .p-news .p-mark-fallback{width:22px; height:22px; border-radius:5px; background:var(--p-primary,#0b3d91); color:var(--p-surface,#fff); font-size:11px; font-weight:700; display:flex; align-items:center; justify-content:center; flex:0 0 auto;}
+
+  .toast{position:fixed; bottom:18px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--bg); font-size:13px; padding:9px 16px; border-radius:8px; box-shadow:var(--shadow); z-index:20;}
+  .toast.bad{background:var(--bad); color:#fff;}
+  .toast.good{background:var(--good); color:#fff;}
+  [hidden]{display:none !important;}
+</style>
+
+<div class="app">
+  <header class="topbar">
+    <div class="brand-mark"><span class="tm-icon">&#9670;</span><span class="tm-name">Brand Vault</span></div>
+    <div class="topbar-mid">
+      <input id="nameInput" class="name-input" placeholder="Untitled brand" />
+      <span id="saveStatus" class="save-status"></span>
+    </div>
+    <div class="topbar-actions">
+      <button id="themeToggleBtn" class="btn btn-ghost btn-small" title="Toggle light/dark">Theme</button>
+      <button id="resetAllBtn" class="btn btn-ghost btn-small btn-danger" title="Clear every field on this brand">Reset all</button>
+      <button id="exportMdBtn" class="btn btn-ghost">Export .md</button>
+      <button id="exportJsonBtn" class="btn btn-primary">Export .json</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="library" id="libraryPane">
+      <div class="library-head">
+        <h2>Library</h2>
+        <button id="newBrandBtn" class="btn btn-small">New brand</button>
+      </div>
+      <div id="libraryList" class="library-list"></div>
+      <p id="noDbNote" class="no-db-note" hidden>Working without saved storage in this view. Changes stay on screen until you export &mdash; reloading loses anything you haven't exported yet.</p>
+
+      <div class="generate-box" id="generateBox" hidden>
+        <h3>Generate a starting point</h3>
+        <p class="hint">Describe the client, e.g. &ldquo;Singapore statutory board, S/4HANA rollout, formal but approachable&rdquo;.</p>
+        <textarea id="genDesc" rows="3" placeholder="Describe the client and context..."></textarea>
+        <label class="check-row"><input type="checkbox" id="genOverwrite" /> Overwrite fields that already have a value</label>
+        <button id="genBtn" class="btn btn-accent">Generate with Claude</button>
+        <p id="genStatus" class="gen-status" aria-live="polite"></p>
+      </div>
+    </aside>
+
+    <main class="editor" id="editorPane">
+      <nav class="tabs" id="tabs">
+        <button class="tab active" data-tab="style">Style</button>
+        <button class="tab" data-tab="colors">Colours</button>
+        <button class="tab" data-tab="type">Type</button>
+        <button class="tab" data-tab="logo">Logo</button>
+        <button class="tab" data-tab="voice">Voice</button>
+        <button class="tab" data-tab="messaging">Messaging</button>
+      </nav>
+
+      <section class="panel active" data-panel="style">
+        <h2>Style</h2>
+        <p class="sub">Pick a starting preset, then adjust. A preset sets colours, type and descriptors together &mdash; it fully replaces what's there.</p>
+        <div class="preset-grid" id="presetGrid"></div>
+        <div class="field">
+          <label for="descriptorsInput">Descriptors (3&ndash;5, comma separated)</label>
+          <input type="text" id="descriptorsInput" placeholder="formal, confident, clean" />
+        </div>
+        <div class="field">
+          <label for="imageryInput">Imagery guidance</label>
+          <textarea id="imageryInput" rows="2" placeholder="e.g. real staff photography, no stock smiles"></textarea>
+        </div>
+        <div class="field">
+          <label for="layoutFeelInput">Layout feel</label>
+          <input type="text" id="layoutFeelInput" placeholder="e.g. grid-aligned, generous whitespace" />
+        </div>
+      </section>
+
+      <section class="panel" data-panel="colors">
+        <h2>Colours</h2>
+        <p class="sub">Each role gets a hex value and a note on when to use it. The badge shows contrast against the background colour.</p>
+        <div id="colorRows"></div>
+      </section>
+
+      <section class="panel" data-panel="type">
+        <h2>Typography</h2>
+        <p class="sub">Pick from the curated list for a live preview, or type any Google Fonts name &mdash; the backup font is what shows if that font can't load.</p>
+        <div class="row2">
+          <div class="field">
+            <label for="headingFontInput">Heading font</label>
+            <input type="text" id="headingFontInput" list="fontList" placeholder="e.g. Fraunces" />
+          </div>
+          <div class="field">
+            <label for="headingFallbackInput">Backup heading font</label>
+            <input type="text" id="headingFallbackInput" placeholder="Georgia, serif" />
+          </div>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="bodyFontInput">Body font</label>
+            <input type="text" id="bodyFontInput" list="fontList" placeholder="e.g. IBM Plex Sans" />
+          </div>
+          <div class="field">
+            <label for="bodyFallbackInput">Backup body font</label>
+            <input type="text" id="bodyFallbackInput" placeholder="Arial, sans-serif" />
+          </div>
+        </div>
+        <datalist id="fontList"></datalist>
+        <div class="row3">
+          <div class="field">
+            <label for="headingWeightInput">Heading style</label>
+            <select id="headingWeightInput"></select>
+          </div>
+          <div class="field">
+            <label for="bodyWeightInput">Body style</label>
+            <select id="bodyWeightInput"></select>
+          </div>
+          <div class="field">
+            <label for="scaleRatioInput">Heading size</label>
+            <select id="scaleRatioInput"></select>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="logo">
+        <h2>Logo</h2>
+        <p class="sub">Downscaled to 512px on the longest edge and embedded directly in the export &mdash; nothing is uploaded anywhere else.</p>
+        <div class="logo-drop" id="logoDrop">
+          <img id="logoPreviewImg" hidden />
+          <span class="placeholder" id="logoPlaceholder">No logo yet</span>
+        </div>
+        <div class="field">
+          <input type="file" id="logoFile" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" />
+        </div>
+        <button id="removeLogoBtn" class="btn btn-ghost btn-small">Remove logo</button>
+        <div class="field" style="margin-top:14px;">
+          <label for="logoVariantInput">Variant</label>
+          <input type="text" id="logoVariantInput" placeholder="e.g. full colour on light" />
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="logoMinWidthInput">Minimum width (px)</label>
+            <input type="number" id="logoMinWidthInput" min="0" />
+          </div>
+          <div class="field">
+            <label for="logoClearSpaceInput">Clear space</label>
+            <input type="text" id="logoClearSpaceInput" placeholder="e.g. equal to cap height on all sides" />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="voice">
+        <h2>Voice and tone</h2>
+        <div class="field">
+          <label for="formalityInput">Formality: <span id="formalityValue">3</span>/5</label>
+          <input type="range" id="formalityInput" min="1" max="5" step="1" style="width:100%;" />
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="personInput">Person</label>
+            <select id="personInput">
+              <option value="we">We</option>
+              <option value="you">You</option>
+              <option value="impersonal">Impersonal</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sentenceLengthInput">Sentence length</label>
+            <select id="sentenceLengthInput">
+              <option value="short">Short</option>
+              <option value="medium">Medium</option>
+              <option value="long">Long</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="toneInput">Tone descriptors (comma separated)</label>
+          <input type="text" id="toneInput" placeholder="measured, reassuring" />
+        </div>
+        <div class="field">
+          <label for="preferredVocabInput">Preferred vocabulary (comma separated)</label>
+          <input type="text" id="preferredVocabInput" placeholder="citizens, service" />
+        </div>
+        <div class="field">
+          <label for="bannedVocabInput">Banned vocabulary (comma separated)</label>
+          <input type="text" id="bannedVocabInput" placeholder="disrupt, synergy" />
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="rewriteBeforeInput">Before (off-brand example)</label>
+            <textarea id="rewriteBeforeInput" rows="2"></textarea>
+          </div>
+          <div class="field">
+            <label for="rewriteAfterInput">After (on-brand rewrite)</label>
+            <textarea id="rewriteAfterInput" rows="2"></textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel" data-panel="messaging">
+        <h2>Messaging</h2>
+        <div class="field">
+          <label for="taglineInput">Tagline</label>
+          <input type="text" id="taglineInput" />
+        </div>
+        <div class="field">
+          <label for="oneLinerInput">One-liner</label>
+          <input type="text" id="oneLinerInput" />
+        </div>
+        <div class="field">
+          <label for="boilerplateInput">Boilerplate paragraph</label>
+          <textarea id="boilerplateInput" rows="3"></textarea>
+        </div>
+        <div class="field">
+          <label>Proof points (up to 3)</label>
+          <input type="text" id="proof0" style="margin-bottom:6px;" />
+          <input type="text" id="proof1" style="margin-bottom:6px;" />
+          <input type="text" id="proof2" />
+        </div>
+        <div class="field">
+          <label>Terminology / glossary</label>
+          <div id="termRows"></div>
+          <button id="addTermBtn" class="btn btn-small btn-ghost">Add term</button>
+        </div>
+      </section>
+    </main>
+
+    <aside class="preview" id="previewPane">
+      <h2>Live preview</h2>
+      <div class="preview-stack">
+        <div>
+          <p class="mock-label">Title slide</p>
+          <div class="mock p-slide" id="pSlide">
+            <div class="p-accentbar"></div>
+            <p class="p-title" id="pSlideTitle">Brand name</p>
+            <p class="p-subtitle" id="pSlideSubtitle">One-liner goes here</p>
+            <div class="p-foot" id="pSlideFoot">
+              <span class="p-foot-mark" id="pSlideFootMark">B</span>
+              <span class="p-tag">Change &amp; Transformation Briefing</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <p class="mock-label">Banner</p>
+          <div class="mock p-banner" id="pBanner">
+            <p class="p-tagline" id="pBannerTagline">Tagline goes here</p>
+            <span class="p-mark" id="pBannerMark">B</span>
+          </div>
+        </div>
+        <div>
+          <p class="mock-label">Newsletter header</p>
+          <div class="mock p-news" id="pNews">
+            <div class="p-row">
+              <span class="p-mark-fallback" id="pNewsMark">B</span>
+              <p class="p-mast" id="pNewsMast">Brand name</p>
+            </div>
+            <p class="p-oneliner" id="pNewsOneliner">One-liner goes here</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </div>
+  <div id="toast" class="toast" hidden></div>
+</div>
+
+<script>
+// ---8<--- export-core start
+(function () {
+  "use strict";
+
+  const USAGE_INSTRUCTION =
+    "This file is a brand profile exported by the Brand Vault artifact. To use it: read the sections below " +
+    "and apply them consistently to whatever you are asked to build for this client (slides, banners, " +
+    "newsletters, documents). Use the hex values under `colors` for their named role (primary for headers and " +
+    "primary calls to action, secondary for supporting elements, accent for highlights, ink for body text, " +
+    "muted for captions and secondary text, surface for cards and panels, background for the page). Set " +
+    "headings in `typography.headingFont` and body text in `typography.bodyFont`, falling back to the given " +
+    "fallback stacks when those fonts are unavailable. Write copy that matches `voice`: the stated formality " +
+    "(1 low, 5 high), person, sentence length, tone descriptors, and preferred vocabulary; avoid anything in " +
+    "`bannedVocabulary`; use `voice.rewriteExample` as a model of the intended before/after shift. Reuse " +
+    "`messaging.tagline`, `messaging.oneLiner`, `messaging.boilerplate` and `messaging.proofPoints` verbatim " +
+    "where they fit, rather than inventing new claims. If `logo.dataUri` is set, treat it as the client's real " +
+    "logo and place it per `logo.minWidthPx` and `logo.clearSpace`; if it is null, do not fabricate a logo. " +
+    "Treat this file as the client's approved brand, not a suggestion to override.";
+
+  function normalizeHex(input) {
+    if (typeof input !== "string") return null;
+    let s = input.trim().replace(/^#/, "");
+    if (/^[0-9a-fA-F]{3}$/.test(s)) s = s.split("").map((c) => c + c).join("");
+    if (!/^[0-9a-fA-F]{6}$/.test(s)) return null;
+    return "#" + s.toLowerCase();
+  }
+
+  function relativeLuminance(hex) {
+    const n = normalizeHex(hex);
+    if (!n) return null;
+    const rgb = [n.slice(1, 3), n.slice(3, 5), n.slice(5, 7)].map((h) => parseInt(h, 16) / 255);
+    const lin = rgb.map((c) => (c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)));
+    return 0.2126 * lin[0] + 0.7152 * lin[1] + 0.0722 * lin[2];
+  }
+
+  function contrastRatio(hexA, hexB) {
+    const la = relativeLuminance(hexA);
+    const lb = relativeLuminance(hexB);
+    if (la === null || lb === null) return null;
+    const lighter = Math.max(la, lb);
+    const darker = Math.min(la, lb);
+    return (lighter + 0.05) / (darker + 0.05);
+  }
+
+  function escapeMdCell(str) {
+    if (str === null || str === undefined) return "";
+    return String(str).replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\n/g, " ");
+  }
+
+  function escapeMdHeading(str) {
+    return String(str || "").replace(/[#|]/g, "");
+  }
+
+  function slugifyFilename(name, ext) {
+    const extension = ext || "json";
+    let s = String(name || "").toLowerCase();
+    s = s.replace(/[^a-z0-9\s-]/g, "");
+    s = s.trim().replace(/[\s-]+/g, "-");
+    s = s.replace(/^-+|-+$/g, "");
+    if (!s) s = "brand";
+    return s + "-brand." + extension;
+  }
+
+  function clampFormality(v) {
+    let n = Number(v);
+    if (!Number.isFinite(n)) n = 3;
+    return Math.min(5, Math.max(1, Math.round(n)));
+  }
+
+  function createEmptyProfile() {
+    return {
+      meta: { name: "", org: "", owner: "", version: 1, created: null, updated: null },
+      style: { theme: "", descriptors: [], imagery: "", layoutFeel: "" },
+      colors: {
+        primary: { hex: "", note: "" },
+        secondary: { hex: "", note: "" },
+        accent: { hex: "", note: "" },
+        ink: { hex: "", note: "" },
+        muted: { hex: "", note: "" },
+        surface: { hex: "", note: "" },
+        background: { hex: "", note: "" },
+      },
+      typography: {
+        headingFont: "", headingFallback: "", bodyFont: "", bodyFallback: "",
+        headingWeight: 600, bodyWeight: 400, scaleRatio: 1.25,
+      },
+      logo: { dataUri: null, variant: "", minWidthPx: null, clearSpace: "" },
+      voice: {
+        formality: 3, person: "we", sentenceLength: "medium",
+        toneDescriptors: [], preferredVocabulary: [], bannedVocabulary: [],
+        rewriteExample: { before: "", after: "" },
+      },
+      messaging: { tagline: "", oneLiner: "", boilerplate: "", proofPoints: [], terminology: [] },
+      x_extra: {},
+    };
+  }
+
+  function validateProfile(p) {
+    const errors = [];
+    if (!p || !p.meta || !String(p.meta.name || "").trim()) {
+      errors.push({ field: "meta.name", message: "Brand name is required." });
+    }
+    return { valid: errors.length === 0, errors };
+  }
+
+  function buildExportObject(p) {
+    const src = p || createEmptyProfile();
+    const g = (obj, key, fallback) => (obj && obj[key] !== undefined && obj[key] !== null ? obj[key] : fallback);
+    const normColor = (c) => ({ hex: normalizeHex(c && c.hex) || "", note: (c && c.note) || "" });
+    const colors = src.colors || {};
+    const voice = src.voice || {};
+    const rewrite = voice.rewriteExample || {};
+    return {
+      usage: USAGE_INSTRUCTION,
+      meta: {
+        name: String(g(src.meta, "name", "")).trim(),
+        org: g(src.meta, "org", ""),
+        owner: g(src.meta, "owner", ""),
+        version: g(src.meta, "version", 1),
+        created: g(src.meta, "created", null),
+        updated: g(src.meta, "updated", null),
+      },
+      style: {
+        theme: g(src.style, "theme", ""),
+        descriptors: g(src.style, "descriptors", []),
+        imagery: g(src.style, "imagery", ""),
+        layoutFeel: g(src.style, "layoutFeel", ""),
+      },
+      colors: {
+        primary: normColor(colors.primary),
+        secondary: normColor(colors.secondary),
+        accent: normColor(colors.accent),
+        ink: normColor(colors.ink),
+        muted: normColor(colors.muted),
+        surface: normColor(colors.surface),
+        background: normColor(colors.background),
+      },
+      typography: {
+        headingFont: g(src.typography, "headingFont", ""),
+        headingFallback: g(src.typography, "headingFallback", ""),
+        bodyFont: g(src.typography, "bodyFont", ""),
+        bodyFallback: g(src.typography, "bodyFallback", ""),
+        headingWeight: g(src.typography, "headingWeight", 400),
+        bodyWeight: g(src.typography, "bodyWeight", 400),
+        scaleRatio: g(src.typography, "scaleRatio", 1.25),
+      },
+      logo: {
+        dataUri: g(src.logo, "dataUri", null),
+        variant: g(src.logo, "variant", ""),
+        minWidthPx: g(src.logo, "minWidthPx", null),
+        clearSpace: g(src.logo, "clearSpace", ""),
+      },
+      voice: {
+        formality: clampFormality(voice.formality),
+        person: g(voice, "person", "we"),
+        sentenceLength: g(voice, "sentenceLength", "medium"),
+        toneDescriptors: g(voice, "toneDescriptors", []),
+        preferredVocabulary: g(voice, "preferredVocabulary", []),
+        bannedVocabulary: g(voice, "bannedVocabulary", []),
+        rewriteExample: { before: g(rewrite, "before", ""), after: g(rewrite, "after", "") },
+      },
+      messaging: {
+        tagline: g(src.messaging, "tagline", ""),
+        oneLiner: g(src.messaging, "oneLiner", ""),
+        boilerplate: g(src.messaging, "boilerplate", ""),
+        proofPoints: g(src.messaging, "proofPoints", []),
+        terminology: g(src.messaging, "terminology", []),
+      },
+      x_extra: src.x_extra && typeof src.x_extra === "object" ? src.x_extra : {},
+    };
+  }
+
+  function buildExportMarkdown(p) {
+    const obj = buildExportObject(p);
+    const name = obj.meta.name || "Unnamed brand";
+    const lines = [];
+    lines.push("# " + escapeMdHeading(name) + " — Brand Guide");
+    lines.push("");
+    lines.push("_Generated by the Brand Vault artifact. Share this with anyone building slides, banners or newsletters for this client._");
+    lines.push("");
+    lines.push("## At a glance");
+    lines.push("");
+    lines.push("| Field | Value |");
+    lines.push("|---|---|");
+    lines.push("| Brand name | " + escapeMdCell(obj.meta.name) + " |");
+    if (obj.meta.org) lines.push("| Client / organisation | " + escapeMdCell(obj.meta.org) + " |");
+    if (obj.meta.owner) lines.push("| Profile owner | " + escapeMdCell(obj.meta.owner) + " |");
+    lines.push("| Version | " + escapeMdCell(obj.meta.version) + " |");
+    if (obj.meta.updated) lines.push("| Last updated | " + escapeMdCell(obj.meta.updated) + " |");
+    if (obj.style.theme) lines.push("| Style theme | " + escapeMdCell(obj.style.theme) + " |");
+    if (obj.style.descriptors && obj.style.descriptors.length) {
+      lines.push("| Descriptors | " + escapeMdCell(obj.style.descriptors.join(", ")) + " |");
+    }
+    lines.push("");
+
+    lines.push("## Logo");
+    lines.push("");
+    if (obj.logo.dataUri) {
+      lines.push("![" + escapeMdCell(name) + " logo](" + obj.logo.dataUri + ")");
+      lines.push("");
+      const bits = [];
+      if (obj.logo.variant) bits.push("Variant: " + obj.logo.variant);
+      if (obj.logo.minWidthPx) bits.push("Minimum width: " + obj.logo.minWidthPx + "px");
+      if (obj.logo.clearSpace) bits.push("Clear space: " + obj.logo.clearSpace);
+      if (bits.length) lines.push(bits.join(" · "));
+    } else {
+      lines.push("No logo supplied.");
+    }
+    lines.push("");
+
+    lines.push("## Colours");
+    lines.push("");
+    lines.push("| Role | Hex | Use |");
+    lines.push("|---|---|---|");
+    for (const role of ["primary", "secondary", "accent", "ink", "muted", "surface", "background"]) {
+      const c = obj.colors[role];
+      lines.push("| " + role + " | `" + (c.hex || "—") + "` | " + escapeMdCell(c.note) + " |");
+    }
+    lines.push("");
+
+    lines.push("## Typography");
+    lines.push("");
+    lines.push("- Headings: **" + (obj.typography.headingFont || "—") + "**, fallback `" + (obj.typography.headingFallback || "—") + "`, weight " + obj.typography.headingWeight);
+    lines.push("- Body: **" + (obj.typography.bodyFont || "—") + "**, fallback `" + (obj.typography.bodyFallback || "—") + "`, weight " + obj.typography.bodyWeight);
+    lines.push("- Type scale ratio: " + obj.typography.scaleRatio);
+    lines.push("");
+
+    lines.push("## Voice and tone");
+    lines.push("");
+    lines.push("- Formality: " + obj.voice.formality + "/5");
+    lines.push("- Person: " + obj.voice.person);
+    lines.push("- Sentence length: " + obj.voice.sentenceLength);
+    if (obj.voice.toneDescriptors.length) lines.push("- Tone: " + obj.voice.toneDescriptors.join(", "));
+    if (obj.voice.preferredVocabulary.length) lines.push("- Use: " + obj.voice.preferredVocabulary.join(", "));
+    if (obj.voice.bannedVocabulary.length) lines.push("- Avoid: " + obj.voice.bannedVocabulary.join(", "));
+    if (obj.voice.rewriteExample && (obj.voice.rewriteExample.before || obj.voice.rewriteExample.after)) {
+      lines.push("");
+      lines.push("> Before: " + obj.voice.rewriteExample.before);
+      lines.push(">");
+      lines.push("> After: " + obj.voice.rewriteExample.after);
+    }
+    lines.push("");
+
+    lines.push("## Messaging");
+    lines.push("");
+    if (obj.messaging.tagline) lines.push("**Tagline:** " + obj.messaging.tagline);
+    if (obj.messaging.oneLiner) lines.push("**One-liner:** " + obj.messaging.oneLiner);
+    if (obj.messaging.boilerplate) {
+      lines.push("");
+      lines.push(obj.messaging.boilerplate);
+    }
+    if (obj.messaging.proofPoints.length) {
+      lines.push("");
+      lines.push("**Proof points:**");
+      for (const pt of obj.messaging.proofPoints) if (pt) lines.push("- " + pt);
+    }
+    if (obj.messaging.terminology.length) {
+      lines.push("");
+      lines.push("**Terminology:**");
+      lines.push("");
+      lines.push("| Term | Definition |");
+      lines.push("|---|---|");
+      for (const t of obj.messaging.terminology) lines.push("| " + escapeMdCell(t.term) + " | " + escapeMdCell(t.definition) + " |");
+    }
+    lines.push("");
+    return lines.join("\n");
+  }
+
+  const KNOWN_TOP_KEYS = ["usage", "meta", "style", "colors", "typography", "logo", "voice", "messaging", "x_extra"];
+
+  function deepMergeKnown(target, source) {
+    if (!source || typeof source !== "object") return target;
+    for (const k of Object.keys(target)) {
+      if (source[k] === undefined) continue;
+      if (Array.isArray(target[k])) {
+        target[k] = Array.isArray(source[k]) ? source[k] : target[k];
+      } else if (target[k] && typeof target[k] === "object") {
+        deepMergeKnown(target[k], source[k]);
+      } else {
+        target[k] = source[k];
+      }
+    }
+    return target;
+  }
+
+  function importProfileFromRaw(raw) {
+    const obj = raw && typeof raw === "object" ? raw : {};
+    const profile = createEmptyProfile();
+    deepMergeKnown(profile.meta, obj.meta);
+    deepMergeKnown(profile.style, obj.style);
+    if (obj.colors && typeof obj.colors === "object") {
+      for (const role of Object.keys(profile.colors)) {
+        if (obj.colors[role]) deepMergeKnown(profile.colors[role], obj.colors[role]);
+      }
+    }
+    deepMergeKnown(profile.typography, obj.typography);
+    deepMergeKnown(profile.logo, obj.logo);
+    deepMergeKnown(profile.voice, obj.voice);
+    if (obj.voice && "formality" in obj.voice) profile.voice.formality = clampFormality(obj.voice.formality);
+    deepMergeKnown(profile.messaging, obj.messaging);
+
+    const extra = {};
+    if (obj.x_extra && typeof obj.x_extra === "object") Object.assign(extra, obj.x_extra);
+    for (const key of Object.keys(obj)) {
+      if (KNOWN_TOP_KEYS.indexOf(key) === -1) extra[key] = obj[key];
+    }
+    profile.x_extra = extra;
+    return profile;
+  }
+
+  function isEmptyVal(v) {
+    return v === undefined || v === null || (typeof v === "string" && v.trim() === "") || (Array.isArray(v) && v.length === 0);
+  }
+
+  function mergeSection(targetSection, sourceSection, overwrite, applied, pathPrefix) {
+    if (!sourceSection || typeof sourceSection !== "object") return;
+    for (const key of Object.keys(targetSection)) {
+      if (!(key in sourceSection)) continue;
+      const sVal = sourceSection[key];
+      const tVal = targetSection[key];
+      if (tVal && typeof tVal === "object" && !Array.isArray(tVal)) {
+        if (sVal && typeof sVal === "object") mergeSection(tVal, sVal, overwrite, applied, pathPrefix + "." + key);
+        continue;
+      }
+      if (sVal === undefined || sVal === null) continue;
+      const shouldApply = overwrite || isEmptyVal(tVal);
+      if (shouldApply) {
+        targetSection[key] = sVal;
+        applied.push(pathPrefix + "." + key);
+      }
+    }
+  }
+
+  function mergeGeneratedIntoProfile(profile, sampledRaw, overwrite) {
+    const base = profile || createEmptyProfile();
+    let data = sampledRaw;
+    if (typeof data === "string") {
+      try {
+        data = JSON.parse(data);
+      } catch (e) {
+        return { profile: base, error: "The generated response was not valid JSON.", appliedFields: [] };
+      }
+    }
+    if (!data || typeof data !== "object" || Array.isArray(data)) {
+      return { profile: base, error: "The generated response was empty or in an unexpected shape.", appliedFields: [] };
+    }
+    const next = JSON.parse(JSON.stringify(base));
+    const applied = [];
+    for (const section of ["style", "colors", "typography", "logo", "voice", "messaging"]) {
+      if (data[section] && typeof data[section] === "object") {
+        mergeSection(next[section], data[section], !!overwrite, applied, section);
+      }
+    }
+    next.voice.formality = clampFormality(next.voice.formality);
+    return { profile: next, error: null, appliedFields: applied };
+  }
+
+  function decideLogoResize(width, height, maxEdge) {
+    const cap = maxEdge || 512;
+    const w = Number(width);
+    const h = Number(height);
+    if (!Number.isFinite(w) || !Number.isFinite(h) || w <= 0 || h <= 0) {
+      return { width: cap, height: cap };
+    }
+    if (w <= cap && h <= cap) return { width: Math.round(w), height: Math.round(h) };
+    const scale = w >= h ? cap / w : cap / h;
+    return { width: Math.round(w * scale), height: Math.round(h * scale) };
+  }
+
+  const BrandCore = {
+    USAGE_INSTRUCTION,
+    normalizeHex,
+    relativeLuminance,
+    contrastRatio,
+    escapeMdCell,
+    escapeMdHeading,
+    slugifyFilename,
+    clampFormality,
+    createEmptyProfile,
+    validateProfile,
+    buildExportObject,
+    buildExportMarkdown,
+    importProfileFromRaw,
+    mergeGeneratedIntoProfile,
+    decideLogoResize,
+  };
+
+  if (typeof module !== "undefined" && module.exports) module.exports = BrandCore;
+  if (typeof window !== "undefined") window.BrandCore = BrandCore;
+})();
+// ---8<--- export-core end
+</script>
+
+<script>
+(function () {
+  "use strict";
+  const C = window.BrandCore;
+
+  const STYLE_PRESETS = [
+    { theme: "Minimalist", descriptors: ["quiet", "precise", "uncluttered"], imagery: "Plain product or document shots, no busy backgrounds", layoutFeel: "wide margins, one idea per screen",
+      colors: { primary: "#111111", secondary: "#565656", accent: "#9c6b30", ink: "#1a1a1a", muted: "#8a8a8a", surface: "#ffffff", background: "#f5f4f1" },
+      typography: { headingFont: "Instrument Serif", headingFallback: "Georgia, serif", bodyFont: "IBM Plex Sans", bodyFallback: "Arial, sans-serif", headingWeight: 400, bodyWeight: 400, scaleRatio: 1.2 } },
+    { theme: "Corporate Institutional", descriptors: ["formal", "trustworthy", "structured"], imagery: "Staff and facility photography, formally posed", layoutFeel: "grid-aligned, generous whitespace",
+      colors: { primary: "#0b3d62", secondary: "#45607a", accent: "#c9a227", ink: "#16222c", muted: "#6d7a86", surface: "#ffffff", background: "#eef1f4" },
+      typography: { headingFont: "IBM Plex Sans", headingFallback: "Arial, sans-serif", bodyFont: "IBM Plex Sans", bodyFallback: "Arial, sans-serif", headingWeight: 600, bodyWeight: 400, scaleRatio: 1.25 } },
+    { theme: "Futurist Tech", descriptors: ["precise", "systematic", "forward"], imagery: "Abstract data visuals, dark backgrounds, sharp light", layoutFeel: "dense grid, monospace data callouts",
+      colors: { primary: "#101a33", secondary: "#2a3a5c", accent: "#35e0a1", ink: "#e7ecf3", muted: "#7c8aa5", surface: "#111a2e", background: "#0a0f1c" },
+      typography: { headingFont: "Sora", headingFallback: "Segoe UI, sans-serif", bodyFont: "IBM Plex Mono", bodyFallback: "Consolas, monospace", headingWeight: 700, bodyWeight: 400, scaleRatio: 1.33 } },
+    { theme: "Editorial", descriptors: ["considered", "narrative", "authoritative"], imagery: "Documentary photography, natural light", layoutFeel: "long-form columns, pull quotes",
+      colors: { primary: "#7a1f2b", secondary: "#2b2b2b", accent: "#c9a227", ink: "#201c1c", muted: "#8a7f78", surface: "#fffdf8", background: "#f6f1e7" },
+      typography: { headingFont: "Libre Caslon Text", headingFallback: "Georgia, serif", bodyFont: "Newsreader", bodyFallback: "Times New Roman, serif", headingWeight: 700, bodyWeight: 400, scaleRatio: 1.3 } },
+    { theme: "Warm Human", descriptors: ["approachable", "warm", "people-first"], imagery: "Candid people photography, natural settings", layoutFeel: "rounded cards, soft shadows",
+      colors: { primary: "#b5542c", secondary: "#4f6d5a", accent: "#e8b04b", ink: "#2c2420", muted: "#8c7d6c", surface: "#fffaf3", background: "#f3e9da" },
+      typography: { headingFont: "Spectral", headingFallback: "Georgia, serif", bodyFont: "DM Sans", bodyFallback: "Helvetica, sans-serif", headingWeight: 600, bodyWeight: 400, scaleRatio: 1.2 } },
+    { theme: "Bold Impact", descriptors: ["loud", "confident", "urgent"], imagery: "High-contrast cropped photography, bold overlays", layoutFeel: "oversized type, tight grid, hard edges",
+      colors: { primary: "#d7263d", secondary: "#111111", accent: "#ffce45", ink: "#111111", muted: "#6b6b6b", surface: "#ffffff", background: "#f7f7f5" },
+      typography: { headingFont: "Archivo", headingFallback: "Arial Black, sans-serif", bodyFont: "Manrope", bodyFallback: "Arial, sans-serif", headingWeight: 700, bodyWeight: 500, scaleRatio: 1.4 } },
+    { theme: "Academic", descriptors: ["rigorous", "credible", "measured"], imagery: "Research and field photography, factual captions", layoutFeel: "footnote-dense, tables and citations",
+      colors: { primary: "#2f4858", secondary: "#5c7080", accent: "#a3320b", ink: "#202a30", muted: "#7b8a93", surface: "#ffffff", background: "#eef2f3" },
+      typography: { headingFont: "Zilla Slab", headingFallback: "Georgia, serif", bodyFont: "IBM Plex Sans", bodyFallback: "Arial, sans-serif", headingWeight: 600, bodyWeight: 400, scaleRatio: 1.25 } },
+    { theme: "Approachable Playful", descriptors: ["friendly", "energetic", "fun"], imagery: "Bright candid photography, illustrated icons", layoutFeel: "rounded shapes, playful asymmetry",
+      colors: { primary: "#ff6f59", secondary: "#2ec4b6", accent: "#ffd23f", ink: "#23262b", muted: "#7d848c", surface: "#ffffff", background: "#fef6f0" },
+      typography: { headingFont: "Bricolage Grotesque", headingFallback: "Verdana, sans-serif", bodyFont: "DM Sans", bodyFallback: "Verdana, sans-serif", headingWeight: 700, bodyWeight: 400, scaleRatio: 1.25 } },
+    { theme: "Premium Restrained", descriptors: ["refined", "quiet luxury", "exact"], imagery: "Studio product shots, negative space", layoutFeel: "large margins, thin rules, restrained accents",
+      colors: { primary: "#14110f", secondary: "#4a4038", accent: "#b08d57", ink: "#14110f", muted: "#837364", surface: "#ffffff", background: "#f2ede4" },
+      typography: { headingFont: "Fraunces", headingFallback: "Georgia, serif", bodyFont: "IBM Plex Sans", bodyFallback: "Arial, sans-serif", headingWeight: 500, bodyWeight: 400, scaleRatio: 1.3 } },
+    { theme: "Systems Utility", descriptors: ["functional", "dense", "legible"], imagery: "Screenshots and diagrams over photography", layoutFeel: "tight grid, tabular data, minimal ornament",
+      colors: { primary: "#1c1f24", secondary: "#3a4048", accent: "#2f9e6e", ink: "#1c1f24", muted: "#6d7480", surface: "#ffffff", background: "#eef0f2" },
+      typography: { headingFont: "IBM Plex Mono", headingFallback: "Consolas, monospace", bodyFont: "IBM Plex Sans", bodyFallback: "Arial, sans-serif", headingWeight: 500, bodyWeight: 400, scaleRatio: 1.2 } },
+  ];
+
+  const COLOR_NOTES = {
+    primary: "headers, primary buttons",
+    secondary: "secondary text, dividers",
+    accent: "highlights, callouts",
+    ink: "body text",
+    muted: "captions, disabled state",
+    surface: "cards, panels",
+    background: "page background",
+  };
+
+  const CURATED_FONTS = ["Fraunces", "Instrument Serif", "Libre Caslon Text", "Newsreader", "Spectral", "Zilla Slab",
+    "IBM Plex Sans", "IBM Plex Mono", "Archivo", "Sora", "Manrope", "DM Sans", "Space Grotesk", "Bricolage Grotesque"];
+
+  // Plain-language stand-ins for the numeric CSS values a layman doesn't need to see. "Weight"
+  // becomes a named style (as Word/PowerPoint's Bold-ish options read); "type scale ratio"
+  // (how much bigger headings are than body text) becomes a named size step. Values match
+  // every STYLE_PRESETS entry above exactly, so switching presets never lands on an unlisted
+  // number; fillNamedSelect() below adds a "Custom" option for anything else (an AI-generated
+  // or imported profile), so no value is ever silently lost.
+  const WEIGHT_OPTIONS = [
+    { v: 400, label: "Normal" },
+    { v: 500, label: "Medium" },
+    { v: 600, label: "Semibold" },
+    { v: 700, label: "Bold" },
+    { v: 800, label: "Extra bold" },
+  ];
+  const SCALE_OPTIONS = [
+    { v: 1.2, label: "Subtle" },
+    { v: 1.25, label: "Balanced" },
+    { v: 1.3, label: "Noticeable" },
+    { v: 1.33, label: "Bold" },
+    { v: 1.4, label: "Dramatic" },
+  ];
+
+  function fillNamedSelect(selectEl, options, value) {
+    const num = Number(value);
+    const known = options.some((o) => o.v === num);
+    let html = options.map((o) => '<option value="' + o.v + '">' + o.label + '</option>').join("");
+    if (!known && Number.isFinite(num)) html += '<option value="' + num + '">Custom (' + num + ')</option>';
+    selectEl.innerHTML = html;
+    selectEl.value = String(Number.isFinite(num) ? num : options[0].v);
+  }
+
+  function exampleProfile() {
+    const p = C.createEmptyProfile();
+    applyPreset(p, STYLE_PRESETS[1]);
+    p.meta.name = "Harbourview Polyclinic (example)";
+    p.meta.org = "Harbourview Polyclinic";
+    p.meta.owner = "you";
+    p.meta.created = new Date().toISOString();
+    p.meta.updated = p.meta.created;
+    p.voice.formality = 4;
+    p.voice.person = "we";
+    p.voice.sentenceLength = "medium";
+    p.voice.toneDescriptors = ["measured", "reassuring", "clear"];
+    p.voice.preferredVocabulary = ["patients", "care team", "service"];
+    p.voice.bannedVocabulary = ["disrupt", "revolutionise", "synergy"];
+    p.voice.rewriteExample = { before: "We're revolutionising healthcare delivery.", after: "We are making appointments faster and easier to book." };
+    p.messaging.tagline = "Care, made simple.";
+    p.messaging.oneLiner = "Harbourview Polyclinic is modernising how residents book and receive care.";
+    p.messaging.boilerplate = "Harbourview Polyclinic serves the north-east region with general and specialist outpatient care, backed by a multi-year digital service upgrade.";
+    p.messaging.proofPoints = ["3 clinics upgraded", "40% shorter wait times", "MOH service standard certified"];
+    p.messaging.terminology = [{ term: "GLC", definition: "Government-linked company" }];
+    return p;
+  }
+
+  function applyPreset(profile, preset) {
+    profile.style.theme = preset.theme;
+    profile.style.descriptors = preset.descriptors.slice();
+    profile.style.imagery = preset.imagery;
+    profile.style.layoutFeel = preset.layoutFeel;
+    for (const role of Object.keys(preset.colors)) {
+      profile.colors[role] = { hex: preset.colors[role], note: (profile.colors[role] && profile.colors[role].note) || COLOR_NOTES[role] };
+    }
+    Object.assign(profile.typography, preset.typography);
+  }
+
+  // ---------- state ----------
+  const state = {
+    db: null, sample: null, downloads: null,
+    brands: [], currentId: null,
+    profile: exampleProfile(),
+    saveTimer: null, saving: false,
+    // Which library row (if any) is showing its "delete this?" confirm in place of the ×
+    // button. Not persisted — a transient UI state, reset on any re-render trigger.
+    pendingDeleteId: null,
+  };
+
+  const els = {};
+  function $(id) { return document.getElementById(id); }
+
+  function csvToArr(s) { return String(s || "").split(",").map((x) => x.trim()).filter(Boolean); }
+
+  // ---------- rendering ----------
+  function renderAll() {
+    renderTopbar();
+    renderLibrary();
+    renderStylePanel();
+    renderColorsPanel();
+    renderTypePanel();
+    renderLogoPanel();
+    renderVoicePanel();
+    renderMessagingPanel();
+    renderPreview();
+  }
+
+  function renderTopbar() {
+    els.nameInput.value = state.profile.meta.name || "";
+  }
+
+  function fmtWhen(iso) {
+    if (!iso) return "";
+    try {
+      const d = new Date(iso);
+      return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " " + d.toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
+    } catch (e) { return ""; }
+  }
+
+  function renderLibrary() {
+    if (!state.db) {
+      els.libraryList.innerHTML = "";
+      els.noDbNote.hidden = false;
+      return;
+    }
+    els.noDbNote.hidden = true;
+    els.libraryList.innerHTML = "";
+    if (!state.brands.length) {
+      const p = document.createElement("p");
+      p.className = "no-db-note";
+      p.textContent = "No saved brands yet. Edit the example on the right, then use “New brand” to save your own.";
+      els.libraryList.appendChild(p);
+      return;
+    }
+    for (const b of state.brands) {
+      const label = b.name || "Untitled brand";
+
+      // Artifacts run inside a sandboxed iframe that swallows window.confirm — it returns
+      // false immediately without ever showing a dialog, which made the old confirm()-gated
+      // delete silently do nothing. This renders its own in-page confirm instead: clicking ×
+      // swaps the row for a Delete/Cancel pair rather than opening a native dialog.
+      if (state.pendingDeleteId === b.id) {
+        const box = document.createElement("div");
+        box.className = "lib-row lib-confirm";
+        box.innerHTML =
+          '<p class="lib-confirm-text"></p>' +
+          '<div class="lib-confirm-actions">' +
+            '<button type="button" class="btn btn-small btn-danger" data-act="confirm">Delete</button>' +
+            '<button type="button" class="btn btn-small btn-ghost" data-act="cancel">Cancel</button>' +
+          '</div>';
+        box.querySelector(".lib-confirm-text").textContent = 'Delete "' + label + '"? This can’t be undone.';
+        box.querySelector('[data-act="confirm"]').addEventListener("click", () => {
+          state.pendingDeleteId = null;
+          removeBrand(b.id);
+        });
+        box.querySelector('[data-act="cancel"]').addEventListener("click", () => {
+          state.pendingDeleteId = null;
+          renderLibrary();
+        });
+        els.libraryList.appendChild(box);
+        continue;
+      }
+
+      const row = document.createElement("div");
+      row.className = "lib-row";
+      const btn = document.createElement("button");
+      btn.className = "lib-item" + (b.id === state.currentId ? " active" : "");
+      btn.innerHTML = '<span class="lib-name"></span><span class="lib-meta"></span>';
+      btn.querySelector(".lib-name").textContent = label;
+      btn.querySelector(".lib-meta").textContent = "Updated " + fmtWhen(b.updatedAt);
+      btn.addEventListener("click", () => selectBrand(b.id));
+      const rm = document.createElement("button");
+      rm.type = "button";
+      rm.className = "lib-remove";
+      rm.setAttribute("aria-label", "Delete " + label);
+      rm.title = "Delete this brand";
+      rm.textContent = "×";
+      rm.addEventListener("click", () => { state.pendingDeleteId = b.id; renderLibrary(); });
+      row.appendChild(btn);
+      row.appendChild(rm);
+      els.libraryList.appendChild(row);
+    }
+  }
+
+  function renderStylePanel() {
+    els.presetGrid.innerHTML = "";
+    for (const preset of STYLE_PRESETS) {
+      const card = document.createElement("button");
+      card.type = "button";
+      card.className = "preset-card" + (state.profile.style.theme === preset.theme ? " active" : "");
+      const swatches = ["primary", "accent", "background"].map((r) => '<span style="background:' + preset.colors[r] + '"></span>').join("");
+      card.innerHTML = '<div class="preset-swatches">' + swatches + '</div><div class="p-name"></div><div class="p-desc"></div>';
+      card.querySelector(".p-name").textContent = preset.theme;
+      card.querySelector(".p-desc").textContent = preset.descriptors.join(", ");
+      card.addEventListener("click", () => {
+        applyPreset(state.profile, preset);
+        renderAll();
+        scheduleSave();
+      });
+      els.presetGrid.appendChild(card);
+    }
+    els.descriptorsInput.value = (state.profile.style.descriptors || []).join(", ");
+    els.imageryInput.value = state.profile.style.imagery || "";
+    els.layoutFeelInput.value = state.profile.style.layoutFeel || "";
+  }
+
+  function contrastBadgeHtml(hex, bgHex) {
+    const ratio = C.contrastRatio(hex, bgHex);
+    if (ratio === null) return '<span class="contrast-badge">—</span>';
+    const cls = ratio >= 4.5 ? "pass" : ratio >= 3 ? "" : "fail";
+    return '<span class="contrast-badge ' + cls + '">' + ratio.toFixed(2) + ":1 vs bg</span>";
+  }
+
+  function renderColorsPanel() {
+    const roles = ["primary", "secondary", "accent", "ink", "muted", "surface", "background"];
+    const bg = (state.profile.colors.background && state.profile.colors.background.hex) || "#ffffff";
+    els.colorRows.innerHTML = "";
+    for (const role of roles) {
+      const c = state.profile.colors[role] || { hex: "", note: "" };
+      const hex = C.normalizeHex(c.hex) || "#cccccc";
+      const row = document.createElement("div");
+      row.className = "color-row";
+      row.innerHTML =
+        '<input type="color" class="color-swatch-input" value="' + hex + '">' +
+        '<span class="color-role">' + role + '</span>' +
+        '<input type="text" class="color-note" placeholder="note">' +
+        '<span class="badge-slot"></span>';
+      const swatch = row.querySelector(".color-swatch-input");
+      const noteInput = row.querySelector(".color-note");
+      noteInput.value = c.note || "";
+      row.querySelector(".badge-slot").outerHTML = contrastBadgeHtml(c.hex, bg);
+      swatch.addEventListener("input", () => {
+        state.profile.colors[role].hex = swatch.value;
+        renderColorsPanel();
+        renderPreview();
+        scheduleSave();
+      });
+      noteInput.addEventListener("input", () => {
+        state.profile.colors[role].note = noteInput.value;
+        scheduleSave();
+      });
+      els.colorRows.appendChild(row);
+    }
+  }
+
+  function renderTypePanel() {
+    const t = state.profile.typography;
+    els.headingFontInput.value = t.headingFont || "";
+    els.headingFallbackInput.value = t.headingFallback || "";
+    els.bodyFontInput.value = t.bodyFont || "";
+    els.bodyFallbackInput.value = t.bodyFallback || "";
+    fillNamedSelect(els.headingWeightInput, WEIGHT_OPTIONS, t.headingWeight || 600);
+    fillNamedSelect(els.bodyWeightInput, WEIGHT_OPTIONS, t.bodyWeight || 400);
+    fillNamedSelect(els.scaleRatioInput, SCALE_OPTIONS, t.scaleRatio || 1.25);
+    els.fontList.innerHTML = CURATED_FONTS.map((f) => '<option value="' + f + '">').join("");
+  }
+
+  function renderLogoPanel() {
+    const uri = state.profile.logo.dataUri;
+    els.logoPreviewImg.hidden = !uri;
+    els.logoPlaceholder.hidden = !!uri;
+    if (uri) els.logoPreviewImg.src = uri;
+    els.logoVariantInput.value = state.profile.logo.variant || "";
+    els.logoMinWidthInput.value = state.profile.logo.minWidthPx || "";
+    els.logoClearSpaceInput.value = state.profile.logo.clearSpace || "";
+  }
+
+  function renderVoicePanel() {
+    const v = state.profile.voice;
+    els.formalityInput.value = v.formality || 3;
+    els.formalityValue.textContent = v.formality || 3;
+    els.personInput.value = v.person || "we";
+    els.sentenceLengthInput.value = v.sentenceLength || "medium";
+    els.toneInput.value = (v.toneDescriptors || []).join(", ");
+    els.preferredVocabInput.value = (v.preferredVocabulary || []).join(", ");
+    els.bannedVocabInput.value = (v.bannedVocabulary || []).join(", ");
+    els.rewriteBeforeInput.value = (v.rewriteExample && v.rewriteExample.before) || "";
+    els.rewriteAfterInput.value = (v.rewriteExample && v.rewriteExample.after) || "";
+  }
+
+  function renderMessagingPanel() {
+    const m = state.profile.messaging;
+    els.taglineInput.value = m.tagline || "";
+    els.oneLinerInput.value = m.oneLiner || "";
+    els.boilerplateInput.value = m.boilerplate || "";
+    const pp = m.proofPoints || [];
+    els.proof0.value = pp[0] || "";
+    els.proof1.value = pp[1] || "";
+    els.proof2.value = pp[2] || "";
+    renderTerminology();
+  }
+
+  function renderTerminology() {
+    const list = state.profile.messaging.terminology || [];
+    els.termRows.innerHTML = "";
+    list.forEach((t, i) => {
+      const row = document.createElement("div");
+      row.className = "term-row";
+      row.innerHTML =
+        '<input type="text" class="term-term" placeholder="Term">' +
+        '<input type="text" class="term-def" placeholder="Definition">' +
+        '<button type="button" class="term-remove" aria-label="Remove">×</button>';
+      row.querySelector(".term-term").value = t.term || "";
+      row.querySelector(".term-def").value = t.definition || "";
+      row.querySelector(".term-term").addEventListener("input", (e) => { list[i].term = e.target.value; scheduleSave(); });
+      row.querySelector(".term-def").addEventListener("input", (e) => { list[i].definition = e.target.value; scheduleSave(); });
+      row.querySelector(".term-remove").addEventListener("click", () => { list.splice(i, 1); renderTerminology(); scheduleSave(); });
+      els.termRows.appendChild(row);
+    });
+  }
+
+  function initial(name) {
+    const s = String(name || "").trim();
+    return s ? s[0].toUpperCase() : "B";
+  }
+
+  function renderPreview() {
+    const p = state.profile;
+    const colors = p.colors;
+    const scope = els.previewPane;
+    const set = (k, v) => scope.style.setProperty(k, v);
+    set("--p-primary", (colors.primary && colors.primary.hex) || "#0b3d62");
+    set("--p-secondary", (colors.secondary && colors.secondary.hex) || "#45607a");
+    set("--p-accent", (colors.accent && colors.accent.hex) || "#c9a227");
+    set("--p-ink", (colors.ink && colors.ink.hex) || "#16222c");
+    set("--p-muted", (colors.muted && colors.muted.hex) || "#6d7a86");
+    set("--p-surface", (colors.surface && colors.surface.hex) || "#ffffff");
+    set("--p-background", (colors.background && colors.background.hex) || "#eef1f4");
+    set("--p-heading-font", '"' + (p.typography.headingFont || "Fraunces") + '", ' + (p.typography.headingFallback || "Georgia, serif"));
+    set("--p-body-font", '"' + (p.typography.bodyFont || "IBM Plex Sans") + '", ' + (p.typography.bodyFallback || "Arial, sans-serif"));
+    set("--p-heading-weight", p.typography.headingWeight || 600);
+
+    els.pSlideTitle.textContent = p.meta.name || "Brand name";
+    els.pSlideSubtitle.textContent = p.messaging.oneLiner || "One-liner goes here";
+    els.pBannerTagline.textContent = p.messaging.tagline || p.meta.name || "Tagline goes here";
+    els.pNewsMast.textContent = p.meta.name || "Brand name";
+    els.pNewsOneliner.textContent = p.messaging.oneLiner || "One-liner goes here";
+
+    const uri = p.logo.dataUri;
+    els.pSlideFoot.querySelector("#pSlideFootMark") && null;
+    if (uri) {
+      els.pSlideFootMark.outerHTML = '<img id="pSlideFootMark" src="' + uri + '" alt="">';
+      els.pBannerMark.outerHTML = '<img id="pBannerMark" class="p-mark" src="' + uri + '" alt="">';
+      els.pNewsMark.outerHTML = '<img id="pNewsMark" class="p-mark" src="' + uri + '" alt="">';
+    } else {
+      els.pSlideFootMark.outerHTML = '<span id="pSlideFootMark" class="p-foot-mark">' + initial(p.meta.name) + '</span>';
+      els.pBannerMark.outerHTML = '<span id="pBannerMark" class="p-mark">' + initial(p.meta.name) + '</span>';
+      els.pNewsMark.outerHTML = '<span id="pNewsMark" class="p-mark-fallback">' + initial(p.meta.name) + '</span>';
+    }
+    els.pSlideFootMark = $("pSlideFootMark");
+    els.pBannerMark = $("pBannerMark");
+    els.pNewsMark = $("pNewsMark");
+  }
+
+  // ---------- persistence ----------
+  function scheduleSave() {
+    els.saveStatus.textContent = state.db ? "Saving…" : "";
+    if (!state.db) return;
+    clearTimeout(state.saveTimer);
+    state.saveTimer = setTimeout(doSave, 700);
+  }
+
+  async function doSave() {
+    if (!state.db) return;
+    if (!state.currentId) {
+      await createBrandFromCurrent();
+      return;
+    }
+    const p = state.profile;
+    const profileNoLogo = JSON.parse(JSON.stringify(p));
+    profileNoLogo.logo = Object.assign({}, profileNoLogo.logo, { dataUri: null });
+    try {
+      await state.db.doc("brands/" + state.currentId).set({
+        name: p.meta.name || "Untitled brand",
+        updatedAt: new Date().toISOString(),
+        profile: profileNoLogo,
+      });
+      els.saveStatus.textContent = "Saved";
+    } catch (e) {
+      els.saveStatus.textContent = "";
+      showToast("Could not save: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+
+  async function saveLogoDoc(dataUri) {
+    if (!state.db || !state.currentId) return;
+    try {
+      await state.db.doc("brands/" + state.currentId).collection("assets").doc("logo").set({ dataUri });
+    } catch (e) {
+      showToast("Could not save logo: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+
+  async function createBrandFromCurrent() {
+    if (!state.db) return;
+    const p = state.profile;
+    const profileNoLogo = JSON.parse(JSON.stringify(p));
+    const logoUri = profileNoLogo.logo.dataUri;
+    profileNoLogo.logo.dataUri = null;
+    try {
+      const ref = await state.db.collection("brands").add({
+        name: p.meta.name || "Untitled brand",
+        updatedAt: new Date().toISOString(),
+        profile: profileNoLogo,
+      });
+      state.currentId = ref.id;
+      if (logoUri) await saveLogoDoc(logoUri);
+      els.saveStatus.textContent = "Saved";
+      renderLibrary();
+    } catch (e) {
+      showToast("Could not save to the library: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+
+  function subscribeLibrary() {
+    if (!state.db) return;
+    state.db.collection("brands").orderBy("updatedAt", "desc").limit(50).onSnapshot(
+      (snap) => {
+        state.brands = snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
+        renderLibrary();
+      },
+      (err) => showToast("Library sync issue: " + err.message, "bad")
+    );
+  }
+
+  async function selectBrand(id) {
+    if (!state.db || id === state.currentId) return;
+    try {
+      const docSnap = await state.db.doc("brands/" + id).get();
+      if (!docSnap.exists) return;
+      const data = docSnap.data();
+      const profile = C.importProfileFromRaw(data.profile || {});
+      let logoSnap;
+      try {
+        logoSnap = await state.db.doc("brands/" + id).collection("assets").doc("logo").get();
+      } catch (e) { logoSnap = null; }
+      if (logoSnap && logoSnap.exists) profile.logo.dataUri = logoSnap.data().dataUri || null;
+      state.currentId = id;
+      state.profile = profile;
+      renderAll();
+    } catch (e) {
+      showToast("Could not load that brand: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+
+  // Permanently removes a saved brand from the library. Confirmation happens in the calling
+  // UI (renderLibrary's inline Delete/Cancel pair) before this is ever called — not here, and
+  // not via window.confirm, which the artifact sandbox swallows (see renderLibrary). If this
+  // was the brand open in the editor, drops back to a fresh blank profile rather than leaving
+  // the editor pointed at one that no longer exists. The library list itself updates from
+  // subscribeLibrary's onSnapshot once the delete lands, not from an optimistic local edit here.
+  async function removeBrand(id) {
+    if (!state.db) return;
+    const b = state.brands.find((x) => x.id === id);
+    const label = (b && b.name) || "Untitled brand";
+    try {
+      try {
+        await state.db.doc("brands/" + id).collection("assets").doc("logo").delete();
+      } catch (e) { /* no logo doc to delete — fine */ }
+      await state.db.doc("brands/" + id).delete();
+      if (id === state.currentId) {
+        state.currentId = null;
+        state.profile = C.createEmptyProfile();
+        state.profile.meta.created = new Date().toISOString();
+        state.profile.meta.updated = state.profile.meta.created;
+        renderAll();
+      }
+      showToast("Deleted " + label + ".", "good");
+    } catch (e) {
+      showToast("Could not delete: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+
+  async function newBrand() {
+    state.currentId = null;
+    state.profile = C.createEmptyProfile();
+    state.profile.meta.created = new Date().toISOString();
+    state.profile.meta.updated = state.profile.meta.created;
+    renderAll();
+    if (state.db) await createBrandFromCurrent();
+  }
+
+  // Clears every field on the brand currently open in the editor — the name included — back
+  // to blank, rather than deleting it from the library. If this brand is already saved, the
+  // blank state overwrites that same entry (via scheduleSave/doSave) instead of creating a
+  // new one; if it isn't saved yet (still the example), the first autosave after this creates
+  // a fresh blank library entry, same as editing the example by hand already does.
+  function performResetAll() {
+    const empty = C.createEmptyProfile();
+    empty.meta.created = new Date().toISOString();
+    empty.meta.updated = empty.meta.created;
+    state.profile = empty;
+    renderAll();
+    if (state.db && state.currentId) saveLogoDoc(null);
+    scheduleSave();
+    showToast("All fields reset.", "good");
+  }
+
+  // Same reasoning as removeBrand: window.confirm never shows a dialog inside the artifact
+  // sandbox and just resolves false, so a confirm()-gated reset silently did nothing. This
+  // arms the button on the first click (relabelling it, no destructive action yet) and only
+  // resets on a second click while armed; a blur or a few seconds of inaction disarms it.
+  let resetArmTimer = null;
+  function disarmResetAll() {
+    clearTimeout(resetArmTimer);
+    resetArmTimer = null;
+    els.resetAllBtn.textContent = "Reset all";
+    els.resetAllBtn.classList.remove("armed");
+  }
+  function handleResetAllClick() {
+    if (resetArmTimer) {
+      disarmResetAll();
+      performResetAll();
+      return;
+    }
+    els.resetAllBtn.textContent = "Click again to confirm";
+    els.resetAllBtn.classList.add("armed");
+    resetArmTimer = setTimeout(disarmResetAll, 4000);
+  }
+
+  // ---------- logo upload ----------
+  function readFileAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload = () => resolve(r.result);
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+  function loadImage(src) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = reject;
+      img.src = src;
+    });
+  }
+
+  async function handleLogoFile(file) {
+    if (!file) return;
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      const img = await loadImage(dataUrl);
+      const size = C.decideLogoResize(img.naturalWidth, img.naturalHeight, 512);
+      const canvas = document.createElement("canvas");
+      canvas.width = size.width;
+      canvas.height = size.height;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(img, 0, 0, size.width, size.height);
+      let out = canvas.toDataURL("image/png");
+      if (out.length > 200000) out = canvas.toDataURL("image/jpeg", 0.82);
+      state.profile.logo.dataUri = out;
+      renderLogoPanel();
+      renderPreview();
+      await saveLogoDoc(out);
+      scheduleSave();
+    } catch (e) {
+      showToast("Could not read that image file.", "bad");
+    }
+  }
+
+  // ---------- AI generate ----------
+  function buildGeneratePrompt(desc) {
+    return "You are helping a change-management consultant define a client brand profile for a Singapore " +
+      "government or GLC client unless stated otherwise.\nContext: " + desc + "\n\n" +
+      "Reply with ONLY a JSON object (no prose, no code fence) with exactly this shape:\n" +
+      '{"style":{"theme":string,"descriptors":string[3-5],"imagery":string,"layoutFeel":string},' +
+      '"colors":{"primary":{"hex":"#rrggbb","note":string},"secondary":{"hex":"#rrggbb","note":string},' +
+      '"accent":{"hex":"#rrggbb","note":string},"ink":{"hex":"#rrggbb","note":string},' +
+      '"muted":{"hex":"#rrggbb","note":string},"surface":{"hex":"#rrggbb","note":string},' +
+      '"background":{"hex":"#rrggbb","note":string}},' +
+      '"typography":{"headingFont":string,"headingFallback":string,"bodyFont":string,"bodyFallback":string,' +
+      '"headingWeight":number,"bodyWeight":number,"scaleRatio":number},' +
+      '"voice":{"formality":number,"person":"we"|"you"|"impersonal","sentenceLength":"short"|"medium"|"long",' +
+      '"toneDescriptors":string[],"preferredVocabulary":string[],"bannedVocabulary":string[],' +
+      '"rewriteExample":{"before":string,"after":string}},' +
+      '"messaging":{"tagline":string,"oneLiner":string,"boilerplate":string,"proofPoints":string[up to 3],' +
+      '"terminology":[{"term":string,"definition":string}]}}\n' +
+      "Use real Google Fonts family names for headingFont and bodyFont. Colours must be professional and " +
+      "accessible, not garish, with 6-digit lowercase hex values.";
+  }
+
+  function copyForSampleError(e) {
+    const code = e && e.code;
+    switch (code) {
+      case "not_granted": return "Generation was declined for this session.";
+      case "sampling_disabled":
+      case "not_declared": return "Generation is not available here.";
+      case "rate_limited": return "Too many requests right now — try again shortly.";
+      case "cancelled": return "";
+      case "invalid_json": return "The response wasn't usable JSON — try again or narrow the description.";
+      default: return "Generation failed — try again.";
+    }
+  }
+
+  async function runGenerate() {
+    if (!state.sample) return;
+    const desc = els.genDesc.value.trim();
+    if (!desc) {
+      els.genStatus.textContent = "Describe the client first.";
+      return;
+    }
+    els.genBtn.disabled = true;
+    els.genStatus.textContent = "Thinking…";
+    try {
+      const data = await state.sample.json(buildGeneratePrompt(desc), { modelTier: "default" });
+      const result = C.mergeGeneratedIntoProfile(state.profile, data, els.genOverwrite.checked);
+      if (result.error) {
+        els.genStatus.textContent = result.error;
+      } else {
+        state.profile = result.profile;
+        renderAll();
+        scheduleSave();
+        els.genStatus.textContent = result.appliedFields.length
+          ? "Applied " + result.appliedFields.length + " field(s)."
+          : "No empty fields to fill — turn on overwrite to replace existing values.";
+      }
+    } catch (e) {
+      els.genStatus.textContent = copyForSampleError(e);
+    } finally {
+      els.genBtn.disabled = false;
+    }
+  }
+
+  // ---------- export ----------
+  function showToast(msg, kind) {
+    els.toast.textContent = msg;
+    els.toast.className = "toast" + (kind ? " " + kind : "");
+    els.toast.hidden = false;
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => { els.toast.hidden = true; }, 3200);
+  }
+
+  function bumpVersion() {
+    state.profile.meta.version = (Number(state.profile.meta.version) || 1) + 1;
+    state.profile.meta.updated = new Date().toISOString();
+    if (!state.profile.meta.created) state.profile.meta.created = state.profile.meta.updated;
+  }
+
+  async function doDownload(filename, data) {
+    if (!state.downloads) {
+      showToast("Downloads aren't available in this view.", "bad");
+      return;
+    }
+    try {
+      await state.downloads.save({ filename, data });
+      showToast("Saved " + filename, "good");
+    } catch (e) {
+      if (e && e.code === "declined") return;
+      showToast("Could not save the file: " + (e && e.message ? e.message : e), "bad");
+    }
+  }
+
+  async function exportJson() {
+    const v = C.validateProfile(state.profile);
+    if (!v.valid) { showToast(v.errors.map((e) => e.message).join(" "), "bad"); return; }
+    bumpVersion();
+    renderTopbar();
+    scheduleSave();
+    const obj = C.buildExportObject(state.profile);
+    await doDownload(C.slugifyFilename(state.profile.meta.name, "json"), JSON.stringify(obj, null, 2));
+  }
+
+  async function exportMd() {
+    const v = C.validateProfile(state.profile);
+    if (!v.valid) { showToast(v.errors.map((e) => e.message).join(" "), "bad"); return; }
+    const md = C.buildExportMarkdown(state.profile);
+    await doDownload(C.slugifyFilename(state.profile.meta.name, "md"), md);
+  }
+
+  // ---------- wiring ----------
+  function wire() {
+    [
+      "nameInput", "saveStatus", "themeToggleBtn", "resetAllBtn", "exportMdBtn", "exportJsonBtn",
+      "libraryPane", "libraryList", "noDbNote", "generateBox", "genDesc", "genOverwrite", "genBtn", "genStatus", "newBrandBtn",
+      "editorPane", "tabs", "presetGrid", "descriptorsInput", "imageryInput", "layoutFeelInput",
+      "colorRows",
+      "headingFontInput", "headingFallbackInput", "bodyFontInput", "bodyFallbackInput", "headingWeightInput", "bodyWeightInput", "scaleRatioInput", "fontList",
+      "logoDrop", "logoPreviewImg", "logoPlaceholder", "logoFile", "removeLogoBtn", "logoVariantInput", "logoMinWidthInput", "logoClearSpaceInput",
+      "formalityInput", "formalityValue", "personInput", "sentenceLengthInput", "toneInput", "preferredVocabInput", "bannedVocabInput", "rewriteBeforeInput", "rewriteAfterInput",
+      "taglineInput", "oneLinerInput", "boilerplateInput", "proof0", "proof1", "proof2", "termRows", "addTermBtn",
+      "previewPane", "pSlideTitle", "pSlideSubtitle", "pSlideFoot", "pSlideFootMark", "pBannerTagline", "pBannerMark", "pNewsMast", "pNewsOneliner", "pNewsMark",
+      "toast",
+    ].forEach((id) => { els[id] = $(id); });
+
+    els.nameInput.addEventListener("input", () => { state.profile.meta.name = els.nameInput.value; renderPreview(); renderLibrary(); scheduleSave(); });
+    els.exportJsonBtn.addEventListener("click", exportJson);
+    els.exportMdBtn.addEventListener("click", exportMd);
+    els.newBrandBtn.addEventListener("click", newBrand);
+    els.genBtn.addEventListener("click", runGenerate);
+    els.resetAllBtn.addEventListener("click", handleResetAllClick);
+    els.resetAllBtn.addEventListener("blur", disarmResetAll);
+
+    // Same toggle logic as the Change Comms Console artifact: session-only, no persistence —
+    // it starts from the OS preference each time the page loads.
+    els.themeToggleBtn.addEventListener("click", () => {
+      const cur = document.documentElement.getAttribute("data-theme");
+      const isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      document.documentElement.setAttribute("data-theme", isDark ? "light" : "dark");
+    });
+
+    els.tabs.addEventListener("click", (e) => {
+      const btn = e.target.closest(".tab");
+      if (!btn) return;
+      document.querySelectorAll(".tab").forEach((t) => t.classList.toggle("active", t === btn));
+      document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.dataset.panel === btn.dataset.tab));
+    });
+
+    els.descriptorsInput.addEventListener("input", () => { state.profile.style.descriptors = csvToArr(els.descriptorsInput.value); scheduleSave(); });
+    els.imageryInput.addEventListener("input", () => { state.profile.style.imagery = els.imageryInput.value; scheduleSave(); });
+    els.layoutFeelInput.addEventListener("input", () => { state.profile.style.layoutFeel = els.layoutFeelInput.value; scheduleSave(); });
+
+    const typeFields = [
+      ["headingFontInput", "headingFont", "str"], ["headingFallbackInput", "headingFallback", "str"],
+      ["bodyFontInput", "bodyFont", "str"], ["bodyFallbackInput", "bodyFallback", "str"],
+      ["headingWeightInput", "headingWeight", "num"], ["bodyWeightInput", "bodyWeight", "num"], ["scaleRatioInput", "scaleRatio", "num"],
+    ];
+    typeFields.forEach(([id, key, kind]) => {
+      els[id].addEventListener("input", () => {
+        state.profile.typography[key] = kind === "num" ? Number(els[id].value) : els[id].value;
+        renderPreview();
+        scheduleSave();
+      });
+    });
+
+    els.logoFile.addEventListener("change", () => handleLogoFile(els.logoFile.files[0]));
+    els.removeLogoBtn.addEventListener("click", () => {
+      state.profile.logo.dataUri = null;
+      renderLogoPanel();
+      renderPreview();
+      saveLogoDoc(null);
+      scheduleSave();
+    });
+    els.logoVariantInput.addEventListener("input", () => { state.profile.logo.variant = els.logoVariantInput.value; scheduleSave(); });
+    els.logoMinWidthInput.addEventListener("input", () => { state.profile.logo.minWidthPx = Number(els.logoMinWidthInput.value) || null; scheduleSave(); });
+    els.logoClearSpaceInput.addEventListener("input", () => { state.profile.logo.clearSpace = els.logoClearSpaceInput.value; scheduleSave(); });
+
+    els.formalityInput.addEventListener("input", () => {
+      state.profile.voice.formality = C.clampFormality(els.formalityInput.value);
+      els.formalityValue.textContent = state.profile.voice.formality;
+      scheduleSave();
+    });
+    els.personInput.addEventListener("change", () => { state.profile.voice.person = els.personInput.value; scheduleSave(); });
+    els.sentenceLengthInput.addEventListener("change", () => { state.profile.voice.sentenceLength = els.sentenceLengthInput.value; scheduleSave(); });
+    els.toneInput.addEventListener("input", () => { state.profile.voice.toneDescriptors = csvToArr(els.toneInput.value); scheduleSave(); });
+    els.preferredVocabInput.addEventListener("input", () => { state.profile.voice.preferredVocabulary = csvToArr(els.preferredVocabInput.value); scheduleSave(); });
+    els.bannedVocabInput.addEventListener("input", () => { state.profile.voice.bannedVocabulary = csvToArr(els.bannedVocabInput.value); scheduleSave(); });
+    els.rewriteBeforeInput.addEventListener("input", () => { state.profile.voice.rewriteExample.before = els.rewriteBeforeInput.value; scheduleSave(); });
+    els.rewriteAfterInput.addEventListener("input", () => { state.profile.voice.rewriteExample.after = els.rewriteAfterInput.value; scheduleSave(); });
+
+    els.taglineInput.addEventListener("input", () => { state.profile.messaging.tagline = els.taglineInput.value; renderPreview(); scheduleSave(); });
+    els.oneLinerInput.addEventListener("input", () => { state.profile.messaging.oneLiner = els.oneLinerInput.value; renderPreview(); scheduleSave(); });
+    els.boilerplateInput.addEventListener("input", () => { state.profile.messaging.boilerplate = els.boilerplateInput.value; scheduleSave(); });
+    ["proof0", "proof1", "proof2"].forEach((id, i) => {
+      els[id].addEventListener("input", () => {
+        const pp = state.profile.messaging.proofPoints.slice();
+        pp[i] = els[id].value;
+        state.profile.messaging.proofPoints = pp.filter((_, idx) => idx <= i || pp[idx]);
+        scheduleSave();
+      });
+    });
+    els.addTermBtn.addEventListener("click", () => {
+      state.profile.messaging.terminology.push({ term: "", definition: "" });
+      renderTerminology();
+      scheduleSave();
+    });
+  }
+
+  async function boot() {
+    wire();
+    renderAll();
+    if (!window.claude || typeof window.claude.use !== "function") {
+      els.generateBox.hidden = true;
+      els.noDbNote.hidden = false;
+      return;
+    }
+    const [db, sample, downloads] = await Promise.all([
+      window.claude.use("db").catch(() => null),
+      window.claude.use("sample").catch(() => null),
+      window.claude.use("downloads").catch(() => null),
+    ]);
+    state.db = db;
+    state.sample = sample;
+    state.downloads = downloads;
+    els.generateBox.hidden = !sample;
+    if (db) {
+      subscribeLibrary();
+    } else {
+      els.noDbNote.hidden = false;
+    }
+  }
+
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);
+  else boot();
+})();
+</script>

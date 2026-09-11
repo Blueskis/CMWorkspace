@@ -6,6 +6,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
 | `training-material-generator` | **v0.2 (MVP)** — an FSD (or similar spec doc) → a first-draft training deck, with placed screenshots, native diagrams, and knowledge-check questions |
+| `brand-template-creator` | A published claude.ai Artifact — capture a client's brand once (colours, fonts, style, logo, voice, messaging) and export a `.json` + `.md` brand guide to reuse across sessions |
 | `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
 
 ## Proposal generator (v0.1, MVP)
@@ -134,6 +135,7 @@ proposal-assets/
 └── knowledge-bank/       # methodology, case-studies, credentials, team, commercials, boilerplate
 examples/acme-erp/        # worked example — fictional client
 tests/                    # unit tests for training-material-generator, against synthetic fixtures
+artifacts/brand-template-creator/  # Brand Vault — published Artifact, its schema and tests
 ```
 
 Scripts are stdlib-only and each runs standalone with `--help`, except
