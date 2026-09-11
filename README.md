@@ -6,6 +6,8 @@ Change-management working tools, packaged as a Claude Code plugin.
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
 | `cm-comms-generator` | **v0.2** — a change + a chosen channel → a comms draft, routed to the tool that builds it (.docx / .pptx / Canva) |
+| `brand-template-creator` | A published claude.ai Artifact — capture a client's brand once (colours, fonts, style, logo, voice, messaging) and export a `.json` + `.md` brand guide to reuse across sessions |
+| `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
 
 ## Proposal generator (v0.1, MVP)
 
@@ -200,6 +202,9 @@ proposal-assets/          # shared asset root (named for the first skill that us
                           #   boilerplate, comms-collateral, comms-tone, comms-boilerplate
 examples/acme-erp/        # worked example — proposal, fictional client
 examples/northwind-payroll/  # worked example — comms, fictional client, five channels
+└── knowledge-bank/       # methodology, case-studies, credentials, team, commercials, boilerplate
+examples/acme-erp/        # worked example — fictional client
+artifacts/brand-template-creator/  # Brand Vault — published Artifact, its schema and tests
 ```
 
 Indexing, retrieval, template profiling and deck validation are reused from

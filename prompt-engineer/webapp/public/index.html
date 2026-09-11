@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Prompt Engineer</title>
+<style>
+  :root {
+    --bg: #F3F5F9;
+    --surface: #FFFFFF;
+    --surface-2: #EAEEF5;
+    --border: #DCE1EA;
+    --border-strong: #BFC7D4;
+    --text: #12161F;
+    --text-dim: #4C5666;
+    --text-faint: #7A8494;
+    --accent: #2E3D77;
+    --accent-strong: #324281;
+    --accent-contrast: #FFFFFF;
+    --warn-bg: #F7EBD5;
+    --warn-text: #8C5E0C;
+    --warn-border: #E3C68A;
+    --danger: #A33D2E;
+    --focus-ring: #2E3D77;
+    --shadow: 0 1px 2px rgba(18, 22, 31, 0.06), 0 8px 24px -16px rgba(18, 22, 31, 0.35);
+    --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0E1117;
+      --surface: #171B23;
+      --surface-2: #1F242E;
+      --border: #2A303B;
+      --border-strong: #3B4351;
+      --text: #E8EBF2;
+      --text-dim: #A5AEBD;
+      --text-faint: #7B8494;
+      --accent: #97A5EA;
+      --accent-strong: #A3B2FD;
+      --accent-contrast: #10131B;
+      --warn-bg: #2E2617;
+      --warn-text: #D9A54E;
+      --warn-border: #5B4420;
+      --danger: #E38375;
+      --focus-ring: #97A5EA;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px -16px rgba(0, 0, 0, 0.8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0E1117;
+    --surface: #171B23;
+    --surface-2: #1F242E;
+    --border: #2A303B;
+    --border-strong: #3B4351;
+    --text: #E8EBF2;
+    --text-dim: #A5AEBD;
+    --text-faint: #7B8494;
+    --accent: #97A5EA;
+    --accent-strong: #A3B2FD;
+    --accent-contrast: #10131B;
+    --warn-bg: #2E2617;
+    --warn-text: #D9A54E;
+    --warn-border: #5B4420;
+    --danger: #E38375;
+    --focus-ring: #97A5EA;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.5), 0 8px 24px -16px rgba(0, 0, 0, 0.8);
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    line-height: 1.5;
+  }
+
+  .wrap {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 28px 16px 72px;
+  }
+
+  .masthead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+  }
+  .masthead h1 {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+  .masthead .tagline {
+    font-size: 0.82rem;
+    color: var(--text-faint);
+  }
+
+  .stepper {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 24px;
+  }
+  .stepper .step {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    min-width: 0;
+  }
+  .stepper .step .num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    color: var(--text-dim);
+    font-size: 0.7rem;
+    font-weight: 600;
+    flex: none;
+    font-variant-numeric: tabular-nums;
+  }
+  .stepper .step span.label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .stepper .step.active {
+    border-color: var(--accent);
+    color: var(--text);
+    font-weight: 600;
+  }
+  .stepper .step.active .num {
+    background: var(--accent);
+    color: var(--accent-contrast);
+  }
+  .stepper .step.done { color: var(--text-dim); }
+  .stepper .step.done .num {
+    background: var(--surface-2);
+    color: var(--accent-strong);
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .card + .card { margin-top: 14px; }
+
+  h2.screen-title {
+    font-family: var(--font-display);
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin: 0 0 4px;
+  }
+  .screen-sub {
+    font-size: 0.86rem;
+    color: var(--text-dim);
+    margin: 0 0 16px;
+  }
+
+  label.field-label {
+    display: block;
+    font-size: 0.86rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  textarea, select, input[type="text"] {
+    width: 100%;
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--text);
+    background: var(--bg);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 10px 12px;
+    resize: vertical;
+  }
+  textarea:focus, select:focus, input[type="text"]:focus {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 1px;
+    border-color: var(--focus-ring);
+  }
+  textarea.brief-input { min-height: 130px; }
+  textarea.q-input { min-height: 56px; }
+
+  .hint {
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    margin-top: 5px;
+  }
+  .hint strong { color: var(--text-dim); font-weight: 600; }
+
+  .notice {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    font-size: 0.78rem;
+    color: var(--warn-text);
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-border);
+    border-radius: 8px;
+    padding: 9px 11px;
+    margin-top: 12px;
+  }
+  .notice .dot { flex: none; margin-top: 2px; }
+
+  .field { margin-bottom: 16px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .archetype-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: var(--accent-contrast);
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .archetype-row select {
+    width: auto;
+    max-width: 100%;
+    font-size: 0.82rem;
+    padding: 6px 10px;
+  }
+  .archetype-row .archetype-note {
+    font-size: 0.78rem;
+    color: var(--text-faint);
+    width: 100%;
+  }
+
+  .section-divider {
+    border: none;
+    border-top: 1px dashed var(--border);
+    margin: 18px 0;
+  }
+  .section-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-faint);
+    margin: 0 0 12px;
+  }
+
+  .tailored-cta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .actions { display: flex; gap: 10px; margin-top: 20px; flex-wrap: wrap; }
+  .actions.spread { justify-content: space-between; }
+
+  button {
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 10px 16px;
+    cursor: pointer;
+    border: 1px solid transparent;
+  }
+  button:focus-visible { outline: 2px solid var(--focus-ring); outline-offset: 2px; }
+  button.primary { background: var(--accent); color: var(--accent-contrast); }
+  button.primary:hover { background: var(--accent-strong); }
+  button.secondary {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+  button.secondary:hover { border-color: var(--accent); }
+  button.ghost {
+    background: transparent;
+    color: var(--accent-strong);
+    border-color: transparent;
+    padding: 10px 4px;
+  }
+  button.ghost:hover { text-decoration: underline; }
+  button:disabled { opacity: 0.55; cursor: not-allowed; }
+
+  .error-msg { font-size: 0.8rem; color: var(--danger); margin-top: 10px; display: none; }
+  .error-msg.show { display: block; }
+
+  .promptblock {
+    font-family: var(--font-mono);
+    font-size: 0.82rem;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    max-height: 60vh;
+    overflow-y: auto;
+    margin: 0;
+  }
+
+  .prompt-toolbar { display: flex; justify-content: flex-end; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+
+  .copied-flag {
+    font-size: 0.78rem;
+    color: var(--accent-strong);
+    font-weight: 600;
+    align-self: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+  }
+  .copied-flag.show { opacity: 1; }
+
+  .spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    border-top-color: transparent;
+    animation: spin 0.7s linear infinite;
+    vertical-align: -2px;
+  }
+  @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 1.6s; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  footer.foot-note {
+    text-align: center;
+    font-size: 0.74rem;
+    color: var(--text-faint);
+    margin-top: 26px;
+  }
+
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="masthead">
+    <h1>Prompt Engineer</h1>
+    <div class="tagline">Turn a rough ask into a prompt worth pasting</div>
+  </div>
+
+  <div class="stepper" id="stepper">
+    <div class="step" data-step="0"><span class="num">1</span><span class="label">Brief</span></div>
+    <div class="step" data-step="1"><span class="num">2</span><span class="label">Clarify</span></div>
+    <div class="step" data-step="2"><span class="num">3</span><span class="label">Prompt</span></div>
+  </div>
+
+  <!-- Screen 1: Brief -->
+  <section class="card" id="screen-brief">
+    <h2 class="screen-title">What do you want the AI to do?</h2>
+    <p class="screen-sub">Describe it in a sentence or two, the way you'd tell a colleague.</p>
+
+    <div class="field">
+      <label class="field-label" for="brief-input">Your brief</label>
+      <textarea id="brief-input" class="brief-input" placeholder="e.g. Write a comms email to staff about a system go-live next Tuesday, and explain what will change for them."></textarea>
+      <div class="notice">
+        <span class="dot">&#9432;</span>
+        <span>If you use the tailored-question or polish option below, this text is sent to an AI service run by this tool's owner. Do not paste client-confidential or personal information here.</span>
+      </div>
+      <div class="error-msg" id="brief-error">Add a sentence describing what you want before continuing.</div>
+    </div>
+
+    <div class="actions">
+      <button class="primary" id="brief-continue">Continue</button>
+    </div>
+  </section>
+
+  <!-- Screen 2: Clarify -->
+  <section class="card" id="screen-clarify" hidden>
+    <h2 class="screen-title">A few quick questions</h2>
+    <p class="screen-sub">Every question is optional. Skip anything and a sensible default is used instead.</p>
+
+    <div class="archetype-row">
+      <span class="chip" id="archetype-chip">Write / Draft</span>
+      <select id="archetype-select" aria-label="Change the task type"></select>
+      <div class="archetype-note">Not quite right? Pick a different task type above.</div>
+    </div>
+
+    <div id="questions-static"></div>
+
+    <div id="tailored-block" hidden>
+      <hr class="section-divider">
+      <p class="section-label">Tailored to your brief</p>
+      <div id="questions-tailored"></div>
+    </div>
+
+    <hr class="section-divider" id="tailored-cta-divider">
+    <div class="tailored-cta" id="tailored-cta">
+      <button class="secondary" id="ask-tailored-btn">Get 2 tailored questions</button>
+      <span class="hint" id="tailored-status"></span>
+    </div>
+
+    <div class="actions spread">
+      <button class="secondary" id="clarify-back">Back</button>
+      <button class="primary" id="clarify-generate">Generate prompt</button>
+    </div>
+  </section>
+
+  <!-- Screen 3: Prompt -->
+  <section class="card" id="screen-prompt" hidden>
+    <h2 class="screen-title">Your prompt</h2>
+    <p class="screen-sub">Copy this into Claude, or any AI assistant, as your first message.</p>
+
+    <div class="prompt-toolbar">
+      <span class="copied-flag" id="copied-flag">Copied</span>
+      <button class="secondary" id="polish-btn">Polish with Claude</button>
+      <button class="primary" id="copy-btn">Copy prompt</button>
+    </div>
+    <pre class="promptblock" id="prompt-output"></pre>
+    <div class="hint" id="polish-status" style="margin-top:10px;"></div>
+
+    <div class="actions">
+      <button class="secondary" id="prompt-back">Back to Clarify</button>
+    </div>
+  </section>
+
+  <footer class="foot-note">Nothing you type here is saved. Refreshing the page starts over.</footer>
+</div>
+
+<script src="pe-logic.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
