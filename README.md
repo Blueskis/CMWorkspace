@@ -6,6 +6,8 @@ Change-management working tools, packaged as a Claude Code plugin.
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
 | `change-impact-assessment` | **MVP** — a programme's own documents → a baseline change impact assessment in the client's CIA template |
+| `brand-template-creator` | A published claude.ai Artifact — capture a client's brand once (colours, fonts, style, logo, voice, messaging) and export a `.json` + `.md` brand guide to reuse across sessions |
+| `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
 
 ## Proposal generator (v0.1, MVP)
 
@@ -190,6 +192,7 @@ skills/change-impact-assessment/
 │                         # generate_cia.py         — validator and workbook builder
 │                         # push_to_airtable.py     — same assessment as a live Airtable base
 └── examples/             # worked example — six source documents + the assessment
+artifacts/brand-template-creator/  # Brand Vault — published Artifact, its schema and tests
 ```
 
 Proposal-generator scripts are stdlib-only. `generate_cia.py` needs `openpyxl`. Each runs
