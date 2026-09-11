@@ -9,7 +9,7 @@
 // one backed by Vercel KV or Upstash Redis — the call sites don't need to
 // change.
 const WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const MAX_REQUESTS = 20; // per key, per window
+const MAX_REQUESTS = 5; // per key, per window
 
 const buckets = new Map();
 

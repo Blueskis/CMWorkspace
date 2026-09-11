@@ -16,16 +16,18 @@ the same 19 cases against both files so they can't silently drift apart).
 
 - **You pay per call, not the viewer.** Every click of Polish or "Get tailored
   questions" bills your Anthropic API key, however many people have the link.
-- **Basic rate limiting only.** `api/_lib/rateLimit.js` caps each visitor to 20
+- **Basic rate limiting only.** `api/_lib/rateLimit.js` caps each visitor to 5
   calls/hour per endpoint. It's an in-memory counter local to one serverless
   instance, a soft cap that resets on cold start, not a hard guarantee under
-  real concurrent load. Fine for sharing with a team or a client; if the link
-  gets forwarded widely, consider a shared Vercel KV / Upstash Redis-backed
-  limiter instead (same call sites, swap the module).
-- **The model is `claude-opus-5` at low effort**, chosen for quality on a
-  short text-polishing task while keeping the token spend down. Change the
-  `model` value in `api/polish.js` / `api/tailor.js` if you want a cheaper
-  model for this specific narrow task.
+  real concurrent load. If the link gets forwarded widely, consider a shared
+  Vercel KV / Upstash Redis-backed limiter instead (same call sites, swap the
+  module).
+- **The model is `claude-haiku-4-5`**, the cheapest current Claude tier,
+  chosen to keep a public-facing feature's cost down. It doesn't accept the
+  `output_config.effort` parameter (Opus/Sonnet 5 do), so neither endpoint
+  sends one — this model has no "quality dial" of that kind. Change the
+  `model` value in `api/polish.js` / `api/tailor.js` if you want higher
+  output quality at a higher per-call cost.
 
 ## Deploy (Vercel)
 

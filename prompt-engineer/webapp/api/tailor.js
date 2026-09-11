@@ -38,9 +38,10 @@ module.exports = async function handler(req, res) {
   try {
     const client = getClient();
     const response = await client.messages.create({
-      model: "claude-opus-5",
+      model: "claude-haiku-4-5",
       max_tokens: 1024,
-      output_config: { effort: "low" },
+      // No `output_config.effort` here: Haiku 4.5 doesn't support the effort
+      // parameter (the API rejects it), unlike the Opus/Sonnet 5 tier.
       messages: [{ role: "user", content: prompt }],
     });
     const textBlock = response.content.find((b) => b.type === "text");
