@@ -6,6 +6,9 @@ Change-management working tools, packaged as a Claude Code plugin.
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
 | `cm-comms-generator` | **v0.2** — a change + a chosen channel → a comms draft, routed to the tool that builds it (.docx / .pptx / Canva) |
+| `cm-effort-estimator` | **v0.5** — scope drivers → a manday estimate, with an open-ended judgement layer for adjustments the drivers alone don't capture |
+| `change-impact-assessment` | **MVP** — a programme's own documents → a baseline change impact assessment in the client's CIA template |
+| `training-material-generator` | **v0.2 (MVP)** — an FSD (or similar spec doc) → a first-draft training deck, with placed screenshots, native diagrams, and knowledge-check questions |
 | `brand-template-creator` | A published claude.ai Artifact — capture a client's brand once (colours, fonts, style, logo, voice, messaging) and export a `.json` + `.md` brand guide to reuse across sessions |
 | `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
 
@@ -178,6 +181,177 @@ Shared by both skills.
    refuse a profile with no named approver.
 4. **Always pass `--strict-section`** when retrieving. The bank is shared between both skills
    and the section is the only thing keeping a past staff email out of a live bid.
+## Effort estimator (v0.5)
+
+Sizes a change management pursuit in mandays, bottom-up from ten scope drivers (impacted
+people, business units, sites, languages, deployment waves, programme duration, training
+modules) through an itemised hours library of 53 catalogue deliverables and 189 costed
+tasks. Reads an RFP the same way the proposal generator's Stage 1 does — in the browser,
+nothing leaves it — and produces effort by workstream, by consultant rank, and average FTE.
+
+**v0.5 adds an open-ended judgement layer.** A practitioner types what they know that the
+estimate doesn't — "the Authority has no dedicated change lead", "three unions sit on the
+impact assessment", "five onboarding waves, not two" — and the assistant proposes named,
+reviewable adjustments to the drivers and lines the estimate already has, never a
+free-floating multiplier bolted on top. Each proposal carries a rationale and a predicted
+manday delta shown before anything moves; accept, reject or revert each individually, with
+an exact, order-independent revert and a running audit trail. See
+`skills/cm-effort-estimator/reference/judgement-layer.md` for the full mechanics, including
+why the judgement layer is barred — in validation, not just by asking nicely — from ever
+touching the hours library, rank mix or vocabulary, which are shared admin configuration
+across every future pursuit rather than one pursuit's to change.
+
+Ships as a single self-contained HTML file — no build, no server, opens straight from disk.
+
+### Try it
+
+```bash
+node --test skills/cm-effort-estimator/tests/judgement.test.js
+```
+
+Then open `skills/cm-effort-estimator/estimator.html` in a browser. Two anonymised sample
+RFPs are built in (a public-authority tender and a rail operator's depot maintenance
+system) to exercise the scope-reading and judgement flow end to end without a real client
+document.
+
+### Placeholder norms
+
+The hours library ships with defensible starting values, not the firm's calibrated
+benchmarks — the same posture this repo already takes with the proposal generator's
+`-EXAMPLE.md` knowledge-bank entries and its generic HTML template. Say so on handover
+until the admin tab's past-project effort table has enough logged engagements to
+recalibrate against.
+## Change impact assessment (MVP)
+
+Reads a system implementation's own source material — interview and workshop notes, meeting
+recordings and transcripts, Signavio/BPMN process design, functional specifications, slide decks,
+spreadsheets, org design — and writes a baseline assessment into **the client's own CIA
+template**.
+
+**Source ingestion.** `ingest_sources.py` normalises a folder of mixed client files into readable
+text plus a source manifest, using the standard library alone: `.docx` and `.pptx` (including
+speaker notes), `.xlsx`/`.csv`, `.vtt`/`.srt` transcripts as speaker turns with timestamps, and
+BPMN exports broken out by **lane — the lanes are the impacted roles**, which is the most useful
+thing a process model gives a CIA. PDFs and images are flagged for Claude to read natively rather
+than text-extracted, because a process diagram is often the most informative thing in the pack.
+
+**Voice recordings** need a transcript first — Claude cannot listen to audio. The skill asks for
+the meeting platform's own transcript (Teams, Zoom and Meet generate one automatically, with
+speaker labels and correctly spelled names), and otherwise transcribes locally with
+`transcribe_interview.py`. A cloud ASR service is treated as a data-protection decision rather
+than a default — interview recordings contain named employees discussing job security.
+
+`transcribe_interview.py` is built for evidence rather than captions:
+
+- **Names and jargon are biased in.** The attendee roster and a domain vocabulary
+  (`reference/asr-vocabulary.txt`) are fed to the model as decoding context, because ASR fails
+  hardest on exactly the proper nouns a CIA runs on — system names, module names, acronyms.
+- **Doubt is surfaced.** Turns the model was unsure about, and turns showing the repetition
+  signature of a hallucination, are flagged inline. So is every turn stating a quantity —
+  in digits *or* spelled out, since people say "a hundred and fifty", not "150".
+- **Attribution is a first-class step.** Machine transcription cannot tell who is speaking, so
+  the tool emits a turn worksheet; you label it while skimming the audio, and
+  `--apply-speakers` merges it back into a `.vtt` that flows on into ingestion.
+- **Setup is verifiable before it matters.** `--check` reports what's installed,
+  `--download-model` caches the weights up front, and `--selftest` runs the whole pipeline
+  stage by stage so a failure points at backend, decoder, probe, model load or output writing
+  rather than a stack trace. `--dry-run` estimates the time before you commit to a batch, and
+  long recordings checkpoint so a failure at minute 80 resumes rather than restarting.
+- **The likeliest setup failure is handled by name.** Whisper weights come from Hugging Face
+  and enterprise proxies routinely deny that host; the tool recognises the blocked download,
+  says it is a network policy rather than a broken install, and gives the pre-staging steps.
+
+Reading verbatim transcripts is a different job from reading notes, covered in
+`reference/interview-evidence.md`: attribution (who said it decides whether it is testimony, a
+claim, design intent or hearsay), harvesting quotes, reading hesitation and contradiction, and
+never banking a number heard only in speech.
+
+**The template owns the model.** Four-level process taxonomy (L1–L4 with codes), three
+dimensions — People, Process, Technology — each scored 0–3 against the anchors on the
+template's own rubric sheet, averaged unweighted into Overall Impact. The generator loads
+`skills/change-impact-assessment/templates/CIA_Template.xlsx` and writes rows into it, so its
+headers, theme colours, merges and `Change Impact Ratings` rubric come through untouched —
+checked against the original file on every run. Point `--template` at a different client
+template to use theirs instead.
+
+Output sheets:
+
+- **CIA Template** — the deliverable, in the client's format. One row per process change ×
+  stakeholder group: L1–L4 taxonomy, current roles and headcount, as-is → to-be, a description
+  and 0–3 score for each of People/Process/Technology, the Overall Impact average, and the
+  training, communications and other (policy, engagement) responses
+- **Change Impact Ratings** — the client's scoring rubric, carried through unchanged
+- **Impact Heatmap** — where the change lands, by stakeholder group and by L1 area
+- **Training Plan** — delivery method, duration and effort roll-up in person-hours and days
+- **Comms Plan** — key messages by audience and wave, with named senders
+- **Traceability** — the source documents behind each row, and the open questions for
+  business validation
+- **Assessment Info** — programme metadata, impact profile, and the assumptions being made
+
+Overall Impact, heatmap counts and the roll-ups are live Excel formulas, so re-scoring a Degree
+of Impact in a validation workshop updates the whole pack. `--extended` appends eight governance
+columns (impact ID, stakeholder group, resistance, champion, source ref, confidence, status,
+notes) for the CM team's working copy, leaving the default output matching the client template
+exactly.
+
+One assumption to confirm with a client before baselining: the template defines the 0–3
+dimension scale but not the cut-offs on the overall average. The generator uses High ≥ 2.50 /
+Medium 1.50–2.49 / Low 0.50–1.49 / No-Minimal < 0.50, states this on the Assessment Info sheet,
+and it is changeable in one constant.
+
+`skills/change-impact-assessment/examples/` holds a complete worked example for an SAP S/4HANA
+and Ariba implementation — seven sources, including a real Teams `.vtt` transcript, and the
+21-impact assessment they produce. Two of those rows exist to show what a transcript gives you
+that a note cannot, including one finding that surfaced only because a colleague corrected a
+headline number mid-sentence.
+
+**Airtable as a live alternative.** `push_to_airtable.py` publishes the same assessment as
+two linked tables — `Sources` and `Change Impacts` — so traceability works in both directions
+(open a source, see every impact derived from it), and the workbook's roll-up sheets become
+filtered views that cannot drift from the register. Records upsert on Impact ID, so the JSON
+stays the master and re-running syncs rather than duplicating. `Overall Impact` and `Rating` are created as formula fields, so re-scoring a dimension in a
+validation workshop updates the rating live, as it does in the workbook. Standard library
+only; the official Airtable connector is the no-token alternative. See
+`reference/airtable-workspace.md` — including why importing the workbook straight into
+Airtable produces a base that looks right and is not.
+
+Requires `openpyxl` (`pip install openpyxl`).
+## Training material generator (v0.2, MVP)
+
+Takes a functional specification document (or similar — a BRD, a process guide, system
+documentation with screenshots) and produces a first-draft training deck on the client's
+approved template: screenshots placed by the procedure step they illustrate, native
+PowerPoint diagrams (process flows, swimlanes, decision trees, org hierarchies,
+timelines) built from the spec's own prose logic, and knowledge-check questions derived
+from — and cited back to — the spec.
+
+Five stages, same discipline as the proposal generator — every stage writes an
+inspectable artifact:
+
+```
+docs + template ─▶ source_map.json ─▶ training_brief.json ─▶ deck_plan.json ─▶ training.pptx ─▶ qa_report.md
+      INTAKE            BRIEF               PLAN                 FILL + BUILD          QA
+```
+
+Two invariants enforced mechanically in Stage 5:
+
+- **Provenance** — every content block traces to a source-document section or carries an
+  explicit `[GAP]` marker.
+- **Coverage, in both directions** — every learning objective reaches a content slide
+  *and* a knowledge-check question, and every procedural section of the source document
+  reaches a module or an explicit, reasoned exclusion. The document's own outline drives
+  the module plan; retrieval only fills slides — top-k never decides what the course
+  covers.
+
+See `skills/training-material-generator/SKILL.md` for the full pipeline, and
+`tests/run_tests.py` for a runnable check of the extraction, retrieval, diagram-rendering,
+and QA logic against synthetic fixtures (`python tests/run_tests.py -v`).
+
+### What v0.2 does not do
+
+Multi-system curricula, audience-*filtered* decks (audiences are tagged now, filtering is
+v0.3), scored/tracked assessments or LMS packaging, and automated cropping/upscaling of
+extracted screenshots. Output is always a **draft for practitioner review**.
 
 ## Layout
 
@@ -195,6 +369,21 @@ skills/cm-comms-generator/
 └── scripts/              # render_markdown, route_channel, qa_comms, apply_brand,
                           #   build_docx, build_pptx, verify_docx, canva_brief, video_spec
 proposal-assets/          # shared asset root (named for the first skill that used it)
+└── scripts/              # index_kb, retrieve, build_deck, render_html, qa_deck
+skills/training-material-generator/
+├── SKILL.md              # the five-stage process
+├── reference/            # module library, FSD extraction, screenshot placement,
+│                         #   diagram patterns, knowledge-check quality rules
+├── schemas/              # source_map, asset_index, training_brief, deck_plan,
+│                         #   question_bank contracts
+└── scripts/              # map_source, extract_assets, index_chunks, retrieve_chunks,
+                          #   render_diagram, inject_slide_xml, build_training_deck,
+                          #   qa_training
+lib/                      # shared, stdlib-only — used by both skills
+├── profile_template.py   # profiles a .potx/.pptx or HTML template's layouts/placeholders/theme
+└── section_walk.py       # shared heading-stack walker, so a section_id means the same
+                          #   thing across a skill's own outline and asset-index outputs
+proposal-assets/
 ├── templates/
 │   └── html-generic/     # PoC template: 9 layouts, theme, vendored reveal.js (MIT)
 ├── brand-profiles/       # one approved brand profile per client
@@ -204,6 +393,29 @@ examples/acme-erp/        # worked example — proposal, fictional client
 examples/northwind-payroll/  # worked example — comms, fictional client, five channels
 └── knowledge-bank/       # methodology, case-studies, credentials, team, commercials, boilerplate
 examples/acme-erp/        # worked example — fictional client
+
+skills/cm-effort-estimator/
+├── SKILL.md              # what it does, what it doesn't, the placeholder-norms caveat
+├── estimator.html         # the whole tool — data, engine, judgement layer, UI
+├── tests/                # node:test, sliced straight out of estimator.html
+└── reference/
+    └── judgement-layer.md  # the adjustment schema, validation, the admin-config boundary
+skills/change-impact-assessment/
+├── SKILL.md              # the assessment process
+├── templates/            # the client CIA template the generator populates
+├── reference/            # source ingestion, interview evidence, extraction guide,
+│                         #   rating methodology, response playbook, input schema
+├── scripts/              # transcribe_interview.py — recordings → attributed transcripts
+│                         # ingest_sources.py       — mixed client files → text + manifest
+│                         # generate_cia.py         — validator and workbook builder
+│                         # push_to_airtable.py     — same assessment as a live Airtable base
+└── examples/             # worked example — six source documents + the assessment
+artifacts/brand-template-creator/  # Brand Vault — published Artifact, its schema and tests
+```
+
+Proposal-generator scripts are stdlib-only. `generate_cia.py` needs `openpyxl`. Each runs
+standalone with `--help`.
+tests/                    # unit tests for training-material-generator, against synthetic fixtures
 artifacts/brand-template-creator/  # Brand Vault — published Artifact, its schema and tests
 ```
 
@@ -213,6 +425,9 @@ deck plan against a client `.potx` exactly as they do a bid. `render_html.py` is
 of the comms path, and is untouched.
 
 Scripts are stdlib-only and each runs standalone with `--help`.
+Scripts are stdlib-only and each runs standalone with `--help`, except
+`training-material-generator`'s `inject_slide_xml.py`, which uses `defusedxml` (falls back
+to stdlib `xml.dom.minidom` with a warning if absent).
 
 ## Installing on another machine
 
