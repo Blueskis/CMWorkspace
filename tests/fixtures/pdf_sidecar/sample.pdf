@@ -1,0 +1,5 @@
+%PDF-1.4
+% Placeholder only — map_source.py's PDF path reads sample.txt (the sidecar) and
+% never opens this file's bytes when the sidecar is present. Kept as a stub so the
+% .pdf extension is discoverable, per map_source.py's discover_inputs().
+%%EOF

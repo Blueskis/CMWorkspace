@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "question_bank.schema.json",
+  "title": "Question Bank",
+  "description": "Knowledge-check questions derived from the source documents, each tied to a learning objective. Stage 3 output, consumed by build_training_deck.py for check-slide placement and by qa_training.py for question sanity checks. See reference/knowledge-checks.md for quality rules.",
+  "type": "object",
+  "required": ["run_id", "questions"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["question_id", "objective_id", "type", "stem", "options", "key", "sources"],
+        "properties": {
+          "question_id": { "type": "string", "pattern": "^Q[0-9]+$" },
+          "objective_id": { "type": "string", "pattern": "^LO[0-9]+$" },
+          "module_id": { "type": ["string", "null"], "description": "Which module's check slide this belongs on" },
+          "type": { "enum": ["mcq", "multi", "true-false", "scenario"] },
+          "stem": { "type": "string", "description": "Tests the task, not trivia — see reference/knowledge-checks.md" },
+          "options": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "object",
+              "required": ["option_id", "text"],
+              "properties": {
+                "option_id": { "type": "string" },
+                "text": { "type": "string" }
+              }
+            }
+          },
+          "key": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "option_id(s). One entry for mcq/true-false; may be more than one only when type is 'multi'."
+          },
+          "rationale": { "type": "string", "description": "Why the key is correct, citing the source anchor — becomes the facilitator answer-key entry" },
+          "bloom_level": { "enum": ["remember", "understand", "apply", "analyze", "evaluate", "create"] },
+          "audience_ids": { "type": "array", "items": { "type": "string" } },
+          "sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" },
+            "description": "source_map.json section_id(s) where the answer is stated. A question the documents don't answer is a [GAP] block on the plan, not a question here."
+          }
+        }
+      }
+    }
+  }
+}

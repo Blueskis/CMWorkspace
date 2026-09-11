@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "training_brief.schema.json",
+  "title": "Training Brief",
+  "description": "Structured scope and objectives for a training run. Stage 1 output, built from source_map.json plus practitioner input. audiences[] and each objective's/slide's audience_ids are populated now but not filtered on at build in v0.2 — that's the v0.3 curation feature, pre-wired here so the expensive judgement (who needs what) happens once, while the FSD is in context.",
+  "type": "object",
+  "required": ["run_id", "system", "audiences", "learning_objectives", "out_of_scope", "sources"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "system": { "type": "string", "description": "The system or process area this training covers, e.g. 'Purchase Order Approval (SAP)'" },
+    "process_scope": { "type": "string", "description": "One or two sentences bounding what the course does and does not cover" },
+    "delivery_mode": { "enum": ["ILT", "VILT", "self-paced"] },
+    "session_duration": { "type": "string", "description": "e.g. '90 minutes'" },
+    "prerequisites": { "type": "array", "items": { "type": "string" } },
+    "glossary": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["term", "definition"],
+        "properties": {
+          "term": { "type": "string" },
+          "definition": { "type": "string" },
+          "section_id": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "audiences": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["audience_id", "role_name"],
+        "properties": {
+          "audience_id": { "type": "string", "description": "e.g. 'po-approver', 'po-creator'" },
+          "role_name": { "type": "string" },
+          "tasks": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "learning_objectives": {
+      "type": "array",
+      "description": "IDs are the spine of the run — Stage 2 maps modules to them, Stage 5 checks every one reaches a slide and a question.",
+      "items": {
+        "type": "object",
+        "required": ["lo_id", "text", "bloom_level", "audience_ids", "sources"],
+        "properties": {
+          "lo_id": { "type": "string", "pattern": "^LO[0-9]+$" },
+          "text": { "type": "string", "description": "Observable verb — 'route a PO over $10k for approval', not 'understand approvals'" },
+          "bloom_level": { "enum": ["remember", "understand", "apply", "analyze", "evaluate", "create"] },
+          "audience_ids": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string" }
+          },
+          "sources": {
+            "type": "array",
+            "minItems": 1,
+            "items": { "type": "string", "description": "source_map.json section_id" }
+          }
+        }
+      }
+    },
+    "out_of_scope": {
+      "type": "array",
+      "description": "Source sections deliberately not taught. Required entries for every 'procedure' section not covered by a module — this is what makes the Stage 5 coverage check meaningful rather than something to game.",
+      "items": {
+        "type": "object",
+        "required": ["section_id", "reason"],
+        "properties": {
+          "section_id": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "sources": {
+      "type": "object",
+      "required": ["source_map"],
+      "properties": {
+        "source_map": { "type": "string", "description": "Path to this run's source_map.json" },
+        "asset_index": { "type": "string" }
+      }
+    }
+  }
+}
