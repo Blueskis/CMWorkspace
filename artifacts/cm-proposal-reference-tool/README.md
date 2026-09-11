@@ -38,14 +38,6 @@ link-shareable copy is ever needed (as with Change Impact Intake's testing copy)
 second copy with the Airtable panel and `mcp` capability removed, degrading to "no live
 ranking" rather than a broken page.
 
-## Known style deviation
-
-This artifact predates `CLAUDE.md`'s artifact house style and does not yet match it: it
-loads Google Fonts (Libre Franklin / Newsreader / IBM Plex Mono) rather than system fonts,
-and uses its own token names (`--seal`, `--jade`, `--amber`, `--red`) rather than the
-house palette (`--accent`, `--jade`, `--amber`, `--clay`). Re-sync it to the house style
-the next time this artifact needs a substantive update, rather than as a standalone pass.
-
 ## Publishing or updating it
 
 Single self-contained HTML file, no build step. Publish with the Artifact tool (capability
