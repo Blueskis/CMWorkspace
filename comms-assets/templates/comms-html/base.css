@@ -1,0 +1,145 @@
+/* ------------------------------------------------------------------
+   Structural CSS for the banner and newsletter-roundup layouts. No
+   client-specific values here — every color/font/spacing value is a
+   var(--token) resolved against whichever theme render_comms_html.py
+   built from apply_brand.py --format html. This file itself never
+   changes per client; the brand profile does.
+
+   Not used by the edm layout: email clients do not reliably support
+   var() or external/`<style>`-block CSS, so edm gets brand values
+   inlined literally per element instead (see layouts.html's edm
+   template and render_comms_html.py's EDM_BRAND_TOKENS).
+   ------------------------------------------------------------------ */
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  color: var(--ink-soft);
+  background: var(--panel);
+}
+
+/* Banner --------------------------------------------------------
+   Screen: a full-width intranet strip, 1 headline + 1 pointer.
+   Print: reflows to a single A4/A3 notice — @page + @media print
+   below replace the strip layout with a centred full-page poster. */
+
+.banner-frame {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+  background: var(--ink);
+  color: var(--canvas);
+  padding: var(--space-4) var(--space-5);
+  min-height: 120px;
+}
+.banner-kicker {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--secondary);
+}
+.banner-headline {
+  font-family: var(--font-heading);
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+  max-width: 40em;
+}
+.banner-subhead {
+  font-family: var(--font-sans);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.4;
+  max-width: 40em;
+  margin-top: -4px;
+}
+.banner-pointer {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--panel);
+}
+
+@page { size: A4; margin: 20mm; }
+@media print {
+  body { background: var(--canvas); }
+  .banner-frame {
+    min-height: auto;
+    height: calc(297mm - 40mm);       /* A4 portrait minus @page margins */
+    justify-content: center;
+    align-items: flex-start;
+    padding: var(--space-5);
+  }
+  .banner-headline { font-size: 48px; max-width: 100%; }
+  .banner-pointer  { font-size: 20px; }
+}
+/* A3 notice: the practitioner switches the browser print dialog's paper size to
+   A3 — the flex-based layout above scales with it since nothing is pinned to
+   A4's px dimensions directly (only @page's own size, which the print dialog
+   already lets a user override). */
+
+/* Newsletter-roundup ---------------------------------------------
+   A scannable page: title, intro, N item cards, closing pointer. */
+
+.nl-frame {
+  max-width: 640px;
+  margin: var(--space-5) auto;
+  background: var(--canvas);
+  border-radius: 8px;
+  padding: var(--space-5);
+}
+.nl-header { border-bottom: 2px solid var(--ink); padding-bottom: var(--space-3); margin-bottom: var(--space-4); }
+.nl-title {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.nl-intro { color: var(--ink-soft); font-size: 15px; margin-top: var(--space-2); }
+.nl-items { display: flex; flex-direction: column; gap: var(--space-4); }
+.nl-item { background: var(--panel); border-radius: 6px; padding: var(--space-3) var(--space-4); }
+.nl-item-heading {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: var(--space-2);
+}
+.nl-item-body { color: var(--ink-soft); font-size: 15px; line-height: 1.5; }
+.nl-item-body ul { margin: var(--space-2) 0 0 1.1em; padding: 0; }
+.nl-item-body li { margin-bottom: var(--space-1); }
+.nl-cta {
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--rule);
+  font-size: 14px;
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Gap markers — a gap is always visible, never silently dropped or filled
+   with substitute text. Amber is a fixed convention colour, not a brand
+   token — it must read as "attention" regardless of the client's palette. */
+.gap {
+  background: #fef3c7;
+  border-left: 4px solid #b45309;
+  border-radius: 0 4px 4px 0;
+  padding: var(--space-2) var(--space-3);
+  color: #78350f;
+  font-size: 14px;
+  line-height: 1.4;
+}
+.gap .gap-tag {
+  display: inline-block;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: #b45309;
+  margin-right: var(--space-2);
+}

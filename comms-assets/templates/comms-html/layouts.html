@@ -1,0 +1,85 @@
+<!--
+  Layout definitions for cm-comms-generator's local HTML render route —
+  banner, newsletter-roundup and edm. Read by
+  skills/cm-proposal-generator/scripts/profile_template.py (reused unmodified,
+  the same way the briefing_deck lane reuses it for a client .potx) and rendered
+  by skills/cm-comms-generator/scripts/render_comms_html.py.
+
+  One file, three layouts — matching proposal-assets/templates/html-generic's own
+  convention of one layouts.html per template directory. profile_template.py's
+  HTML-template profiler hardcodes the filename "layouts.html" for a directory
+  target, so a real second source file per layout would need forking that script,
+  not just adding a channel.
+
+  Placeholders are {{name}} tokens; optional regions wrap in
+  {{#name}}...{{/name}} and the renderer drops the whole block when that
+  placeholder has no content — same convention as html-generic's layouts.
+
+  Two placeholder families exist here:
+
+    * CONTENT tokens (headline, pointer, title, items, body, ...) — filled from
+      the comms_plan.json run's parts. Never invented; a gap:true block renders
+      as a visible flagged placeholder.
+    * BRAND tokens on the edm layout only (ink, canvas, accent, on_accent,
+      font_sans) — filled from apply_brand.py's --format html theme, inlined
+      literally because email clients do not reliably support var(). banner and
+      newsletter use var(--token) instead (see base.css) since they are ordinary
+      web pages, not email.
+
+  Editing a layout here changes every artefact rendered from this template. No
+  Python changes needed.
+-->
+
+<template data-layout="banner">
+  <div class="banner-frame">
+    {{#kicker}}<div class="banner-kicker">{{kicker}}</div>{{/kicker}}
+    <div class="banner-headline">{{headline}}</div>
+    {{#subhead}}<div class="banner-subhead">{{subhead}}</div>{{/subhead}}
+    <div class="banner-pointer">{{pointer}}</div>
+  </div>
+</template>
+
+<template data-layout="newsletter-roundup">
+  <div class="nl-frame">
+    <header class="nl-header">
+      <div class="nl-title">{{title}}</div>
+      {{#intro}}<div class="nl-intro">{{intro}}</div>{{/intro}}
+    </header>
+    <div class="nl-items">{{items}}</div>
+    {{#cta}}<div class="nl-cta">{{cta}}</div>{{/cta}}
+  </div>
+</template>
+
+<template data-layout="edm">
+<!--[if mso]>
+<table role="presentation" width="600" align="center" cellpadding="0" cellspacing="0" border="0"><tr><td>
+<![endif]-->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;margin:0 auto;background:{{canvas}};">
+  <tr>
+    <td style="padding:{{pad_lg}} {{pad_lg}} {{pad_sm}};font-family:{{font_sans}};">
+      {{#kicker}}<div style="font-size:12px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:{{accent}};margin:0 0 12px 0;">{{kicker}}</div>{{/kicker}}
+      <div style="font-family:{{font_sans}};font-size:24px;font-weight:700;color:{{ink}};line-height:1.25;margin:0 0 16px 0;">{{headline}}</div>
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:0 {{pad_lg}} {{pad_md}};font-family:{{font_sans}};font-size:15px;line-height:1.5;color:{{ink_soft}};">
+      {{body}}
+    </td>
+  </tr>
+  {{#cta_block}}
+  <tr>
+    <td style="padding:0 {{pad_lg}} {{pad_lg}};">
+      {{cta_block}}
+    </td>
+  </tr>
+  {{/cta_block}}
+  <tr>
+    <td style="padding:{{pad_md}} {{pad_lg}};border-top:1px solid {{rule}};font-family:{{font_sans}};font-size:12px;color:{{muted}};">
+      {{footer}}
+    </td>
+  </tr>
+</table>
+<!--[if mso]>
+</td></tr></table>
+<![endif]-->
+</template>

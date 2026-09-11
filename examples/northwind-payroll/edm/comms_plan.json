@@ -1,0 +1,189 @@
+{
+  "run_id": "northwind-edm-20260902",
+  "brief_ref": "../change_brief.json",
+  "brand_profile_ref": "../brand_profile.json",
+  "channel": "edm",
+  "client": "Northwind Foods",
+  "engagement_title": "Payroll change — EDM",
+  "design_provenance": "generated-unapproved",
+  "target_audience_ids": ["A1"],
+  "sender": "Marcus Bell, Chief People Officer",
+  "send_window": "2026-09-02 to 2026-09-14",
+  "review_by": "Priya Raghavan",
+
+  "sections": [
+    {
+      "section_id": "subject",
+      "title": "Subject line",
+      "order": 1,
+      "message_ids": ["M4"],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T1"],
+      "slides": [
+        {
+          "slide_id": "edm-subject",
+          "part_kind": "subject",
+          "title": "Subject",
+          "blocks": [
+            { "kind": "text", "content": "Activate your portal by 14 Sept",
+              "sources": ["brief:audiences.A1.required_action"] }
+          ]
+        },
+        {
+          "slide_id": "edm-preheader",
+          "part_kind": "preheader",
+          "title": "Preheader",
+          "blocks": [
+            { "kind": "text", "content": "Pay moves to twice a month from 1 October — here's what to do first",
+              "sources": ["brief:key_messages.M1"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "whats-changing",
+      "title": "Headline",
+      "order": 2,
+      "message_ids": ["M1", "M2", "M4", "M6"],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T3"],
+      "slides": [
+        {
+          "slide_id": "edm-headline",
+          "part_kind": "headline",
+          "title": "Headline",
+          "blocks": [
+            { "kind": "text", "content": "Your pay cadence is changing — activate your account",
+              "sources": ["brief:key_messages.M1"] }
+          ]
+        },
+        {
+          "slide_id": "edm-body-change",
+          "part_kind": "whats-changing",
+          "title": "What's changing",
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "From 1 October you'll be paid twice a month — on the 15th and the last working day — instead of once.",
+              "sources": ["brief:key_messages.M1"] },
+            { "kind": "paragraph",
+              "content": "Your total annual pay is not changing. The same amount is paid across two dates instead of one — most people find it easier to budget around, and your payslip is issued the moment it's ready rather than waiting for the post.",
+              "sources": ["brief:key_messages.M2", "brief:audiences.A1.whats_in_it_for_me"] }
+          ]
+        },
+        {
+          "slide_id": "edm-body-not-changing",
+          "part_kind": "whats-not-changing",
+          "title": "What's not changing",
+          "blocks": [
+            { "kind": "text",
+              "content": "This does not affect anyone's job, grade, hours or contract — just how and when pay is processed.",
+              "sources": ["brief:key_messages.M6"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "who-is-affected",
+      "title": "Who this affects",
+      "order": 3,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "edm-who",
+          "part_kind": "who-is-affected",
+          "title": "Who this affects",
+          "blocks": [
+            { "kind": "text", "content": "All 2,400 colleagues across UK and Ireland sites.",
+              "sources": ["brief:audiences.A1"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "your-action",
+      "title": "What you need to do",
+      "order": 4,
+      "message_ids": ["M4"],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T1"],
+      "slides": [
+        {
+          "slide_id": "edm-action",
+          "part_kind": "your-action",
+          "title": "What you need to do",
+          "blocks": [
+            { "kind": "text",
+              "content": "Activate your portal account and check your bank details are correct — about ten minutes, by 14 September.",
+              "sources": ["brief:key_messages.M4", "brief:audiences.A1.required_action"] }
+          ]
+        },
+        {
+          "slide_id": "edm-timeline",
+          "part_kind": "timeline",
+          "title": "Key date",
+          "blocks": [
+            { "kind": "text", "content": "Deadline: 14 September 2026.",
+              "sources": ["brief:milestones.T1"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "help",
+      "title": "Where to get help",
+      "order": 5,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "edm-help",
+          "part_kind": "help",
+          "title": "Where to get help",
+          "blocks": [
+            { "kind": "text",
+              "content": "Questions: payroll.support@northwindfoods.example, Monday to Friday 8am to 6pm.",
+              "sources": ["brief:governance.help_route"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "signoff",
+      "title": "Signoff",
+      "order": 6,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "edm-signoff",
+          "part_kind": "signoff",
+          "title": "Signoff",
+          "blocks": [
+            { "kind": "text", "content": "Marcus Bell, Chief People Officer",
+              "sources": ["brief:governance.sender"] }
+          ]
+        }
+      ]
+    },
+    {
+      "section_id": "cta",
+      "title": "Call to action",
+      "order": 7,
+      "message_ids": ["M4"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "edm-cta",
+          "part_kind": "cta",
+          "title": "Call to action",
+          "blocks": [
+            { "kind": "text",
+              "content": "Activate your account: https://portal.northwindfoods.example/activate",
+              "sources": ["brief:audiences.A1.required_action"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

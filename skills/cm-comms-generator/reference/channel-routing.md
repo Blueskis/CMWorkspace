@@ -16,17 +16,22 @@ python skills/cm-comms-generator/scripts/route_channel.py --list
 | `email` | `.docx` | `docx` skill | live |
 | `article` | `.docx` | `docx` skill | live |
 | `briefing_deck` | `.pptx` | `pptx` skill | live |
-| `newsletter` | Canva design | Canva MCP | live — needs the connector authorized for this run |
-| `banner` | Canva design | Canva MCP | live — needs the connector authorized for this run |
+| `newsletter` | brand-applied `.html` | `render_comms_html.py` (local) | live |
+| `banner` | brand-applied `.html` | `render_comms_html.py` (local) | live |
+| `edm` | brand-applied, email-safe `.html` | `render_comms_html.py` (local) | live |
 | `short_form_video` | scene outline + VO script | ElevenLabs MCP | planned, v0.3 |
 | `explainer_video` | scene outline + screen direction | ElevenLabs MCP (narration only) | planned, v0.3 |
 
 **"live" means an automated build chain exists, not that it is guaranteed reachable this
-run.** `docx`/`pptx` depend on a local npm package; `banner`/`newsletter` depend on the Canva
-connector being authorized. Both are ordinary preconditions `route_channel.py` checks at run
-time — a missing npm package or an unauthorized connector both downgrade the outcome to the
-honest handoff rather than a false READY. `short_form_video`/`explainer_video` are the only
-channels genuinely `planned`: no automated build chain exists for either yet.
+run.** `docx`/`pptx` depend on a local npm package, an ordinary precondition
+`route_channel.py` checks at run time — a missing package downgrades the outcome to the
+honest handoff rather than a false READY. `newsletter`/`banner`/`edm` run entirely locally
+(no MCP connector, no npm package) through `render_comms_html.py`, so the only thing that can
+downgrade them is `brand_approved` being unmet or QA itself failing. Canva remains available
+as an alternative producer for `banner`/`newsletter` when a client specifically wants a Canva
+asset or has an approved Canva Brand Template — see that lane below.
+`short_form_video`/`explainer_video` are the only channels genuinely `planned`: no automated
+build chain exists for either yet.
 
 ## The gate
 
@@ -64,7 +69,8 @@ the package is preinstalled; on at least one environment it is not, and the chec
 `route_channel.py` cannot introspect its own session's MCP tool list from inside a Python
 process. Pass `--available-servers Canva` when you can see the connector; absent that, it
 reports reachability as unknown rather than guessing, because a wrong guess wastes an
-external call.
+external call. This only matters for the Canva alternative route — `local:render_comms_html`
+needs no connector, so it never depends on `--available-servers`.
 
 ## The lanes
 
@@ -129,38 +135,58 @@ That result carries the client's colours and is **not** their approved template:
 Speaker notes on every content slide are a hard requirement either way. A cascade deck
 without notes gets improvised, and the improvisation is what the audience remembers.
 
-### newsletter, banner → Canva
+### newsletter, banner, edm → local HTML render
+
+```bash
+python skills/cm-comms-generator/scripts/render_comms_html.py <plan> \
+    --brief <brief> --brand <brand> -o <run>/comms_<channel>.html
+```
+
+Renders a self-contained, brand-applied `.html` file directly from the plan and brand
+profile — no external connector, no npm package, nothing pending on a client's Canva Brand
+Template before anyone can even open it. It calls `qa_comms.audit()` itself before writing
+anything (the same gate `route_channel.py` runs — belt and braces, since this script can also
+be invoked directly), re-checks the accessibility contrast pairs `apply_brand.py --format
+html` computed, and refuses to write a file if either check fails. A block flagged `gap: true`
+renders as a visible flagged placeholder, same convention as every other channel; a `cta`
+block with no URL embedded in its text renders as plain emphasis with a build-time warning
+rather than a broken button, since the schema carries no structured URL field for a `cta`.
+
+**`edm` is email-safe HTML, `banner`/`newsletter` are not.** `edm` renders as a table-based
+layout with every style inlined and MSO conditional comments for Outlook — mail clients do
+not reliably support `<style>` blocks, CSS classes or `var()`. `banner` and `newsletter` are
+ordinary web pages (an intranet strip, a scannable page) and use `var(--token)` CSS resolved
+from the same brand theme.
+
+No client design ships with any of these three, so all three carry
+`design_provenance: "generated-unapproved"`. `qa_comms.py` warns on it and the handover says
+the design needs client sign-off before publish — the copy has passed QA; the layout has been
+approved by nobody.
+
+**Canva remains available as an alternative** for `banner`/`newsletter` when a client
+specifically wants a Canva asset or has an approved Canva Brand Template:
 
 ```bash
 python skills/cm-comms-generator/scripts/canva_brief.py <plan> --brand <brand> -o <run>/canva_brief.json
 ```
 
 Then `generate-design` with the brief's prompt and copy fields, and `export-design` to
-retrieve the asset.
-
-**Which route runs is decided by the brand profile, not by this document.**
+retrieve the asset. Which Canva route runs is decided by the brand profile:
 
 | `channel_specs.<channel>.canva_brand_template_id` | Route | `design_provenance` |
 |---|---|---|
 | set (a `BTM…` id) | `get-brand-template-dataset` → `autofill-design` → `export-design` | `client-approved-template` |
 | absent | `generate-design` → `create-design-from-candidate` → `export-design` | `generated-unapproved` |
 
-`canva_brief.py` emits the matching `route` block either way, so switching is a one-line edit
-to the client's brand profile.
-
-**When it generates, say what that costs.** `generate-design` means Canva invents the layout.
-The copy has passed QA; the *design* has been approved by nobody. `qa_comms.py` warns on the
-provenance and the handover must say the design needs client sign-off before publish.
-
-**A Brand Template is not a file you upload.** It is built in Canva and referenced by id, so
-the practitioner records the id in the brand profile once per client — exactly as `potx_path`
-works for decks. Listing or autofilling one requires a **Canva paid plan** (Pro, Teams or
-Enterprise); on a free plan `search-brand-templates` refuses and the generate route is the
-only one available.
-
-Alt text is mandatory, not optional: on most intranet tenancies the text is baked into the
-image and invisible to screen readers, so the alt text must carry the message rather than
-describe the picture.
+`canva_brief.py` emits the matching `route` block either way. A Brand Template is not a file
+you upload — it is built in Canva and referenced by id, recorded in the brand profile once
+per client, exactly as `potx_path` works for decks. Listing or autofilling one requires a
+**Canva paid plan** (Pro, Teams or Enterprise); on a free plan `search-brand-templates`
+refuses and the generate route is the only one available. On this route specifically, the
+asset exports as a raster image: on most intranet tenancies the text is baked in and invisible
+to screen readers, so **alt text is mandatory, not optional**, and must carry the message
+rather than describe the picture. The local HTML render has no such gap — its text is real
+DOM text.
 
 ### short_form_video, explainer_video → reserved
 
@@ -193,9 +219,9 @@ until someone records it.
 Not every channel is a full communication, and the registry says which is which via
 `coverage_mode`.
 
-A **full** comm (`email`, `article`, `briefing_deck`, `newsletter`, `explainer_video`) must
-carry every must-land message in scope for its audiences, name its sender, and give a help
-route.
+A **full** comm (`email`, `article`, `briefing_deck`, `newsletter`, `edm`, `explainer_video`)
+must carry every must-land message in scope for its audiences, name its sender, and give a
+help route.
 
 A **signpost** (`banner`, `short_form_video`) carries one message and points at where the
 detail lives. Holding it to full coverage would force content onto it that the channel

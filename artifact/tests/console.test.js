@@ -4,8 +4,9 @@
 // Tests for artifact/change-comms-console.html.
 //
 // The console no longer calls Gamma (or any connector) live — it only builds a copy/paste run
-// request for Claude to execute the real pipeline (docx skill, pptx skill, Canva). That's a
-// deliberate simplification: a page that declares an `mcp` capability cannot be shared
+// request for Claude to execute the real pipeline (docx skill, pptx skill, render_comms_html.py
+// locally for banner/newsletter/edm). That's a deliberate simplification: a page that declares
+// an `mcp` capability cannot be shared
 // publicly, and no channel was actually being built live by it any more anyway (see the git
 // history on this file for the earlier per-channel routing fix). These tests cover what's left:
 // channel selection, the brief-coverage checker, draft persistence, and the run request itself
@@ -393,17 +394,19 @@ test("2: unpicking a channel disables Generate again once none remain", function
   assert(ctx.document.getElementById("go").disabled === true, "should disable once the only picked channel is unpicked");
 });
 
-test("3: all seven channels render with the correct producer labels", function () {
+test("3: all eight channels render with the correct producer labels", function () {
   var ctx = loadConsole();
   var chans = ctx.document.querySelectorAll(".chan");
-  assert(chans.length === 7, "expected 7 channels, got " + chans.length);
+  assert(chans.length === 8, "expected 8 channels, got " + chans.length);
   var byId = {};
   ctx.CHANNELS.forEach(function (c) { byId[c.id] = c; });
   assert(byId.email.by === "docx skill", "Email should be built by the docx skill");
   assert(byId.article.by === "docx skill", "Article should be built by the docx skill");
   assert(byId.briefing_deck.by === "pptx skill", "Briefing deck should be built by the pptx skill");
-  assert(byId.newsletter.by === "Canva", "Newsletter should be built by Canva, got: " + byId.newsletter.by);
-  assert(byId.banner.by === "Canva", "Intranet banner should be built by Canva");
+  assert(byId.newsletter.by === "render_comms_html.py", "Newsletter should be built by render_comms_html.py, got: " + byId.newsletter.by);
+  assert(byId.banner.by === "render_comms_html.py", "Intranet banner should be built by render_comms_html.py");
+  assert(byId.edm.by === "render_comms_html.py", "EDM should be built by render_comms_html.py");
+  assert(byId.edm.status === "live", "EDM should be status live");
 });
 
 // --- The coverage checker ----------------------------------------------------------------
@@ -579,7 +582,7 @@ test("13d: Start fresh clears the attached template", function () {
   });
 });
 
-test("14: Newsletter drafts copy and links straight to Canva, with no file produced", function () {
+test("14: Newsletter drafts copy in-browser and points at the local render route, with no file produced", function () {
   var sample = makeSample(function () {
     return Promise.resolve({ headline: "Payday just got more frequent", body: "Full copy here." });
   });
@@ -588,13 +591,40 @@ test("14: Newsletter drafts copy and links straight to Canva, with no file produ
   pickChannels(ctx, ["newsletter"]);
   ctx.document.getElementById("go")._listeners.click[0]();
   return drain(20).then(function () {
-    var link = ctx.document.querySelector('a[href="https://www.canva.com/create/"]');
-    assert(link, "expected a link to Canva");
-    assert(link.textContent === "Open Canva", "expected the link text to say Open Canva, got: " + link.textContent);
+    assert(!ctx.document.querySelector('a[href="https://www.canva.com/create/"]'),
+      "Canva is no longer the route for Newsletter — no Canva link should appear");
     var results = ctx.document.getElementById("results");
     var text = results.children.map(function (c) { return c.textContent; }).join(" ");
-    assert(text.indexOf("Full copy here.") !== -1, "expected the drafted body text to be shown for pasting into Canva");
-    assert(!ctx.document.querySelector(".dl-file"), "Canva channels should not produce a downloadable file");
+    assert(text.indexOf("Full copy here.") !== -1, "expected the drafted body text to be shown");
+    assert(text.indexOf("render_comms_html.py") !== -1,
+      "expected the result to say render_comms_html.py builds the real file, got: " + text);
+    assert(!ctx.document.querySelector(".dl-file"), "local-html channels should not produce a downloadable file here");
+  });
+});
+
+test("14b: EDM drafts its own subject/preheader/cta shape, distinct from email's", function () {
+  var sample = makeSample(function () {
+    return Promise.resolve({
+      subject: "Activate your portal by 14 Sept",
+      preheader: "Pay moves to twice a month from 1 October",
+      headline: "Your pay cadence is changing",
+      body: "From 1 October you'll be paid twice a month.",
+      cta: { text: "Activate your account", url: "https://portal.example/activate" }
+    });
+  });
+  var ctx = loadConsole({ claudeUse: function (name) { return Promise.resolve(name === "sample" ? sample : null); } });
+  setBrief(ctx, LONG_BRIEF);
+  pickChannels(ctx, ["edm"]);
+  ctx.document.getElementById("go")._listeners.click[0]();
+  return drain(20).then(function () {
+    var prompt = ctx.contentPrompt(ctx.CHANNELS.filter(function (c) { return c.id === "edm"; })[0]);
+    assert(prompt.indexOf("max 60 chars") !== -1, "expected EDM's subject prompt to state its own 60-char limit, got: " + prompt);
+    assert(prompt.indexOf("max 200 words") !== -1, "expected EDM's prompt to state its own 200-word body limit");
+    var results = ctx.document.getElementById("results");
+    var text = results.children.map(function (c) { return c.textContent; }).join(" ");
+    assert(text.indexOf("Activate your portal by 14 Sept") !== -1, "expected the drafted subject to be shown, got: " + text);
+    assert(text.indexOf("Activate your account") !== -1, "expected the drafted CTA to be shown");
+    assert(text.indexOf("render_comms_html.py") !== -1, "expected the result to name the real producer");
   });
 });
 

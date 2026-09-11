@@ -3,6 +3,7 @@
 
     python apply_brand.py brand_profile.json -o comms/<run>/deck_theme.json
     python apply_brand.py brand_profile.json --format docx -o comms/<run>/docx_theme.json
+    python apply_brand.py brand_profile.json --format html -o comms/<run>/html_theme.json
 
 Turns the palette and typography into a flat, producer-ready theme — hex values resolved,
 font stacks assembled, page setup carried through — so the .pptx and .docx builds read one
@@ -129,6 +130,14 @@ def build_theme(brand, colours, fmt):
         }
         theme["design_provenance"] = ("client-approved-template" if page.get("dotx_path")
                                       else "generated-unapproved")
+    elif fmt == "html":
+        # No client-supplied comms-html template exists (unlike a .potx/.dotx), so this
+        # is always the from-scratch case: the client's actual approved colours and type,
+        # inside a layout nobody at the client has signed off. Same honest classification
+        # apply_brand.py already gives a from-scratch deck — see qa_comms.py's 5b check,
+        # which reports this for render_comms_html.py's output exactly as it does for a
+        # generated Canva design or a from-scratch pptx build.
+        theme["design_provenance"] = "generated-unapproved"
     return theme
 
 
@@ -137,7 +146,7 @@ def main():
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("brand", type=Path, help="brand_profile.json")
     ap.add_argument("-o", "--out", type=Path, default=Path("deck_theme.json"))
-    ap.add_argument("--format", choices=["pptx", "docx"], default="pptx",
+    ap.add_argument("--format", choices=["pptx", "docx", "html"], default="pptx",
                     help="Which producer this theme is for (default: pptx)")
     args = ap.parse_args()
 

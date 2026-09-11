@@ -173,6 +173,16 @@ def commands_for(channel, entry, ctx):
              f"{out}/deck.pptx {out}/thumbs"),
         ]
 
+    if producer == "local:render_comms_html":
+        return [
+            ("Render the brand-applied HTML artefact",
+             f"python skills/cm-comms-generator/scripts/render_comms_html.py {plan_path} "
+             f"--brief {ctx['brief_path']} --brand {brand_path} -o {out}/comms_{ctx['plan']['channel']}.html"),
+            ("Open and read it",
+             f"the output is one self-contained file — no build step, no connector call. "
+             f"Read {out}/comms_{ctx['plan']['channel']}.html directly to review it."),
+        ]
+
     if producer == "mcp:Canva":
         return [
             ("Write the design brief",
@@ -360,6 +370,7 @@ def main():
     ctx = {
         "plan": plan, "brand": brand,
         "plan_path": args.plan, "brand_path": args.brand or "<brand_profile.json>",
+        "brief_path": args.brief,
         "out_dir": args.out.parent if args.out.parent != Path("") else Path("."),
         "env": dict(os.environ),
         "available_servers": (

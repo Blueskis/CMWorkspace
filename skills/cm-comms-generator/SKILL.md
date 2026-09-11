@@ -1,6 +1,6 @@
 ---
 name: cm-comms-generator-v0.2
-description: Drafts a change communication for a requested channel and routes it to the tool that builds it — email and articles as .docx via the docx skill, briefing decks as .pptx via the pptx skill, newsletters and banners as Canva designs, short-form and explainer videos as production specs. Built from a structured read of the change and the client's approved brand, populated from a curated knowledge bank of past comms collateral, tone guidance and standing boilerplate. Runs a four-stage pipeline — interrogate the change into a brief with stable audience and message IDs, capture the client's approved theme and voice as a brand profile, plan and draft the requested channel then route it to its producer, and QA it for message coverage, audience coverage, provenance and brand fidelity before anything is produced. Use whenever a change practitioner wants to write, draft, build or plan a communication about a change to people, processes or technology — phrases like "draft a go-live email", "write an article about this change", "we need a banner for the intranet", "build a manager cascade pack", "put together a newsletter item", "outline an explainer video", "draft the announcement". Do NOT use for writing a bid or responding to an RFP — that is cm-proposal-generator — and do NOT use for diagnosing whether a change initiative is healthy; this skill writes comms, it does not analyse programmes.
+description: Drafts a change communication for a requested channel and routes it to the tool that builds it — email and articles as .docx via the docx skill, briefing decks as .pptx via the pptx skill, banners/newsletters/EDMs as brand-applied HTML rendered locally (Canva available as an alternative for banners and newsletters), short-form and explainer videos as production specs. Built from a structured read of the change and the client's approved brand, populated from a curated knowledge bank of past comms collateral, tone guidance and standing boilerplate. Runs a four-stage pipeline — interrogate the change into a brief with stable audience and message IDs, capture the client's approved theme and voice as a brand profile, plan and draft the requested channel then route it to its producer, and QA it for message coverage, audience coverage, provenance and brand fidelity before anything is produced. Use whenever a change practitioner wants to write, draft, build or plan a communication about a change to people, processes or technology — phrases like "draft a go-live email", "write an article about this change", "we need a banner for the intranet", "build a manager cascade pack", "put together a newsletter item", "draft an activation EDM", "outline an explainer video", "draft the announcement". Do NOT use for writing a bid or responding to an RFP — that is cm-proposal-generator — and do NOT use for diagnosing whether a change initiative is healthy; this skill writes comms, it does not analyse programmes.
 ---
 
 # CM Comms Generator
@@ -22,11 +22,12 @@ This is v0.2. What it does and does not do:
 | In scope | Out of scope (v0.2) |
 |---|---|
 | One change, one channel per run | A sequenced multi-channel campaign plan |
-| The seven channels in `reference/channel-library.md` | Town halls, podcasts, print, physical signage |
+| The eight channels in `reference/channel-library.md` | Town halls, podcasts, print, physical signage |
 | A Markdown draft for every channel | Sending, scheduling or publishing anything |
-| `.docx` for email and articles, `.pptx` for briefing decks | A rendered video, or a built banner image |
-| A Canva design brief, and the design itself when the connector is authorized | A design the client has approved |
-| A video production spec with timing and captions | A produced video — both video lanes await a connector |
+| `.docx` for email and articles, `.pptx` for briefing decks | A design the client has approved |
+| A brand-applied `.html` for banner, newsletter and edm, built locally — no connector needed | A produced video |
+| A Canva design brief as an alternative route for banner/newsletter, and the design itself when the connector is authorized | Both video lanes await a connector |
+| A video production spec with timing and captions | — |
 | Message, audience, provenance and brand QA, gating production | Judging whether the tone lands |
 | A draft for the practitioner to edit | An approved, sendable communication |
 
@@ -205,7 +206,7 @@ add a channel, is in `reference/channel-routing.md`.
 |---|---|---|---|
 | `email`, `article` | `.docx` | `docx` skill | live |
 | `briefing_deck` | `.pptx` | `pptx` skill | live |
-| `newsletter`, `banner` | Canva design | Canva MCP | live — needs the connector authorized this run |
+| `newsletter`, `banner`, `edm` | brand-applied `.html` | `render_comms_html.py` (local) | live |
 | `short_form_video` | scene spec + captions | ElevenLabs MCP | planned, v0.3 |
 | `explainer_video` | scene spec + captions | ElevenLabs MCP (narration only) | planned, v0.3 |
 
@@ -213,10 +214,11 @@ add a channel, is in `reference/channel-routing.md`.
 hard failure stands. Production is where a comm becomes expensive and externally visible; the
 plan is where defects are cheap.
 
-**An unreachable producer is not a failed run.** When Canva is unauthorized or a video lane has
-no connector, the router exits 0 and the handoff artifact — a Canva brief, a video spec with
-captions — *is* the deliverable. A designer or producer picks it up. Say that plainly at
-handover rather than reporting it as a failure.
+**An unreachable producer is not a failed run.** When a video lane has no connector, the
+router exits 0 and the handoff artifact — a video spec with captions — *is* the deliverable. A
+producer picks it up. Say that plainly at handover rather than reporting it as a failure.
+`newsletter`/`banner`/`edm` have no such gap: `render_comms_html.py` needs no connector, so
+the only way they don't reach `ready` is `brand_approved` being unmet or QA itself failing.
 
 ### email and article → `.docx`
 
@@ -247,23 +249,37 @@ pptxgenjs build script from the plan. That carries the client's colours and is *
 approved template: `design_provenance` records `generated-unapproved` and the handover says so.
 `build_pptx.py` refuses when the brand names a `.potx` — from-scratch is the wrong route then.
 
-### newsletter and banner → Canva
+### newsletter, banner, edm → local HTML render
+
+```bash
+python skills/cm-comms-generator/scripts/render_comms_html.py <plan> \
+    --brief <brief> --brand <brand> -o <run>/comms_<channel>.html
+```
+
+Renders a self-contained, brand-applied `.html` file directly — no connector, no npm package.
+It re-runs the same QA gate `route_channel.py` does and re-checks the accessibility contrast
+pairs `apply_brand.py --format html` computed, refusing to write a file if either fails.
+`edm` renders as email-safe HTML (table layout, inline styles, MSO conditional comments);
+`banner`/`newsletter` are ordinary web pages styled with `var(--token)` CSS.
+
+No client design ships with any of these three, so all three are stamped
+`design_provenance: "generated-unapproved"`: the copy has passed QA but the *layout* has been
+approved by nobody, and the handover must say it needs client sign-off before publish.
+
+**Canva remains available as an alternative** for `banner`/`newsletter` when a client wants a
+Canva asset or has an approved Brand Template:
 
 ```bash
 python skills/cm-comms-generator/scripts/canva_brief.py <plan> --brand <brand> \
     -o <run>/canva_brief.json
 ```
 
-Then `generate-design` and `export-design` when the connector is available.
-
-**The brand profile picks the route.** With `channel_specs.<channel>.canva_brand_template_id`
-set, the lane autofills the client's approved Canva Brand Template and `design_provenance` is
-`client-approved-template`. Without it, `generate-design` invents the layout: the copy has
-passed QA but the *design* has been approved by nobody, so it is stamped
-`generated-unapproved` and the handover must say it needs client sign-off before publish.
-
-A Brand Template is referenced by id (`BTM…`), not uploaded as a file, and listing one needs a
-Canva paid plan.
+Then `generate-design` and `export-design` when the connector is available. With
+`channel_specs.<channel>.canva_brand_template_id` set, the lane autofills the client's
+approved Canva Brand Template and `design_provenance` is `client-approved-template`; a Brand
+Template is referenced by id (`BTM…`), not uploaded as a file, and listing one needs a Canva
+paid plan. On this route the asset exports as a raster image, so alt text is mandatory — the
+local HTML render has no such gap, since its text is real DOM text.
 
 ### short_form_video and explainer_video → reserved
 
@@ -311,9 +327,9 @@ so a default lives in one place and the router, the renderer and QA all agree.
 5. **Channel specs** — stated character, slide and runtime limits; banned words and prohibited
    terms; market-sensitive messages kept off open channels; indicative dates hedged in the
    copy. A limit the brand profile *states* fails; a channel-library default only warns.
-6. **Design provenance** — a design a tool invented (a generated Canva design, a from-scratch
-   deck) is flagged as needing client sign-off, even when the copy passes. The copy and the
-   design are approved separately.
+6. **Design provenance** — a design a tool invented (a locally rendered banner/newsletter/edm,
+   a generated Canva design, a from-scratch deck) is flagged as needing client sign-off, even
+   when the copy passes. The copy and the design are approved separately.
 7. **The six questions** — what's changing, why, who's affected, when, what do I do, where do I
    get help. `help` is the one that goes missing most.
 
@@ -339,10 +355,11 @@ draft for review, not an approved send.
 - **Copy and design are approved separately.** A run can pass every QA check and still carry a
   design nobody has signed off — that is what `design_provenance` records. Never let "QA passed"
   be heard as "the client has approved this."
-- **A blocked lane is not a failed run.** When Canva is unauthorized or a video connector is
-  missing, the handoff artifact is real work a person can act on. Hand it over as a deliverable
-  and say what would unblock the rest.
-- If asked for a channel outside the seven — a town hall script, a podcast, print — say what the
+- **A blocked lane is not a failed run.** When a video connector is missing, the handoff
+  artifact is real work a person can act on. Hand it over as a deliverable and say what would
+  unblock the rest. `banner`/`newsletter`/`edm` no longer have this gap — they build for real
+  locally — but Canva is still a documented alternative if a client wants a Canva asset.
+- If asked for a channel outside the eight — a town hall script, a podcast, print — say what the
   library covers and offer the nearest fit rather than improvising an eighth channel silently.
 - **Adding a channel is a registry edit plus a producer**, not a change in three scripts. A
   channel whose producer does not exist yet is a supported state: declare it `planned` with an

@@ -26,6 +26,12 @@
       ],
       "note": "v0.2 routes through generate-design per the practitioner's decision. create-design-from-brand-template is listed so switching to approved-template autofill is a one-line change once the client has a Brand Template."
     },
+    "local:render_comms_html": {
+      "kind": "local",
+      "name": "render_comms_html.py",
+      "path": "skills/cm-comms-generator/scripts/render_comms_html.py",
+      "note": "Renders a self-contained, brand-applied HTML artefact directly from the plan and brand profile — no external connector, no design pending client sign-off before anyone can even open it. Needs no MCP server and no npm package, so it never downgrades to a handoff at run time the way mcp:Canva or skill:docx can. canva_brief.py remains available as an alternative route when the client specifically wants a Canva asset or has an approved Canva Brand Template — see channel notes."
+    },
     "mcp:ElevenLabs": {
       "kind": "mcp",
       "server": "ElevenLabs",
@@ -133,14 +139,13 @@
     },
     "newsletter": {
       "label": "Newsletter",
-      "format": "canva-design",
-      "producer": "mcp:Canva",
+      "format": ".html (self-contained, brand-applied)",
+      "producer": "local:render_comms_html",
       "status": "live",
       "blocked_by": null,
-      "handoff": "canva_brief.json",
+      "handoff": "render_comms_html.py output + comms_newsletter.html",
       "preconditions": [
-        "brand_approved",
-        "canva_connected"
+        "brand_approved"
       ],
       "part_kinds": [
         "headline",
@@ -158,19 +163,21 @@
         "section_max_chars": 220,
         "cta_max_chars": 25
       },
+      "notes": [
+        "canva_brief.py remains available as an alternative route — run it directly when the client specifically wants a Canva asset, or has an approved channel_specs.newsletter.canva_brand_template_id. The local route is the default because it needs no connector and produces a file the client can open and edit immediately, which is what a Canva design (even an autofilled one) does not."
+      ],
       "coverage_mode": "full",
       "requires_signature": true
     },
     "banner": {
       "label": "Intranet banner",
-      "format": "canva-design",
-      "producer": "mcp:Canva",
+      "format": ".html (self-contained; works as an on-screen banner and, printed, an A4/A3 notice)",
+      "producer": "local:render_comms_html",
       "status": "live",
       "blocked_by": null,
-      "handoff": "canva_brief.json",
+      "handoff": "render_comms_html.py output + comms_banner.html",
       "preconditions": [
-        "brand_approved",
-        "canva_connected"
+        "brand_approved"
       ],
       "part_kinds": [
         "headline",
@@ -183,8 +190,44 @@
         "body_max_chars": 120,
         "cta_max_chars": 25
       },
+      "notes": [
+        "canva_brief.py remains available as an alternative route for the same reason as newsletter's. It was also the ONLY route until this one existed, and it had a sharper defect specific to posters: Canva's generate-design ignores verbatim/held-copy fidelity for image-shaped designs, so the words a designer sees are never guaranteed to be the words QA checked. The local route ships the QA'd words verbatim, always."
+      ],
       "coverage_mode": "signpost",
       "requires_signature": false
+    },
+    "edm": {
+      "label": "EDM (email direct mail)",
+      "format": ".html (email-safe: table layout, inline styles, no external stylesheet)",
+      "producer": "local:render_comms_html",
+      "status": "live",
+      "blocked_by": null,
+      "handoff": "render_comms_html.py output + comms_edm.html",
+      "preconditions": [
+        "brand_approved"
+      ],
+      "part_kinds": [
+        "subject",
+        "preheader",
+        "headline",
+        "whats-changing",
+        "your-action",
+        "timeline",
+        "help",
+        "cta",
+        "signoff"
+      ],
+      "default_specs": {
+        "subject_max_chars": 60,
+        "preheader_max_chars": 90,
+        "max_words": 200
+      },
+      "notes": [
+        "subject_max_chars is deliberately different from email's 50 — an EDM is a marketing/comms send with its own subject-line convention and mobile-inbox truncation behaviour, not a 1:1 email, so it gets its own limit rather than inheriting email's.",
+        "Rendered as table-based HTML with every style inline (no <style> block, no CSS classes, no var()) because mail clients strip or ignore modern CSS unpredictably. Verified only by static markup inspection in this build (reference/channel-library.md's EDM entry names the check) — not by opening the file in a real mail client."
+      ],
+      "coverage_mode": "full",
+      "requires_signature": true
     },
     "short_form_video": {
       "label": "Short-form video",
