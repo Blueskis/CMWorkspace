@@ -6,6 +6,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
 | `training-material-generator` | **v0.2 (MVP)** — an FSD (or similar spec doc) → a first-draft training deck, with placed screenshots, native diagrams, and knowledge-check questions |
+| `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
 
 ## Proposal generator (v0.1, MVP)
 
