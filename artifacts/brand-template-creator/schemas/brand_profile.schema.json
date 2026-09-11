@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "brand_profile.schema.json",
+  "title": "Brand Profile",
+  "description": "The export contract of the Brand Template Creator artifact. A receiving assistant reads `usage` first, then applies `colors`, `typography`, `logo`, `voice` and `messaging` to whatever it is asked to build. Unknown top-level keys found on import are preserved under `x_extra` rather than dropped.",
+  "type": "object",
+  "required": ["usage", "meta", "style", "colors", "typography", "logo", "voice", "messaging"],
+  "properties": {
+    "usage": {
+      "type": "string",
+      "description": "Fixed instruction string for a receiving assistant that has no companion skill to explain this file. Always the same text; do not treat it as content to restyle."
+    },
+    "meta": {
+      "type": "object",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string", "description": "Brand or client name. Required; export is blocked when empty." },
+        "org": { "type": "string", "description": "Client or organisation, if different from the brand name" },
+        "owner": { "type": "string", "description": "Consultant or team who owns this profile" },
+        "version": { "type": "integer", "minimum": 1, "description": "Bumped on every export" },
+        "created": { "type": "string", "format": "date-time" },
+        "updated": { "type": "string", "format": "date-time" }
+      }
+    },
+    "style": {
+      "type": "object",
+      "properties": {
+        "theme": { "type": "string", "description": "One of the 10 style presets, or a custom keyword" },
+        "descriptors": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 0,
+          "maxItems": 5,
+          "description": "3-5 words describing the visual style, e.g. 'clean', 'formal', 'confident'"
+        },
+        "imagery": { "type": "string", "description": "Guidance on photography/illustration style" },
+        "layoutFeel": { "type": "string", "description": "e.g. 'generous whitespace, grid-aligned' or 'dense, information-first'" }
+      }
+    },
+    "colors": {
+      "type": "object",
+      "description": "Each role is a hex string plus a short note on when to use it.",
+      "required": ["primary", "secondary", "accent", "ink", "muted", "surface", "background"],
+      "properties": {
+        "primary": { "$ref": "#/$defs/colorRole" },
+        "secondary": { "$ref": "#/$defs/colorRole" },
+        "accent": { "$ref": "#/$defs/colorRole" },
+        "ink": { "$ref": "#/$defs/colorRole" },
+        "muted": { "$ref": "#/$defs/colorRole" },
+        "surface": { "$ref": "#/$defs/colorRole" },
+        "background": { "$ref": "#/$defs/colorRole" }
+      }
+    },
+    "typography": {
+      "type": "object",
+      "properties": {
+        "headingFont": { "type": "string" },
+        "headingFallback": { "type": "string", "description": "CSS font-family fallback stack" },
+        "bodyFont": { "type": "string" },
+        "bodyFallback": { "type": "string", "description": "CSS font-family fallback stack" },
+        "headingWeight": { "type": "integer" },
+        "bodyWeight": { "type": "integer" },
+        "scaleRatio": { "type": "number", "description": "Type scale ratio, e.g. 1.25" }
+      }
+    },
+    "logo": {
+      "type": "object",
+      "properties": {
+        "dataUri": { "type": ["string", "null"], "description": "Base64 data URI, longest edge downscaled to 512px. Null when no logo was supplied." },
+        "variant": { "type": "string", "description": "e.g. 'full colour on light', 'reversed on dark'" },
+        "minWidthPx": { "type": "integer" },
+        "clearSpace": { "type": "string", "description": "e.g. 'equal to the cap height of the logotype on all sides'" }
+      }
+    },
+    "voice": {
+      "type": "object",
+      "properties": {
+        "formality": { "type": "integer", "minimum": 1, "maximum": 5, "description": "1 = very casual, 5 = very formal. Out-of-range input is clamped." },
+        "person": { "type": "string", "enum": ["we", "you", "impersonal"] },
+        "sentenceLength": { "type": "string", "enum": ["short", "medium", "long"] },
+        "toneDescriptors": { "type": "array", "items": { "type": "string" } },
+        "preferredVocabulary": { "type": "array", "items": { "type": "string" } },
+        "bannedVocabulary": { "type": "array", "items": { "type": "string" } },
+        "rewriteExample": {
+          "type": "object",
+          "properties": {
+            "before": { "type": "string" },
+            "after": { "type": "string" }
+          }
+        }
+      }
+    },
+    "messaging": {
+      "type": "object",
+      "properties": {
+        "tagline": { "type": "string" },
+        "oneLiner": { "type": "string" },
+        "boilerplate": { "type": "string" },
+        "proofPoints": { "type": "array", "items": { "type": "string" }, "maxItems": 3 },
+        "terminology": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": { "term": { "type": "string" }, "definition": { "type": "string" } }
+          },
+          "description": "Glossary of client-specific or preferred terms"
+        }
+      }
+    },
+    "x_extra": {
+      "type": "object",
+      "description": "Unknown fields found on import, preserved so a round trip never loses data."
+    }
+  },
+  "$defs": {
+    "colorRole": {
+      "type": "object",
+      "required": ["hex"],
+      "properties": {
+        "hex": { "type": "string", "pattern": "^#[0-9a-f]{6}$" },
+        "note": { "type": "string", "description": "When and how this colour is used" }
+      }
+    }
+  }
+}
