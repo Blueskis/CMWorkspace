@@ -1,0 +1,145 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "deck_plan.schema.json",
+  "title": "Deck Plan",
+  "description": "The slide-by-slide training deck build plan. Stage 2 writes the module outline and objective map with empty slots; Stage 3 fills in content, assets, diagrams, and sources; Stage 4 builds from it; Stage 5 audits against it, training_brief.json, source_map.json and asset_index.json.",
+  "type": "object",
+  "required": ["run_id", "brief_ref", "template", "modules"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "brief_ref": { "type": "string", "description": "Path to the training_brief.json this plan answers" },
+    "template": {
+      "type": "object",
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string", "description": "The client's approved .potx/.pptx — required; never build without one" },
+        "profile_ref": { "type": "string", "description": "Path to template_profile.json from lib/profile_template.py" }
+      }
+    },
+    "unused_assets": {
+      "type": "array",
+      "description": "screenshot-role assets from asset_index.json deliberately not placed on any slide, each with a reason. Parallel to training_brief.out_of_scope — this is what makes the Stage 5 asset-hygiene check meaningful rather than something to game.",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "reason"],
+        "properties": {
+          "asset_id": { "type": "string" },
+          "reason": { "type": "string" }
+        }
+      }
+    },
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["module_id", "title", "order", "objective_ids", "slides"],
+        "properties": {
+          "module_id": { "type": "string", "description": "Key from reference/module-library.md, e.g. 'task-walkthrough-approve-po'" },
+          "title": { "type": "string", "description": "Learner-facing title — mirrors the FSD's own field/screen/role names" },
+          "order": { "type": "integer" },
+          "objective_ids": {
+            "type": "array",
+            "description": "LO IDs this module teaches. Union across all modules must cover every LO in the brief.",
+            "items": { "type": "string", "pattern": "^LO[0-9]+$" }
+          },
+          "audience_ids": {
+            "type": "array",
+            "description": "Populated for v0.3 audience curation; ignored at build in v0.2.",
+            "items": { "type": "string" }
+          },
+          "slides": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["slide_id", "layout", "title", "blocks"],
+              "properties": {
+                "slide_id": { "type": "string", "description": "e.g. 'task-walkthrough-approve-po-2'" },
+                "layout": { "type": "string", "description": "Layout name or part-stem from template_profile.json — must exist in the approved template" },
+                "title": { "type": "string" },
+                "media_position": {
+                  "type": "string",
+                  "enum": ["left", "right", "below"],
+                  "description": "Optional override for how this slide's media block sits beside its text block when both are present; the builder composes them side by side (media right) by default."
+                },
+                "audiences": {
+                  "type": "array",
+                  "items": { "type": "string" },
+                  "description": "Populated for v0.3; ignored at build in v0.2."
+                },
+                "blocks": {
+                  "type": "array",
+                  "description": "Content units placed into the layout's placeholders. A slide may hold both a text block (bullets/paragraph) and a media block (image/diagram) targeting the same content area — the builder composes them side by side rather than stacking them.",
+                  "items": {
+                    "type": "object",
+                    "required": ["placeholder", "kind", "content", "sources"],
+                    "properties": {
+                      "placeholder": { "type": "string", "description": "Placeholder name/idx from the template profile" },
+                      "kind": {
+                        "enum": ["text", "heading", "paragraph", "bullets", "table", "image", "diagram", "notes"],
+                        "description": "'image' content is {asset_id, caption, ack_low_res?}. 'diagram' content is a diagram_spec object — see reference/diagram-patterns.md."
+                      },
+                      "content": {
+                        "description": "String for prose, array for bullets/table rows, object for image/diagram",
+                        "type": ["string", "array", "object"]
+                      },
+                      "sources": {
+                        "type": "array",
+                        "description": "source_map.json section_id(s) this content came from. MUST be non-empty unless gap is true — no third state.",
+                        "items": { "type": "string" }
+                      },
+                      "gap": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "True when the source documents have no coverage. Renders as a visible [GAP] marker; never substitute generated filler."
+                      },
+                      "gap_note": { "type": "string", "description": "Required when gap is true — what is missing and which objective it leaves exposed" }
+                    },
+                    "allOf": [
+                      {
+                        "if": { "properties": { "gap": { "const": true } }, "required": ["gap"] },
+                        "then": { "required": ["gap_note"] },
+                        "else": { "properties": { "sources": { "minItems": 1 } } }
+                      },
+                      {
+                        "if": { "properties": { "kind": { "const": "image" } } },
+                        "then": {
+                          "properties": {
+                            "content": {
+                              "type": "object",
+                              "required": ["asset_id"],
+                              "properties": {
+                                "asset_id": { "type": "string" },
+                                "caption": { "type": "string" },
+                                "ack_low_res": { "type": "boolean", "default": false }
+                              }
+                            }
+                          }
+                        }
+                      },
+                      {
+                        "if": { "properties": { "kind": { "const": "diagram" } } },
+                        "then": {
+                          "properties": {
+                            "content": {
+                              "type": "object",
+                              "required": ["diagram_type", "spec"],
+                              "properties": {
+                                "diagram_type": { "enum": ["process", "swimlane", "decision", "hierarchy", "timeline"] },
+                                "spec": { "type": "object" }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    ]
+                  }
+                },
+                "speaker_notes": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

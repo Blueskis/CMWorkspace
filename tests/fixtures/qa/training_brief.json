@@ -1,0 +1,23 @@
+{
+  "run_id": "test-run",
+  "system": "PO Approval",
+  "audiences": [{"audience_id": "po-approver", "role_name": "PO Approver"}],
+  "learning_objectives": [
+    {
+      "lo_id": "LO1",
+      "text": "Approve a PO within threshold",
+      "bloom_level": "apply",
+      "audience_ids": ["po-approver"],
+      "sources": ["sample-fsd#4.2.1"]
+    },
+    {
+      "lo_id": "LO2",
+      "text": "Create a PO",
+      "bloom_level": "apply",
+      "audience_ids": ["po-approver"],
+      "sources": ["sample-fsd#4.1"]
+    }
+  ],
+  "out_of_scope": [],
+  "sources": {"source_map": "source_map.json", "asset_index": "asset_index.json"}
+}
