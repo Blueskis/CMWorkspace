@@ -1,5 +1,5 @@
 {
   "name": "cm-workspace",
-  "version": "0.2.0",
-  "description": "Change-management working tools: an RFP-to-proposal deck generator that plans a bid against the client's stated requirements and audits it for requirement coverage and content provenance, and a training-material generator that turns a functional specification document into a first-draft training deck — screenshots placed in context, native diagrams built from the spec's own logic, and knowledge-check questions derived from the spec — audited for objective/source coverage and content provenance the same way."
+  "version": "0.3.0",
+  "description": "Change-management working tools. Two skills: an RFP-to-proposal deck generator that plans a bid against the client's stated requirements and evaluation criteria, and a communications generator that drafts change comms for a requested channel and routes each to the tool that builds it — Word for emails and articles, PowerPoint for briefing decks, Canva for newsletters and banners, and production specs for video. Both write from a shared curated knowledge bank and audit their output for coverage and content provenance before anything is produced."
 }

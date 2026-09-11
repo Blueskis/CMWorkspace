@@ -1,0 +1,136 @@
+{
+  "run_id": "northwind-explainer-20260904",
+  "brief_ref": "../change_brief.json",
+  "brand_profile_ref": "../brand_profile.json",
+  "channel": "explainer_video",
+  "client": "Northwind Foods",
+  "engagement_title": "Activating your colleague portal — a walkthrough",
+  "design_provenance": "generated-unapproved",
+  "target_audience_ids": ["A1"],
+  "sender": "Marcus Bell, Chief People Officer",
+  "send_window": "2026-09-02",
+  "review_by": "Priya Raghavan",
+
+  "sections": [
+    {
+      "section_id": "opening",
+      "title": "Why you're watching this",
+      "order": 1,
+      "message_ids": ["M1", "M3"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "scene-1",
+          "part_kind": "scene",
+          "title": "Hook",
+          "duration_seconds": 12,
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "From the first of October you'll be paid twice a month instead of once. Before that happens there's one thing you need to do, and it takes about ten minutes.",
+              "sources": ["brief:key_messages.M1", "brief:audiences.A1.required_action"] },
+            { "kind": "bullets", "content": ["Paid twice a month from 1 October"],
+              "sources": ["brief:key_messages.M1"] }
+          ]
+        },
+        {
+          "slide_id": "scene-2",
+          "part_kind": "scene",
+          "title": "Why this is happening",
+          "duration_seconds": 20,
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "You asked for this. More frequent pay was the top request in our last two engagement surveys. The payroll system we use today also loses support in March next year, so we're making both changes at once rather than disrupting you twice.",
+              "sources": ["brief:change.rationale", "brief:key_messages.M3"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "whats-changing",
+      "title": "What changes and what doesn't",
+      "order": 2,
+      "message_ids": ["M2", "M6"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "scene-3",
+          "part_kind": "chapter",
+          "title": "What isn't changing",
+          "duration_seconds": 22,
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "Your total annual pay is not changing — the same amount arrives across two dates instead of one. Your contract, hours, grade and holiday stay exactly as they are, and so do your pension contributions.",
+              "sources": ["brief:key_messages.M2", "brief:key_messages.M6",
+                          "brief:change.what_is_not_changing"] },
+            { "kind": "bullets",
+              "content": ["Same annual pay", "Same contract and hours", "Same pension"],
+              "sources": ["brief:change.what_is_not_changing"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "your-action",
+      "title": "The walkthrough",
+      "order": 3,
+      "message_ids": ["M4"],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T1"],
+      "slides": [
+        {
+          "slide_id": "scene-4",
+          "part_kind": "chapter",
+          "title": "Activating your account",
+          "duration_seconds": 45,
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "Open the portal on any phone or on a canteen kiosk. Enter your payroll number, set a password, then check the bank details on screen against your own records. If anything is wrong, correct it there. That's the whole job.",
+              "sources": ["brief:audiences.A1.required_action",
+                          "brief:constraints.accessibility_requirements"] },
+            { "kind": "bullets",
+              "content": ["Enter your payroll number", "Set a password",
+                          "Check your bank details", "Correct anything wrong"],
+              "sources": ["brief:audiences.A1.required_action"] }
+          ]
+        },
+        {
+          "slide_id": "scene-5",
+          "part_kind": "scene",
+          "title": "The deadline",
+          "duration_seconds": 12,
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "Do it before the fourteenth of September. If your bank details are wrong on the first run, your pay is delayed while we fix them.",
+              "sources": ["brief:milestones.T1", "cc-go-live-email-example"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "help",
+      "title": "Where to get help",
+      "order": 4,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "scene-6",
+          "part_kind": "scene",
+          "title": "End card",
+          "duration_seconds": 12,
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "If you get stuck, contact payroll.support@northwindfoods.example, Monday to Friday, eight until six. If activation hasn't worked after two working days, call the People team on four four zero zero.",
+              "sources": ["brief:governance.help_route", "cb-help-and-support-routes-example"] },
+            { "kind": "bullets",
+              "content": ["payroll.support@northwindfoods.example", "People team: 4400"],
+              "sources": ["brief:governance.help_route"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

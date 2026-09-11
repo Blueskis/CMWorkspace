@@ -12,11 +12,20 @@ proposal-assets/knowledge-bank/
 ├── credentials/     # firm-level proof points, accreditations, differentiators
 ├── team/            # practitioner bios and role profiles
 ├── commercials/     # engagement models, rate-card structure, assumption boilerplate
-└── boilerplate/     # standard clauses — data protection, D&I, exec-summary scaffolds
+├── boilerplate/     # standard clauses — data protection, D&I, exec-summary scaffolds
+│
+│                    # read by cm-comms-generator, not by this skill:
+├── comms-collateral/    # past comms that landed well, tagged by channel
+├── comms-tone/          # voice and style guidance
+└── comms-boilerplate/   # help routes, accessibility statements, reassurance scaffolds
 ```
 
 One entry per Markdown file. The folder is the entry's `section`, which is how Stage 3
 retrieval scopes a query. Nested subfolders are allowed and don't affect the section.
+
+**The bank is shared between both skills, and `--strict-section` is what keeps them apart.**
+Passing `--section` alone only adds +2 to an entry's score, so a comms entry tagged `erp` can
+outrank a weakly-tagged methodology entry and surface in a live bid. Always pass the flag.
 
 ## Entry format
 

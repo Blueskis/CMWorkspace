@@ -1,0 +1,256 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "brand_profile.schema.json",
+  "title": "Brand Profile",
+  "description": "The client's approved theme, voice and channel specifications. Authored once per client and reused across changes. `approval` is the mechanical form of the never-build-a-lookalike rule: apply_brand.py and qa_comms.py both hard-fail when it is unpopulated.",
+  "type": "object",
+  "required": ["client", "source", "approval", "palette", "typography", "tone"],
+  "properties": {
+    "client": { "type": "string" },
+
+    "source": {
+      "enum": [
+        "client-supplied-guidelines",
+        "extracted-from-template",
+        "practitioner-authored-from-approved-materials"
+      ],
+      "description": "There is deliberately no 'inferred' value. A palette nobody approved is a lookalike, and this schema will not record one."
+    },
+    "source_files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "kind"],
+        "properties": {
+          "path": { "type": "string" },
+          "kind": { "enum": ["brand-guidelines", "potx", "pptx", "docx", "dotx", "style-guide", "other"] }
+        }
+      }
+    },
+
+    "approval": {
+      "type": "object",
+      "required": ["approved_by", "role", "approved_date"],
+      "properties": {
+        "approved_by": { "type": "string" },
+        "role": { "type": "string" },
+        "approved_date": { "type": "string", "format": "date" },
+        "scope": { "type": "string", "description": "What was approved — e.g. 'internal employee comms, all channels'" }
+      },
+      "description": "Filled by a human, always. A profile with this blank is treated as no profile at all: stop and ask."
+    },
+
+    "palette": {
+      "type": "object",
+      "description": "The named roles every producer maps onto: ink/ink_soft are heading and body text, canvas is the background, panel a tinted block. apply_brand.py emits these as deck_theme.json for the .pptx build and checks every ink/canvas pair against the WCAG floor.",
+      "additionalProperties": false,
+      "properties": {
+        "primary":   { "$ref": "#/$defs/colour" },
+        "secondary": { "$ref": "#/$defs/colour" },
+        "accent":    { "$ref": "#/$defs/colour" },
+        "ink":       { "$ref": "#/$defs/colour", "description": "Headings and primary text" },
+        "ink_soft":  { "$ref": "#/$defs/colour", "description": "Body text" },
+        "muted":     { "$ref": "#/$defs/colour" },
+        "canvas":    { "$ref": "#/$defs/colour", "description": "Slide background" },
+        "panel":     { "$ref": "#/$defs/colour" },
+        "rule":      { "$ref": "#/$defs/colour" },
+        "error":     { "$ref": "#/$defs/colour" },
+        "success":   { "$ref": "#/$defs/colour" }
+      }
+    },
+    "palette_rules": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Human rules a script cannot check — e.g. 'accent never on body text', 'primary only on full-bleed panels'."
+    },
+
+    "typography": {
+      "type": "object",
+      "required": ["heading", "body"],
+      "properties": {
+        "heading": { "$ref": "#/$defs/typeface" },
+        "body": { "$ref": "#/$defs/typeface" },
+        "min_size_pt": { "type": "number" },
+        "web_safe_fallback": {
+          "type": "string",
+          "description": "What a producer falls back to when the brand typeface is not installed on the machine building the artifact. A .docx or .pptx referencing an absent font substitutes silently, so name what you are willing to see instead."
+        }
+      }
+    },
+
+    "logo": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string" },
+        "clear_space": { "type": "string" },
+        "min_width_px": { "type": "integer" },
+        "permitted_backgrounds": { "type": "array", "items": { "type": "string" } },
+        "prohibited_uses": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+
+    "tone": {
+      "type": "object",
+      "required": ["voice", "person"],
+      "description": "The part no extraction can produce. Always hand-written, whatever the source of the palette.",
+      "properties": {
+        "voice": { "type": "array", "items": { "type": "string" }, "description": "e.g. ['direct', 'warm', 'never corporate']" },
+        "person": { "enum": ["first", "second", "third"] },
+        "formality": { "enum": ["formal", "neutral", "informal"] },
+        "sentence_length_guidance": { "type": "string" },
+        "reading_age_target": { "type": ["integer", "null"] },
+        "do": { "type": "array", "items": { "type": "string" } },
+        "dont": { "type": "array", "items": { "type": "string" } },
+        "banned_words": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Checked mechanically against every block of draft text."
+        },
+        "preferred_terms": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Map of avoid -> use, e.g. {\"staff\": \"colleagues\"}. Checked mechanically."
+        }
+      }
+    },
+
+    "channel_specs": {
+      "type": "object",
+      "description": "All optional; all enforced when present. A stated limit is a hard failure in Stage 4, an unstated one falls back to the channel library's default as a warning.",
+      "properties": {
+        "docx": {
+          "type": "object",
+          "description": "Page setup shared by the email and article channels, both of which build as .docx.",
+          "properties": {
+            "page_size": { "enum": ["A4", "Letter"], "default": "A4" },
+            "margins_mm": { "type": "number", "default": 25 },
+            "dotx_path": { "type": "string", "description": "Client Word template / letterhead, where one exists" }
+          }
+        },
+        "email": {
+          "type": "object",
+          "properties": {
+            "subject_max_chars": { "type": "integer" },
+            "preheader_max_chars": { "type": "integer" },
+            "max_words": { "type": "integer" },
+            "sender_display_name": { "type": "string" },
+            "signature_block": { "type": "string" },
+            "html_width_px": { "type": "integer" }
+          }
+        },
+        "banner": {
+          "type": "object",
+          "properties": {
+            "canva_brand_template_id": {
+              "type": "string",
+              "pattern": "^BTM[A-Za-z0-9_-]+$",
+              "description": "The client's approved Canva Brand Template (an id beginning BTM). Present means the autofill route: get-brand-template-dataset then create-design-from-brand-template, and design_provenance becomes client-approved-template. Absent means generate-design, which invents the layout and is stamped generated-unapproved. Brand Templates live in Canva and are referenced by id — there is no file to upload — and listing them needs a Canva paid plan."
+            },
+            "canva_brand_kit_id": {
+              "type": "string",
+              "description": "Optional brand kit to constrain a generated design when no Brand Template exists. Also requires a Canva paid plan."
+            },
+            "image_width_px": { "type": "integer" },
+            "image_height_px": { "type": "integer" },
+            "headline_max_chars": { "type": "integer" },
+            "body_max_chars": { "type": "integer" },
+            "cta_max_chars": { "type": "integer" },
+            "safe_area_px": { "type": "integer" }
+          }
+        },
+        "newsletter": {
+          "type": "object",
+          "properties": {
+            "canva_brand_template_id": {
+              "type": "string",
+              "pattern": "^BTM[A-Za-z0-9_-]+$",
+              "description": "As for banner — the approved Canva Brand Template id, which switches this lane from generate-design to autofill."
+            },
+            "canva_brand_kit_id": { "type": "string" },
+            "image_width_px": { "type": "integer" },
+            "headline_max_chars": { "type": "integer" },
+            "section_max_chars": { "type": "integer" },
+            "cta_max_chars": { "type": "integer" },
+            "max_sections": { "type": "integer" }
+          }
+        },
+        "article": {
+          "type": "object",
+          "properties": {
+            "headline_max_chars": { "type": "integer" },
+            "standfirst_max_chars": { "type": "integer" },
+            "max_words": { "type": "integer" },
+            "byline_required": { "type": "boolean" }
+          }
+        },
+        "briefing_deck": {
+          "type": "object",
+          "properties": {
+            "aspect_ratio": { "type": "string" },
+            "max_slides": { "type": "integer" },
+            "title_max_chars": { "type": "integer" },
+            "bullets_per_slide_max": { "type": "integer" },
+            "potx_path": {
+              "type": "string",
+              "description": "The client's approved PowerPoint template. Absent means the from-scratch route, labelled UNAPPROVED TEMPLATE at handover."
+            }
+          }
+        },
+        "explainer_video": {
+          "type": "object",
+          "properties": {
+            "max_duration_seconds": { "type": "integer" },
+            "aspect_ratio": { "type": "string" },
+            "captions_required": { "type": "boolean" },
+            "words_per_minute": { "type": "integer", "default": 140 },
+            "avatar": { "type": "string", "description": "Named presenter avatar, where the client has approved one" },
+            "chaptered": { "type": "boolean" }
+          }
+        },
+        "short_form_video": {
+          "type": "object",
+          "properties": {
+            "max_duration_seconds": { "type": "integer" },
+            "aspect_ratio": { "type": "string" },
+            "captions_required": { "type": "boolean" },
+            "words_per_minute": {
+              "type": "integer",
+              "default": 150,
+              "description": "Used to convert script length into an estimated runtime."
+            }
+          }
+        }
+      }
+    },
+
+    "accessibility": {
+      "type": "object",
+      "properties": {
+        "min_contrast_ratio": { "type": "number", "default": 4.5 },
+        "alt_text_required": { "type": "boolean", "default": true },
+        "plain_language_required": { "type": "boolean", "default": true },
+        "captions_required": { "type": "boolean", "default": true }
+      }
+    }
+  },
+
+  "$defs": {
+    "colour": {
+      "type": "object",
+      "required": ["hex"],
+      "properties": {
+        "name": { "type": "string" },
+        "hex": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" }
+      }
+    },
+    "typeface": {
+      "type": "object",
+      "required": ["family"],
+      "properties": {
+        "family": { "type": "string" },
+        "fallbacks": { "type": "array", "items": { "type": "string" } },
+        "weight": { "type": ["string", "integer"] }
+      }
+    }
+  }
+}

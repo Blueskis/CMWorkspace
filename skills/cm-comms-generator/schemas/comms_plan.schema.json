@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "comms_plan.schema.json",
+  "title": "Comms Plan",
+  "description": "The part-by-part build plan for ONE channel of ONE change. Channel-neutral and auditable: QA runs on this, and production (Stage 3b) is routed from it via channel_registry.json. The briefing_deck shape stays key-compatible with proposal_plan.json so cm-proposal-generator's build_deck.py validates it against a client .potx unchanged.",
+  "type": "object",
+  "required": ["run_id", "brief_ref", "channel", "client", "target_audience_ids", "sections"],
+  "properties": {
+    "run_id": { "type": "string", "description": "e.g. 'northwind-email-20260817'" },
+    "brief_ref": {
+      "type": "string",
+      "description": "Path to the change_brief.json this plan draws on. The link that lets one brief serve many channel runs."
+    },
+    "brand_profile_ref": { "type": "string" },
+
+    "design_provenance": {
+      "enum": ["client-approved-template", "generated-unapproved", "not-applicable"],
+      "default": "not-applicable",
+      "description": "Who authored the DESIGN, as distinct from the copy. 'generated-unapproved' means a tool invented the layout (Canva generate-design, or a from-scratch deck) — the copy may have passed QA but the design still needs client sign-off before publish. Set by the producer, reported at handover."
+    },
+
+    "channel": {
+      "enum": ["email", "article", "briefing_deck", "newsletter", "banner",
+               "short_form_video", "explainer_video"],
+      "description": "Exactly one per run. Cross-channel consistency comes from the shared brief, never from copying text between drafts. Each channel routes to a producer declared in channel_registry.json."
+    },
+
+    "client": { "type": "string", "description": "Carried onto the produced artifact — deck footers, document headers." },
+    "engagement_title": {
+      "type": "string",
+      "description": "The change title. Becomes the document or deck title, so populate it alongside client for any produced artifact."
+    },
+
+    "target_audience_ids": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^A[0-9]+$" },
+      "description": "Which segments THIS run addresses. Coverage is computed against this subset, not the whole brief — a single-audience email must not fail for omitting messages aimed elsewhere."
+    },
+
+    "sender": { "type": "string" },
+    "send_window": { "type": "string" },
+    "review_by": { "type": "string" },
+
+    "template": {
+      "type": "object",
+      "description": "The client's approved .potx for the briefing_deck channel. Omit it and the from-scratch route applies, which must be labelled UNAPPROVED TEMPLATE at handover.",
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string" },
+        "profile_ref": { "type": "string" },
+        "kind": { "enum": ["pptx", "potx"], "default": "potx" }
+      }
+    },
+
+    "slide_budget": {
+      "type": "object",
+      "description": "Permitted but discouraged. Prefer brand_profile.channel_specs.briefing_deck.max_slides, which qa_comms.py enforces as a stated limit.",
+      "properties": {
+        "limit": { "type": ["integer", "null"] },
+        "planned": { "type": "integer" }
+      }
+    },
+
+    "sections": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["section_id", "title", "order", "message_ids", "audience_ids", "slides"],
+        "properties": {
+          "section_id": { "type": "string", "description": "Key from reference/channel-library.md, e.g. 'whats-changing', 'your-action'" },
+          "title": { "type": "string" },
+          "order": { "type": "integer" },
+          "message_ids": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^M[0-9]+$" },
+            "description": "The analogue of proposal_plan's requirement_ids. Nothing in the render path reads this field, so the rename is free."
+          },
+          "audience_ids": { "type": "array", "items": { "type": "string", "pattern": "^A[0-9]+$" } },
+          "milestone_ids": { "type": "array", "items": { "type": "string", "pattern": "^T[0-9]+$" } },
+
+          "slides": {
+            "description": "One output unit each — a slide for briefing_deck, a titled part for the other channels. The key is named 'slides' on purpose: renaming it would force a change to build_deck.py, and that compatibility is what buys the deck channel for free.",
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["slide_id", "title", "blocks"],
+              "properties": {
+                "slide_id": { "type": "string" },
+                "title": { "type": "string" },
+                "part_kind": {
+                  "enum": [
+                    "subject", "preheader", "opening", "whats-changing", "whats-not-changing",
+                    "who-is-affected", "your-action", "timeline", "help", "signoff",
+                    "scene", "chapter", "headline", "standfirst", "subhead", "section-heading",
+                    "pull-quote", "cta", "placement-spec", "objections", "content"
+                  ],
+                  "description": "Shapes the markdown output and drives the channel-spec checks in Stage 4."
+                },
+                "layout": {
+                  "type": "string",
+                  "description": "Required for briefing_deck only. Must name a layout present in the template profile."
+                },
+                "duration_seconds": { "type": "number", "description": "short_form_video and explainer_video scenes only." },
+                "speaker_notes": {
+                  "type": "string",
+                  "description": "Every content slide in a cascade deck needs these. A deck without notes gets improvised, and the improvisation is what the audience remembers."
+                },
+                "blocks": {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": { "$ref": "#/$defs/block" }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "allOf": [
+    {
+      "$comment": "briefing_deck needs a title for the produced file. It does NOT require a template: omitting one selects the from-scratch route, which is legitimate and is labelled UNAPPROVED TEMPLATE at handover.",
+      "if": { "properties": { "channel": { "const": "briefing_deck" } }, "required": ["channel"] },
+      "then": { "required": ["engagement_title"] }
+    }
+  ],
+
+  "$defs": {
+    "block": {
+      "type": "object",
+      "required": ["kind", "content", "sources"],
+      "properties": {
+        "placeholder": {
+          "type": "string",
+          "description": "Placeholder name from the template profile. Required for the briefing_deck channel; ignored by the markdown renderer."
+        },
+        "kind": {
+          "enum": ["text", "heading", "paragraph", "bullets", "table", "metric", "phases", "members", "image", "notes"],
+          "description": "Same vocabulary as proposal_plan, so one plan renders to markdown and to every producer. 'table' carries a video shot list; 'phases' carries a milestone timeline."
+        },
+        "content": { "type": ["string", "array", "object"] },
+        "sources": {
+          "type": "array",
+          "description": "Provenance. Each entry is either a knowledge-bank entry ID or a 'brief:<dotted.path>' reference into change_brief.json. MUST be non-empty unless gap is true. See SKILL.md — this skill has THREE valid provenance states, not the proposal generator's two.",
+          "items": { "type": "string" }
+        },
+        "gap": {
+          "type": "boolean",
+          "default": false,
+          "description": "True when neither the bank nor the brief covers it. Renders as a visible [GAP]; never substitute generated filler."
+        },
+        "gap_note": { "type": "string", "description": "Required when gap is true — what is missing and which message or action it leaves exposed." }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "gap": { "const": true } }, "required": ["gap"] },
+          "then": { "required": ["gap_note"] },
+          "else": { "properties": { "sources": { "minItems": 1 } } }
+        }
+      ]
+    }
+  }
+}
