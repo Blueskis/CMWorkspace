@@ -6,6 +6,8 @@ Change-management working tools, packaged as a Claude Code plugin.
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
 | `cm-effort-estimator` | **v0.5** — scope drivers → a manday estimate, with an open-ended judgement layer for adjustments the drivers alone don't capture |
+| `brand-template-creator` | A published claude.ai Artifact — capture a client's brand once (colours, fonts, style, logo, voice, messaging) and export a `.json` + `.md` brand guide to reuse across sessions |
+| `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
 
 ## Proposal generator (v0.1, MVP)
 
@@ -131,6 +133,7 @@ skills/cm-effort-estimator/
 ├── tests/                # node:test, sliced straight out of estimator.html
 └── reference/
     └── judgement-layer.md  # the adjustment schema, validation, the admin-config boundary
+artifacts/brand-template-creator/  # Brand Vault — published Artifact, its schema and tests
 ```
 
 Scripts are stdlib-only and each runs standalone with `--help`.
