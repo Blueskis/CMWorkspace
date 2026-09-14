@@ -215,7 +215,12 @@
             "captions_required": { "type": "boolean" },
             "words_per_minute": { "type": "integer", "default": 140 },
             "avatar": { "type": "string", "description": "Named presenter avatar, where the client has approved one" },
-            "chaptered": { "type": "boolean" }
+            "chaptered": { "type": "boolean" },
+            "voice_id": { "$ref": "#/$defs/voice_id" },
+            "voice_name": { "type": "string", "description": "Human-readable label for voice_id, e.g. 'Jacob L. - Corporate Training & Tutorial' — for review, never used to select the voice." },
+            "voice_provider": { "type": "string", "description": "e.g. 'ElevenLabs'" },
+            "voice_provenance": { "$ref": "#/$defs/voice_provenance" },
+            "voice_consent": { "$ref": "#/$defs/voice_consent" }
           }
         },
         "short_form_video": {
@@ -228,7 +233,12 @@
               "type": "integer",
               "default": 150,
               "description": "Used to convert script length into an estimated runtime."
-            }
+            },
+            "voice_id": { "$ref": "#/$defs/voice_id" },
+            "voice_name": { "type": "string", "description": "Human-readable label for voice_id — for review, never used to select the voice." },
+            "voice_provider": { "type": "string", "description": "e.g. 'ElevenLabs'" },
+            "voice_provenance": { "$ref": "#/$defs/voice_provenance" },
+            "voice_consent": { "$ref": "#/$defs/voice_consent" }
           }
         }
       }
@@ -246,6 +256,24 @@
   },
 
   "$defs": {
+    "voice_id": {
+      "type": "string",
+      "description": "An ElevenLabs voice id. Must come from creative_list_voices (or a value the client itself supplied) — never invented or recalled from memory, the same never-invent rule this schema already enforces on the brand palette."
+    },
+    "voice_provenance": {
+      "enum": ["client-approved-voice", "cloned-with-consent", "generated-unapproved", "not-applicable"],
+      "default": "not-applicable",
+      "description": "The direct analogue of design_provenance, but for the narration voice rather than the layout. 'generated-unapproved' means a tool (creative_list_voices) picked this voice and no client has signed off on it. 'cloned-with-consent' means the voice belongs to a real, named person and requires a complete voice_consent record — qa_comms.py fails the run when one is missing, one notch stricter than the design-provenance rule because an unsubstantiated consent claim about a real person's voice must never reach production."
+    },
+    "voice_consent": {
+      "type": "object",
+      "description": "Required whenever voice_provenance is 'cloned-with-consent'. An unsubstantiated claim of consent about a real person's voice is a hard failure in qa_comms.py, not a warning.",
+      "properties": {
+        "person": { "type": "string", "description": "The named person whose voice this is." },
+        "consent_recorded_by": { "type": "string", "description": "Who captured and can vouch for the consent." },
+        "consent_date": { "type": "string", "format": "date" }
+      }
+    },
     "colour": {
       "type": "object",
       "required": ["hex"],

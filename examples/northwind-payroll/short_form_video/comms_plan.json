@@ -1,0 +1,93 @@
+{
+  "run_id": "northwind-shortform-20260901",
+  "brief_ref": "../change_brief.json",
+  "brand_profile_ref": "../brand_profile.json",
+  "channel": "short_form_video",
+  "client": "Northwind Foods",
+  "engagement_title": "Activate your pay portal — 30 second reminder",
+  "design_provenance": "generated-unapproved",
+  "target_audience_ids": ["A1"],
+  "sender": "Northwind People team",
+  "send_window": "2026-09-01 to 2026-09-14",
+  "review_by": "Priya Raghavan",
+
+  "sections": [
+    {
+      "section_id": "opening",
+      "title": "Hook",
+      "order": 1,
+      "message_ids": ["M1"],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "scene-1",
+          "part_kind": "scene",
+          "title": "Hook",
+          "duration_seconds": 5,
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "From 1 October you're paid twice a month instead of once.",
+              "sources": ["brief:key_messages.M1"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "your-action",
+      "title": "The ask",
+      "order": 2,
+      "message_ids": ["M4"],
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T1"],
+      "slides": [
+        {
+          "slide_id": "scene-2",
+          "part_kind": "scene",
+          "title": "The action",
+          "duration_seconds": 15,
+          "blocks": [
+            { "kind": "paragraph",
+              "content": "Activate your colleague portal account and check your bank details are correct before 14 September. It takes about ten minutes.",
+              "sources": ["brief:audiences.A1.required_action", "brief:milestones.T1"] },
+            { "kind": "bullets",
+              "content": ["Takes about ten minutes", "Deadline: 14 September"],
+              "sources": ["brief:audiences.A1.required_action"] }
+          ]
+        },
+        {
+          "slide_id": "scene-2-cta",
+          "part_kind": "cta",
+          "title": "Where to go for the full detail",
+          "duration_seconds": 5,
+          "blocks": [
+            { "kind": "text",
+              "content": "Full walkthrough and FAQs: the payroll change hub on the intranet",
+              "sources": ["cc-go-live-email-example"] }
+          ]
+        }
+      ]
+    },
+
+    {
+      "section_id": "help",
+      "title": "End card",
+      "order": 3,
+      "message_ids": [],
+      "audience_ids": ["A1"],
+      "slides": [
+        {
+          "slide_id": "scene-3",
+          "part_kind": "scene",
+          "title": "End card",
+          "duration_seconds": 5,
+          "blocks": [
+            { "kind": "text",
+              "content": "Questions: payroll.support@northwindfoods.example",
+              "sources": ["brief:governance.help_route", "cb-help-and-support-routes-example"] }
+          ]
+        }
+      ]
+    }
+  ]
+}

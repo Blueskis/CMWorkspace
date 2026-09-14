@@ -17,6 +17,9 @@ Six checks. The first five exit non-zero on violation; the sixth reports.
                          are not on an open channel; indicative dates are hedged
   5b. Design provenance  a generated (tool-invented) design is flagged as needing client
                          sign-off, even when the copy itself passes
+  5c. Voice provenance   the narration voice on a video channel is governed the same way:
+                         a tool-picked voice needs sign-off, and a claimed cloned-voice
+                         consent record must be complete or the run fails
   6. The six questions   what / why / who / when / what-do-I-do / where-do-I-get-help
 
 Per-channel limits come from schemas/channel_registry.json, so a default is stated in one
@@ -422,6 +425,34 @@ def audit(brief, plan, brand):
         )
     r["design_provenance"] = provenance
 
+    # --- 5c. voice provenance (video channels only — the design_provenance analogue,
+    # deliberately one notch stricter for a claimed cloned-voice consent record)
+    if channel in ("short_form_video", "explainer_video"):
+        voice_specs = (brand.get("channel_specs") or {}).get(channel, {})
+        voice_provenance = voice_specs.get("voice_provenance")
+        if voice_provenance == "generated-unapproved":
+            r["warn"].append(
+                "voice_provenance is 'generated-unapproved' — a tool (creative_list_voices) "
+                "picked this voice. The narration has not been approved by the client and "
+                "must be signed off before publish."
+            )
+        elif voice_provenance == "cloned-with-consent":
+            consent = voice_specs.get("voice_consent") or {}
+            missing = [f for f in ("person", "consent_recorded_by", "consent_date")
+                      if not consent.get(f)]
+            if missing:
+                r["fail"].append(
+                    f"voice_provenance is 'cloned-with-consent' but voice_consent is missing "
+                    f"{', '.join(missing)} — an unsubstantiated consent claim about a real "
+                    f"person's voice must not reach production"
+                )
+        elif voice_provenance is None:
+            r["warn"].append(
+                "no voice_provenance recorded for this channel's narration — expected now "
+                "that the ElevenLabs narration lane is live"
+            )
+        r["voice_provenance"] = voice_provenance
+
     # --- 6. the six questions
     # Score on part kinds AND section ids: a video answers these in scenes, so the
     # section is what identifies which question a passage is doing.
@@ -502,6 +533,13 @@ def render(brief, plan, result):
         lines += ["### Design provenance", "",
                   f"- `{prov_state}`" + ("  — **needs client sign-off before publish**"
                                          if prov_state == "generated-unapproved" else ""),
+                  ""]
+
+    if "voice_provenance" in result:
+        voice_state = result["voice_provenance"] or "not recorded"
+        lines += ["### Voice provenance", "",
+                  f"- `{voice_state}`" + ("  — **needs client sign-off before publish**"
+                                          if voice_state == "generated-unapproved" else ""),
                   ""]
 
     six = result["six_questions"]

@@ -628,7 +628,7 @@ test("14b: EDM drafts its own subject/preheader/cta shape, distinct from email's
   });
 });
 
-test("15: a video channel is reported as not built here, not silently skipped", function () {
+test("15: a video channel is reported as not built here, narration built by design not by gap", function () {
   var ctx = loadConsole({ claudeUse: function (name) { return Promise.resolve(name === "sample" ? makeSample(function () { return Promise.resolve({}); }) : null); } });
   setBrief(ctx, LONG_BRIEF);
   pickChannels(ctx, ["short_form_video"]);
@@ -638,6 +638,14 @@ test("15: a video channel is reported as not built here, not silently skipped", 
     var text = results.children.map(function (c) { return c.textContent; }).join(" ");
     assert(text.indexOf("Not built here") !== -1, "expected a not-built-here message, got: " + text);
     assert(text.indexOf("ElevenLabs narration") !== -1, "expected it to name the real producer");
+    assert(text.indexOf("narration genuinely builds") !== -1,
+      "expected the console to say narration is a real build, not a placeholder, got: " + text);
+    assert(text.indexOf("by design") !== -1,
+      "expected the console to say the picture is a human step BY DESIGN, not a missing connector");
+    var byId = {};
+    ctx.CHANNELS.forEach(function (c) { byId[c.id] = c; });
+    assert(byId.short_form_video.status === "partial", "short_form_video should be status partial");
+    assert(byId.explainer_video.status === "partial", "explainer_video should be status partial");
   });
 });
 

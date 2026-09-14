@@ -469,14 +469,14 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
       note:"A signpost: one message, pointing at the detail elsewhere. Drafts here; the brand-applied file builds locally when you run the request below." },
     { id:"edm", name:"EDM (email direct mail)", fmt:".html", by:"render_comms_html.py", status:"live",
       note:"A designed, brand-applied activation send — its own subject line and 200-word limit, not email with a paint job. Drafts here; the email-safe file builds locally when you run the request below." },
-    { id:"short_form_video", name:"Short-form video", fmt:"Script + captions", by:"ElevenLabs narration", status:"planned",
-      note:"30–90s clip. You get a scene spec, timings and captions; ElevenLabs narrates it once that connector is enabled." },
-    { id:"explainer_video", name:"Explainer video", fmt:"Script + captions", by:"ElevenLabs narration", status:"planned",
-      note:"2–5 min walkthrough. Narration only — assembling the picture stays a production step, as no avatar-video connector exists." }
+    { id:"short_form_video", name:"Short-form video", fmt:"Script + captions", by:"ElevenLabs narration", status:"partial",
+      note:"30–90s clip. You get a scene spec, timings and captions, and ElevenLabs narrates the script for real. Assembling the picture stays a production step by design — not a missing connector." },
+    { id:"explainer_video", name:"Explainer video", fmt:"Script + captions", by:"ElevenLabs narration", status:"partial",
+      note:"2–5 min walkthrough. ElevenLabs narrates the script for real; the screen capture and any presenter footage stay a human production step, since a generated portal screen would contradict the real system this video teaches." }
   ];
 
-  var PILL = { live:"pill-success", blocked:"pill-warn", planned:"pill-channel" };
-  var LABEL = { live:"Live", blocked:"Blocked", planned:"Planned" };
+  var PILL = { live:"pill-success", blocked:"pill-warn", planned:"pill-channel", partial:"pill-channel" };
+  var LABEL = { live:"Live", blocked:"Blocked", planned:"Planned", partial:"Partial" };
 
   // The six questions qa_comms.py checks a finished draft for, applied here to the RAW TEXT
   // as a writing prompt. Deliberately weaker than the real audit — this only asks whether you
@@ -918,8 +918,12 @@ It's going out from Marcus Bell, our Chief People Officer. Questions go to payro
   function produceChannel(sample, chan) {
     if (!PRODUCIBLE[chan.id]) {
       setStage(chan.id, "warn", "Not built here");
+      var note = chan.status === "partial"
+        ? " — narration genuinely builds via " + esc(chan.by) + " when you run the request " +
+          "below; the picture stays a human production step by design, not a missing connector."
+        : " — routes to " + esc(chan.by) + ". Use the run request below for this channel.";
       addResult('<h3>' + esc(chan.name) + '</h3>' +
-        '<p>Not built here — routes to ' + esc(chan.by) + '. Use the run request below for this channel.</p>');
+        '<p>Not built here' + note + '</p>');
       return Promise.resolve();
     }
     if (chan.id === "briefing_deck" && templateFile) {

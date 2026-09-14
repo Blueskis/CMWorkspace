@@ -174,14 +174,22 @@
       "max_duration_seconds": 75,
       "aspect_ratio": "9:16",
       "captions_required": true,
-      "words_per_minute": 150
+      "words_per_minute": 150,
+      "voice_id": "SO9JediIwzugrikv7xw0",
+      "voice_name": "Jacob L. - Corporate Training & Tutorial",
+      "voice_provider": "ElevenLabs",
+      "voice_provenance": "generated-unapproved"
     },
     "explainer_video": {
       "max_duration_seconds": 240,
       "aspect_ratio": "16:9",
       "captions_required": true,
       "words_per_minute": 140,
-      "chaptered": true
+      "chaptered": true,
+      "voice_id": "SO9JediIwzugrikv7xw0",
+      "voice_name": "Jacob L. - Corporate Training & Tutorial",
+      "voice_provider": "ElevenLabs",
+      "voice_provenance": "generated-unapproved"
     }
   },
   "accessibility": {

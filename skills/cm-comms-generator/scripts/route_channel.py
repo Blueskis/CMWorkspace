@@ -13,9 +13,13 @@ THE GATE: nothing gets a production route while QA has a hard failure. Productio
 expensive and externally visible; the plan is where defects are cheap to fix. This script
 runs qa_comms.audit() itself rather than trusting that someone ran it earlier.
 
-Three outcomes, and the exit code distinguishes them:
+Four outcomes, and the exit code distinguishes them:
 
   exit 0, status live      preconditions met — the route prints runnable commands
+  exit 0, status partial   the producer is reachable but declares a `partial_producer` in
+                           the registry: it builds part of the artifact for real (today,
+                           ElevenLabs narration) and hands off the rest by design, not
+                           because anything is missing. This is a successful run.
   exit 0, status blocked   the producer exists but is unreachable (a connector needing
                            authorization). The handoff artifact IS the deliverable for
                            this run; a human finishes it. This is a successful run.
@@ -197,13 +201,48 @@ def commands_for(channel, entry, ctx):
         ]
 
     if producer == "mcp:ElevenLabs":
+        reachable = check_connector("ElevenLabs")(ctx)[0]
+        if not reachable or not entry.get("partial_producer"):
+            # elevenlabs_connected is unreachable — the handoff spec is the deliverable.
+            return [
+                ("Write the production spec",
+                 f"python skills/cm-comms-generator/scripts/video_spec.py {plan_path} "
+                 f"--brand {brand_path} -o {out}/video_spec.json"),
+                ("Produce",
+                 f"{entry['producer'].split(':')[1]} is unreachable this run — see the "
+                 f"preconditions above. The spec and captions are the deliverable; a "
+                 f"producer picks them up by hand."),
+            ]
+
+        channel = ctx["plan"].get("channel")
+        brand = ctx.get("brand") or {}
+        voice_id = ((brand.get("channel_specs") or {}).get(channel) or {}).get("voice_id")
+        voice_ref = voice_id or (f"<no voice_id in channel_specs.{channel} — get one from "
+                                 f"creative_list_voices, never invent one>")
         return [
-            ("Write the production spec",
+            ("Write the production spec and narration payload",
              f"python skills/cm-comms-generator/scripts/video_spec.py {plan_path} "
-             f"--brand {brand_path} -o {out}/video_spec.json"),
-            ("Produce",
-             f"{entry['producer'].split(':')[1]} lane is not wired — see blocked_by. "
-             f"The spec and captions are the deliverable; a producer picks them up by hand."),
+             f"--brand {brand_path} -o {out}/video_spec.json --narration {out}/narration.json"),
+            ("Create one flow for this run",
+             "call creative_create_flow once. Every scene's speech generation below goes on "
+             "that one flow_id, so the practitioner gets a single editable canvas rather than "
+             "a scattered set of one-off generations."),
+            ("Generate speech, one call per scene",
+             f"for each entry in narration.json, call creative_generate_speech with "
+             f"prompt=<entry.text>, voice_id={voice_ref}, model_id=eleven_multilingual_v2, "
+             f"and generations_count: 1 — pin it explicitly. The tool's default is 4, so a "
+             f"6-scene script left at the default is 24 charged generations instead of 6. "
+             f"Never call a scene's generation a second time to retry — that starts and "
+             f"charges a second generation; a failed scene is resumed, never blanket re-run."),
+            ("Poll to completion",
+             "poll creative_get_flow_run_status with the collected session_ids until "
+             "all_completed or has_failures. Record each scene's returned audio and measured "
+             f"duration into {out}/narration_returned.json (one entry per scene, with "
+             f"duration_seconds)."),
+            ("Verify the returned audio against the payload",
+             f"python skills/cm-comms-generator/scripts/verify_narration.py "
+             f"{out}/narration.json --returned {out}/narration_returned.json "
+             f"--spec {out}/video_spec.json"),
         ]
 
     return []
@@ -250,13 +289,15 @@ def route(plan, brief, brand, registry, ctx):
         result["outcome"] = "qa_failed"
     elif unmet_hard:
         result["outcome"] = "precondition_failed"
+    elif entry["status"] == "live" and not connector_unreachable and entry.get("partial_producer"):
+        result["outcome"] = "partial"
     elif entry["status"] == "live" and not connector_unreachable:
         result["outcome"] = "route"
     else:
         result["outcome"] = "handoff_only"
 
     result["commands"] = commands_for(channel, entry, ctx) if result["outcome"] in (
-        "route", "handoff_only") else []
+        "route", "handoff_only", "partial") else []
     return result
 
 
@@ -279,6 +320,7 @@ def render(plan, result):
     outcome = result["outcome"]
     verdict = {
         "route": "READY TO PRODUCE",
+        "partial": "NARRATION READY — the picture is still a production step",
         "handoff_only": "HANDOFF ONLY — producer unreachable",
         "qa_failed": "BLOCKED — QA must pass first",
         "precondition_failed": "BLOCKED — precondition unmet",
@@ -303,6 +345,13 @@ def render(plan, result):
         if entry.get("planned_for"):
             lines += [f"Planned for **{entry['planned_for']}**. The handoff artifact "
                       f"(`{entry['handoff']}`) is the deliverable until then.", ""]
+
+    if entry.get("partial_producer"):
+        pp = entry["partial_producer"]
+        lines += ["## What this lane produces", "",
+                  f"- **Produces:** {pp['produces']}",
+                  f"- **Not produced:** {pp['not_produced']}",
+                  f"- **Why not generated:** {pp['why_not_generated']}", ""]
 
     if result["commands"]:
         lines += ["## Next steps", ""]
@@ -411,6 +460,11 @@ def main():
             for line in unreachable:
                 print(f"  {line}")
         return 0
+
+    if result["outcome"] == "partial":
+        pp = entry["partial_producer"]
+        print(f"  {entry['producer']} reachable — narration will build; not produced: "
+              f"{pp['not_produced']}")
 
     print(f"  ready: {len(result['commands'])} step(s) — see {args.out}")
     return 0

@@ -18,10 +18,11 @@ briefing_deck/comms_plan.json      run 3 — manager cascade deck to A2         
 banner/comms_plan.json             run 4 — intranet banner to A1                 -> local HTML render
 newsletter/comms_plan.json         run 5 — all-colleague newsletter round-up to A1 -> local HTML render
 edm/comms_plan.json                run 6 — activation EDM to A1                  -> local HTML render
-explainer_video/comms_plan.json    run 7 — portal walkthrough for A1             -> ElevenLabs (narration only)
+explainer_video/comms_plan.json    run 7 — portal walkthrough for A1             -> ElevenLabs narration + captions.vtt
+short_form_video/comms_plan.json   run 8 — 30s activation reminder for A1        -> ElevenLabs narration + captions.vtt
 ```
 
-Seven channel runs off **one** brief. That is the structural point: the brief is authored once
+Eight channel runs off **one** brief. That is the structural point: the brief is authored once
 and reused, so no two drafts can disagree about a date.
 
 ## Reproduce it
@@ -34,7 +35,7 @@ python skills/cm-proposal-generator/scripts/index_kb.py \
     proposal-assets/knowledge-bank -o /tmp/nw/kb_index.json
 
 # Draft + QA every channel
-for ch in email article briefing_deck banner newsletter edm explainer_video; do
+for ch in email article briefing_deck banner newsletter edm explainer_video short_form_video; do
   python skills/cm-comms-generator/scripts/render_markdown.py \
       examples/northwind-payroll/$ch/comms_plan.json \
       --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/$ch/draft.md
@@ -78,10 +79,20 @@ python skills/cm-comms-generator/scripts/canva_brief.py \
     examples/northwind-payroll/banner/comms_plan.json \
     --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/banner/canva_brief.json
 
-# --- Handoff artifact for the lane with no reachable producer ---
-python skills/cm-comms-generator/scripts/video_spec.py \
-    examples/northwind-payroll/explainer_video/comms_plan.json \
-    --brand examples/northwind-payroll/brand_profile.json -o /tmp/nw/explainer_video/video_spec.json
+# --- The video lanes: narration builds via ElevenLabs, the picture stays a production
+#     step by design (see channel_registry.json's partial_producer.why_not_generated) ---
+for ch in explainer_video short_form_video; do
+  python skills/cm-comms-generator/scripts/video_spec.py \
+      examples/northwind-payroll/$ch/comms_plan.json \
+      --brand examples/northwind-payroll/brand_profile.json \
+      -o /tmp/nw/$ch/video_spec.json --narration /tmp/nw/$ch/narration.json
+done
+# Then, per the route's printed steps: creative_create_flow once, creative_generate_speech
+# per scene at generations_count: 1 (never the default of 4), poll
+# creative_get_flow_run_status, record the result into narration_returned.json, and:
+#   python skills/cm-comms-generator/scripts/verify_narration.py \
+#       /tmp/nw/explainer_video/narration.json --returned /tmp/nw/explainer_video/narration_returned.json \
+#       --spec /tmp/nw/explainer_video/video_spec.json
 ```
 
 Requires `docx` on the Node path for the `.docx` builds: `npm install -g docx`. The scripts
@@ -97,7 +108,8 @@ check and tell you if it is missing.
 | `banner` | 5 | 5 | 0 | 0 | `local:render_comms_html` — 2 steps |
 | `newsletter` | 10 | 10 | 0 | 0 | `local:render_comms_html` — 2 steps |
 | `edm` | 11 | 12 | 0 | 0 | `local:render_comms_html` — 2 steps |
-| `explainer_video` | 6 | 10 | 0 | 0 | `mcp:ElevenLabs` — handoff only, narration lane |
+| `explainer_video` | 6 | 10 | 0 | 0 | `mcp:ElevenLabs` — `handoff_only` without `--available-servers ElevenLabs`, `partial` (narration builds) with it |
+| `short_form_video` | 4 | 5 | 0 | 0 | `mcp:ElevenLabs` — `handoff_only` without `--available-servers ElevenLabs`, `partial` (narration builds) with it |
 
 Every channel exits 0. The two `.docx` builds pass the `docx` skill's own OOXML validator and
 `verify_docx.py`. `apply_brand.py` prints five contrast ratios, all passing Northwind's 4.5:1
@@ -107,7 +119,7 @@ against a 240s limit and flags two scenes whose script over-runs their planned d
 
 ## What it demonstrates
 
-**One brief, seven channels, five producers.** Every plan draws on the same
+**One brief, eight channels, five producers.** Every plan draws on the same
 `change_brief.json`; the briefing deck targets `A2` while the rest target `A1`. Each routes to
 a different tool, and `route_channel.py` works out which without any of the plans naming one.
 
@@ -156,9 +168,16 @@ here, so the deck, banner, newsletter and edm all carry
 the artifacts still need client sign-off before anything is published, even though
 `render_comms_html.py` produced a real, finished `.html` file and not a handoff brief.
 
-**One lane with no producer, still delivering.** Explainer video routes to a connector that is
-unreachable — ElevenLabs is disabled in this chat. It exits 0 and produces a real handoff
-artifact instead: a video spec with a scene table, VO timing and a WebVTT caption file.
+**Narration builds for real; the picture stays a production step by design.** Both video
+lanes route to ElevenLabs, re-verified 2026-09-14 to expose real TTS
+(`creative_generate_speech`). Route either with `--available-servers ElevenLabs` and the
+outcome is `partial`, not `route`: narration audio per scene plus `captions.vtt` genuinely
+build, and `video_spec.py --narration` emits the payload for it. Scene assembly and screen
+capture stay a human step — not because no connector exists (one does, and it can generate
+video and images too), but because doing so is the wrong instrument: an explainer's job is
+to show the client's REAL system, and a generated portal screen would contradict the thing
+it is teaching. Without `--available-servers ElevenLabs` the outcome is still `handoff_only`,
+exit 0 — the video spec and captions remain the deliverable, exactly as before.
 
 **Stated limits fail, registry defaults warn.** Northwind's profile states a 50-character
 subject limit, which the draft respects. It states no `max_words`, so the registry's 300-word

@@ -204,8 +204,11 @@ are not needed.
 
 ## Short-form video
 
-**Purpose.** A script and shot outline for a 30–90 second clip. **The output is a production
-spec for a producer, not a video.** Say so at handover.
+**Purpose.** A script and shot outline for a 30–90 second clip. **The output is a script and
+narration, not a video.** ElevenLabs narrates the script for real (`creative_generate_speech`,
+re-verified 2026-09-14); shooting and assembling the picture is still a human production step
+— see `channel_registry.json`'s `partial_producer.why_not_generated` for why that stays true
+even though ElevenLabs can also generate video and imagery. Say so at handover.
 
 **The right choice when** the change is visual or procedural — a new screen, a new physical
 process — and demonstration beats description; when reach matters more than depth.
@@ -231,7 +234,10 @@ carry a whole change.
 ## Explainer video
 
 **Purpose.** A 2–5 minute walkthrough of a process or a system — the channel that shows rather
-than tells. Typically an on-screen presenter over screen capture.
+than tells. Typically an on-screen presenter over screen capture. The narration track is a
+real build via ElevenLabs (`creative_generate_speech`); the screen capture and presenter
+footage are not, and deliberately so — a generated portal screen would contradict the real
+system this channel exists to teach.
 
 **The right choice when** the change is procedural and someone has to *do* something in a new
 interface; when a written instruction keeps generating the same support tickets; when the

@@ -76,8 +76,8 @@ tool that actually builds the artifact**.
 | `email`, `article` | `.docx` | `docx` skill | live |
 | `briefing_deck` | `.pptx` | `pptx` skill | live |
 | `newsletter`, `banner` | Canva design | Canva MCP | needs the connector authorized |
-| `short_form_video` | scene spec + captions | ElevenLabs MCP | planned, v0.3 |
-| `explainer_video` | scene spec + captions | ElevenLabs MCP (narration only) | planned, v0.3 |
+| `short_form_video` | scene spec + narration + captions | ElevenLabs MCP (narration only) | live, partial |
+| `explainer_video` | scene spec + narration + captions | ElevenLabs MCP (narration only) | live, partial |
 
 ```
 change inputs ─▶ change_brief.json ──┐

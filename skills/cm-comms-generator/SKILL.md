@@ -25,9 +25,9 @@ This is v0.2. What it does and does not do:
 | The eight channels in `reference/channel-library.md` | Town halls, podcasts, print, physical signage |
 | A Markdown draft for every channel | Sending, scheduling or publishing anything |
 | `.docx` for email and articles, `.pptx` for briefing decks | A design the client has approved |
-| A brand-applied `.html` for banner, newsletter and edm, built locally — no connector needed | A produced video |
-| A Canva design brief as an alternative route for banner/newsletter, and the design itself when the connector is authorized | Both video lanes await a connector |
-| A video production spec with timing and captions | — |
+| A brand-applied `.html` for banner, newsletter and edm, built locally — no connector needed | A produced video — assembling the picture stays a human production step |
+| A Canva design brief as an alternative route for banner/newsletter, and the design itself when the connector is authorized | Generated video or imagery for either video lane — deliberate, not a missing connector |
+| A video production spec with timing and captions, **and real narration audio per scene via ElevenLabs** | — |
 | Message, audience, provenance and brand QA, gating production | Judging whether the tone lands |
 | A draft for the practitioner to edit | An approved, sendable communication |
 
@@ -207,18 +207,22 @@ add a channel, is in `reference/channel-routing.md`.
 | `email`, `article` | `.docx` | `docx` skill | live |
 | `briefing_deck` | `.pptx` | `pptx` skill | live |
 | `newsletter`, `banner`, `edm` | brand-applied `.html` | `render_comms_html.py` (local) | live |
-| `short_form_video` | scene spec + captions | ElevenLabs MCP | planned, v0.3 |
-| `explainer_video` | scene spec + captions | ElevenLabs MCP (narration only) | planned, v0.3 |
+| `short_form_video` | scene spec + narration + captions | ElevenLabs MCP (narration only) | live, partial |
+| `explainer_video` | scene spec + narration + captions | ElevenLabs MCP (narration only) | live, partial |
 
 **Nothing is produced until QA passes.** The router exits non-zero and emits no route while a
 hard failure stands. Production is where a comm becomes expensive and externally visible; the
 plan is where defects are cheap.
 
-**An unreachable producer is not a failed run.** When a video lane has no connector, the
-router exits 0 and the handoff artifact — a video spec with captions — *is* the deliverable. A
-producer picks it up. Say that plainly at handover rather than reporting it as a failure.
-`newsletter`/`banner`/`edm` have no such gap: `render_comms_html.py` needs no connector, so
-the only way they don't reach `ready` is `brand_approved` being unmet or QA itself failing.
+**An unreachable producer is not a failed run, and neither is a partial one.** When a video
+lane has no connector, the router exits 0 and the handoff artifact — a video spec with
+captions — *is* the deliverable. When ElevenLabs *is* reachable, the outcome is `partial`,
+not the full `route`: narration audio per scene genuinely builds, and scene assembly plus
+screen capture stay a human production step by design, not because anything is missing — see
+`reference/channel-routing.md`'s "A fourth outcome." Say either plainly at handover rather
+than reporting it as a failure. `newsletter`/`banner`/`edm` have no such gap: `render_comms_html.py`
+needs no connector, so the only way they don't reach `ready` is `brand_approved` being unmet
+or QA itself failing.
 
 ### email and article → `.docx`
 
@@ -281,25 +285,40 @@ Template is referenced by id (`BTM…`), not uploaded as a file, and listing one
 paid plan. On this route the asset exports as a raster image, so alt text is mandatory — the
 local HTML render has no such gap, since its text is real DOM text.
 
-### short_form_video and explainer_video → reserved
+### short_form_video and explainer_video → ElevenLabs narration, partial by design
 
 ```bash
 python skills/cm-comms-generator/scripts/video_spec.py <plan> --brand <brand> \
-    -o <run>/video_spec.json
+    -o <run>/video_spec.json --narration <run>/narration.json
 ```
 
-Writes the scene table, VO script with timing, on-screen text and a WebVTT caption file.
+Writes the scene table, VO script with timing, on-screen text, a WebVTT caption file, and —
+with `--narration` — the per-scene payload for `creative_generate_speech`. A scene whose part
+holds a `gap: true` block is excluded from narration; on-screen text (`bullets`/`heading`)
+never becomes voiceover.
 
-Both lanes route to **ElevenLabs, for the narration track only** — never the picture. Neither is
-reachable today: ElevenLabs is installed but disabled in chat, and every tool the connector
-directory lists is voice-*agent* management rather than TTS, so enabling it is necessary but may
-not be sufficient. Re-check the tool surface once it is on.
+Both lanes route to **ElevenLabs, for the narration track only** — never the picture. Re-
+verified 2026-09-14 against the enabled connector: `creative_generate_speech` is real TTS,
+asynchronous and flow-based (`creative_create_flow` once, then poll
+`creative_get_flow_run_status`), and `creative_list_voices` is the only legitimate source of a
+`voice_id` — never invented. That supersedes the earlier note that saw only voice-*agent*
+tools.
 
-`explainer_video` is only ever **partly** served this way: even with narration, scene assembly
-and any presenter avatar stay a human production step. No avatar-video connector exists in the
-directory — Synthesia has none, and the nearest neighbours (HyperFrames by HeyGen, Tella) are
-different vendors and not installed. The router reports each `blocked_by` verbatim, and the spec
-plus captions remain the deliverable.
+Even fully reachable, both lanes stay **partly** served, and by design, not by gap: the
+registry's `partial_producer` says so, and `route_channel.py`'s outcome is `partial`, not the
+full `route`. Scene assembly and any presenter avatar remain a human production step —
+ElevenLabs can also generate video and images, and deliberately is not used to. An
+explainer's job is to show the client's REAL system; a generated portal screen would
+contradict the thing it is teaching, and generated B-roll is also unapproved design in an
+official internal comm. `pin generations_count: 1` on every `creative_generate_speech` call —
+the tool's own default is 4, so a 6-scene script left at the default is 24 charged generations
+instead of 6 — and never re-run a whole scene set to fix one failure; resume the named scene
+only. Verify what actually came back:
+
+```bash
+python skills/cm-comms-generator/scripts/verify_narration.py <run>/narration.json \
+    --returned <run>/narration_returned.json --spec <run>/video_spec.json
+```
 
 ## Stage 4 — QA
 
@@ -355,10 +374,12 @@ draft for review, not an approved send.
 - **Copy and design are approved separately.** A run can pass every QA check and still carry a
   design nobody has signed off — that is what `design_provenance` records. Never let "QA passed"
   be heard as "the client has approved this."
-- **A blocked lane is not a failed run.** When a video connector is missing, the handoff
-  artifact is real work a person can act on. Hand it over as a deliverable and say what would
-  unblock the rest. `banner`/`newsletter`/`edm` no longer have this gap — they build for real
-  locally — but Canva is still a documented alternative if a client wants a Canva asset.
+- **A blocked lane is not a failed run, and neither is a partial one.** When a video
+  connector is missing, the handoff artifact is real work a person can act on; when it is
+  reachable, narration builds for real and the picture stays a human step **by design**, not
+  because anything is missing. Hand either over as a deliverable, never as a failure.
+  `banner`/`newsletter`/`edm` no longer have this gap — they build for real locally — but
+  Canva is still a documented alternative if a client wants a Canva asset.
 - If asked for a channel outside the eight — a town hall script, a podcast, print — say what the
   library covers and offer the nearest fit rather than improvising an eighth channel silently.
 - **Adding a channel is a registry edit plus a producer**, not a change in three scripts. A

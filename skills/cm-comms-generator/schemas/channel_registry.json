@@ -1,12 +1,12 @@
 {
-  "$comment": "The routing table, as data. route_channel.py, qa_comms.py and render_markdown.py all read this file, so adding a channel is a registry edit plus a producer — not a change in three scripts. 'status' is first-class: a lane with no reachable producer is declared, not commented out, and blocked_by names exactly what is missing. 'coverage_mode' distinguishes a full comm, which must carry every must-land message in scope for its audiences, from a signpost — a banner or a 30-second clip whose job is to carry one message and point at where the detail lives. Holding a signpost to full-comm coverage would force content onto it that the channel library says must not be there. 'requires_signature' says whether the messenger must be named in the copy. A written comm is unattributed without one; a banner carries no signature by nature, and a video's messenger is the on-screen presenter, so demanding the name in the script would force an unnatural line into the read. A channel's 'status' means an automated build chain EXISTS for it — it is not a live check of whether an external account (npm, an MCP connector) is reachable right now. That is what 'preconditions' checks at run time in route_channel.py, which downgrades a 'live' channel to a handoff outcome when a connector precondition (canva_connected, etc.) isn't confirmed available, exactly as it already does for a missing npm package.",
+  "$comment": "The routing table, as data. route_channel.py, qa_comms.py and render_markdown.py all read this file, so adding a channel is a registry edit plus a producer \u2014 not a change in three scripts. 'status' is first-class: a lane with no reachable producer is declared, not commented out, and blocked_by names exactly what is missing. 'coverage_mode' distinguishes a full comm, which must carry every must-land message in scope for its audiences, from a signpost \u2014 a banner or a 30-second clip whose job is to carry one message and point at where the detail lives. Holding a signpost to full-comm coverage would force content onto it that the channel library says must not be there. 'requires_signature' says whether the messenger must be named in the copy. A written comm is unattributed without one; a banner carries no signature by nature, and a video's messenger is the on-screen presenter, so demanding the name in the script would force an unnatural line into the read. A channel's 'status' means an automated build chain EXISTS for it \u2014 it is not a live check of whether an external account (npm, an MCP connector) is reachable right now. That is what 'preconditions' checks at run time in route_channel.py, which downgrades a 'live' channel to a handoff outcome when a connector precondition (canva_connected, etc.) isn't confirmed available, exactly as it already does for a missing npm package.",
   "registry_version": "0.2",
   "producers": {
     "skill:docx": {
       "kind": "skill",
       "name": "docx",
       "path": "/root/.claude/skills/synced/docx",
-      "note": "Emits a Node script against the docx (docx-js) package. The package is NOT reliably preinstalled despite the skill's SKILL.md — build_docx.py checks and reports the `npm install -g docx` remedy. Run with NODE_PATH=$(npm root -g)."
+      "note": "Emits a Node script against the docx (docx-js) package. The package is NOT reliably preinstalled despite the skill's SKILL.md \u2014 build_docx.py checks and reports the `npm install -g docx` remedy. Run with NODE_PATH=$(npm root -g)."
     },
     "skill:pptx": {
       "kind": "skill",
@@ -30,13 +30,19 @@
       "kind": "local",
       "name": "render_comms_html.py",
       "path": "skills/cm-comms-generator/scripts/render_comms_html.py",
-      "note": "Renders a self-contained, brand-applied HTML artefact directly from the plan and brand profile — no external connector, no design pending client sign-off before anyone can even open it. Needs no MCP server and no npm package, so it never downgrades to a handoff at run time the way mcp:Canva or skill:docx can. canva_brief.py remains available as an alternative route when the client specifically wants a Canva asset or has an approved Canva Brand Template — see channel notes."
+      "note": "Renders a self-contained, brand-applied HTML artefact directly from the plan and brand profile \u2014 no external connector, no design pending client sign-off before anyone can even open it. Needs no MCP server and no npm package, so it never downgrades to a handoff at run time the way mcp:Canva or skill:docx can. canva_brief.py remains available as an alternative route when the client specifically wants a Canva asset or has an approved Canva Brand Template \u2014 see channel notes."
     },
     "mcp:ElevenLabs": {
       "kind": "mcp",
       "server": "ElevenLabs",
-      "tools": [],
-      "note": "Verified 2026-08 via the connector registry: installed on the account but DISABLED IN CHAT, and every tool name the directory lists is voice-AGENT management (create_agent, duplicate_agent, get_agent_link, calculate_agent_llm_usage) with three more not shown. No text-to-speech tool is visible. Scope here is the NARRATION TRACK only - the VO script and captions video_spec.py already emits - never the picture. Unblocking is two steps and the second may fail: enable the connector in the chat's connector settings, then re-check whether the tool surface actually exposes TTS."
+      "tools": [
+        "creative_create_flow",
+        "creative_list_voices",
+        "creative_generate_speech",
+        "creative_get_flow_run_status",
+        "creative_show_flow_results"
+      ],
+      "note": "RE-VERIFIED 2026-09-14 against the enabled connector, superseding the 2026-08 note below: creative_generate_speech is real TTS (required args prompt, model_id, voice_id, context; models eleven_flash_v2_5, eleven_multilingual_v2 (the default), eleven_turbo_v2_5, eleven_v3, eleven_v4). It is asynchronous and flow-based \u2014 creative_create_flow once per run, then poll creative_get_flow_run_status until all_completed or has_failures. creative_list_voices is the only legitimate source of a voice_id, exactly as this repo already never invents a copy source; it never comes from memory. Scope here is the NARRATION TRACK only, never the picture \u2014 creative_generate_video and creative_generate_image both exist but generating an explainer's screen or a short-form clip's imagery is the wrong instrument, not a missing capability: see each video channel's partial_producer.why_not_generated. Stale 2026-08 note, kept for history: installed but disabled in chat, tool surface believed to be voice-agent management only (create_agent, duplicate_agent, get_agent_link, calculate_agent_llm_usage). That was wrong \u2014 the connector was re-checked live and TTS is present."
     }
   },
   "channels": {
@@ -164,7 +170,7 @@
         "cta_max_chars": 25
       },
       "notes": [
-        "canva_brief.py remains available as an alternative route — run it directly when the client specifically wants a Canva asset, or has an approved channel_specs.newsletter.canva_brand_template_id. The local route is the default because it needs no connector and produces a file the client can open and edit immediately, which is what a Canva design (even an autofilled one) does not."
+        "canva_brief.py remains available as an alternative route \u2014 run it directly when the client specifically wants a Canva asset, or has an approved channel_specs.newsletter.canva_brand_template_id. The local route is the default because it needs no connector and produces a file the client can open and edit immediately, which is what a Canva design (even an autofilled one) does not."
       ],
       "coverage_mode": "full",
       "requires_signature": true
@@ -223,8 +229,8 @@
         "max_words": 200
       },
       "notes": [
-        "subject_max_chars is deliberately different from email's 50 — an EDM is a marketing/comms send with its own subject-line convention and mobile-inbox truncation behaviour, not a 1:1 email, so it gets its own limit rather than inheriting email's.",
-        "Rendered as table-based HTML with every style inline (no <style> block, no CSS classes, no var()) because mail clients strip or ignore modern CSS unpredictably. Verified only by static markup inspection in this build (reference/channel-library.md's EDM entry names the check) — not by opening the file in a real mail client."
+        "subject_max_chars is deliberately different from email's 50 \u2014 an EDM is a marketing/comms send with its own subject-line convention and mobile-inbox truncation behaviour, not a 1:1 email, so it gets its own limit rather than inheriting email's.",
+        "Rendered as table-based HTML with every style inline (no <style> block, no CSS classes, no var()) because mail clients strip or ignore modern CSS unpredictably. Verified only by static markup inspection in this build (reference/channel-library.md's EDM entry names the check) \u2014 not by opening the file in a real mail client."
       ],
       "coverage_mode": "full",
       "requires_signature": true
@@ -233,10 +239,13 @@
       "label": "Short-form video",
       "format": "scene outline + VO script",
       "producer": "mcp:ElevenLabs",
-      "status": "planned",
-      "blocked_by": "ElevenLabs is installed but disabled in this chat, so its tools are not callable. Enable it in the chat's connector settings, then re-check the tool surface: every tool the directory lists today is voice-agent management rather than TTS, so this lane may still have no producer after enabling.",
-      "planned_for": "v0.3",
-      "handoff": "video_spec.json + captions.vtt",
+      "status": "live",
+      "blocked_by": null,
+      "partial_producer": {
+        "produces": "narration audio per scene + captions.vtt",
+        "not_produced": "scene assembly and screen capture remain a human production step",
+        "why_not_generated": "ElevenLabs can generate video and imagery, and deliberately is not used to. This channel's job is to show a real screen or process; a generated shot would contradict the thing it is demonstrating. Generated B-roll is also unapproved design in an official internal comm. Narrate the script; shoot the picture."
+      },
       "preconditions": [
         "brand_approved",
         "elevenlabs_connected"
@@ -250,16 +259,20 @@
         "aspect_ratio": "9:16"
       },
       "coverage_mode": "signpost",
-      "requires_signature": false
+      "requires_signature": false,
+      "handoff": "video_spec.json + captions.vtt"
     },
     "explainer_video": {
       "label": "Explainer video",
       "format": "scene outline + VO script + screen direction",
       "producer": "mcp:ElevenLabs",
-      "status": "planned",
-      "blocked_by": "Same as short_form_video: ElevenLabs is disabled in this chat and may not expose TTS even once enabled. Note this lane is only PARTLY served either way - ElevenLabs can narrate, but scene assembly and any presenter avatar remain a human production step. No avatar-video connector exists in the directory: Synthesia has none at all, and the nearest neighbours (HyperFrames by HeyGen, Tella) are different vendors and not installed.",
-      "planned_for": "v0.3",
-      "handoff": "video_spec.json + captions.vtt",
+      "status": "live",
+      "blocked_by": null,
+      "partial_producer": {
+        "produces": "narration audio per scene + captions.vtt",
+        "not_produced": "scene assembly and screen capture remain a human production step",
+        "why_not_generated": "ElevenLabs can generate video and imagery, and deliberately is not used to. An explainer's job is to show the client's REAL system; a generated portal screen would contradict the thing it is teaching. Generated B-roll is also unapproved design in an official internal comm. Narrate the script; shoot the picture."
+      },
       "preconditions": [
         "brand_approved",
         "elevenlabs_connected"
@@ -274,7 +287,8 @@
         "aspect_ratio": "16:9"
       },
       "coverage_mode": "full",
-      "requires_signature": false
+      "requires_signature": false,
+      "handoff": "video_spec.json + captions.vtt"
     }
   }
 }

@@ -8,25 +8,26 @@ Writes the scene table, the voiceover script with per-scene timing, the on-scree
 a WebVTT caption file, and the direction a producer needs — aspect ratio, avatar, and
 whether each scene is talking head or screen capture.
 
-Both video lanes route to ElevenLabs for the NARRATION TRACK only, and neither is
-reachable in v0.2:
+Both video lanes route to ElevenLabs for the NARRATION TRACK only. Re-verified 2026-09-14:
+`creative_generate_speech` is real TTS, so narration now genuinely builds. The picture is
+still not generated — not because no connector exists, but because generating imagery is
+the wrong instrument for either lane: an explainer's job is to show the client's REAL
+system, and a generated portal screen would contradict the thing it is teaching. See
+`partial_producer.why_not_generated` in `schemas/channel_registry.json`.
 
-  short_form_video  ElevenLabs — installed but disabled in chat, and every tool the
-                    connector directory lists is voice-agent management, not TTS
-  explainer_video   ElevenLabs for narration; the picture has no producer at all —
-                    no avatar-video connector exists in the directory
-
-So this spec IS the deliverable today, and it is written to be handed to a person or an
-app without further translation. When either connector arrives, the same file is the
-adapter's input: scene text becomes the TTS payload, direction becomes scene setup.
+This script writes the scene table, the on-screen text, a WebVTT caption file, and — with
+`--narration` — a per-scene narration payload built to be handed straight to
+`creative_generate_speech`: scene text becomes the `prompt`, direction becomes scene setup.
+Scene assembly and screen capture remain a human production step either way.
 
 The runtime estimate is the check that earns its place. A script written to a 45-second
 slot that actually reads at 90 seconds is the single most common defect in a short-form
 video brief, and it is invisible until someone records it.
 
-STATUS (v0.2): estimates and formats; renders nothing. Timing is computed from word count
-at the brand's words-per-minute, which is a planning figure — a real read varies with
-pauses, and a scene near its limit should be treated as over.
+STATUS (v0.3): estimates, formats, and the narration payload; renders no audio or video
+itself — narration.json is the ElevenLabs adapter's input, not the produced audio. Timing
+is computed from word count at the brand's words-per-minute, which is a planning figure — a
+real read varies with pauses, and a scene near its limit should be treated as over.
 """
 
 import argparse
@@ -137,6 +138,70 @@ def build(plan, brand, channel):
     }
 
 
+NARRATION_MODEL_ID = "eleven_multilingual_v2"
+
+
+def build_narration(spec, brand, channel):
+    """The per-scene payload for `creative_generate_speech`: scene text as `prompt`, plus the
+    brand's voice_id and a budget to check the returned audio against (verify_narration.py).
+
+    Two guards live here:
+      - Never narrate a gap. A scene whose part holds a gap block is excluded — reading the
+        word "GAP" aloud into a client asset is exactly what this designs out.
+      - On-screen text is not narrated. `spec['scenes'][i]['voiceover']` already carries only
+        `text`/`paragraph` content (bullets/headings are on-screen only), so this reuses it
+        rather than re-deriving it.
+    """
+    voice_specs = (brand.get("channel_specs") or {}).get(channel, {})
+    voice_id = voice_specs.get("voice_id")
+    voice_name = voice_specs.get("voice_name")
+    voice_provider = voice_specs.get("voice_provider")
+    voice_provenance = voice_specs.get("voice_provenance", "not-applicable")
+
+    entries, excluded = [], []
+    for i, scene in enumerate(spec["scenes"], 1):
+        if scene.get("open_gaps"):
+            excluded.append({
+                "scene_id": scene["scene_id"],
+                "reason": "scene has an open [GAP] — never pay to narrate a gap",
+            })
+            continue
+        text = scene["voiceover"]
+        if not text:
+            excluded.append({
+                "scene_id": scene["scene_id"],
+                "reason": "no voiceover text — on-screen text only",
+            })
+            continue
+        entries.append({
+            "scene_id": scene["scene_id"],
+            "order": i,
+            "text": text,
+            "voice_id": voice_id,
+            "model_id": NARRATION_MODEL_ID,
+            "budget_seconds": scene["planned_seconds"] or scene["estimated_seconds"],
+            "estimated_seconds": scene["estimated_seconds"],
+        })
+
+    warnings = []
+    if not voice_id:
+        warnings.append(
+            "brand profile has no voice_id for this channel — every entry carries "
+            "voice_id: null; get a real one from creative_list_voices, never invent one")
+
+    return {
+        "generated": date.today().isoformat(),
+        "run_id": spec.get("run_id"),
+        "channel": channel,
+        "voice": {"voice_id": voice_id, "voice_name": voice_name, "voice_provider": voice_provider},
+        "voice_provenance": voice_provenance,
+        "model_id": NARRATION_MODEL_ID,
+        "entries": entries,
+        "excluded": excluded,
+        "warnings": warnings,
+    }
+
+
 def to_vtt(spec):
     lines = ["WEBVTT", ""]
     for i, s in enumerate(spec["scenes"], 1):
@@ -158,6 +223,9 @@ def main():
     ap.add_argument("-o", "--out", type=Path, default=Path("video_spec.json"))
     ap.add_argument("--captions", type=Path,
                     help="Also write a WebVTT file (default: captions.vtt beside --out)")
+    ap.add_argument("--narration", type=Path,
+                    help="Also write the ElevenLabs narration payload "
+                         "(default: narration.json beside --out)")
     args = ap.parse_args()
 
     plan = json.loads(args.plan.read_text(encoding="utf-8"))
@@ -177,6 +245,11 @@ def main():
     vtt_path = args.captions or args.out.with_name("captions.vtt")
     vtt_path.write_text(to_vtt(spec) + "\n", encoding="utf-8")
 
+    narration = build_narration(spec, brand, channel)
+    narration_path = args.narration or args.out.with_name("narration.json")
+    narration_path.write_text(json.dumps(narration, indent=2, ensure_ascii=False) + "\n",
+                              encoding="utf-8")
+
     rt = spec["runtime"]
     print(f"Video spec -> {args.out}  [{channel}]")
     print(f"  {len(spec['scenes'])} scene(s); captions -> {vtt_path}")
@@ -189,8 +262,13 @@ def main():
     for s in spec["scenes"]:
         if s.get("over_scene_budget"):
             print(f"  WARNING {s['scene_id']}: {s['over_scene_budget']}", file=sys.stderr)
+    print(f"  narration -> {narration_path}  "
+          f"({len(narration['entries'])} scene(s), {len(narration['excluded'])} excluded)")
+    for w in narration["warnings"]:
+        print(f"  WARNING {w}", file=sys.stderr)
     print(f"  intended producer {spec['intended_producer']} ({spec['producer_status']}) — "
-          f"the spec and captions are the deliverable until that lane is wired")
+          f"narration builds via ElevenLabs; scene assembly and screen capture are still a "
+          f"human production step")
     return 0
 
 

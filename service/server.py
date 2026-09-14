@@ -108,9 +108,12 @@ def audit_comm(run_id: str, channel: str) -> dict:
 def produce(run_id: str, channel: str) -> dict:
     """Stage 3b. Route the channel to its producer and build what can be built. Re-runs QA
     itself (same as route_channel.py) and refuses to produce anything while a hard failure
-    stands. Three outcomes: 'route' with a downloadable artifact URL, 'handoff_only' with a
-    brief/spec URL when the producer (Canva, ElevenLabs) is unreachable — this is a
-    successful run, not a failure — or 'qa_failed'/'precondition_failed' with no artifact."""
+    stands. Four outcomes: 'route' with a downloadable artifact URL; 'partial' for the video
+    channels when ElevenLabs is reachable — narration audio builds for real, but scene
+    assembly and screen capture stay a human step by design, not a missing connector;
+    'handoff_only' with a brief/spec URL when a producer (Canva, or ElevenLabs when it is
+    unreachable this run) has no automated build — this and 'partial' are both successful
+    runs, not a failure; or 'qa_failed'/'precondition_failed' with no artifact."""
     cdir = _channel_dir(run_id, channel)
     plan_path = cdir / "comms_plan.json"
     route = runner.route_channel(plan_path, _brief_path(run_id), BRAND_PROFILE_PATH, cdir / "production_brief.md")
@@ -134,9 +137,26 @@ def produce(run_id: str, channel: str) -> dict:
             "(see README) — this tool hands back the brief; produce the design with "
             "generate-design / create-design-from-brand-template against it."
         )
-    else:  # short_form_video, explainer_video — no reachable producer in v0.3
+    else:  # short_form_video, explainer_video — ElevenLabs narrates; the picture stays a
+        # human production step whether or not the connector is reachable this run (see
+        # channel_registry.json's partial_producer). video_spec.py always writes
+        # captions.vtt beside its --out and narration.json beside it too; publish all three.
         spec = runner.video_spec(plan_path, BRAND_PROFILE_PATH, cdir / "video_spec.json")
         result["video_spec_url"] = storage.publish(spec)
+        result["captions_url"] = storage.publish(spec.with_name("captions.vtt"))
+        narration_path = spec.with_name("narration.json")
+        if narration_path.exists():
+            result["narration_url"] = storage.publish(narration_path)
+        if "NARRATION READY" in route["route"]:
+            result["outcome"] = "partial"
+            result["note"] = (
+                "Narration audio per scene builds for real via ElevenLabs once the caller "
+                "drives the steps in route_notes (creative_create_flow, "
+                "creative_generate_speech per scene at generations_count: 1, poll "
+                "creative_get_flow_run_status, then verify_narration.py). Scene assembly "
+                "and screen capture stay a human production step by design — not a missing "
+                "connector."
+            )
 
     return result
 

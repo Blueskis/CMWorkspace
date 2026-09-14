@@ -19,8 +19,8 @@ python skills/cm-comms-generator/scripts/route_channel.py --list
 | `newsletter` | brand-applied `.html` | `render_comms_html.py` (local) | live |
 | `banner` | brand-applied `.html` | `render_comms_html.py` (local) | live |
 | `edm` | brand-applied, email-safe `.html` | `render_comms_html.py` (local) | live |
-| `short_form_video` | scene outline + VO script | ElevenLabs MCP | planned, v0.3 |
-| `explainer_video` | scene outline + screen direction | ElevenLabs MCP (narration only) | planned, v0.3 |
+| `short_form_video` | scene outline + VO script | ElevenLabs MCP (narration only) | live |
+| `explainer_video` | scene outline + screen direction | ElevenLabs MCP (narration only) | live |
 
 **"live" means an automated build chain exists, not that it is guaranteed reachable this
 run.** `docx`/`pptx` depend on a local npm package, an ordinary precondition
@@ -30,8 +30,12 @@ honest handoff rather than a false READY. `newsletter`/`banner`/`edm` run entire
 downgrade them is `brand_approved` being unmet or QA itself failing. Canva remains available
 as an alternative producer for `banner`/`newsletter` when a client specifically wants a Canva
 asset or has an approved Canva Brand Template — see that lane below.
-`short_form_video`/`explainer_video` are the only channels genuinely `planned`: no automated
-build chain exists for either yet.
+
+`short_form_video`/`explainer_video` are `live` as of the 2026-09-14 re-verification that
+found real TTS behind the ElevenLabs connector, but they are also the only channels with a
+**fourth** outcome, `partial`: even fully reachable, the registry declares a
+`partial_producer` — narration builds for real, the picture is a permanent human production
+step by design, not a temporary gap. See "A fourth outcome" below.
 
 ## The gate
 
@@ -43,17 +47,52 @@ This is not ceremony. Production is where a comm becomes expensive and externall
 a Canva design in the client's account, a document that gets forwarded. The plan is where
 defects are cheap. Fix the plan, re-route.
 
-## Three outcomes, and the exit code tells them apart
+## Four outcomes, and the exit code tells them apart
 
 | Exit | Outcome | Meaning |
 |---|---|---|
 | 0 | `route` | Preconditions met. The brief prints runnable commands. |
+| 0 | `partial` | The producer is reachable, but the registry declares it a `partial_producer`: it genuinely builds part of the artifact and hands off the rest **by design**. **This is a successful run.** |
 | 0 | `handoff_only` | The producer is unreachable. The handoff artifact **is** the deliverable, and a human finishes the job. **This is a successful run.** |
 | 1 | blocked | QA failed, or a hard precondition is unmet. No route is emitted. |
 
-The middle case matters. A blocked connector is not a broken run — a Canva brief or a video
-spec is a real, complete piece of work that a designer or producer can act on. Reporting it
-as a failure would train people to ignore the exit code.
+The middle two cases matter. A blocked connector is not a broken run — a Canva brief or a
+video spec is a real, complete piece of work that a designer or producer can act on. A
+`partial` outcome is not a broken run either, and it must never be reported as almost-ready:
+narration is finished work the moment it comes back from ElevenLabs, and the picture was
+never going to be produced by this route regardless of connector state. Reporting either as
+a failure would train people to ignore the exit code.
+
+### A fourth outcome: `partial`
+
+`route()`'s decision, in order: QA failure fails the run; an unmet hard precondition fails
+it; a `live` channel with a reachable connector **and** a `partial_producer` in the registry
+is `partial`; a `live` channel with a reachable connector and no `partial_producer` is the
+full `route`; everything else is `handoff_only`. `entry.get("partial_producer")` is what
+distinguishes `partial` from `route` — it is a property of the *channel*, declared once in
+`channel_registry.json`, never inferred from which tools happen to be reachable this run.
+
+For `short_form_video`/`explainer_video` with ElevenLabs reachable, `commands_for()` prints
+five steps naming the real, re-verified tools:
+
+1. **Runnable** — `video_spec.py <plan> --brand <brand> -o <out>/video_spec.json --narration <out>/narration.json`
+2. **Prose** — `creative_create_flow` once, so every scene's speech generation lands on one
+   editable canvas rather than a scattered set of one-off generations.
+3. **Prose** — per scene, `creative_generate_speech` with the entry's `text` as `prompt`, the
+   brand's `voice_id`, `model_id: eleven_multilingual_v2`, and **`generations_count: 1`**
+   pinned explicitly — the tool's own default is 4, so a 6-scene script left at the default
+   is 24 charged generations instead of 6. Never call a scene's generation a second time to
+   retry — the tool's own warning is that doing so starts and charges a second generation; a
+   failed scene is resumed, never blanket re-run.
+4. **Prose** — poll `creative_get_flow_run_status` with the collected `session_ids` until
+   `all_completed` or `has_failures`; record each scene's audio and measured duration into
+   `<out>/narration_returned.json`.
+5. **Runnable** — `verify_narration.py <out>/narration.json --returned <out>/narration_returned.json --spec <out>/video_spec.json`
+
+`verify_narration.py` reconciles the request against what actually came back — the same role
+`verify_docx.py` plays for a built `.docx` — and is what turns *measured* duration into the
+truth, since `qa_comms.audit()`, `video_spec.build()` and a brand-only spec each estimate
+runtime differently by construction.
 
 ## Preconditions
 
@@ -188,31 +227,57 @@ to screen readers, so **alt text is mandatory, not optional**, and must carry th
 rather than describe the picture. The local HTML render has no such gap — its text is real
 DOM text.
 
-### short_form_video, explainer_video → reserved
+### short_form_video, explainer_video → ElevenLabs narration, partial by design
 
 ```bash
-python skills/cm-comms-generator/scripts/video_spec.py <plan> --brand <brand> -o <run>/video_spec.json
+python skills/cm-comms-generator/scripts/video_spec.py <plan> --brand <brand> \
+    -o <run>/video_spec.json --narration <run>/narration.json
 ```
 
 Writes the scene table, VO script with per-scene timing, on-screen text, a WebVTT caption
-file, and direction. Both lanes are declared with an intended producer and a `blocked_by`
-string naming exactly what is missing:
+file, direction, and — with `--narration` — the per-scene payload for `creative_generate_speech`.
+Two guards live in `video_spec.py` itself: a scene whose part holds a `gap: true` block is
+excluded from narration (never pay ElevenLabs to read the word "GAP" aloud), and on-screen
+text (`bullets`/`heading`) never becomes voiceover — only `text`/`paragraph` blocks do.
 
-- **`short_form_video` → ElevenLabs.** Installed on the account but disabled in this chat,
-  and the tools it exposes are voice-*agent* management (`create_agent`, `get_agent_link`),
-  not TTS or video rendering. Enable it and re-check the tool surface before wiring.
-- **`explainer_video` → ElevenLabs, for narration only.** Same connector and same blocker as
-  above. This lane is only ever partly served: scene assembly and any presenter avatar remain a
-  human production step. No avatar-video connector exists in the directory — Synthesia has none,
-  and the nearest neighbours (HyperFrames by HeyGen, Tella) are different vendors, not installed.
+Both lanes are `status: "live"` with `blocked_by: null`. Re-verified 2026-09-14 against the
+enabled connector: `creative_generate_speech` is real TTS (required args `prompt`, `model_id`,
+`voice_id`, `context`), asynchronous and flow-based (`creative_create_flow` once, then poll
+`creative_get_flow_run_status`), and `creative_list_voices` is the only legitimate source of a
+`voice_id` — never invented, the same rule this repo already enforces on copy. That supersedes
+the earlier 2026-08 note that saw only voice-*agent* tools; the connector was re-checked live.
 
-Until then the spec and captions are the deliverable, written to be handed to a person or an
-app without further translation. When a connector arrives, the same file is the adapter's
-input.
+Both lanes also declare a `partial_producer` in the registry, which is what makes the
+`route()` outcome `partial` rather than the full `route` even when ElevenLabs is reachable:
 
-The runtime estimate earns its place here: a script written for a 45-second slot that
-actually reads at 90 seconds is the commonest defect in a video brief, and it is invisible
-until someone records it.
+- **`produces`** — narration audio per scene + `captions.vtt`.
+- **`not_produced`** — scene assembly and screen capture remain a human production step.
+- **`why_not_generated`** — ElevenLabs can also generate video and imagery
+  (`creative_generate_video`, `creative_generate_image`); this is a deliberate choice, not a
+  missing capability. `explainer_video`'s job is to show the client's REAL system; a
+  generated portal screen would contradict the thing it is teaching, and generated B-roll is
+  also unapproved design in an official internal comm. Narrate the script; shoot the picture.
+
+Verify what actually came back, not just what was asked for:
+
+```bash
+python skills/cm-comms-generator/scripts/verify_narration.py <run>/narration.json \
+    --returned <run>/narration_returned.json --spec <run>/video_spec.json
+```
+
+`verify_narration.py` fails if a payload scene has no returned audio, a returned scene
+matches no payload scene, or the total measured runtime exceeds the brand's
+`max_duration_seconds`; it warns when one scene runs over its own budget. It never re-runs a
+whole scene set to fix one failure — `creative_generate_speech`'s own warning is that calling
+it again starts and charges a second generation, so a missing scene is resumed by name, never
+blanket re-generated.
+
+The runtime estimate earns its place here regardless: a script written for a 45-second slot
+that actually reads at 90 seconds is the commonest defect in a video brief, and it is
+invisible until someone records it. `verify_narration.py`'s *measured* duration is what
+finally reconciles the three runtime estimates that disagree by construction
+(`qa_comms.audit()`'s word count, `video_spec.build()`'s spoken-word estimate, and a
+brand-only rendered spec).
 
 ## Coverage mode: full comms and signposts
 
