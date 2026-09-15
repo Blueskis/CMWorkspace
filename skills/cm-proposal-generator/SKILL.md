@@ -147,7 +147,7 @@ gives). Build or refresh its index, then retrieve per section:
 
 ```bash
 python scripts/index_kb.py proposal-assets/knowledge-bank -o proposals/<run>/kb_index.json
-python scripts/retrieve.py proposals/<run>/kb_index.json --section methodology --tags erp,workday --top 5
+python scripts/retrieve.py proposals/<run>/kb_index.json --section methodology --tags erp,workday --strict-section --top 5
 ```
 
 For each planned slide, pull candidate entries, choose what actually fits, and write the
@@ -258,6 +258,11 @@ is a draft for their review.
 
 ## Notes
 
+- **The bank is shared, and `--strict-section` is what keeps it clean.** `cm-comms-generator`
+  keeps its collateral in the same bank under `comms-collateral`, `comms-tone` and
+  `comms-boilerplate`. Without `--strict-section`, `--section` only adds +2 to an entry's
+  score — so a past staff email tagged `erp` can outrank a weakly-tagged methodology entry and
+  surface in a bid. Always pass the flag.
 - **The knowledge bank is the product.** A thin bank produces a deck full of `[GAP]`s, and
   that's the correct behaviour — it's telling the practitioner what the firm hasn't
   written down yet. Don't paper over a thin bank with generated filler; point them at

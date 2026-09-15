@@ -1,0 +1,97 @@
+# ASR vocabulary — terms fed to the transcription model as decoding context.
+#
+# Speech recognition fails hardest on proper nouns and acronyms, which is precisely the
+# vocabulary a change impact assessment runs on. Naming the terms up front measurably
+# reduces the error class that matters most: system names, module names and acronyms
+# turning into plausible-sounding English.
+#
+# Keep this SHORT. The model attends to roughly the last 200 tokens of prompt, so a long
+# list crowds out the terms you actually care about. Trim to the programme in front of you
+# — delete the modules that are out of scope, and add the client's own jargon.
+#
+# One term per line. Lines starting with # are ignored.
+
+# --- SAP / Ariba
+SAP
+S/4HANA
+Ariba
+Ariba Network
+Guided Buying
+Buying and Invoicing
+Ariba Sourcing
+Ariba Contracts
+SLP
+Supplier Lifecycle and Performance
+Fieldglass
+Concur
+ECC
+Fiori
+
+# --- other common platforms (delete what isn't in scope)
+Workday
+Salesforce
+Coupa
+ServiceNow
+Oracle Fusion
+
+# --- procurement and finance process language
+procure-to-pay
+P2P
+source-to-contract
+S2C
+requisition
+requisitioner
+purchase order
+goods receipt
+GRNI
+three-way match
+punch-out
+catalogue
+non-catalogue
+sourcing event
+RFQ
+RFI
+reverse auction
+sealed bid
+delegation of authority
+DOA
+cost centre
+GL account
+accounts payable
+master data
+vendor master
+spend under management
+tail spend
+supplier enablement
+supplier onboarding
+cXML
+PO flip
+
+# --- change management language
+change impact assessment
+stakeholder
+go-live
+hypercare
+cutover
+floorwalking
+super user
+change champion
+train the trainer
+job aid
+e-learning
+instructor-led training
+ILT
+adoption
+business readiness
+
+# --- programme scaffolding
+workstream
+design authority
+steering committee
+functional specification
+process design
+Signavio
+BPMN
+swimlane
+wave one
+wave two

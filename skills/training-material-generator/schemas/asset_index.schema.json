@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "asset_index.schema.json",
+  "title": "Asset Index",
+  "description": "Images extracted from the source documents, each carrying the anchoring context that makes it placeable — which section it illustrates, not just its bytes. Stage 0 output (extract_assets.py). Stage 3 chooses which to place; Stage 5 audits that every screenshot-role asset was placed or explicitly left unused with a reason.",
+  "type": "object",
+  "required": ["run_id", "assets"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "assets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["asset_id", "document_id", "file", "format", "width_px", "height_px", "doc_order_index", "role"],
+        "properties": {
+          "asset_id": { "type": "string", "description": "e.g. 'fsd-img-014'" },
+          "document_id": { "type": "string" },
+          "file": { "type": "string", "description": "Path under the run's assets/ directory" },
+          "format": { "enum": ["png", "jpeg", "gif", "bmp", "emf", "wmf", "svg", "other"] },
+          "width_px": { "type": "integer" },
+          "height_px": { "type": "integer" },
+          "aspect": { "type": "number", "description": "width_px / height_px" },
+          "doc_order_index": { "type": "integer", "description": "Position among all assets in document reading order" },
+          "section_id": { "type": ["string", "null"], "description": "Matches a source_map.json section_id where determinable" },
+          "nearest_heading": { "type": ["string", "null"] },
+          "caption_candidate": { "type": ["string", "null"], "description": "Text pulled from the paragraph immediately following the image, where FSD captions typically live" },
+          "alt_text": { "type": ["string", "null"], "description": "docPr name/descr, when the source document set it" },
+          "repeat_count": { "type": "integer", "default": 1, "description": "How many times this exact image content appears across the document set" },
+          "role": {
+            "enum": ["screenshot", "diagram-image", "icon", "logo", "decorative"],
+            "description": "A guess from size, repeat_count, and context. Only 'screenshot' assets are subject to the Stage 5 placement audit."
+          },
+          "quality": {
+            "type": "array",
+            "items": { "enum": ["low_res", "very_wide", "tiny"] },
+            "default": [],
+            "description": "A 'low_res' asset needs an explicit acknowledgement flag on its placing block before Stage 4 will place it."
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,225 @@
+{
+  "template": "comms-assets/templates/comms-html",
+  "kind": "html",
+  "renderer": "render_html.py",
+  "layout_count": 3,
+  "master_count": 1,
+  "example_slide_count": 0,
+  "theme_fonts": {},
+  "layouts": [
+    {
+      "part": "banner",
+      "name": "Banner",
+      "type": "html",
+      "placeholder_count": 4,
+      "placeholders": [
+        {
+          "type": "kicker",
+          "idx": null,
+          "name": "kicker",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "headline",
+          "idx": null,
+          "name": "headline",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "subhead",
+          "idx": null,
+          "name": "subhead",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "pointer",
+          "idx": null,
+          "name": "pointer",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    },
+    {
+      "part": "newsletter-roundup",
+      "name": "Newsletter Roundup",
+      "type": "html",
+      "placeholder_count": 4,
+      "placeholders": [
+        {
+          "type": "title",
+          "idx": null,
+          "name": "title",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "intro",
+          "idx": null,
+          "name": "intro",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "items",
+          "idx": null,
+          "name": "items",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "cta",
+          "idx": null,
+          "name": "cta",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    },
+    {
+      "part": "edm",
+      "name": "Edm",
+      "type": "html",
+      "placeholder_count": 15,
+      "placeholders": [
+        {
+          "type": "canvas",
+          "idx": null,
+          "name": "canvas",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "pad_lg",
+          "idx": null,
+          "name": "pad_lg",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "pad_sm",
+          "idx": null,
+          "name": "pad_sm",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "font_sans",
+          "idx": null,
+          "name": "font_sans",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "accent",
+          "idx": null,
+          "name": "accent",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "kicker",
+          "idx": null,
+          "name": "kicker",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "ink",
+          "idx": null,
+          "name": "ink",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "headline",
+          "idx": null,
+          "name": "headline",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "pad_md",
+          "idx": null,
+          "name": "pad_md",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "ink_soft",
+          "idx": null,
+          "name": "ink_soft",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "body",
+          "idx": null,
+          "name": "body",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "cta_block",
+          "idx": null,
+          "name": "cta_block",
+          "required": false,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "rule",
+          "idx": null,
+          "name": "rule",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "muted",
+          "idx": null,
+          "name": "muted",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        },
+        {
+          "type": "footer",
+          "idx": null,
+          "name": "footer",
+          "required": true,
+          "prompt_text": null,
+          "geometry": null
+        }
+      ],
+      "static_images": 0,
+      "graphic_frames": 0
+    }
+  ]
+}

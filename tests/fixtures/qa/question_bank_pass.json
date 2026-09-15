@@ -1,0 +1,33 @@
+{
+  "run_id": "test-run",
+  "questions": [
+    {
+      "question_id": "Q1",
+      "objective_id": "LO1",
+      "type": "mcq",
+      "stem": "Who approves a $12k PO?",
+      "options": [
+        {"option_id": "a", "text": "Director"},
+        {"option_id": "b", "text": "Manager"},
+        {"option_id": "c", "text": "Requester"},
+        {"option_id": "d", "text": "Finance"}
+      ],
+      "key": ["a"],
+      "rationale": "Per 4.2.1",
+      "sources": ["sample-fsd#4.2.1"]
+    },
+    {
+      "question_id": "Q2",
+      "objective_id": "LO2",
+      "type": "true-false",
+      "stem": "PO creation requires a vendor.",
+      "options": [
+        {"option_id": "t", "text": "True"},
+        {"option_id": "f", "text": "False"}
+      ],
+      "key": ["t"],
+      "rationale": "Per 4.1",
+      "sources": ["sample-fsd#4.1"]
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "_NOT_APPROVED": "This profile is NOT ready to draft on. approval is deliberately left empty below so apply_brand.py, build_docx.py, build_pptx.py, canva_brief.py, video_spec.py and qa_comms.py all refuse to produce anything from it — the same stop-and-ask behaviour the skill enforces for any client with no real sign-off. Fill in a genuine approver, from a genuine Deloitte brand/legal sign-off, before this is used for anything beyond internal drafting or a dry-run.",
+  "client": "Deloitte",
+  "source": "extracted-from-template",
+  "source_files": [
+    {
+      "path": "proposal-assets/templates/html-deloitte/theme.css",
+      "kind": "style-guide"
+    }
+  ],
+
+  "approval": {
+    "approved_by": "",
+    "role": "",
+    "approved_date": null,
+    "scope": "NOT APPROVED. This palette was assembled from a supplied Green Dot colour spec (hex/RGB/CMYK/Pantone) and general knowledge of the public identity — it is NOT the firm's licensed Brand Space assets, approved master template, or proprietary wordmark typeface. Get real brand/legal sign-off on using the Deloitte name and mark at all before this profile leaves internal drafting. See proposal-assets/templates/html-deloitte/README.md."
+  },
+
+  "palette": {
+    "primary":   { "name": "Deloitte Green (Pantone 368)",      "hex": "#86bc25" },
+    "secondary": { "name": "Deloitte Deep Green (Pantone 349)", "hex": "#046a38" },
+    "accent":    { "name": "Deloitte Green (Pantone 368)",      "hex": "#86bc25" },
+    "ink":       { "name": "Deloitte Black",                    "hex": "#000000" },
+    "ink_soft":  { "name": "Deloitte Dark Gray",                 "hex": "#222222" },
+    "muted":     { "name": "Deloitte Light Gray",                "hex": "#e6e6e6" },
+    "canvas":    { "name": "Deloitte White",                     "hex": "#ffffff" },
+    "panel":     { "name": "Deloitte Pale Green",                "hex": "#f1f6e4" },
+    "rule":      { "name": "Deloitte Light Gray",                "hex": "#e6e6e6" },
+    "error":     { "name": "Functional — off-palette",           "hex": "#b45309" },
+    "success":   { "name": "Deloitte Mid Green (Pantone 362)",   "hex": "#26890d" }
+  },
+  "palette_rules": [
+    "Colour is a signal, not a fill — thin 1-3px rules and outlines only, never a filled colour block, gradient or drop shadow",
+    "Deloitte Bright Green (#0df200, Pantone 2286) is reserved for screen-only micro-accents at most — has no CMYK equivalent, so it must never appear in anything that might be printed",
+    "Deloitte Pale Green (#f1f6e4) has no Pantone equivalent — CMYK/screen use only",
+    "The green dot is the only graphic device — it belongs in the wordmark and, once, large and pale, behind a section header. Nowhere else.",
+    "Every canvas is white — never a colour fill behind body content",
+    "The wordmark and body copy render in the system sans-serif stack — no licensed Deloitte typeface ships with this profile; do not claim the real wordmark face"
+  ],
+
+  "typography": {
+    "heading": {
+      "family": "Segoe UI",
+      "fallbacks": ["Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+      "weight": 700
+    },
+    "body": {
+      "family": "Segoe UI",
+      "fallbacks": ["Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+      "weight": 400
+    },
+    "min_size_pt": 11,
+    "web_safe_fallback": "system-ui, sans-serif"
+  },
+
+  "logo": {
+    "path": null,
+    "clear_space": "Not confirmed — verify against current Brand Space guidance before use",
+    "min_width_px": null,
+    "permitted_backgrounds": ["White"],
+    "prohibited_uses": [
+      "No logo asset ships with this profile — do not substitute a found image of the wordmark or the dot",
+      "Never imply Deloitte affiliation or approval by using the name or mark outside an actual Deloitte engagement or internal context"
+    ]
+  },
+
+  "tone": {
+    "voice": ["clear", "confident", "understated — colour and ornament used sparingly, not tone"],
+    "person": "second",
+    "formality": "neutral",
+    "sentence_length_guidance": "One idea per sentence. Split anything over 25 words.",
+    "reading_age_target": null,
+    "do": [],
+    "dont": [],
+    "banned_words": [],
+    "preferred_terms": {}
+  },
+
+  "channel_specs": {
+    "docx":  { "page_size": "A4", "margins_mm": 25 },
+    "email": { "subject_max_chars": 50, "preheader_max_chars": 90 },
+    "article": { "headline_max_chars": 80, "standfirst_max_chars": 200, "max_words": 900, "byline_required": true },
+    "briefing_deck": {
+      "aspect_ratio": "16:9",
+      "max_slides": 12,
+      "title_max_chars": 70,
+      "bullets_per_slide_max": 5,
+      "potx_path": null
+    },
+    "newsletter": { "image_width_px": 1200, "headline_max_chars": 70, "section_max_chars": 220, "cta_max_chars": 25, "max_sections": 6 },
+    "banner": { "image_width_px": 1920, "image_height_px": 480, "headline_max_chars": 60, "body_max_chars": 120, "cta_max_chars": 25, "safe_area_px": 160 },
+    "short_form_video": { "max_duration_seconds": 75, "aspect_ratio": "9:16", "captions_required": true, "words_per_minute": 150 },
+    "explainer_video": { "max_duration_seconds": 240, "aspect_ratio": "16:9", "captions_required": true, "words_per_minute": 140, "chaptered": true }
+  },
+
+  "accessibility": {
+    "min_contrast_ratio": 4.5,
+    "alt_text_required": true,
+    "plain_language_required": true,
+    "captions_required": true
+  }
+}

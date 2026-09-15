@@ -1,0 +1,246 @@
+{
+  "brief_id": "northwind-payroll-2026",
+  "client": {
+    "legal_name": "Northwind Foods Limited",
+    "trading_name": "Northwind Foods",
+    "sector": "Food manufacturing and distribution"
+  },
+
+  "change": {
+    "title": "Payroll moves to semi-monthly and onto the colleague portal",
+    "type": "hybrid",
+    "type_evidence": [
+      "Process: pay frequency moves from monthly to semi-monthly, changing every colleague's household cash flow",
+      "Technology: payslips, tax documents and personal details move to a self-service portal",
+      "People: line managers take on timesheet approval, which was previously done centrally by the payroll team"
+    ],
+    "what_is_changing": "From 1 October 2026 everyone is paid twice a month instead of once, and payslips move from post to the colleague portal.",
+    "rationale": "Colleagues have asked for more frequent pay for several years — it was the top request in the last two engagement surveys — and the current payroll system is out of vendor support in March 2027.",
+    "rationale_confidence": "stated",
+    "what_is_not_changing": [
+      "Your total annual pay is unchanged — the same amount is paid across two dates instead of one",
+      "Your contract, hours, grade and holiday entitlement are unchanged",
+      "Your pension contributions and their timing are unchanged",
+      "Overtime and shift premiums are calculated exactly as they are today"
+    ]
+  },
+
+  "audiences": [
+    {
+      "id": "A1",
+      "label": "All colleagues",
+      "size": 2400,
+      "location": "UK and Ireland, all sites",
+      "impact_level": "high",
+      "whats_in_it_for_me": "You get paid twice a month instead of once, which most people find easier to budget around, and you can see your payslip the moment it is issued rather than waiting for the post.",
+      "required_action": {
+        "action": "Activate your colleague portal account and check your bank details are correct",
+        "by_date": "2026-09-14",
+        "effort": "About 10 minutes",
+        "optional": false
+      },
+      "concerns": [
+        "Will I be paid less overall?",
+        "What happens to my direct debits that are set around the current pay date?",
+        "What if I do not have a work computer?"
+      ],
+      "preferred_channels": ["email", "line_manager", "sharepoint_banner"],
+      "manager_cascade_required": true
+    },
+    {
+      "id": "A2",
+      "label": "People managers",
+      "size": 310,
+      "location": "UK and Ireland, all sites",
+      "impact_level": "high",
+      "whats_in_it_for_me": "You get visibility of your team's hours before they are paid, instead of finding out about errors a month later when they are expensive to correct.",
+      "required_action": {
+        "action": "Complete the timesheet approval training and brief your team using the cascade pack",
+        "by_date": "2026-09-21",
+        "effort": "45 minutes training, plus one team briefing",
+        "optional": false
+      },
+      "concerns": [
+        "This is extra work I did not ask for",
+        "What happens if I am on leave when approvals are due?",
+        "What do I say if someone asks whether this means job losses?"
+      ],
+      "preferred_channels": ["slide_deck", "email"],
+      "manager_cascade_required": true
+    },
+    {
+      "id": "A3",
+      "label": "Payroll and finance team",
+      "size": 14,
+      "location": "Head office",
+      "impact_level": "high",
+      "whats_in_it_for_me": "Timesheet queries move to the manager who can actually answer them, and the month-end crunch is spread across two smaller runs.",
+      "required_action": {
+        "action": "Complete system training and run the parallel payroll in September",
+        "by_date": "2026-09-30",
+        "effort": "Three half-day sessions plus the parallel run",
+        "optional": false
+      },
+      "concerns": [
+        "Two pay runs a month may mean twice the work, not half",
+        "Who owns errors once managers are approving?"
+      ],
+      "preferred_channels": ["email", "line_manager"],
+      "manager_cascade_required": false
+    },
+    {
+      "id": "A4",
+      "label": "Contractors and agency workers",
+      "size": 180,
+      "location": "UK and Ireland, all sites",
+      "impact_level": "informational",
+      "whats_in_it_for_me": "Nothing changes for you — your payment terms are set by your agency, not by Northwind payroll.",
+      "required_action": {
+        "action": "No action needed. Be aware that colleague pay dates are changing, which may affect when shared site facilities are busy.",
+        "by_date": null,
+        "effort": "None",
+        "optional": true
+      },
+      "concerns": [
+        "Does this change my payment terms?"
+      ],
+      "preferred_channels": ["sharepoint_banner"],
+      "manager_cascade_required": false
+    }
+  ],
+
+  "key_messages": [
+    {
+      "id": "M1",
+      "text": "From 1 October you will be paid twice a month — on the 15th and the last working day — instead of once.",
+      "priority": "must-land",
+      "audience_ids": ["A1", "A2", "A3"],
+      "milestone_ids": ["T3"],
+      "sensitivity": "routine"
+    },
+    {
+      "id": "M2",
+      "text": "Your total annual pay is not changing. The same amount is paid across two dates instead of one.",
+      "priority": "must-land",
+      "audience_ids": ["A1", "A2", "A3"],
+      "sensitivity": "routine"
+    },
+    {
+      "id": "M3",
+      "text": "This is happening because colleagues asked for it — more frequent pay was the top request in the last two engagement surveys — and because the current payroll system loses vendor support in March 2027.",
+      "priority": "supporting",
+      "audience_ids": ["A1", "A2", "A3"],
+      "evidence": "Engagement survey results 2024 and 2025; vendor end-of-support notice dated 2025-11-04",
+      "sensitivity": "routine"
+    },
+    {
+      "id": "M4",
+      "text": "You need to activate your colleague portal account and check your bank details by 14 September. It takes about ten minutes.",
+      "priority": "must-land",
+      "audience_ids": ["A1"],
+      "milestone_ids": ["T1"],
+      "sensitivity": "routine"
+    },
+    {
+      "id": "M5",
+      "text": "Managers will approve their team's timesheets from October. Training takes 45 minutes and must be completed by 21 September.",
+      "priority": "must-land",
+      "audience_ids": ["A2", "A3"],
+      "milestone_ids": ["T2"],
+      "sensitivity": "routine"
+    },
+    {
+      "id": "M6",
+      "text": "This change does not affect anyone's job, grade, hours or contract. It is a change to how and when pay is processed, not to what anyone is paid or what they do.",
+      "priority": "must-land",
+      "audience_ids": ["A1", "A2", "A3"],
+      "sensitivity": "sensitive"
+    },
+    {
+      "id": "M7",
+      "text": "Payslips and tax documents move to the colleague portal. Paper payslips stop after the September pay run, and printed copies remain available on request from the People team.",
+      "priority": "supporting",
+      "audience_ids": ["A1", "A2"],
+      "milestone_ids": ["T4"],
+      "sensitivity": "routine"
+    }
+  ],
+
+  "milestones": [
+    {
+      "id": "T1",
+      "date": "2026-09-14",
+      "date_confidence": "confirmed",
+      "label": "Portal activation deadline for all colleagues",
+      "audience_ids": ["A1"],
+      "visible_to_audience": true
+    },
+    {
+      "id": "T2",
+      "date": "2026-09-21",
+      "date_confidence": "confirmed",
+      "label": "Manager timesheet approval training complete",
+      "audience_ids": ["A2"],
+      "visible_to_audience": true
+    },
+    {
+      "id": "T3",
+      "date": "2026-10-01",
+      "date_confidence": "confirmed",
+      "label": "First semi-monthly pay period begins",
+      "audience_ids": ["A1", "A2", "A3"],
+      "visible_to_audience": true
+    },
+    {
+      "id": "T4",
+      "date": "2026-11-30",
+      "date_confidence": "indicative",
+      "label": "Paper payslips withdrawn entirely",
+      "audience_ids": ["A1", "A2"],
+      "visible_to_audience": true
+    }
+  ],
+
+  "governance": {
+    "sender": {
+      "name": "Marcus Bell",
+      "role": "Chief People Officer",
+      "why_this_messenger": "Pay is a trust issue. A change to when people are paid needs a named executive behind it, not the programme mailbox — and Marcus is the person colleagues have heard from on pay before."
+    },
+    "approver": {
+      "name": "Priya Raghavan",
+      "role": "Head of Internal Communications",
+      "approved": false,
+      "approved_date": null
+    },
+    "help_route": {
+      "channel": "Payroll support",
+      "detail": "payroll.support@northwindfoods.example",
+      "hours": "Monday to Friday, 8am to 6pm",
+      "escalation": "If your portal activation has not worked after two working days, contact the People team on extension 4400."
+    },
+    "embargo": null
+  },
+
+  "constraints": {
+    "channels_available": ["email", "sharepoint_banner", "slide_deck", "short_form_video", "line_manager"],
+    "accessibility_requirements": [
+      "Alternative formats on request — large print and printed copy",
+      "Alt text on every banner image",
+      "Not everyone has a work computer: site colleagues access the portal from shared kiosks"
+    ],
+    "languages": ["en-GB"],
+    "prohibited_terms": ["restructure", "efficiencies", "headcount"]
+  },
+
+  "open_questions": [
+    "Whether contractors paid through agencies see any change to their payment timing — the agency contracts have not been checked and Procurement has not come back on this.",
+    "Whether the first October pay date falls before or after the monthly direct debit run for colleagues who bank with the two largest providers."
+  ],
+
+  "sources": [
+    { "path": "inputs/payroll-programme-brief.docx", "kind": "briefing-notes", "parsed_with": "docx" },
+    { "path": "inputs/payroll-impact-assessment.xlsx", "kind": "impact-assessment", "parsed_with": "xlsx" },
+    { "path": "inputs/cpo-sponsor-note.txt", "kind": "sponsor-email", "parsed_with": "read" }
+  ]
+}

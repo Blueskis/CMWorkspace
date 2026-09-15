@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "source_map.schema.json",
+  "title": "Source Map",
+  "description": "Complete outline of every input document. Stage 0 output. Stage 2 plans modules against it; Stage 5 audits that every 'procedure' section landed in a module or in training_brief.out_of_scope.",
+  "type": "object",
+  "required": ["run_id", "documents", "sections"],
+  "properties": {
+    "run_id": { "type": "string", "description": "e.g. 'acme-po-approval-20260829'" },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["document_id", "filename", "format"],
+        "properties": {
+          "document_id": { "type": "string", "description": "Stable short handle used in section/asset anchors, e.g. 'fsd'" },
+          "filename": { "type": "string" },
+          "format": { "enum": ["docx", "pptx", "pdf", "txt"] },
+          "page_count": { "type": ["integer", "null"] }
+        }
+      }
+    },
+    "sections": {
+      "type": "array",
+      "description": "Every heading-delimited section in document order, flattened. section_id is the anchor Stage 1-3 cite and Stage 5 audits coverage against.",
+      "items": {
+        "type": "object",
+        "required": ["section_id", "document_id", "section_path", "title", "level", "classifier"],
+        "properties": {
+          "section_id": { "type": "string", "description": "e.g. 'fsd#4.2.1' — document_id + a stable path" },
+          "document_id": { "type": "string" },
+          "section_path": { "type": "string", "description": "Full heading breadcrumb, e.g. '4. Purchase Orders > 4.2 Approval > 4.2.1 Thresholds'" },
+          "title": { "type": "string" },
+          "level": { "type": "integer", "minimum": 1, "description": "Heading depth, 1 = top-level" },
+          "clause_number": { "type": ["string", "null"], "description": "The document's own numbering if present, e.g. '4.2.1'" },
+          "page_start": { "type": ["integer", "null"] },
+          "page_end": { "type": ["integer", "null"] },
+          "char_count": { "type": "integer" },
+          "text": { "type": "string", "description": "Full extracted body text of this section (not its subsections). What index_chunks.py chunks." },
+          "figure_count": { "type": "integer", "default": 0 },
+          "table_count": { "type": "integer", "default": 0 },
+          "classifier": {
+            "enum": ["procedure", "reference", "narrative", "config", "non-functional"],
+            "description": "'procedure' sections are what the coverage check enforces — every one must land in a module or training_brief.out_of_scope."
+          }
+        }
+      }
+    }
+  }
+}
