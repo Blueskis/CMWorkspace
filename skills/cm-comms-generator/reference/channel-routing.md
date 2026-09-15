@@ -198,13 +198,13 @@ Writes the scene table, VO script with per-scene timing, on-screen text, a WebVT
 file, and direction. Both lanes are declared with an intended producer and a `blocked_by`
 string naming exactly what is missing:
 
-- **`short_form_video` → ElevenLabs.** Installed on the account but disabled in this chat,
-  and the tools it exposes are voice-*agent* management (`create_agent`, `get_agent_link`),
-  not TTS or video rendering. Enable it and re-check the tool surface before wiring.
-- **`explainer_video` → ElevenLabs, for narration only.** Same connector and same blocker as
-  above. This lane is only ever partly served: scene assembly and any presenter avatar remain a
-  human production step. No avatar-video connector exists in the directory — Synthesia has none,
-  and the nearest neighbours (HyperFrames by HeyGen, Tella) are different vendors, not installed.
+- **`short_form_video` → ElevenLabs, narration only.** The connector is live and callable
+  (`creative_generate_speech`), but that covers narration, never the picture. The real blocker
+  is that no avatar-video producer is installed — see `reference/video-producer-selection.md`.
+- **`explainer_video` → ElevenLabs, for narration only.** Same connector, same scope. This lane
+  is only ever partly served: scene assembly and any presenter avatar remain a human production
+  step. `reference/video-producer-selection.md` names Synthesia as the recommended avatar
+  producer, pending the client's PDPA/consent and data-residency sign-off.
 
 Until then the spec and captions are the deliverable, written to be handed to a person or an
 app without further translation. When a connector arrives, the same file is the adapter's

@@ -36,7 +36,7 @@
       "kind": "mcp",
       "server": "ElevenLabs",
       "tools": [],
-      "note": "Verified 2026-08 via the connector registry: installed on the account but DISABLED IN CHAT, and every tool name the directory lists is voice-AGENT management (create_agent, duplicate_agent, get_agent_link, calculate_agent_llm_usage) with three more not shown. No text-to-speech tool is visible. Scope here is the NARRATION TRACK only - the VO script and captions video_spec.py already emits - never the picture. Unblocking is two steps and the second may fail: enable the connector in the chat's connector settings, then re-check whether the tool surface actually exposes TTS."
+      "note": "Re-verified 2026-09: the connector is live in current sessions and exposes creative_generate_speech, creative_generate_video, creative_generate_image and flow tools — the earlier note here ('disabled in chat', 'no text-to-speech tool visible') was stale and has been corrected. Scope stays the NARRATION TRACK only - the VO script and captions video_spec.py already emits - never the picture. The real blocker for both video lanes is that no avatar-video producer is installed; see reference/video-producer-selection.md for the vendor decision (Synthesia recommended for the picture, pending client PDPA/consent and data-residency sign-off)."
     }
   },
   "channels": {
@@ -234,7 +234,7 @@
       "format": "scene outline + VO script",
       "producer": "mcp:ElevenLabs",
       "status": "planned",
-      "blocked_by": "ElevenLabs is installed but disabled in this chat, so its tools are not callable. Enable it in the chat's connector settings, then re-check the tool surface: every tool the directory lists today is voice-agent management rather than TTS, so this lane may still have no producer after enabling.",
+      "blocked_by": "No avatar-video producer installed for the picture track. ElevenLabs is live and can serve the narration track (creative_generate_speech), but scope there is audio only — see reference/video-producer-selection.md.",
       "planned_for": "v0.3",
       "handoff": "video_spec.json + captions.vtt",
       "preconditions": [
@@ -257,7 +257,7 @@
       "format": "scene outline + VO script + screen direction",
       "producer": "mcp:ElevenLabs",
       "status": "planned",
-      "blocked_by": "Same as short_form_video: ElevenLabs is disabled in this chat and may not expose TTS even once enabled. Note this lane is only PARTLY served either way - ElevenLabs can narrate, but scene assembly and any presenter avatar remain a human production step. No avatar-video connector exists in the directory: Synthesia has none at all, and the nearest neighbours (HyperFrames by HeyGen, Tella) are different vendors and not installed.",
+      "blocked_by": "No avatar-video producer installed for the picture track; scene assembly and any presenter avatar remain a human production step. ElevenLabs is live and can serve the narration track only. See reference/video-producer-selection.md for the vendor decision (Synthesia recommended) and the PDPA/consent gate on any named-individual avatar.",
       "planned_for": "v0.3",
       "handoff": "video_spec.json + captions.vtt",
       "preconditions": [
