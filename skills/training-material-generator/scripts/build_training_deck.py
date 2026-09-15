@@ -19,7 +19,14 @@ half-working assembler that silently drops a placeholder is worse than a manifes
   * every `diagram` block's `diagram_spec` actually renders — this script calls
     render_diagram.py's `render()` in-process against the target placeholder's geometry
     and reports a spec error or label-overflow by slide, rather than discovering it
-    later at pptx-build time.
+    later at pptx-build time;
+  * every `image` block's `content.annotations`, if present, actually render — this
+    script calls render_annotation.py's `render()` in-process the same way, against the
+    same asset file and bbox, catching an out-of-bounds coordinate or an unfittable
+    callout number before the build rather than after; and a `redact` annotation's block
+    must point at an asset carrying `redacted_from` in asset_index.json — a redaction
+    whose asset is still the un-flattened original is a hard error here, never a warning,
+    because the vector shape alone leaves the original pixels sitting in the .pptx.
 
 Placeholder geometry drives both the image aspect-fit and the diagram bounding box. Where
 a layout's placeholder has no recorded geometry (an HTML template, or a .potx placeholder
@@ -32,8 +39,8 @@ layouts (`add_slide.py`), do all structural work first, then run `inject_slide_x
 per image/diagram block and set text placeholders directly in the slide XML, then
 `clean.py` and `validate.py --original <template>`.
 
-Stdlib only, except that it imports render_diagram.py (also stdlib-only) from this same
-directory to validate diagrams eagerly.
+Stdlib only, except that it imports render_diagram.py and render_annotation.py (both also
+stdlib-only) from this same directory to validate diagrams and annotations eagerly.
 """
 
 import argparse
@@ -43,6 +50,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from render_diagram import DiagramOverflowError, DiagramSpecError, render  # noqa: E402
+from render_annotation import AnnotationSpecError, render as render_annotations  # noqa: E402
 
 DEFAULT_BBOX = (1.0, 1.5, 8.0, 5.0)  # fallback content area, inches, for a placeholder with no geometry
 ASPECT_TOLERANCE = 0.35  # relative aspect mismatch beyond this gets a manifest warning (heavy letterboxing)
@@ -149,6 +157,27 @@ def build(plan, profile, asset_index):
                                     f"{where}: asset '{asset_id}' aspect {asset_aspect:.2f} vs "
                                     f"placeholder aspect {box_aspect:.2f} — expect visible letterboxing"
                                 )
+
+                        annotations = content.get("annotations") or []
+                        if annotations:
+                            for ann in annotations:
+                                if ann.get("type") == "redact" and not asset.get("redacted_from"):
+                                    errors.append(
+                                        f"{where}: 'redact' annotation but asset '{asset_id}' has no "
+                                        f"redacted_from — run png_ops.py redact and point the block at "
+                                        f"the flattened asset; a vector shape alone leaves the original "
+                                        f"pixels in the .pptx"
+                                    )
+                            image_file = asset.get("file")
+                            if not image_file or not Path(image_file).is_file():
+                                errors.append(f"{where}: annotations present but asset file "
+                                               f"'{image_file}' not found on disk — cannot compute the "
+                                               f"fitted image rect")
+                            else:
+                                try:
+                                    render_annotations(annotations, image_file, bbox)
+                                except (AnnotationSpecError, DiagramOverflowError) as exc:
+                                    errors.append(f"{where}: annotation render failed — {exc}")
                     fill["content"] = content
                     fill["bbox"] = bbox
 

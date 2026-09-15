@@ -26,6 +26,11 @@
           "caption_candidate": { "type": ["string", "null"], "description": "Text pulled from the paragraph immediately following the image, where FSD captions typically live" },
           "alt_text": { "type": ["string", "null"], "description": "docPr name/descr, when the source document set it" },
           "repeat_count": { "type": "integer", "default": 1, "description": "How many times this exact image content appears across the document set" },
+          "redacted_from": {
+            "type": ["string", "null"],
+            "default": null,
+            "description": "Set only on an asset produced by png_ops.py redact — the asset_id of the original screenshot it was derived from. This is the mechanical proof a 'redact' annotation is backed by a real, pixel-destroying flatten and not just a cosmetic shape over the un-redacted original: build_training_deck.py and qa_training.py both hard-fail a 'redact' annotation whose block's asset_id has no redacted_from set."
+          },
           "role": {
             "enum": ["screenshot", "diagram-image", "icon", "logo", "decorative"],
             "description": "A guess from size, repeat_count, and context. Only 'screenshot' assets are subject to the Stage 5 placement audit."

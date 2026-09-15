@@ -8,7 +8,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 | `cm-comms-generator` | **v0.2** — a change + a chosen channel → a comms draft, routed to the tool that builds it (.docx / .pptx / Canva) |
 | `cm-effort-estimator` | **v0.5** — scope drivers → a manday estimate, with an open-ended judgement layer for adjustments the drivers alone don't capture |
 | `change-impact-assessment` | **MVP** — a programme's own documents → a baseline change impact assessment in the client's CIA template |
-| `training-material-generator` | **v0.2 (MVP)** — an FSD (or similar spec doc) → a first-draft training deck, with placed screenshots, native diagrams, and knowledge-check questions |
+| `training-material-generator` | **v0.3 (MVP)** — an FSD (or similar spec doc) → a first-draft training deck, with placed and annotated screenshots (highlight/callout/arrow/redact/zoom), native diagrams, and knowledge-check questions |
 | `brand-template-creator` | A published claude.ai Artifact — capture a client's brand once (colours, fonts, style, logo, voice, messaging) and export a `.json` + `.md` brand guide to reuse across sessions |
 | `cm-proposal-reference-tool` | A published claude.ai Artifact (not a skill): drop in a tender, get the firm's most similar past proposals ranked, read live from Airtable. See `artifacts/cm-proposal-reference-tool/README.md` |
 | `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
@@ -317,14 +317,25 @@ only; the official Airtable connector is the no-token alternative. See
 Airtable produces a base that looks right and is not.
 
 Requires `openpyxl` (`pip install openpyxl`).
-## Training material generator (v0.2, MVP)
+## Training material generator (v0.3, MVP)
 
 Takes a functional specification document (or similar — a BRD, a process guide, system
 documentation with screenshots) and produces a first-draft training deck on the client's
-approved template: screenshots placed by the procedure step they illustrate, native
-PowerPoint diagrams (process flows, swimlanes, decision trees, org hierarchies,
-timelines) built from the spec's own prose logic, and knowledge-check questions derived
-from — and cited back to — the spec.
+approved template: screenshots placed by the procedure step they illustrate — and, where a
+step needs it, **annotated** with native PowerPoint shapes so a learner sees exactly where
+to look and what to click (a highlight box, a numbered callout bound 1:1 to the slide's own
+instruction list, a pointer arrow, a redaction mask, or a magnified zoom inset) — native
+PowerPoint diagrams (process flows, swimlanes, decision trees, org hierarchies, timelines)
+built from the spec's own prose logic, and knowledge-check questions derived from — and
+cited back to — the spec.
+
+**v0.3 reverses part of an earlier rule.** The skill used to refuse callout numbering
+outright on the grounds that "this repo has no image-editing step". That objection was to
+burning shapes into a screenshot's *pixels*, and it still holds everywhere except the one
+deliberate exception: true redaction, which destroys pixels by design (`png_ops.py`, stdlib
+`zlib`/`struct` only — no Pillow, no new dependency). Every other annotation is a native,
+selectable, re-themeable PowerPoint shape layered over an untouched picture. See
+`skills/training-material-generator/reference/annotation-patterns.md`.
 
 Five stages, same discipline as the proposal generator — every stage writes an
 inspectable artifact:
@@ -346,13 +357,15 @@ Two invariants enforced mechanically in Stage 5:
 
 See `skills/training-material-generator/SKILL.md` for the full pipeline, and
 `tests/run_tests.py` for a runnable check of the extraction, retrieval, diagram-rendering,
-and QA logic against synthetic fixtures (`python tests/run_tests.py -v`).
+annotation-rendering, and QA logic against synthetic fixtures (`python tests/run_tests.py -v`).
 
-### What v0.2 does not do
+### What v0.3 does not do
 
 Multi-system curricula, audience-*filtered* decks (audiences are tagged now, filtering is
-v0.3), scored/tracked assessments or LMS packaging, and automated cropping/upscaling of
-extracted screenshots. Output is always a **draft for practitioner review**.
+v0.4), scored/tracked assessments or LMS packaging, annotating an asset with no readable
+pixel dimensions (EMF/WMF/SVG, interlaced or 16-bit PNG), and any cropping or upscaling of
+a screenshot outside an explicit `zoom` annotation. Output is always a **draft for
+practitioner review**.
 
 ## Layout
 
@@ -374,12 +387,13 @@ proposal-assets/          # shared asset root (named for the first skill that us
 skills/training-material-generator/
 ├── SKILL.md              # the five-stage process
 ├── reference/            # module library, FSD extraction, screenshot placement,
-│                         #   diagram patterns, knowledge-check quality rules
+│                         #   diagram patterns, annotation patterns, knowledge-check
+│                         #   quality rules
 ├── schemas/              # source_map, asset_index, training_brief, deck_plan,
 │                         #   question_bank contracts
 └── scripts/              # map_source, extract_assets, index_chunks, retrieve_chunks,
-                          #   render_diagram, inject_slide_xml, build_training_deck,
-                          #   qa_training
+                          #   render_diagram, render_annotation, png_ops, inject_slide_xml,
+                          #   build_training_deck, qa_training
 lib/                      # shared, stdlib-only — used by both skills
 ├── profile_template.py   # profiles a .potx/.pptx or HTML template's layouts/placeholders/theme
 └── section_walk.py       # shared heading-stack walker, so a section_id means the same
@@ -429,7 +443,9 @@ of the comms path, and is untouched.
 Scripts are stdlib-only and each runs standalone with `--help`.
 Scripts are stdlib-only and each runs standalone with `--help`, except
 `training-material-generator`'s `inject_slide_xml.py`, which uses `defusedxml` (falls back
-to stdlib `xml.dom.minidom` with a warning if absent).
+to stdlib `xml.dom.minidom` with a warning if absent). `png_ops.py` shells out to `soffice`
+(LibreOffice, already required by the `pptx` skill) only to transcode a JPEG screenshot to
+PNG before redacting or cropping it — the PNG codec itself is `zlib`/`struct` alone.
 
 ## Installing on another machine
 

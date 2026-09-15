@@ -26,6 +26,26 @@ report must surface, not bury):
      has at least 4 options (1 correct + >=3 distractors, per reference/knowledge-checks.md);
      every question's objective_id exists in the brief.
 
+And one more, split between hard and soft — annotation integrity, per
+reference/annotation-patterns.md:
+
+  6a. Callout binding (HARD) — an image block's `callout` annotation `step` numbers must
+      be exactly {1..N} against the bullet count of the one `bullets` block on the same
+      slide: no duplicates, no gaps, none above N. A build can produce a numbered circle
+      with no matching instruction, or an instruction with no circle, and this is the
+      only thing that catches it mechanically rather than by eye.
+  6b. Geometry bounds (HARD) — any annotation coordinate outside [0, 1], or a rect that
+      extends past the image edge. build_training_deck.py already refuses this at build
+      time (via render_annotation.py's own validation); this repeats the check against
+      the plan so a hand-edit after the build is still caught.
+  6c. Redaction integrity (HARD) — a `redact` annotation whose block's `asset_id` has no
+      `redacted_from` set in asset_index.json. The vector shape render_annotation.py draws
+      is cosmetic only; without a real png_ops.py-flattened asset behind it the original
+      pixels are still sitting in the .pptx, unzippable. For a government/GLC client this
+      is a data-disclosure risk, not a nit — treated as hard on that basis.
+  6d. Callout density (report only) — more than 6 annotations placed on one screenshot.
+      Not wrong, but almost always a sign the step should be split across slides.
+
 `--questions` is optional — if question_bank.json doesn't exist yet (Stage 3 not
 finished), check 1's question-half and check 5 are skipped with a note in the report
 rather than treated as a failure of this script.
@@ -130,6 +150,77 @@ def audit(brief, plan, source_map, asset_index, questions):
                 if asset and "low_res" in asset.get("quality", []) and not content.get("ack_low_res"):
                     low_res_placed_unacked.append(f"{slide['slide_id']}: {content.get('asset_id')}")
 
+    # 6. annotation integrity
+    annotation_binding_errors = []
+    annotation_geometry_errors = []
+    annotation_redact_unflattened = []
+    annotation_density_report = []
+    for module in plan.get("modules", []):
+        for slide in module.get("slides", []):
+            bullets_blocks = [b for b in slide.get("blocks", []) if b.get("kind") == "bullets"]
+            for block in slide.get("blocks", []):
+                if block.get("kind") != "image" or block.get("gap"):
+                    continue
+                content = block.get("content") or {}
+                annotations = content.get("annotations") or []
+                if not annotations:
+                    continue
+                where = f"{slide['slide_id']} / {content.get('asset_id')}"
+
+                if len(annotations) > 6:
+                    annotation_density_report.append(f"{where}: {len(annotations)} annotations")
+
+                for ann in annotations:
+                    atype = ann.get("type")
+                    if atype in ("highlight", "redact", "zoom"):
+                        rect = ann.get("rect")
+                        if not (isinstance(rect, list) and len(rect) == 4
+                                and all(isinstance(v, (int, float)) for v in rect)
+                                and 0 <= rect[0] <= 1 and 0 <= rect[1] <= 1
+                                and rect[2] > 0 and rect[3] > 0
+                                and rect[0] + rect[2] <= 1.0001 and rect[1] + rect[3] <= 1.0001):
+                            annotation_geometry_errors.append(f"{where}: {atype} rect {rect} out of bounds")
+                    elif atype == "callout":
+                        point = ann.get("point")
+                        if not (isinstance(point, list) and len(point) == 2
+                                and all(isinstance(v, (int, float)) for v in point)
+                                and 0 <= point[0] <= 1 and 0 <= point[1] <= 1):
+                            annotation_geometry_errors.append(f"{where}: callout point {point} out of bounds")
+                    elif atype == "arrow":
+                        for key in ("from", "to"):
+                            pt = ann.get(key)
+                            if not (isinstance(pt, list) and len(pt) == 2
+                                    and all(isinstance(v, (int, float)) for v in pt)
+                                    and 0 <= pt[0] <= 1 and 0 <= pt[1] <= 1):
+                                annotation_geometry_errors.append(f"{where}: arrow '{key}' {pt} out of bounds")
+
+                    if atype == "redact":
+                        asset = assets.get(content.get("asset_id"))
+                        if not asset or not asset.get("redacted_from"):
+                            annotation_redact_unflattened.append(
+                                f"{where}: redact annotation but asset has no redacted_from "
+                                f"(reason: {ann.get('reason', 'not given')})"
+                            )
+
+                # 6a. callout step binding — exactly {1..N} against the slide's one bullets block
+                steps = [ann.get("step") for ann in annotations
+                         if ann.get("type") in ("highlight", "callout", "arrow", "zoom") and ann.get("step") is not None]
+                if steps:
+                    if len(bullets_blocks) != 1:
+                        annotation_binding_errors.append(
+                            f"{where}: {len(steps)} annotation(s) reference a step, but slide has "
+                            f"{len(bullets_blocks)} bullets block(s) — binding needs exactly one"
+                        )
+                    else:
+                        n = len(bullets_blocks[0].get("content") or [])
+                        expected = set(range(1, n + 1))
+                        got = sorted(steps)
+                        if set(got) != expected or len(got) != len(steps):
+                            annotation_binding_errors.append(
+                                f"{where}: step numbers {got} do not match bullets 1..{n} exactly "
+                                f"(duplicates, gaps, or out-of-range)"
+                            )
+
     return {
         "objectives": objectives,
         "lo_no_slide": lo_no_slide,
@@ -143,6 +234,10 @@ def audit(brief, plan, source_map, asset_index, questions):
         "unplaced_screenshots": unplaced_screenshots,
         "unused_declared": unused_declared,
         "low_res_placed_unacked": low_res_placed_unacked,
+        "annotation_binding_errors": annotation_binding_errors,
+        "annotation_geometry_errors": annotation_geometry_errors,
+        "annotation_redact_unflattened": annotation_redact_unflattened,
+        "annotation_density_report": annotation_density_report,
     }
 
 
@@ -151,6 +246,8 @@ def render(result, plan, brief):
         result["lo_no_slide"] or result["missing_provenance"] or result["gap_missing_note"]
         or result["uncovered_procedures"]
         or (result["questions_checked"] and result["lo_no_question"])
+        or result["annotation_binding_errors"] or result["annotation_geometry_errors"]
+        or result["annotation_redact_unflattened"]
     )
 
     lines = [
@@ -234,6 +331,31 @@ def render(result, plan, brief):
         lines += ["", "> Mechanical checks only — whether a question actually tests the objective, "
                        "and whether its key is truly the FSD's stated answer, still needs a read."]
 
+    lines += ["", "## 6. Annotation integrity", ""]
+    if result["annotation_binding_errors"]:
+        lines += ["### FAIL — callout step numbers don't match the slide's instructions 1:1", ""] + [
+            f"- {e}" for e in result["annotation_binding_errors"]
+        ]
+    if result["annotation_geometry_errors"]:
+        lines += ["", "### FAIL — annotation coordinates out of bounds", ""] + [
+            f"- {e}" for e in result["annotation_geometry_errors"]
+        ]
+    if result["annotation_redact_unflattened"]:
+        lines += ["", "### FAIL — redact annotation with no flattened asset behind it", "",
+                   "The vector shape alone is cosmetic; the original pixels are still in the .pptx. "
+                   "Run `png_ops.py redact` on the source asset and point the block at the result:", ""] + [
+            f"- {e}" for e in result["annotation_redact_unflattened"]
+        ]
+    if not (result["annotation_binding_errors"] or result["annotation_geometry_errors"]
+            or result["annotation_redact_unflattened"]):
+        lines.append("Every annotated screenshot's callouts bind 1:1 to its instructions, "
+                      "every coordinate is in bounds, and every redaction is backed by a flattened asset.")
+    if result["annotation_density_report"]:
+        lines += ["", "### Dense annotation (report only)", "",
+                   "Not a defect, but usually a sign the step should split across slides:", ""] + [
+            f"- {d}" for d in result["annotation_density_report"]
+        ]
+
     lines += [
         "",
         "## Remaining checks (run against the built .pptx via the pptx skill and training-qa-agent)",
@@ -278,6 +400,8 @@ def main():
         result["lo_no_slide"] or result["missing_provenance"] or result["gap_missing_note"]
         or result["uncovered_procedures"]
         or (result["questions_checked"] and result["lo_no_question"])
+        or result["annotation_binding_errors"] or result["annotation_geometry_errors"]
+        or result["annotation_redact_unflattened"]
     )
 
     print(f"Objectives: {len(result['objectives']) - len(result['lo_no_slide'])}/{len(result['objectives'])} "
@@ -288,6 +412,7 @@ def main():
     print(f"Uncovered procedure sections: {len(result['uncovered_procedures'])}")
     print(f"Provenance failures: {len(result['missing_provenance']) + len(result['gap_missing_note'])}")
     print(f"Unplaced screenshots: {len(result['unplaced_screenshots'])}")
+    print(f"Annotation failures: {len(result['annotation_binding_errors']) + len(result['annotation_geometry_errors']) + len(result['annotation_redact_unflattened'])}")
     print(f"Report -> {args.out}")
 
     if hard_fail:

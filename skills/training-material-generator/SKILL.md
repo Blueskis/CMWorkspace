@@ -1,6 +1,6 @@
 ---
-name: training-material-generator-v0.2
-description: Generates a first-draft training deck (.pptx) from a functional specification document (FSD) or similar system/process documentation, built on the client's approved slide template. Runs a five-stage pipeline — map every input document's complete outline, write a training brief (audiences, learning objectives, scope), plan a module-by-module deck against that outline, fill each slide with retrieved content plus extracted screenshots and native-shape diagrams plus generated knowledge-check questions, then build and QA the deck. Use whenever a practitioner wants to draft, assemble, or generate training material, an enablement deck, a user guide deck, or a knowledge-transfer deck from an FSD, BRD, process document, or system documentation — phrases like "turn this FSD into a training deck", "build training material from these specs", "generate a training deck for this system", "make an enablement deck from this documentation", "create knowledge-check questions from this spec". Do NOT use for a persuasive pitch/bid deck (that's cm-proposal-generator) or for reviewing/QA-ing training material that already exists (that's the training-qa-agent skill).
+name: training-material-generator-v0.3
+description: Generates a first-draft training deck (.pptx) from a functional specification document (FSD) or similar system/process documentation, built on the client's approved slide template. Runs a five-stage pipeline — map every input document's complete outline, write a training brief (audiences, learning objectives, scope), plan a module-by-module deck against that outline, fill each slide with retrieved content plus extracted screenshots and native-shape diagrams plus generated knowledge-check questions, then build and QA the deck. Screenshots can carry native-shape annotations — highlight boxes, numbered callouts, pointer arrows, redaction masks, zoom insets — layered over the untouched picture so a learner sees exactly where to look and what to click at each step, with every callout number checked mechanically against the slide's own instruction list. Use whenever a practitioner wants to draft, assemble, or generate training material, an enablement deck, a user guide deck, or a knowledge-transfer deck from an FSD, BRD, process document, or system documentation, or wants to highlight, callout, number, or annotate a system screenshot (S/4HANA Fiori and similar) for training slides — phrases like "turn this FSD into a training deck", "build training material from these specs", "generate a training deck for this system", "make an enablement deck from this documentation", "create knowledge-check questions from this spec", "highlight where to click on this screenshot", "add step numbers to this screen", "annotate this Fiori screen for the training deck", "redact the vendor name in this screenshot". Do NOT use for a persuasive pitch/bid deck (that's cm-proposal-generator) or for reviewing/QA-ing training material that already exists (that's the training-qa-agent skill).
 ---
 
 # Training Material Generator
@@ -14,23 +14,33 @@ reaches a slide and a question, and every procedural section of the source docum
 a slide or an explicit, reasoned exclusion. Neither is optional, and both are checked
 mechanically in Stage 5, not by eye.
 
-## MVP scope (v0.2 — read this before promising anything)
+## MVP scope (v0.3 — read this before promising anything)
 
 | In scope | Out of scope |
 |---|---|
 | One deck, one system/process area, per run | Multi-system curricula, learning paths |
-| Screenshot extraction + placement from `.docx`, `.pptx`, `.pdf` inputs | Auto-cropping, upscaling, or redacting screenshots |
+| Screenshot extraction + placement from `.docx`, `.pptx`, `.pdf` inputs | Auto-cropping or upscaling a screenshot outside an explicit `zoom` annotation |
 | Five native-shape diagram types (process, swimlane, decision, hierarchy, timeline) | Arbitrary diagrams, SmartArt, animation |
+| Screenshot annotation: highlight, numbered callout, pointer arrow, redaction, zoom inset — all native PowerPoint shapes over an untouched picture (see `reference/annotation-patterns.md`) | Annotating an asset with no readable pixel dimensions (EMF/WMF/SVG, interlaced or 16-bit PNG) — rebuild as a diagram or place unannotated instead |
+| True pixel redaction of 8-bit, non-interlaced PNG/JPEG screenshots (`png_ops.py`) | Bulk/automatic redaction with no practitioner-reviewed rect — every mask is authored, never inferred |
 | Knowledge checks: MCQ, multi-select, true/false, scenario | Scored/tracked assessments, LMS/SCORM packaging |
-| Audience **tagged** on every objective and slide | Audience-**filtered** decks (a `--audience` build flag — planned for v0.3) |
+| Audience **tagged** on every objective and slide | Audience-**filtered** decks (a `--audience` build flag — planned for v0.4) |
 | A `.pptx` on the client's approved template | Generating or approximating a template |
 | Facilitator speaker notes | A separate facilitator guide document |
 
 Audience curation is deliberately half-built: `training_brief.json`'s `audiences[]` and
 each objective's/slide's `audience_ids` are populated now, just not filtered on at build.
 That judgement — who needs which content — is cheapest to make once, in Stage 1, while
-the FSD is in context; v0.3 turns it into a build-time filter over the same plan rather
+the FSD is in context; v0.4 turns it into a build-time filter over the same plan rather
 than a re-plan.
+
+**v0.3 reverses part of an earlier rule.** `reference/screenshot-placement.md` used to
+forbid callout numbering on a screenshot outright ("this repo has no image-editing step").
+That objection was to burning shapes into the screenshot's *pixels* — it still holds, and
+nothing in v0.3 paints on a raster image except the one deliberate exception, redaction,
+which destroys pixels by design rather than by accident. Everything else an annotation
+draws is a native, editable, re-themeable PowerPoint shape layered over an untouched
+picture. See `reference/annotation-patterns.md` for the full vocabulary.
 
 Always hand the output over as **a first draft for the practitioner to review**, never as
 finished training material. Say so explicitly at delivery.
@@ -161,7 +171,7 @@ Rules that outrank the library — see `reference/module-library.md` for the ful
    sub-clauses and six screenshots on earns a module; one mentioned once earns a bullet.
 3. **Every `procedure` section gets a home** — a module, or `out_of_scope` with a reason.
 4. **Every LO maps to at least one slide.** An unmapped LO means the outline is wrong.
-5. **Tag every slide with its `audiences`** as you plan it — this is the field v0.3 will
+5. **Tag every slide with its `audiences`** as you plan it — this is the field v0.4 will
    filter on; get it right now while the FSD is in context.
 6. **Vary layouts** — never more than two consecutive slides on the same one.
 
@@ -204,6 +214,26 @@ for internal system training, where a public digital-transformation stat reads a
 `asset_id` from `asset_index.json` and a caption; place the asset whose `section_id`
 matches the step being taught. A `low_res`-flagged asset needs `content.ack_low_res: true`
 to be placed at all — `build_training_deck.py` refuses it otherwise.
+
+**Annotating a screenshot** — see `reference/annotation-patterns.md` for the full
+vocabulary (`highlight`, `callout`, `arrow`, `redact`, `zoom`) and when to use each. Add an
+`annotations` array to the `image` block's `content`, coordinates as 0-1 fractions of the
+*image*, not the slide:
+
+```json
+"content": {"asset_id": "fsd-img-014", "caption": "Purchase order approval screen — ① Approve button",
+  "annotations": [
+    {"type": "highlight", "rect": [0.41, 0.22, 0.28, 0.06], "step": 1, "label": "Approve button"},
+    {"type": "callout", "point": [0.55, 0.25], "step": 1}
+  ]}
+```
+
+A `callout`'s `step` binds to the 1-based index of the sibling `bullets` block's
+instructions on the same slide — the set of steps must be exactly `{1..N}` against that
+block's bullet count, or `build_training_deck.py`/`qa_training.py` hard-fail. **Redacting
+client data is mandatory before handover, not optional**, given this project's government
+and GLC clients — flatten with `png_ops.py redact` first (see the reference doc); a
+`redact` annotation's block must point at the flattened asset, never the original.
 
 **Diagrams** — see `reference/diagram-patterns.md` for which prose shape maps to which of
 the five types. Render each with:
@@ -259,8 +289,31 @@ image into `--bbox`, centered, never distorted. `diagram` imports a `render_diag
 fragment and renumbers its shape IDs above the slide's current maximum, so multiple
 diagrams (or a diagram on a slide `add_slide.py` duplicated) never collide.
 
+**If the image block carries `annotations`, render and inject the overlay right after its
+picture — same slide, same `diagram` subcommand, since an annotation fragment is a
+`<p:grpSp>` exactly like a rendered diagram:**
+
+```bash
+python scripts/render_annotation.py training/<run>/annotations/<slide_id>.json \
+    --image training/<run>/assets/fsd-img-014.png --bbox 0.6,1.8,8.5,4.5 \
+    -o training/<run>/annotations/<slide_id>.xml
+
+python scripts/inject_slide_xml.py diagram unpacked/ ppt/slides/slideN.xml \
+    --fragment training/<run>/annotations/<slide_id>.xml
+```
+
+**Order matters: the picture must be injected first, the annotation overlay second**, so
+the shapes land on top of the screenshot in document order — inserting them the other way
+round buries the callouts under the picture.
+
 Then `clean.py`, zip, and `validate.py --original <template>` — exactly as the `pptx`
 skill documents.
+
+**Verify every annotated slide before handover** — coordinate precision on a dense system
+screen is the real risk in this feature, not the drawing. Render the built slide back to
+an image and check each shape lands on its target; correct and re-inject if not, up to 3
+passes, and if still wrong after that, drop the shape rather than ship a wrong callout.
+Full procedure in `reference/annotation-patterns.md`'s verify loop.
 
 Two non-negotiables, inherited from `cm-proposal-generator` and equally true here:
 
@@ -287,11 +340,15 @@ python scripts/qa_training.py training/<run>/training_brief.json training/<run>/
     --questions training/<run>/question_bank.json -o training/<run>/qa_report.md
 ```
 
-Five mechanical checks (see the script's own docstring for exact pass/fail rules):
+Six mechanical checks (see the script's own docstring for exact pass/fail rules):
 objective coverage (slide *and* question), source coverage (`procedure` sections),
 provenance, asset hygiene (every screenshot placed or declared unused with a reason in
-`deck_plan.json`'s `unused_assets`), and question sanity (valid keys, enough distractors,
-valid objective/source references). The first three are hard failures.
+`deck_plan.json`'s `unused_assets`), question sanity (valid keys, enough distractors,
+valid objective/source references), and annotation integrity — callout numbers bind
+exactly 1:1 to their slide's instructions, every coordinate is in bounds, and every
+`redact` annotation's asset actually carries `redacted_from` (a vector mask alone is a
+hard fail here, not a warning — it leaves the original pixels recoverable in the .pptx).
+The first three, plus the annotation-binding and redaction checks, are hard failures.
 
 Then two passes this script doesn't attempt:
 
@@ -322,6 +379,12 @@ the reminder that this is a draft for review.
   input to retrieved chunks and re-verify their output cites real sources.
 - Deadlines and go-live dates in FSDs are real. Surface them early if training needs to
   land before a cut-over.
+- **Annotation (`render_annotation.py`, `png_ops.py`) is Python-only for v0.3, by
+  decision, not oversight.** The `webapp/` browser port's `test/parity.mjs` only guards
+  `map_source.py`/`extract_assets.py` today, so this doesn't create a parity gap yet — but
+  if annotation is ever ported there, `png_ops.py`'s pixel work (the redaction guarantee
+  in particular) must never be reimplemented in a way that lets a plan with an
+  un-flattened `redact` render silently; refuse the plan rather than degrade it.
 
 ## Layout
 
@@ -329,12 +392,13 @@ the reminder that this is a draft for review.
 skills/training-material-generator/
 ├── SKILL.md
 ├── reference/            # module library, FSD extraction, screenshot placement,
-│                         #   diagram patterns, knowledge-check quality rules
+│                         #   diagram patterns, annotation patterns, knowledge-check
+│                         #   quality rules
 ├── schemas/              # source_map, asset_index, training_brief, deck_plan,
 │                         #   question_bank contracts
 └── scripts/              # map_source, extract_assets, index_chunks, retrieve_chunks,
-                          #   render_diagram, inject_slide_xml, build_training_deck,
-                          #   qa_training, make_placeholder_template
+                          #   render_diagram, render_annotation, png_ops, inject_slide_xml,
+                          #   build_training_deck, qa_training, make_placeholder_template
 lib/
 ├── profile_template.py   # shared with cm-proposal-generator — profiles a .potx/.pptx
 │                         #   or an HTML template's layouts, placeholders, theme
@@ -345,4 +409,6 @@ lib/
 
 Scripts are stdlib-only except `inject_slide_xml.py`, which uses `defusedxml` (falls back
 to stdlib `xml.dom.minidom` with a warning if absent) — the one stage that edits a real
-deck's XML.
+deck's XML. `png_ops.py` shells out to `soffice` (LibreOffice) only to transcode a JPEG
+screenshot to PNG before redacting or cropping it; the PNG codec itself — decode, redact,
+crop, upscale, encode — is `zlib` and `struct` alone, no image library.
