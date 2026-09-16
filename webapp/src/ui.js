@@ -7,12 +7,12 @@
  * run outside a published artifact — everything it calls into was verified in Node first.
  */
 
-import { parseSources } from "./parse.js";
-import { profileTemplate } from "./profile-template.js";
-import { resolveLayoutRoles, ROLES, ROLE_LABELS } from "./map-layouts.js";
+import { parseSources } from "../../lib/deck/parse.js";
+import { profileTemplate } from "../../lib/deck/profile-template.js";
+import { resolveLayoutRoles, ROLES, ROLE_LABELS } from "../../lib/deck/map-layouts.js";
 import { generatePlan, describeJsonFailure } from "./plan.js";
-import { buildPptx } from "./build-pptx.js";
-import { audit, hardFail, renderReport } from "./qa.js";
+import { buildPptx } from "../../lib/deck/build-pptx.js";
+import { audit, hardFail, renderReport } from "../../lib/deck/qa.js";
 import { SAMPLE_TEMPLATE, SAMPLE_FSD } from "./sample-data.js";
 
 /** base64 -> File, for the "use sample files" quick-start (some corporate laptops block

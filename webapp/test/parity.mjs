@@ -16,7 +16,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync, mkdtempSync, rmSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { parseDocx } from "../src/parse-docx.js";
+import { parseDocx } from "../../lib/deck/parse-docx.js";
 
 const SCRIPTS = "../skills/training-material-generator/scripts";
 

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "deck_plan.schema.json",
+  "title": "Deck Plan",
+  "description": "Slide-by-slide build plan. Native to lib/deck/build-pptx.js's buildPptx() — the same shape whether authored by plan_deck.py (Python, this skill) or plan.js (the artifact's browser-side planner), so lib/deck/cli/assemble.mjs needs no adapter between the two producers.",
+  "type": "object",
+  "required": ["modules"],
+  "properties": {
+    "modules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["module_id", "slides"],
+        "properties": {
+          "module_id": { "type": "string" },
+          "slides": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["slide_id", "role", "blocks"],
+              "properties": {
+                "slide_id": { "type": "string" },
+                "role": {
+                  "description": "Must be a value from lib/deck/map-layouts.js's ROLES.",
+                  "enum": ["title-slide", "section-header", "picture", "two-content", "content",
+                    "comparison", "table", "metric-row", "quote", "timeline", "closing"]
+                },
+                "title": { "type": "string" },
+                "blocks": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": ["slot", "kind"],
+                    "properties": {
+                      "slot": { "enum": ["title", "subtitle", "body", "body2", "caption", "picture"] },
+                      "kind": { "enum": ["text", "image", "diagram"] },
+                      "content": {},
+                      "sources": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "chunk_id (from chunk_index.json) or note_id-derived 'vision::<note_id>' references. Non-empty unless gap:true — no third state."
+                      },
+                      "gap": { "type": "boolean" },
+                      "gap_note": { "type": "string" }
+                    }
+                  }
+                },
+                "speaker_notes": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

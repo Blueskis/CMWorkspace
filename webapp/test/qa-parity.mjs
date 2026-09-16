@@ -1,4 +1,4 @@
-import { audit, hardFail } from "../src/qa.js";
+import { audit, hardFail } from "../../lib/deck/qa.js";
 import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 

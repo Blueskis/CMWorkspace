@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "vision_notes.schema.json",
+  "title": "Vision notes",
+  "description": "The output of deck-builder's vision pass — what turns a PDF page or image from something Claude merely READ in conversation (uncitable) into evidence retrieval can shortlist and a slide can cite. Before this file exists, ingest_sources.py-style flows flag a PDF/image `read_natively` and the knowledge stays in the transcript, with no chunk_id for QA to check. Each entry here is a citable unit: a slide block's `sources[]` can name a note_id exactly as it names a text chunk_id, and deck_index.py's `vision_note_to_chunk()` makes every note retrievable.",
+  "type": "object",
+  "required": ["run_id", "notes"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "notes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["note_id", "source_ref", "page", "kind", "transcription", "confidence", "read_at"],
+        "properties": {
+          "note_id": { "type": "string", "description": "Stable id, e.g. 'v1', 'v2' — what a slide block's sources[] cites." },
+          "source_ref": { "type": "string", "description": "The source document this page/image came from." },
+          "page": { "type": "integer", "description": "1-indexed page number, or 1 for a standalone image." },
+          "region": {
+            "type": "object",
+            "description": "Optional — a sub-region of the page the note is about, as 0-1 fractions, same convention as training-material-generator's annotation bboxes.",
+            "properties": {
+              "x": { "type": "number" }, "y": { "type": "number" },
+              "w": { "type": "number" }, "h": { "type": "number" }
+            }
+          },
+          "kind": { "enum": ["diagram", "table", "chart", "screenshot", "org-chart", "photo", "text-page"] },
+          "transcription": {
+            "type": "string",
+            "description": "What the model actually read off the page, in prose — the citable claim. Never left empty; a page with nothing worth transcribing gets no note."
+          },
+          "structured": {
+            "description": "Optional structured extraction — rows for a table, {nodes, edges} for a diagram/org-chart. Free-form; deck_index.py folds this into the chunk's text via JSON dump when present, so it's still searchable even before a caller writes a bespoke reader for it."
+          },
+          "confidence": {
+            "enum": ["high", "medium", "low"],
+            "description": "'low' means the transcription is a best-effort read of something unclear (poor scan, ambiguous diagram) — plan_deck.py's provenance gate refuses to let a low-confidence note be the SOLE source for a non-gap claim (deck-builder test case #19); it must be paired with a supporting text source, or the claim marked gap."
+          },
+          "read_at": { "type": "string", "format": "date-time" }
+        }
+      }
+    }
+  }
+}

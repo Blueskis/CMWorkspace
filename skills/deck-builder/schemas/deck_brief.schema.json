@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "deck_brief.schema.json",
+  "title": "Deck Brief",
+  "description": "Stage 2 output: what the deck must say, before it is laid out onto slides. The narrative spine (from lib/schemas/deck_registry.json's entry for the chosen deck_type), the key messages, and per-message source references — deliberately separate from deck_plan.json so a change to the story doesn't require re-deriving it from the plan.",
+  "type": "object",
+  "required": ["run_id", "deck_type", "client", "narrative", "key_messages"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "deck_type": { "type": "string" },
+    "client": { "type": "string" },
+    "narrative": { "type": "string", "description": "The spine, from the deck-type registry: situation-complication-resolution / pyramid / chronological." },
+    "audience": { "type": "string" },
+    "key_messages": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["message_id", "statement"],
+        "properties": {
+          "message_id": { "type": "string" },
+          "statement": { "type": "string" },
+          "sources": { "type": "array", "items": { "type": "string" } },
+          "gap": { "type": "boolean" },
+          "gap_note": { "type": "string" }
+        }
+      }
+    }
+  }
+}

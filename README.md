@@ -10,6 +10,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 | `cm-effort-estimator` | **v0.5** — scope drivers → a manday estimate, with an open-ended judgement layer for adjustments the drivers alone don't capture |
 | `change-impact-assessment` | **MVP** — a programme's own documents → a baseline change impact assessment in the client's CIA template |
 | `training-material-generator` | **v0.3 (MVP)** — an FSD (or similar spec doc) → a first-draft training deck, with placed and annotated screenshots (highlight/callout/arrow/redact/zoom), native diagrams, and knowledge-check questions |
+| `deck-builder` | **v0.1 (MVP)** — a client's brand + approved template + source documents → a first-draft consulting deck (steerco update, case for change, findings & recommendations, and six more types), built on a shared core with the artifact of the same name |
 | `brand-template-creator` | A published claude.ai Artifact — capture a client's brand once (colours, fonts, style, logo, voice, messaging) and export a `.json` + `.md` brand guide to reuse across sessions |
 | `cm-proposal-reference-tool` | A published claude.ai Artifact (not a skill): drop in a tender, get the firm's most similar past proposals ranked, read live from Airtable. See `artifacts/cm-proposal-reference-tool/README.md` |
 | `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
@@ -442,6 +443,84 @@ pixel dimensions (EMF/WMF/SVG, interlaced or 16-bit PNG), and any cropping or up
 a screenshot outside an explicit `zoom` annotation. Output is always a **draft for
 practitioner review**.
 
+## Deck builder (v0.1)
+
+Takes a client's brand (extracted from their template, a Brand Vault export, or keyed in
+by hand), their approved slide template, and a folder of source documents — Word, PDF,
+PowerPoint, Excel, VTT/SRT transcripts, BPMN — and produces a first-draft consulting deck
+on that template. Nine deck types (steerco update, case for change, findings and
+recommendations, workshop pack, readiness assessment, roadmap, board paper, plus training
+and proposal listed for registry completeness and routed to their own skills).
+
+Built on a shared core, `lib/deck/`, moved out of the `training-material-generator`
+skill's previously-undocumented browser artifact (`webapp/`) so the same template
+profiler, layout mapper, text-fit math, and pptx assembler now serve both the skill and a
+published artifact rather than existing twice. `lib/deck_index.py` and
+`lib/deck/retrieve.js` are independently-implemented BM25 twins (query expansion from the
+brand's terminology map, section-path boost, RRF fusion — still no embeddings, kept in
+parity by `webapp/test/retrieve-parity.mjs`).
+
+```
+brand + template + docs ─▶ intake/          ─▶ deck_brief.json ─▶ deck_plan.json ─▶ deck.pptx ─▶ qa_report.md
+        INTAKE (1)                              BRIEF (2)          PLAN (3)        BUILD (4)     QA (5)
+```
+
+**Vision reading makes a PDF/image page citable, not just readable.** `ingest_sources.py`
+flags PDFs and images `read_natively`, same as the change-impact-assessment skill — but
+left there, that knowledge is uncitable: it lives only in the conversation. Rasterising
+with `node lib/deck/cli/rasterise.mjs` (pdf.js, no poppler dependency) and writing
+`vision_notes.json` turns a page you looked at into a chunk retrieval can shortlist and a
+slide can cite by `note_id`, exactly like a text passage — and a claim resting solely on a
+`low`-confidence vision note is a hard failure at plan time, not just a warning.
+
+**Three mechanical gates against reading as AI-generated.** `plan_deck.py` hard-fails a
+plan that repeats one layout more than twice in a row, that overflows its resolved
+placeholder at the legibility floor (never auto-shrunk to fit), or that requests a deck
+type outside the registry. The layout mapper (`lib/deck/map-layouts.js`) resolves every
+slide role by placeholder **signature**, not layout name, against the client's own
+template — never a lookalike built from scratch.
+
+### Try it
+
+```bash
+python skills/deck-builder/scripts/intake.py <sources_dir> \
+    --template webapp/test/fixtures/templates/real-training-template.pptx \
+    --deck-type findings-and-recommendations --client "Acme Water" \
+    -o decks/example/intake/
+
+python skills/deck-builder/scripts/plan_deck.py decks/example/deck_plan.json \
+    --deck-type findings-and-recommendations \
+    --profile decks/example/intake/template_profile.json \
+    --assignment decks/example/intake/assignment.json \
+    -o decks/example/plan_validation.json
+
+node lib/deck/cli/assemble.mjs --plan decks/example/deck_plan.json \
+    --template webapp/test/fixtures/templates/real-training-template.pptx \
+    --profile decks/example/intake/template_profile.json \
+    --assignment decks/example/intake/assignment.json \
+    -o decks/example/deck.pptx
+
+python skills/deck-builder/scripts/qa_deck.py decks/example/deck.pptx \
+    --template webapp/test/fixtures/templates/real-training-template.pptx \
+    --plan-validation decks/example/plan_validation.json -o decks/example/qa_report.md
+```
+
+`deck_brief.json` and `deck_plan.json` are written by hand or with the model's help — see
+`skills/deck-builder/SKILL.md`'s Stage 2/3 for the schemas and how to query the retrieval
+index while drafting.
+
+### What v0.1 does not do
+
+Screenshot annotation (use `training-material-generator`), RFP-specific requirement
+coverage (use `cm-proposal-generator`), single-channel comms (use `cm-comms-generator`),
+automated visual QA (render and look, per `skills/deck-builder/reference/visual-qa.md`),
+a deck type outside the nine-entry registry, or building from scratch when no template is
+supplied — the run stops and asks. A known gap: the template profiler does not record
+which slide master a layout belongs to, so a multi-master template's layout mapping
+should be checked by eye at the Stage 1 review. Output is always a **draft for
+practitioner review**, never a client-ready file.
+
+
 ## Layout
 
 ```
@@ -469,10 +548,27 @@ skills/training-material-generator/
 └── scripts/              # map_source, extract_assets, index_chunks, retrieve_chunks,
                           #   render_diagram, render_annotation, png_ops, inject_slide_xml,
                           #   build_training_deck, qa_training
-lib/                      # shared, stdlib-only — used by both skills
+lib/                      # shared across skills — Python mostly stdlib-only, JS core in deck/
 ├── profile_template.py   # profiles a .potx/.pptx or HTML template's layouts/placeholders/theme
-└── section_walk.py       # shared heading-stack walker, so a section_id means the same
-                          #   thing across a skill's own outline and asset-index outputs
+│                         #   (Python; used by cm-proposal-generator, cm-comms-generator,
+│                         #   training-material-generator — NOT deck-builder, see lib/deck/cli/profile.mjs)
+├── section_walk.py       # shared heading-stack walker, so a section_id means the same
+│                         #   thing across a skill's own outline and asset-index outputs
+├── brand_profile.py      # canonical brand adapter/validator (deck-builder)
+├── deck_index.py         # BM25 chunk index + query, promoted from training-material-generator
+├── schemas/              # brand_profile (canonical), deck_registry, vision_notes
+└── deck/                 # shared JS core — moved out of webapp/src/, bundled into the
+                          #   published artifact AND invoked via `node` from deck-builder's
+                          #   Python scripts. env, xml, profile-template, map-layouts,
+                          #   text-fit, render-diagram, build-pptx, parse-*, qa, fit-check,
+                          #   retrieve.js; cli/ — profile.mjs, assemble.mjs, check-fit.mjs,
+                          #   rasterise.mjs
+skills/deck-builder/
+├── SKILL.md              # the five-stage process
+├── reference/            # deck-types, layout-fidelity, vision-reading, visual-qa, brand-intake
+├── schemas/              # deck_brief, deck_plan
+├── scripts/              # intake, plan_deck, qa_deck
+└── tests/CASES.md         # the plain-language test list this build was written against
 proposal-assets/
 ├── templates/
 │   └── html-generic/     # PoC template: 9 layouts, theme, vendored reveal.js (MIT)

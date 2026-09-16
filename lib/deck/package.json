@@ -1,0 +1,12 @@
+{
+  "name": "@cm-workspace/deck-lib",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Shared deck-builder core: template profiling, layout mapping, doc/PDF/pptx parsing, pptx assembly, QA. Used by both webapp/ (bundled into the published artifact) and skills/deck-builder/ (invoked via node from Python). See webapp/package.json for the same dependency set — this package.json exists only so Node module resolution works when these files run from lib/deck/ directly (the skill's cli/*.mjs entry points), and node_modules here is a symlink to webapp/node_modules rather than a second install.",
+  "dependencies": {
+    "@xmldom/xmldom": "^0.9.12",
+    "jszip": "^3.10.1",
+    "pdfjs-dist": "^3.11.174"
+  }
+}

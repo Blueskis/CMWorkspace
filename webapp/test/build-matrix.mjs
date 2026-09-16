@@ -12,9 +12,9 @@
 
 import { readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import { profileTemplate } from "../src/profile-template.js";
-import { resolveLayoutRoles } from "../src/map-layouts.js";
-import { buildPptx } from "../src/build-pptx.js";
+import { profileTemplate } from "../../lib/deck/profile-template.js";
+import { resolveLayoutRoles } from "../../lib/deck/map-layouts.js";
+import { buildPptx } from "../../lib/deck/build-pptx.js";
 
 const VALIDATE =
   "/root/.claude/skills/synced/9e312654-67aa-495a-bc6d-0685e7943d94_a893b1e2-c16b-4ff3-a80a-f61ace8bb8c0/pptx/scripts/office/validate.py";

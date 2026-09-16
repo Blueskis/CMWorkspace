@@ -1,5 +1,5 @@
-import { parsePdf } from "../src/parse-pdf.js";
-import { parsePptxSource } from "../src/parse-pptx-source.js";
+import { parsePdf } from "../../lib/deck/parse-pdf.js";
+import { parsePptxSource } from "../../lib/deck/parse-pptx-source.js";
 import { readFileSync, existsSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 

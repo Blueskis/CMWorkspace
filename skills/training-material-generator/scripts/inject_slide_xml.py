@@ -44,8 +44,15 @@ from pathlib import Path
 try:
     import defusedxml.minidom as minidom
 except ImportError:
-    import xml.dom.minidom as minidom
+    minidom = None
     print("warning: defusedxml not installed — using stdlib xml.dom.minidom instead", file=sys.stderr)
+# defusedxml.minidom wraps only the PARSE entry points (parse/parseString) for hardening
+# against untrusted XML; it deliberately does not re-export minidom.Document, since
+# constructing a fresh document from nothing carries no parser risk. Use it for parsing
+# when available, stdlib xml.dom.minidom for construction either way.
+import xml.dom.minidom as _minidom_stdlib
+if minidom is None:
+    minidom = _minidom_stdlib
 
 EMU_PER_INCH = 914400
 P_NS = "http://schemas.openxmlformats.org/presentationml/2006/main"
@@ -147,7 +154,7 @@ def rels_path_for(slide_path):
 def load_or_init_rels(rels_file):
     if rels_file.is_file():
         return minidom.parse(str(rels_file))
-    dom = minidom.Document()
+    dom = _minidom_stdlib.Document()
     root = dom.createElementNS(REL_NS, "Relationships")
     root.setAttribute("xmlns", REL_NS)
     dom.appendChild(root)

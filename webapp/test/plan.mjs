@@ -3,7 +3,7 @@ import {
   questionsPrompt, tryRepairJson, extractExample, describeJsonFailure,
   harvestSlides, PLACEHOLDER_TEXT,
 } from "../src/plan.js";
-import { parseDocx } from "../src/parse-docx.js";
+import { parseDocx } from "../../lib/deck/parse-docx.js";
 import { readFileSync } from "node:fs";
 
 const bytes = readFileSync("../training/supplier-block-unblock-20260829/inputs/FSD_MMWA014_Supplier_Block_Unblock.docx");

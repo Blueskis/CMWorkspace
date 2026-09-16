@@ -9,7 +9,7 @@
 import {
   splitSharedRect, GUTTER_IN, MIN_COL_W_IN, MIN_SPLIT_W_IN, PORTRAIT_ASPECT, WIDE_ASPECT,
   MEDIA_COL_FRAC, PORTRAIT_MEDIA_COL_FRAC, STACK_TEXT_FRAC, CAPTION_STRIP_H_IN, BLOCK_GAP_IN,
-} from "../src/build-pptx.js";
+} from "../../lib/deck/build-pptx.js";
 
 let failures = 0;
 function check(label, cond, detail = "") {
@@ -165,7 +165,7 @@ function assertNoOverlapAndInBounds(label, rect, results) {
 // splitSharedRect itself knows nothing about captions — the carve happens in composeSlide
 // after splitSharedRect returns the media rect. Import composeSlide for this one case.
 {
-  const { composeSlide } = await import("../src/build-pptx.js");
+  const { composeSlide } = await import("../../lib/deck/build-pptx.js");
   const bodyPh = { type: "body", idx: "2", geometry: { x_in: 0.6, y_in: 1.6, w_in: 10, h_in: 5 } };
   const targets = { title: null, pic: null, bodies: [bodyPh], subTitle: null };
   const slideSize = { w_in: 13.33, h_in: 7.5 };
