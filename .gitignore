@@ -3,3 +3,4 @@ __pycache__/
 proposals/
 comms/
 training/
+.claude/settings.local.json
