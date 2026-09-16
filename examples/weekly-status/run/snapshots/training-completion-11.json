@@ -1,0 +1,109 @@
+{
+  "document": {
+    "name": "training-completion",
+    "path": "inputs/week-11/training-completion.xlsx",
+    "doc_type": "xlsx",
+    "period_label": "Week 11",
+    "extracted_at": "2026-08-22T13:04:57+00:00"
+  },
+  "items": [
+    {
+      "item_id": "wave-1-completion:a-okafor",
+      "kind": "row",
+      "label": "A. Okafor",
+      "source_ref": "sheet 'Wave 1 Completion'",
+      "fields": {
+        "Role": "AP Clerk",
+        "Course": "S4 Finance Core",
+        "Status": "In Progress",
+        "Completion %": "40",
+        "Due Date": "2026-09-04"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "wave-1-completion:b-lindqvist",
+      "kind": "row",
+      "label": "B. Lindqvist",
+      "source_ref": "sheet 'Wave 1 Completion'",
+      "fields": {
+        "Role": "AP Clerk",
+        "Course": "S4 Finance Core",
+        "Status": "Not Started",
+        "Completion %": "0",
+        "Due Date": "2026-09-04"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "wave-1-completion:c-moreau",
+      "kind": "row",
+      "label": "C. Moreau",
+      "source_ref": "sheet 'Wave 1 Completion'",
+      "fields": {
+        "Role": "Buyer",
+        "Course": "S4 Procurement",
+        "Status": "Completed",
+        "Completion %": "100",
+        "Due Date": "2026-08-28"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "wave-1-completion:d-ferreira",
+      "kind": "row",
+      "label": "D. Ferreira",
+      "source_ref": "sheet 'Wave 1 Completion'",
+      "fields": {
+        "Role": "Buyer",
+        "Course": "S4 Procurement",
+        "Status": "In Progress",
+        "Completion %": "60",
+        "Due Date": "2026-08-28"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "wave-1-completion:e-tanaka",
+      "kind": "row",
+      "label": "E. Tanaka",
+      "source_ref": "sheet 'Wave 1 Completion'",
+      "fields": {
+        "Role": "Warehouse Lead",
+        "Course": "S4 Logistics",
+        "Status": "Not Started",
+        "Completion %": "0",
+        "Due Date": "2026-09-11"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "wave-1-completion:f-adeyemi",
+      "kind": "row",
+      "label": "F. Adeyemi",
+      "source_ref": "sheet 'Wave 1 Completion'",
+      "fields": {
+        "Role": "Warehouse Lead",
+        "Course": "S4 Logistics",
+        "Status": "Not Started",
+        "Completion %": "0",
+        "Due Date": "2026-09-11"
+      },
+      "text": ""
+    },
+    {
+      "item_id": "wave-1-completion:g-novak",
+      "kind": "row",
+      "label": "G. Novak",
+      "source_ref": "sheet 'Wave 1 Completion'",
+      "fields": {
+        "Role": "Master Data",
+        "Course": "Data Stewardship",
+        "Status": "In Progress",
+        "Completion %": "75",
+        "Due Date": "2026-08-21"
+      },
+      "text": ""
+    }
+  ]
+}

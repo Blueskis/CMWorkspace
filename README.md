@@ -5,6 +5,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 | Skill | What it does |
 |---|---|
 | `cm-proposal-generator` | **v0.1 (MVP)** — RFP + client inputs → a CM proposal deck, populated from a knowledge bank |
+| `status-update-agent` | **v0.1 (MVP)** — last week's documents vs. this week's → the status update for the cadence meeting |
 | `cm-comms-generator` | **v0.2** — a change + a chosen channel → a comms draft, routed to the tool that builds it (.docx / .pptx / Canva) |
 | `cm-effort-estimator` | **v0.5** — scope drivers → a manday estimate, with an open-ended judgement layer for adjustments the drivers alone don't capture |
 | `change-impact-assessment` | **MVP** — a programme's own documents → a baseline change impact assessment in the client's CIA template |
@@ -64,6 +65,80 @@ Pricing calculation, multi-lot bids, semantic search over the bank (retrieval is
 tag matching), and automated OOXML assembly — `build_deck.py` validates and sequences the
 build, then the `pptx` skill's template workflow executes it. Output is always a **draft
 for practitioner review**, never a submission-ready document.
+
+## Status update agent (v0.1, MVP)
+
+Takes the recurring programme documents a consultant already has — a CM plan in Word, a
+training-completion tracker in Excel, a RICEFWA status deck in PowerPoint — in this week's
+version and last week's, and drafts the update they'll deliver at the weekly cadence.
+
+Five stages, each writing an inspectable artifact:
+
+```
+week N-1 + week N docs ─▶ snapshots ─▶ changes ─▶ change_brief ─▶ status_update.md ─▶ qa_report.md
+       INTAKE               DIFF       MERGE          WRITE               QA
+```
+
+Documents are **uploaded by the consultant** — there's no connection to SharePoint, OneDrive
+or any live source. That's deliberate: it keeps the skill working across clients whose
+tenants nobody has admin rights in.
+
+The default is two files and nothing else, with each run standing alone — two CM plans this
+week, two training trackers next week:
+
+```bash
+python skills/status-update-agent/scripts/compare.py "CM Plan v4.docx" "CM Plan v5 FINAL.docx" \
+    --previous-period "Week 11" --current-period "Week 12" -o run/
+```
+
+That runs the three mechanical stages in one command and writes the change brief. Nothing
+carries over between runs and nothing needs setting up first.
+
+For several documents in one update, `intake.py` pairs whole folders by filename with the
+client's version noise stripped, reporting what paired, what's new, what's missing and what
+it skipped. For a standing weekly rhythm it can also keep a snapshot archive, so only the
+current period gets uploaded from the second run on. Both are optional.
+
+Every format normalises into one snapshot shape, so the diff never branches on document
+type. Matching is by item key first — an activity ID, a learner, a RICEFWA object — then by
+similarity, so a renamed activity reads as a rename rather than a deletion plus an addition.
+
+Two invariants the QA stage enforces mechanically:
+
+- **Attribution** — every claim in the update carries a `[C#]` citation with a specific
+  before and after, or an explicit `[JUDGEMENT]` marker. There's no third state, so an
+  invented movement can't hide among real ones, and the consultant's interpretation stays
+  visibly distinct from the tracker's contents.
+- **Coverage** — every high-materiality change is mentioned or explicitly waived with a
+  recorded reason. Silence fails the run.
+
+Stages 1, 2, 3 and 5 are deterministic scripts. Stage 4 — the writing — is the only stage
+the model does, which is the only stage worth a person's judgement.
+
+### Try it
+
+A complete worked example ships in `examples/weekly-status/` — fictional programme, invented
+data, real `.docx`/`.xlsx`/`.pptx` inputs:
+
+```bash
+cd examples/weekly-status
+python ../../skills/status-update-agent/scripts/write_update.py run/changes/*.json \
+    -o /tmp/brief.json --md /tmp/brief.md
+
+python ../../skills/status-update-agent/scripts/qa_update.py \
+    /tmp/brief.json run/status_update.md -o /tmp/qa_report.md
+```
+
+35 changes across three documents, 3 rated high, QA passing with 6 changes explicitly
+waived. That folder's README has the full pipeline and what each part demonstrates.
+
+### What v0.1 does not do
+
+PDFs and legacy `.doc`/`.xls`/`.ppt`, live/connected sources of any kind, trends across
+more than two periods, and anything carried by formatting rather than text — cell colour as
+RAG, charts, tracked changes, speaker notes. Output is always a **draft for the consultant
+to review before the meeting**, never a client-ready readout.
+
 
 ## Comms generator (v0.2)
 
@@ -393,7 +468,13 @@ proposal-assets/
 examples/acme-erp/        # worked example — proposal, fictional client
 examples/northwind-payroll/  # worked example — comms, fictional client, five channels
 └── knowledge-bank/       # methodology, case-studies, credentials, team, commercials, boilerplate
+skills/status-update-agent/
+├── SKILL.md              # the five-stage process
+├── reference/            # extraction/keying guide, materiality rules, narrative patterns
+├── schemas/              # snapshot, changes, change_brief contracts
+└── scripts/              # intake, extract, diff_snapshots, write_update, qa_update
 examples/acme-erp/        # worked example — fictional client
+examples/weekly-status/   # worked example — fictional programme, three documents, two weeks
 
 skills/cm-effort-estimator/
 ├── SKILL.md              # what it does, what it doesn't, the placeholder-norms caveat

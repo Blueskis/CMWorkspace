@@ -1,0 +1,820 @@
+{
+  "generated_at": "2026-08-22T13:06:01+00:00",
+  "documents": [
+    {
+      "document": "cm-plan",
+      "doc_type": "docx",
+      "previous_period": "Week 11",
+      "current_period": "Week 12",
+      "changes_file": "run/changes/cm-plan.json",
+      "summary": {
+        "items_previous": 10,
+        "items_current": 11,
+        "changes_total": 9,
+        "by_materiality": {
+          "high": 1,
+          "medium": 8,
+          "low": 0
+        }
+      }
+    },
+    {
+      "document": "ricefwa-status",
+      "doc_type": "pptx",
+      "previous_period": "Week 11",
+      "current_period": "Week 12",
+      "changes_file": "run/changes/ricefwa-status.json",
+      "summary": {
+        "items_previous": 9,
+        "items_current": 10,
+        "changes_total": 13,
+        "by_materiality": {
+          "high": 0,
+          "medium": 12,
+          "low": 1
+        }
+      }
+    },
+    {
+      "document": "training-completion",
+      "doc_type": "xlsx",
+      "previous_period": "Week 11",
+      "current_period": "Week 12",
+      "changes_file": "run/changes/training-completion.json",
+      "summary": {
+        "items_previous": 7,
+        "items_current": 8,
+        "changes_total": 13,
+        "by_materiality": {
+          "high": 2,
+          "medium": 6,
+          "low": 5
+        }
+      }
+    }
+  ],
+  "totals": {
+    "changes": 35,
+    "by_materiality": {
+      "high": 3,
+      "medium": 26,
+      "low": 6
+    }
+  },
+  "rollups": [
+    {
+      "field": "Status",
+      "before": {
+        "Complete": 1,
+        "In Progress": 3,
+        "Not Started": 1
+      },
+      "after": {
+        "Complete": 3,
+        "In Progress": 2,
+        "Not Started": 1
+      },
+      "population_before": 5,
+      "population_after": 6,
+      "document": "cm-plan"
+    },
+    {
+      "field": "RAG",
+      "before": {
+        "amber": 2,
+        "green": 2,
+        "red": 1
+      },
+      "after": {
+        "amber": 3,
+        "green": 3,
+        "red": 0
+      },
+      "population_before": 5,
+      "population_after": 6,
+      "document": "ricefwa-status"
+    },
+    {
+      "field": "Status",
+      "before": {
+        "In Build": 3,
+        "In Test": 1,
+        "Not Started": 1,
+        "Signed Off": 0
+      },
+      "after": {
+        "In Build": 2,
+        "In Test": 2,
+        "Not Started": 1,
+        "Signed Off": 1
+      },
+      "population_before": 5,
+      "population_after": 6,
+      "document": "ricefwa-status"
+    },
+    {
+      "field": "Status",
+      "before": {
+        "Completed": 1,
+        "In Progress": 3,
+        "Not Started": 3
+      },
+      "after": {
+        "Completed": 4,
+        "In Progress": 2,
+        "Not Started": 2
+      },
+      "population_before": 7,
+      "population_after": 8,
+      "document": "training-completion"
+    }
+  ],
+  "changes": [
+    {
+      "change_type": "date_slip",
+      "field": "Due Date",
+      "before": "2026-09-04",
+      "after": "2026-09-11",
+      "detail": "7 day slip",
+      "materiality": "high",
+      "change_id": "C1",
+      "item_id": "t1:cm-04",
+      "item_label": "CM-04",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "table 1 under 'Activity Schedule'",
+        "current": "table 1 under 'Activity Schedule'"
+      },
+      "local_change_id": "C6",
+      "document": "cm-plan",
+      "group": "slippage"
+    },
+    {
+      "change_type": "date_slip",
+      "field": "Due Date",
+      "before": "2026-09-11",
+      "after": "2026-09-25",
+      "detail": "14 day slip",
+      "materiality": "high",
+      "change_id": "C23",
+      "item_id": "wave-1-completion:e-tanaka",
+      "item_label": "E. Tanaka",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "local_change_id": "C7",
+      "document": "training-completion",
+      "group": "slippage"
+    },
+    {
+      "change_type": "date_slip",
+      "field": "Due Date",
+      "before": "2026-09-11",
+      "after": "2026-09-25",
+      "detail": "14 day slip",
+      "materiality": "high",
+      "change_id": "C24",
+      "item_id": "wave-1-completion:f-adeyemi",
+      "item_label": "F. Adeyemi",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "local_change_id": "C9",
+      "document": "training-completion",
+      "group": "slippage"
+    },
+    {
+      "change_type": "text_changed",
+      "similarity": 0.729,
+      "added_text": [
+        "Change network stands at 16 named champions across 6 sites.",
+        "Porto has appointed a champion; all sites are now covered."
+      ],
+      "removed_text": [
+        "Change network stands at 14 named champions across 6 sites.",
+        "Site 6 (Porto) has no champion and recruitment is with the site lead."
+      ],
+      "numbers_moved": true,
+      "materiality": "medium",
+      "change_id": "C2",
+      "item_id": "section:stakeholder-engagement",
+      "item_label": "Stakeholder Engagement",
+      "item_kind": "section",
+      "source_ref": {
+        "previous": "heading 'Stakeholder Engagement'",
+        "current": "heading 'Stakeholder Engagement'"
+      },
+      "local_change_id": "C1",
+      "document": "cm-plan",
+      "group": "narrative"
+    },
+    {
+      "change_type": "text_changed",
+      "similarity": 0.6,
+      "added_text": [
+        "Wave 1 go-live comms approved by the sponsor.",
+        "First countdown mailer scheduled for 1 September."
+      ],
+      "removed_text": [
+        "Wave 1 go-live comms drafted and with the sponsor for review."
+      ],
+      "numbers_moved": true,
+      "materiality": "medium",
+      "change_id": "C3",
+      "item_id": "section:communications",
+      "item_label": "Communications",
+      "item_kind": "section",
+      "source_ref": {
+        "previous": "heading 'Communications'",
+        "current": "heading 'Communications'"
+      },
+      "local_change_id": "C2",
+      "document": "cm-plan",
+      "group": "narrative"
+    },
+    {
+      "change_type": "text_changed",
+      "similarity": 0.041,
+      "added_text": [
+        "Logistics super-user availability is now escalated to the steering committee after the Ops director declined to backfill during peak season.",
+        "A second risk has opened on master data readiness following the Week 12 data audit."
+      ],
+      "removed_text": [
+        "Top risk remains Logistics super-user availability during peak season; mitigation under discussion with the Ops director."
+      ],
+      "numbers_moved": true,
+      "materiality": "medium",
+      "change_id": "C4",
+      "item_id": "section:risks-and-issues",
+      "item_label": "Risks and Issues",
+      "item_kind": "section",
+      "source_ref": {
+        "previous": "heading 'Risks and Issues'",
+        "current": "heading 'Risks and Issues'"
+      },
+      "local_change_id": "C3",
+      "document": "cm-plan",
+      "group": "narrative"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Progress",
+      "after": "Complete",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C5",
+      "item_id": "t1:cm-02",
+      "item_label": "CM-02",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "table 1 under 'Activity Schedule'",
+        "current": "table 1 under 'Activity Schedule'"
+      },
+      "local_change_id": "C4",
+      "document": "cm-plan",
+      "group": "progress"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Progress",
+      "after": "Complete",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C6",
+      "item_id": "t1:cm-03",
+      "item_label": "CM-03",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "table 1 under 'Activity Schedule'",
+        "current": "table 1 under 'Activity Schedule'"
+      },
+      "local_change_id": "C5",
+      "document": "cm-plan",
+      "group": "progress"
+    },
+    {
+      "change_type": "owner_changed",
+      "field": "Owner",
+      "before": "S. Brandt",
+      "after": "L. Haddad",
+      "detail": null,
+      "materiality": "medium",
+      "change_id": "C7",
+      "item_id": "t1:cm-04",
+      "item_label": "CM-04",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "table 1 under 'Activity Schedule'",
+        "current": "table 1 under 'Activity Schedule'"
+      },
+      "local_change_id": "C7",
+      "document": "cm-plan",
+      "group": "ownership"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "Not Started",
+      "after": "In Progress",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C8",
+      "item_id": "t1:cm-05",
+      "item_label": "CM-05",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "table 1 under 'Activity Schedule'",
+        "current": "table 1 under 'Activity Schedule'"
+      },
+      "local_change_id": "C8",
+      "document": "cm-plan",
+      "group": "progress"
+    },
+    {
+      "change_type": "item_added",
+      "before": null,
+      "after": "CM-06",
+      "detail": "Activity: Master data readiness remediation; Owner: G. Novak; Status: Not Started; Due Date: 2026-09-25",
+      "materiality": "medium",
+      "change_id": "C9",
+      "item_id": "t1:cm-06",
+      "item_label": "CM-06",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": null,
+        "current": "table 1 under 'Activity Schedule'"
+      },
+      "local_change_id": "C9",
+      "document": "cm-plan",
+      "group": "new"
+    },
+    {
+      "change_type": "rag_better",
+      "field": "RAG",
+      "before": "amber",
+      "after": "green",
+      "detail": "improved",
+      "materiality": "medium",
+      "change_id": "C10",
+      "item_id": "object:fi-r-014",
+      "item_label": "FI-R-014",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 2 ('Finance Objects')",
+        "current": "slide 2 ('Finance Objects')"
+      },
+      "local_change_id": "C1",
+      "document": "ricefwa-status",
+      "group": "progress"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Build",
+      "after": "In Test",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C11",
+      "item_id": "object:fi-r-014",
+      "item_label": "FI-R-014",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 2 ('Finance Objects')",
+        "current": "slide 2 ('Finance Objects')"
+      },
+      "local_change_id": "C2",
+      "document": "ricefwa-status",
+      "group": "progress"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Test",
+      "after": "Signed Off",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C12",
+      "item_id": "object:fi-i-002",
+      "item_label": "FI-I-002",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 2 ('Finance Objects')",
+        "current": "slide 2 ('Finance Objects')"
+      },
+      "local_change_id": "C3",
+      "document": "ricefwa-status",
+      "group": "progress"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "Not Started",
+      "after": "In Build",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C13",
+      "item_id": "object:fi-e-007",
+      "item_label": "FI-E-007",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 2 ('Finance Objects')",
+        "current": "slide 2 ('Finance Objects')"
+      },
+      "local_change_id": "C4",
+      "document": "ricefwa-status",
+      "group": "progress"
+    },
+    {
+      "change_type": "rag_better",
+      "field": "RAG",
+      "before": "red",
+      "after": "amber",
+      "detail": "improved",
+      "materiality": "medium",
+      "change_id": "C14",
+      "item_id": "object:lo-w-011",
+      "item_label": "LO-W-011",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 3 ('Logistics Objects')",
+        "current": "slide 3 ('Logistics Objects')"
+      },
+      "local_change_id": "C5",
+      "document": "ricefwa-status",
+      "group": "progress"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Build",
+      "after": "In Test",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C15",
+      "item_id": "object:lo-w-011",
+      "item_label": "LO-W-011",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 3 ('Logistics Objects')",
+        "current": "slide 3 ('Logistics Objects')"
+      },
+      "local_change_id": "C6",
+      "document": "ricefwa-status",
+      "group": "progress"
+    },
+    {
+      "change_type": "text_changed",
+      "similarity": 0.298,
+      "added_text": [
+        "Approve additional test window for LO-W-011 goods receipt workflow"
+      ],
+      "removed_text": [
+        "Confirm owner for FI-E-007 vendor master extract"
+      ],
+      "numbers_moved": true,
+      "materiality": "medium",
+      "change_id": "C16",
+      "item_id": "slide:decisions-needed",
+      "item_label": "Decisions Needed",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 4",
+        "current": "slide 4"
+      },
+      "local_change_id": "C7",
+      "document": "ricefwa-status",
+      "group": "narrative"
+    },
+    {
+      "change_type": "number_changed",
+      "field": "At risk",
+      "before": "3",
+      "after": "2",
+      "detail": "-1",
+      "materiality": "medium",
+      "change_id": "C17",
+      "item_id": "slide:ricefwa-status-week-12",
+      "item_label": "RICEFWA Status - Week 12",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 1",
+        "current": "slide 1"
+      },
+      "local_change_id": "C9",
+      "document": "ricefwa-status",
+      "group": "metrics"
+    },
+    {
+      "change_type": "number_changed",
+      "field": "Build complete",
+      "before": "18",
+      "after": "24",
+      "detail": "+6",
+      "materiality": "medium",
+      "change_id": "C18",
+      "item_id": "slide:ricefwa-status-week-12",
+      "item_label": "RICEFWA Status - Week 12",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 1",
+        "current": "slide 1"
+      },
+      "local_change_id": "C10",
+      "document": "ricefwa-status",
+      "group": "metrics"
+    },
+    {
+      "change_type": "number_changed",
+      "field": "In test",
+      "before": "9",
+      "after": "12",
+      "detail": "+3",
+      "materiality": "medium",
+      "change_id": "C19",
+      "item_id": "slide:ricefwa-status-week-12",
+      "item_label": "RICEFWA Status - Week 12",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 1",
+        "current": "slide 1"
+      },
+      "local_change_id": "C11",
+      "document": "ricefwa-status",
+      "group": "metrics"
+    },
+    {
+      "change_type": "number_changed",
+      "field": "Total objects",
+      "before": "42",
+      "after": "43",
+      "detail": "+1",
+      "materiality": "medium",
+      "change_id": "C20",
+      "item_id": "slide:ricefwa-status-week-12",
+      "item_label": "RICEFWA Status - Week 12",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 1",
+        "current": "slide 1"
+      },
+      "local_change_id": "C12",
+      "document": "ricefwa-status",
+      "group": "metrics"
+    },
+    {
+      "change_type": "item_added",
+      "before": null,
+      "after": "FI-A-021",
+      "detail": "Description: Period close automation; Status: Not Started; RAG: amber",
+      "materiality": "medium",
+      "change_id": "C21",
+      "item_id": "object:fi-a-021",
+      "item_label": "FI-A-021",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": null,
+        "current": "slide 2 ('Finance Objects')"
+      },
+      "local_change_id": "C13",
+      "document": "ricefwa-status",
+      "group": "new"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Progress",
+      "after": "Completed",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C25",
+      "item_id": "wave-1-completion:a-okafor",
+      "item_label": "A. Okafor",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "local_change_id": "C2",
+      "document": "training-completion",
+      "group": "progress"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "Not Started",
+      "after": "In Progress",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C26",
+      "item_id": "wave-1-completion:b-lindqvist",
+      "item_label": "B. Lindqvist",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "local_change_id": "C4",
+      "document": "training-completion",
+      "group": "progress"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Progress",
+      "after": "Completed",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C27",
+      "item_id": "wave-1-completion:d-ferreira",
+      "item_label": "D. Ferreira",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "local_change_id": "C6",
+      "document": "training-completion",
+      "group": "progress"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "Not Started",
+      "after": "In Progress",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C28",
+      "item_id": "wave-1-completion:f-adeyemi",
+      "item_label": "F. Adeyemi",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "local_change_id": "C10",
+      "document": "training-completion",
+      "group": "progress"
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Progress",
+      "after": "Completed",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C29",
+      "item_id": "wave-1-completion:g-novak",
+      "item_label": "G. Novak",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "local_change_id": "C12",
+      "document": "training-completion",
+      "group": "progress"
+    },
+    {
+      "change_type": "item_added",
+      "before": null,
+      "after": "H. Silva",
+      "detail": "Role: Master Data; Course: Data Stewardship; Status: Not Started; Completion %: 0; Due Date: 2026-09-18",
+      "materiality": "medium",
+      "change_id": "C30",
+      "item_id": "wave-1-completion:h-silva",
+      "item_label": "H. Silva",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": null,
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "local_change_id": "C13",
+      "document": "training-completion",
+      "group": "new"
+    },
+    {
+      "change_type": "renamed",
+      "before": "RICEFWA Status - Week 11",
+      "after": "RICEFWA Status - Week 12",
+      "detail": "matched at 0.96 similarity",
+      "materiality": "low",
+      "change_id": "C22",
+      "item_id": "slide:ricefwa-status-week-12",
+      "item_label": "RICEFWA Status - Week 12",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 1",
+        "current": "slide 1"
+      },
+      "local_change_id": "C8",
+      "document": "ricefwa-status",
+      "group": "ownership"
+    },
+    {
+      "change_type": "percent_changed",
+      "field": "Completion %",
+      "before": "40",
+      "after": "100",
+      "detail": "+60",
+      "materiality": "low",
+      "change_id": "C31",
+      "item_id": "wave-1-completion:a-okafor",
+      "item_label": "A. Okafor",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "subsumed_by": "C25",
+      "local_change_id": "C1",
+      "document": "training-completion",
+      "group": "metrics"
+    },
+    {
+      "change_type": "percent_changed",
+      "field": "Completion %",
+      "before": "0",
+      "after": "25",
+      "detail": "+25",
+      "materiality": "low",
+      "change_id": "C32",
+      "item_id": "wave-1-completion:b-lindqvist",
+      "item_label": "B. Lindqvist",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "subsumed_by": "C26",
+      "local_change_id": "C3",
+      "document": "training-completion",
+      "group": "metrics"
+    },
+    {
+      "change_type": "percent_changed",
+      "field": "Completion %",
+      "before": "60",
+      "after": "100",
+      "detail": "+40",
+      "materiality": "low",
+      "change_id": "C33",
+      "item_id": "wave-1-completion:d-ferreira",
+      "item_label": "D. Ferreira",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "subsumed_by": "C27",
+      "local_change_id": "C5",
+      "document": "training-completion",
+      "group": "metrics"
+    },
+    {
+      "change_type": "percent_changed",
+      "field": "Completion %",
+      "before": "0",
+      "after": "30",
+      "detail": "+30",
+      "materiality": "low",
+      "change_id": "C34",
+      "item_id": "wave-1-completion:f-adeyemi",
+      "item_label": "F. Adeyemi",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "subsumed_by": "C28",
+      "local_change_id": "C8",
+      "document": "training-completion",
+      "group": "metrics"
+    },
+    {
+      "change_type": "percent_changed",
+      "field": "Completion %",
+      "before": "75",
+      "after": "100",
+      "detail": "+25",
+      "materiality": "low",
+      "change_id": "C35",
+      "item_id": "wave-1-completion:g-novak",
+      "item_label": "G. Novak",
+      "item_kind": "row",
+      "source_ref": {
+        "previous": "sheet 'Wave 1 Completion'",
+        "current": "sheet 'Wave 1 Completion'"
+      },
+      "subsumed_by": "C29",
+      "local_change_id": "C11",
+      "document": "training-completion",
+      "group": "metrics"
+    }
+  ]
+}

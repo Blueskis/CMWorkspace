@@ -1,0 +1,275 @@
+{
+  "comparison": {
+    "previous": {
+      "name": "ricefwa-status",
+      "path": "inputs/week-11/ricefwa-status.pptx",
+      "doc_type": "pptx",
+      "period_label": "Week 11",
+      "extracted_at": "2026-08-22T13:04:57+00:00"
+    },
+    "current": {
+      "name": "ricefwa-status",
+      "path": "inputs/week-12/ricefwa-status.pptx",
+      "doc_type": "pptx",
+      "period_label": "Week 12",
+      "extracted_at": "2026-08-22T13:04:57+00:00"
+    },
+    "generated_at": "2026-08-22T13:06:01+00:00"
+  },
+  "summary": {
+    "items_previous": 9,
+    "items_current": 10,
+    "changes_total": 13,
+    "by_materiality": {
+      "high": 0,
+      "medium": 12,
+      "low": 1
+    }
+  },
+  "rollups": [
+    {
+      "field": "RAG",
+      "before": {
+        "amber": 2,
+        "green": 2,
+        "red": 1
+      },
+      "after": {
+        "amber": 3,
+        "green": 3,
+        "red": 0
+      },
+      "population_before": 5,
+      "population_after": 6
+    },
+    {
+      "field": "Status",
+      "before": {
+        "In Build": 3,
+        "In Test": 1,
+        "Not Started": 1,
+        "Signed Off": 0
+      },
+      "after": {
+        "In Build": 2,
+        "In Test": 2,
+        "Not Started": 1,
+        "Signed Off": 1
+      },
+      "population_before": 5,
+      "population_after": 6
+    }
+  ],
+  "changes": [
+    {
+      "change_type": "rag_better",
+      "field": "RAG",
+      "before": "amber",
+      "after": "green",
+      "detail": "improved",
+      "materiality": "medium",
+      "change_id": "C1",
+      "item_id": "object:fi-r-014",
+      "item_label": "FI-R-014",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 2 ('Finance Objects')",
+        "current": "slide 2 ('Finance Objects')"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Build",
+      "after": "In Test",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C2",
+      "item_id": "object:fi-r-014",
+      "item_label": "FI-R-014",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 2 ('Finance Objects')",
+        "current": "slide 2 ('Finance Objects')"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Test",
+      "after": "Signed Off",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C3",
+      "item_id": "object:fi-i-002",
+      "item_label": "FI-I-002",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 2 ('Finance Objects')",
+        "current": "slide 2 ('Finance Objects')"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "Not Started",
+      "after": "In Build",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C4",
+      "item_id": "object:fi-e-007",
+      "item_label": "FI-E-007",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 2 ('Finance Objects')",
+        "current": "slide 2 ('Finance Objects')"
+      }
+    },
+    {
+      "change_type": "rag_better",
+      "field": "RAG",
+      "before": "red",
+      "after": "amber",
+      "detail": "improved",
+      "materiality": "medium",
+      "change_id": "C5",
+      "item_id": "object:lo-w-011",
+      "item_label": "LO-W-011",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 3 ('Logistics Objects')",
+        "current": "slide 3 ('Logistics Objects')"
+      }
+    },
+    {
+      "change_type": "status_forward",
+      "field": "Status",
+      "before": "In Build",
+      "after": "In Test",
+      "detail": "advanced",
+      "materiality": "medium",
+      "change_id": "C6",
+      "item_id": "object:lo-w-011",
+      "item_label": "LO-W-011",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": "slide 3 ('Logistics Objects')",
+        "current": "slide 3 ('Logistics Objects')"
+      }
+    },
+    {
+      "change_type": "text_changed",
+      "similarity": 0.298,
+      "added_text": [
+        "Approve additional test window for LO-W-011 goods receipt workflow"
+      ],
+      "removed_text": [
+        "Confirm owner for FI-E-007 vendor master extract"
+      ],
+      "numbers_moved": true,
+      "materiality": "medium",
+      "change_id": "C7",
+      "item_id": "slide:decisions-needed",
+      "item_label": "Decisions Needed",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 4",
+        "current": "slide 4"
+      }
+    },
+    {
+      "change_type": "number_changed",
+      "field": "At risk",
+      "before": "3",
+      "after": "2",
+      "detail": "-1",
+      "materiality": "medium",
+      "change_id": "C9",
+      "item_id": "slide:ricefwa-status-week-12",
+      "item_label": "RICEFWA Status - Week 12",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 1",
+        "current": "slide 1"
+      }
+    },
+    {
+      "change_type": "number_changed",
+      "field": "Build complete",
+      "before": "18",
+      "after": "24",
+      "detail": "+6",
+      "materiality": "medium",
+      "change_id": "C10",
+      "item_id": "slide:ricefwa-status-week-12",
+      "item_label": "RICEFWA Status - Week 12",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 1",
+        "current": "slide 1"
+      }
+    },
+    {
+      "change_type": "number_changed",
+      "field": "In test",
+      "before": "9",
+      "after": "12",
+      "detail": "+3",
+      "materiality": "medium",
+      "change_id": "C11",
+      "item_id": "slide:ricefwa-status-week-12",
+      "item_label": "RICEFWA Status - Week 12",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 1",
+        "current": "slide 1"
+      }
+    },
+    {
+      "change_type": "number_changed",
+      "field": "Total objects",
+      "before": "42",
+      "after": "43",
+      "detail": "+1",
+      "materiality": "medium",
+      "change_id": "C12",
+      "item_id": "slide:ricefwa-status-week-12",
+      "item_label": "RICEFWA Status - Week 12",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 1",
+        "current": "slide 1"
+      }
+    },
+    {
+      "change_type": "item_added",
+      "before": null,
+      "after": "FI-A-021",
+      "detail": "Description: Period close automation; Status: Not Started; RAG: amber",
+      "materiality": "medium",
+      "change_id": "C13",
+      "item_id": "object:fi-a-021",
+      "item_label": "FI-A-021",
+      "item_kind": "object",
+      "source_ref": {
+        "previous": null,
+        "current": "slide 2 ('Finance Objects')"
+      }
+    },
+    {
+      "change_type": "renamed",
+      "before": "RICEFWA Status - Week 11",
+      "after": "RICEFWA Status - Week 12",
+      "detail": "matched at 0.96 similarity",
+      "materiality": "low",
+      "change_id": "C8",
+      "item_id": "slide:ricefwa-status-week-12",
+      "item_label": "RICEFWA Status - Week 12",
+      "item_kind": "slide",
+      "source_ref": {
+        "previous": "slide 1",
+        "current": "slide 1"
+      }
+    }
+  ]
+}
