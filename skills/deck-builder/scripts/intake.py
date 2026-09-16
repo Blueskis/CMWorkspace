@@ -2,9 +2,9 @@
 """Orchestrate deck-builder's intake stage: ingest documents, profile the template,
 resolve brand, and index everything for retrieval (Stage 1).
 
-    python intake.py sources_dir/ --template client.potx --deck-type steerco-update \
+    python intake.py sources_dir/ --template client.potx --deck-type status-update \
         -o decks/<run>/intake/
-    python intake.py sources_dir/ --template client.potx --deck-type steerco-update \
+    python intake.py sources_dir/ --template client.potx --deck-type status-update \
         --brand brand_profile.json -o decks/<run>/intake/
 
 This is a thin orchestrator over existing, already-tested tools — it does not reimplement

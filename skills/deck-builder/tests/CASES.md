@@ -94,7 +94,7 @@ Each case names which layer it exercises: [brand] [layout] [fit] [variety] [visi
 26. [deck-type] Each entry in the deck-type registry validates: its required
     role sequence is non-empty and every role it lists exists in the shared
     `ROLES` vocabulary.
-27. [deck-type] A plan for `steerco-update` missing a required role (e.g. no
+27. [deck-type] A plan for `status-update` missing a required role (e.g. no
     `metric-row`) fails plan validation naming the missing role.
 28. [deck-type] Requesting an unknown deck type (e.g. `"webinar"`) is rejected
     with a list of valid types — never silently defaulted to a close match.

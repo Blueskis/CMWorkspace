@@ -1,6 +1,6 @@
 ---
 name: deck-builder-v0.1
-description: Builds a consulting slide deck — steerco update, case for change, findings and recommendations, workshop pack, readiness assessment, roadmap, board paper — from a client's brand (a file, an existing .potx, or keyed in by hand), the client's approved slide template, and a folder of source documents (Word, PDF, PowerPoint, Excel, VTT/SRT transcripts, BPMN). Runs a five-stage pipeline — ingest documents and vision-read any PDFs/images into citable notes, brief the narrative and key messages, plan slide-by-slide against the template's own layouts with hard fit/variety/provenance gates, assemble the .pptx, and QA it before handover. Uses BM25 retrieval over a chunk index (never embeddings — a ranking a practitioner can't reason about can't be debugged when it pulls the wrong clause), and never builds from an unapproved or absent template. Use whenever a consultant wants a first-draft deck built from source material and an approved template — phrases like "build me a deck from these documents", "turn this FSD/workshop notes/interview transcripts into a steerco deck", "put this on our template", "draft a case for change deck". Do NOT use for an FSD-sourced learner deck with screenshot annotation and knowledge checks — that is `training-material-generator`. Do NOT use for an RFP response — that is `cm-proposal-generator`, which carries requirement-coverage QA and knowledge-bank retrieval this skill does not replicate. Do NOT use for a single-channel comms artifact (email, banner, newsletter) — that is `cm-comms-generator`. Do NOT use to review or QA a deck that already exists — that is `training-qa-agent` for training material, or a plain read for anything else.
+description: Builds a consulting slide deck — status update, discussion deck, proposal/pitch deck, case for change, findings and recommendations, workshop pack, readiness assessment, roadmap, board paper — from a client's brand (a file, an existing .potx, or keyed in by hand), the client's approved slide template, and a folder of source documents (Word, PDF, PowerPoint, Excel, VTT/SRT transcripts, BPMN). Runs a five-stage pipeline — ingest documents and vision-read any PDFs/images into citable notes, brief the narrative and key messages, plan slide-by-slide against the template's own layouts with hard fit/variety/provenance gates, assemble the .pptx, and QA it before handover. Uses BM25 retrieval over a chunk index (never embeddings — a ranking a practitioner can't reason about can't be debugged when it pulls the wrong clause), and never builds from an unapproved or absent template. Use whenever a consultant wants a first-draft deck built from source material and an approved template — phrases like "build me a deck from these documents", "turn this FSD/workshop notes/interview transcripts into a steerco deck", "put this on our template", "draft a case for change deck", "build a discussion deck for the options review", "put together a pitch deck for this prospect". Do NOT use for an FSD-sourced learner deck with screenshot annotation and knowledge checks — that is `training-material-generator`. Do NOT use for an RFP response — that is `cm-proposal-generator`, which carries requirement-coverage QA and knowledge-bank retrieval this skill does not replicate. Do NOT use for a single-channel comms artifact (email, banner, newsletter) — that is `cm-comms-generator`. Do NOT use to review or QA a deck that already exists — that is `training-qa-agent` for training material, or a plain read for anything else.
 ---
 
 # Deck builder
@@ -21,7 +21,7 @@ into, and every claim traces to a source or is marked an explicit gap.
 | PDF text via `pdftotext` sidecar or poppler (via `map_source.py`) | PDF text with neither available — the run stops and names the fix |
 | Vision reading of PDFs/images into citable `vision_notes.json` | OCR of scanned text — vision reading transcribes what is SEEN, not what a scanner would recognise |
 | BM25 retrieval with query expansion, section-path boost, RRF fusion | Embedding/semantic search |
-| Nine deck types from `lib/schemas/deck_registry.json` | A deck type outside that registry — the run stops rather than guessing a role sequence |
+| Eleven deck types from `lib/schemas/deck_registry.json`, generic to any consulting engagement (only two carry CM-specific default framing) | A deck type outside that registry — the run stops rather than guessing a role sequence |
 | Building on the client's own `.potx`/`.pptx` template, layout-mapped by placeholder signature | Building from scratch when no template is supplied — the run stops and asks |
 | Native diagrams, tables and images via the shared `lib/deck/` assembler | Screenshot annotation (highlight/callout/arrow/redact/zoom) — use `training-material-generator` |
 | Plan-time fit and layout-variety hard gates | Auto-shrinking text below the legibility floor to force a fit |
@@ -61,7 +61,7 @@ decks/<client-slug>-<YYYYMMDD>/
 
 ```bash
 python skills/deck-builder/scripts/intake.py <sources_dir> \
-    --template <client>.potx --deck-type steerco-update \
+    --template <client>.potx --deck-type status-update \
     [--brand brand_profile.json] --client "Acme Water" \
     -o decks/<run>/intake/
 ```
@@ -103,7 +103,7 @@ closing). Every block cites a `sources[]` entry or is `gap: true` with a `gap_no
 
 ```bash
 python skills/deck-builder/scripts/plan_deck.py decks/<run>/deck_plan.json \
-    --deck-type steerco-update \
+    --deck-type status-update \
     --profile decks/<run>/intake/template_profile.json \
     --assignment decks/<run>/intake/assignment.json \
     [--vision-notes decks/<run>/intake/vision_notes.json] \

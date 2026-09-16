@@ -21,7 +21,7 @@ function check(label, cond, detail = "") {
 // --- deck-types.js parity with the JSON source (case: registry drift guard) ---
 check("deck-types.js matches lib/schemas/deck_registry.json byte-for-byte (as data)",
   JSON.stringify(DECK_TYPES) === JSON.stringify(deckRegistryJson.deck_types));
-check("DECK_TYPE_ORDER covers all 9 registry entries", DECK_TYPE_ORDER.length === 9);
+check("DECK_TYPE_ORDER covers all 11 registry entries", DECK_TYPE_ORDER.length === 11);
 
 // --- prompt builders stay within sample's input budget ---
 const corpus = {
@@ -31,7 +31,7 @@ const corpus = {
     text: "Lorem ipsum ".repeat(50),
   })),
 };
-const deckType = DECK_TYPES["steerco-update"];
+const deckType = DECK_TYPES["status-update"];
 const bp = briefPrompt(corpus, deckType, null);
 check("briefPrompt stays under 64 KiB", new TextEncoder().encode(bp).length < 64 * 1024, `${bp.length} chars`);
 check("briefPrompt names the deck type", bp.includes(deckType.label));

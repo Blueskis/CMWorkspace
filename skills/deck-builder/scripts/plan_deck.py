@@ -2,7 +2,7 @@
 """Validate a deck_plan.json against its deck type, template, and the fit/variety gates
 (deck-builder Stage 3).
 
-    python plan_deck.py deck_plan.json --deck-type steerco-update \
+    python plan_deck.py deck_plan.json --deck-type status-update \
         --profile decks/<run>/intake/template_profile.json \
         --assignment decks/<run>/intake/assignment.json \
         -o decks/<run>/plan_validation.json

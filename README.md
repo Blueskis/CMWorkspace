@@ -10,7 +10,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 | `cm-effort-estimator` | **v0.5** — scope drivers → a manday estimate, with an open-ended judgement layer for adjustments the drivers alone don't capture |
 | `change-impact-assessment` | **MVP** — a programme's own documents → a baseline change impact assessment in the client's CIA template |
 | `training-material-generator` | **v0.3 (MVP)** — an FSD (or similar spec doc) → a first-draft training deck, with placed and annotated screenshots (highlight/callout/arrow/redact/zoom), native diagrams, and knowledge-check questions |
-| `deck-builder` | **v0.1 (MVP)** — a client's brand + approved template + source documents → a first-draft consulting deck (steerco update, case for change, findings & recommendations, and six more types), built on a shared core with the published Consulting Deck Builder artifact |
+| `deck-builder` | **v0.1 (MVP)** — a client's brand + approved template + source documents → a first-draft consulting deck across eleven deck types (status update, discussion deck, proposal/pitch deck, case for change, findings & recommendations, and six more), built on a shared core with the published Consulting Deck Builder artifact |
 | `brand-template-creator` | A published claude.ai Artifact — capture a client's brand once (colours, fonts, style, logo, voice, messaging) and export a `.json` + `.md` brand guide to reuse across sessions |
 | `cm-proposal-reference-tool` | A published claude.ai Artifact (not a skill): drop in a tender, get the firm's most similar past proposals ranked, read live from Airtable. See `artifacts/cm-proposal-reference-tool/README.md` |
 | `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
@@ -448,9 +448,12 @@ practitioner review**.
 Takes a client's brand (extracted from their template, a Brand Vault export, or keyed in
 by hand), their approved slide template, and a folder of source documents — Word, PDF,
 PowerPoint, Excel, VTT/SRT transcripts, BPMN — and produces a first-draft consulting deck
-on that template. Nine deck types (steerco update, case for change, findings and
-recommendations, workshop pack, readiness assessment, roadmap, board paper, plus training
-and proposal listed for registry completeness and routed to their own skills).
+on that template. Eleven deck types (status update, discussion deck, proposal/pitch deck,
+case for change, findings and recommendations, workshop pack, readiness assessment,
+roadmap, board paper, plus training and RFP-response listed for registry completeness
+and routed to their own skills) — generic to any consulting engagement, not just change
+management; only case-for-change and findings-and-recommendations carry CM-specific
+default framing.
 
 Built on a shared core, `lib/deck/` — the template profiler, layout mapper, text-fit math,
 and pptx assembler that `training-material-generator`'s browser artifact (`webapp/`)
@@ -517,7 +520,7 @@ index while drafting.
 Screenshot annotation (use `training-material-generator`), RFP-specific requirement
 coverage (use `cm-proposal-generator`), single-channel comms (use `cm-comms-generator`),
 automated visual QA (render and look, per `skills/deck-builder/reference/visual-qa.md`),
-a deck type outside the nine-entry registry, or building from scratch when no template is
+a deck type outside the eleven-entry registry, or building from scratch when no template is
 supplied — the run stops and asks. A known gap: the template profiler does not record
 which slide master a layout belongs to, so a multi-master template's layout mapping
 should be checked by eye at the Stage 1 review. Output is always a **draft for
