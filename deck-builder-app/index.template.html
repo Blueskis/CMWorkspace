@@ -1,0 +1,254 @@
+<title>Consulting Deck Builder</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>
+  :root {
+    color-scheme: light dark;
+    --paper: #F3F5F9;
+    --surface: #FFFFFF;
+    --surface-2: #EAEEF5;
+    --ink: #12161F;
+    --ink-2: #4C5666;
+    --ink-3: #7A8494;
+    --line: #DCE1EA;
+    --line-strong: #BFC7D4;
+    --accent: #2E3D77;
+    --accent-ink: #FFFFFF;
+    --accent-soft: #E4E8F6;
+    --jade: #0B6B54;
+    --jade-soft: #E0F0EA;
+    --amber: #8C5E0C;
+    --amber-soft: #F7EBD5;
+    --clay: #A33D2E;
+    --clay-soft: #F7E4E0;
+    --shadow: 0 1px 2px rgba(18, 22, 31, .06), 0 8px 24px -16px rgba(18, 22, 31, .35);
+
+    --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #0E1117; --surface: #171B23; --surface-2: #1F242E;
+      --ink: #E8EBF2; --ink-2: #A5AEBD; --ink-3: #7B8494;
+      --line: #2A303B; --line-strong: #3B4351;
+      --accent: #97A5EA; --accent-ink: #10131B; --accent-soft: #1C2340;
+      --jade: #4FC7A0; --jade-soft: #12302A;
+      --amber: #D9A54E; --amber-soft: #2E2617;
+      --clay: #E38375; --clay-soft: #33201D;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0E1117; --surface: #171B23; --surface-2: #1F242E;
+    --ink: #E8EBF2; --ink-2: #A5AEBD; --ink-3: #7B8494;
+    --line: #2A303B; --line-strong: #3B4351;
+    --accent: #97A5EA; --accent-ink: #10131B; --accent-soft: #1C2340;
+    --jade: #4FC7A0; --jade-soft: #12302A;
+    --amber: #D9A54E; --amber-soft: #2E2617;
+    --clay: #E38375; --clay-soft: #33201D;
+    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    padding: 48px 20px 80px;
+  }
+  .mono { font-family: var(--font-mono); }
+  .muted { color: var(--ink-2); }
+  .warn-text { color: var(--amber); }
+
+  .page { max-width: 880px; margin: 0 auto; }
+
+  /* ---- appbar ---- */
+  .appbar { margin-bottom: 28px; }
+  .appbar .row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--ink-3); margin: 0 0 8px;
+  }
+  h1 {
+    font-family: var(--font-display);
+    font-weight: 600; font-size: 30px; line-height: 1.18; letter-spacing: -.005em;
+    margin: 0 0 8px; text-wrap: balance;
+  }
+  .appbar p.lede { color: var(--ink-2); font-size: 15px; margin: 0; max-width: 66ch; }
+  .privacy-note {
+    margin-top: 14px; display: flex; gap: 10px; align-items: flex-start;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 8px;
+    padding: 12px 14px; font-size: 13px; color: var(--ink-2);
+  }
+  .privacy-note svg { flex: none; margin-top: 1px; color: var(--accent); }
+
+  /* ---- panel / card ---- */
+  .card, .panel {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    box-shadow: var(--shadow); padding: 28px;
+  }
+  .panel + .panel { margin-top: 20px; }
+  .panel h2 { font-family: var(--font-display); font-size: 19px; font-weight: 600; margin: 0 0 6px; }
+  .panel h3 {
+    font-size: 13px; font-weight: 600; letter-spacing: .02em; text-transform: uppercase;
+    color: var(--ink-3); margin: 26px 0 12px;
+  }
+  .panel h3:first-of-type { margin-top: 22px; }
+  .panel__lede { color: var(--ink-2); font-size: 14px; margin: 0 0 20px; max-width: 66ch; }
+  .panel__actions { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
+  .panel--center { text-align: center; padding: 56px 28px; }
+
+  /* ---- buttons ---- */
+  .btn {
+    appearance: none; border: 1px solid var(--line-strong); cursor: pointer;
+    background: var(--surface); color: var(--ink);
+    font-family: var(--font-body); font-weight: 600; font-size: 14px;
+    padding: 11px 20px; border-radius: 6px;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: transform .12s ease, background .15s ease, opacity .15s ease;
+  }
+  .btn:hover { background: var(--surface-2); }
+  .btn:active { transform: translateY(1px); }
+  .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .btn:disabled { opacity: .5; cursor: default; }
+  .btn--primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  .btn--primary:hover { filter: brightness(1.08); }
+  .btn.ghost { background: transparent; border-color: var(--line); font-weight: 500; }
+  .btn.ghost:hover { background: var(--surface-2); }
+  .btn.small { padding: 6px 12px; font-size: 12.5px; }
+
+  /* ---- upload ---- */
+  .drop-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+  .drop-zone {
+    display: flex; flex-direction: column; gap: 4px;
+    border: 1.5px dashed var(--line-strong); border-radius: 10px; padding: 20px 18px;
+    cursor: pointer; background: var(--surface-2);
+    transition: border-color .15s ease, background .15s ease;
+  }
+  .drop-zone:hover { border-color: var(--accent); background: var(--accent-soft); }
+  .drop-zone__label { font-weight: 600; font-size: 14.5px; }
+  .drop-zone__hint { font-size: 12.5px; color: var(--ink-3); }
+  .drop-zone input[type="file"] { margin-top: 10px; font-size: 12.5px; color: var(--ink-2); max-width: 100%; }
+  .upload-status { margin-top: 16px; font-size: 13px; color: var(--ink-2); font-family: var(--font-mono); }
+
+  /* ---- spinner ---- */
+  .spinner {
+    width: 34px; height: 34px; margin: 0 auto 18px;
+    border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .panel--center p { color: var(--ink-2); font-size: 14px; }
+
+  /* ---- stats ---- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 4px; }
+  .stat { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
+  .stat b { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat span { font-size: 12px; color: var(--ink-3); }
+
+  /* ---- tables ---- */
+  .table-scroll { overflow-x: auto; }
+  .table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  .table th {
+    text-align: left; font-family: var(--font-mono); font-size: 10.5px; font-weight: 600;
+    letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3);
+    padding: 8px 10px; border-bottom: 1px solid var(--line-strong); white-space: nowrap;
+  }
+  .table td { padding: 9px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  .table tr:last-child td { border-bottom: none; }
+  .table select {
+    font-family: inherit; font-size: 13px; padding: 5px 8px; border-radius: 6px;
+    border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink); max-width: 100%;
+  }
+
+  /* ---- notices ---- */
+  .notice {
+    background: var(--amber-soft); border: 1px solid var(--line); border-radius: 8px;
+    padding: 14px 16px; margin: 16px 0; font-size: 13.5px; color: var(--amber);
+  }
+  .notice__title { font-weight: 700; margin: 0 0 6px; }
+  .notice ul { margin: 0; padding-left: 18px; }
+  .notice li { margin: 4px 0; }
+  .notice--error { background: var(--clay-soft); border-color: transparent; color: var(--clay); }
+
+  /* ---- delivery ---- */
+  .download-card {
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 20px; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  }
+  .download-card__info { flex: 1; min-width: 200px; }
+  .download-card__info h3 { margin: 0 0 4px; text-transform: none; letter-spacing: normal; font-size: 15px; color: var(--ink); }
+  .download-card__info p { margin: 0 0 8px; color: var(--ink-2); font-size: 13.5px; }
+
+  .status-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-family: var(--font-mono); font-size: 11px; font-weight: 600; letter-spacing: .04em;
+    padding: 3px 10px 3px 8px; border-radius: 999px;
+  }
+  .status-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; flex: none; }
+  .status-pill--ok { background: var(--jade-soft); color: var(--jade); }
+  .status-pill--ok::before { background: var(--jade); }
+  .status-pill--fail { background: var(--amber-soft); color: var(--amber); }
+  .status-pill--fail::before { background: var(--amber); }
+
+  .dl-status { font-size: 12.5px; margin: 10px 0 0; font-family: var(--font-mono); display: none; }
+  .dl-status.show { display: block; }
+  .dl-status.ok { color: var(--jade); }
+  .dl-status.err { color: var(--clay); }
+
+  footer.foot { max-width: 880px; margin: 32px auto 0; text-align: center; font-size: 12px; color: var(--ink-3); }
+</style>
+<div class="page">
+  <div class="appbar">
+    <p class="eyebrow">Deck Builder</p>
+    <h1>Build a consulting deck from your documents</h1>
+    <p class="lede">
+      Bring your client's brand, their approved slide template, and the source
+      documents (interview notes, workshop material, process design, functional specs)
+      — this page drafts a first-draft <span class="mono">.pptx</span> across nine
+      consulting deck types (steerco update, case for change, findings and
+      recommendations, and more), laid out on your template's own layouts with a
+      mechanical check on layout variety, text fit and provenance before it builds.
+    </p>
+    <div class="row">
+      <button type="button" class="btn ghost small" id="theme-toggle" title="Toggle light/dark">Theme</button>
+    </div>
+    <div class="privacy-note">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
+      <span>
+        Your files never leave this browser — there is no upload, no server. Only the
+        <em>text</em> extracted from your source documents is sent to Claude (with your
+        permission, asked before the first request) to draft the slide content. The
+        template itself is never transmitted.
+      </span>
+    </div>
+  </div>
+
+  <div id="app"></div>
+
+  <footer class="foot">First-draft consulting material for practitioner review — not finished content.</footer>
+</div>
+
+<script>
+  (function () {
+    var btn = document.getElementById("theme-toggle");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var docEl = document.documentElement;
+      var cur = docEl.getAttribute("data-theme");
+      var isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+      docEl.setAttribute("data-theme", isDark ? "light" : "dark");
+    });
+  })();
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script>
+<!--INLINE:dist/bundle.js-->
+</script>

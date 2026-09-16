@@ -10,7 +10,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 | `cm-effort-estimator` | **v0.5** — scope drivers → a manday estimate, with an open-ended judgement layer for adjustments the drivers alone don't capture |
 | `change-impact-assessment` | **MVP** — a programme's own documents → a baseline change impact assessment in the client's CIA template |
 | `training-material-generator` | **v0.3 (MVP)** — an FSD (or similar spec doc) → a first-draft training deck, with placed and annotated screenshots (highlight/callout/arrow/redact/zoom), native diagrams, and knowledge-check questions |
-| `deck-builder` | **v0.1 (MVP)** — a client's brand + approved template + source documents → a first-draft consulting deck (steerco update, case for change, findings & recommendations, and six more types), built on a shared core with the artifact of the same name |
+| `deck-builder` | **v0.1 (MVP)** — a client's brand + approved template + source documents → a first-draft consulting deck (steerco update, case for change, findings & recommendations, and six more types), built on a shared core with the published Consulting Deck Builder artifact |
 | `brand-template-creator` | A published claude.ai Artifact — capture a client's brand once (colours, fonts, style, logo, voice, messaging) and export a `.json` + `.md` brand guide to reuse across sessions |
 | `cm-proposal-reference-tool` | A published claude.ai Artifact (not a skill): drop in a tender, get the firm's most similar past proposals ranked, read live from Airtable. See `artifacts/cm-proposal-reference-tool/README.md` |
 | `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
@@ -452,12 +452,15 @@ on that template. Nine deck types (steerco update, case for change, findings and
 recommendations, workshop pack, readiness assessment, roadmap, board paper, plus training
 and proposal listed for registry completeness and routed to their own skills).
 
-Built on a shared core, `lib/deck/`, moved out of the `training-material-generator`
-skill's previously-undocumented browser artifact (`webapp/`) so the same template
-profiler, layout mapper, text-fit math, and pptx assembler now serve both the skill and a
-published artifact rather than existing twice. `lib/deck_index.py` and
-`lib/deck/retrieve.js` are independently-implemented BM25 twins (query expansion from the
-brand's terminology map, section-path boost, RRF fusion — still no embeddings, kept in
+Built on a shared core, `lib/deck/` — the template profiler, layout mapper, text-fit math,
+and pptx assembler that `training-material-generator`'s browser artifact (`webapp/`)
+already had, generalised so a second, separate front end can reuse them rather than
+duplicating a second assembler. That front end is `deck-builder-app/`, published as
+**Consulting Deck Builder** (listed in CLAUDE.md's published-artifacts table) — its own
+app, with its own brand-intake step and its own deck-type-aware plan generation
+(`deck-builder-app/src/deck-plan.js`), not a reskin of the training tool. `lib/deck_index.py`
+and `lib/deck/retrieve.js` are independently-implemented BM25 twins (query expansion from
+the brand's terminology map, section-path boost, RRF fusion — still no embeddings, kept in
 parity by `webapp/test/retrieve-parity.mjs`).
 
 ```
@@ -557,12 +560,20 @@ lib/                      # shared across skills — Python mostly stdlib-only, 
 ├── brand_profile.py      # canonical brand adapter/validator (deck-builder)
 ├── deck_index.py         # BM25 chunk index + query, promoted from training-material-generator
 ├── schemas/              # brand_profile (canonical), deck_registry, vision_notes
-└── deck/                 # shared JS core — moved out of webapp/src/, bundled into the
-                          #   published artifact AND invoked via `node` from deck-builder's
-                          #   Python scripts. env, xml, profile-template, map-layouts,
-                          #   text-fit, render-diagram, build-pptx, parse-*, qa, fit-check,
-                          #   retrieve.js; cli/ — profile.mjs, assemble.mjs, check-fit.mjs,
+└── deck/                 # shared JS core — moved out of webapp/src/, bundled into BOTH
+                          #   published artifacts (webapp/'s Training Deck Generator and
+                          #   deck-builder-app/'s Consulting Deck Builder) AND invoked via
+                          #   `node` from deck-builder's Python scripts. env, xml,
+                          #   profile-template, map-layouts, text-fit, render-diagram,
+                          #   build-pptx, parse-*, qa, fit-check, retrieve.js, brand.js,
+                          #   deck-types.js; cli/ — profile.mjs, assemble.mjs, check-fit.mjs,
                           #   rasterise.mjs
+deck-builder-app/          # Consulting Deck Builder — a SEPARATE app from webapp/, its own
+                          #   brand-intake step and deck-type-aware plan generation, sharing
+                          #   only lib/deck/. src/ui.js, src/deck-plan.js (brief+plan
+                          #   generation, parameterised by lib/deck/deck-types.js),
+                          #   src/validate-plan.js (fit/variety/provenance gates, browser
+                          #   twin of skills/deck-builder's plan_deck.py); build.js -> dist/
 skills/deck-builder/
 ├── SKILL.md              # the five-stage process
 ├── reference/            # deck-types, layout-fidelity, vision-reading, visual-qa, brand-intake

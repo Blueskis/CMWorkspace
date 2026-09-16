@@ -1,0 +1,13 @@
+{
+  "name": "deck-builder-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Browser front end for the Consulting Deck Builder — brand + approved template + source documents -> a first-draft consulting deck. Separate from webapp/ (the Training Deck Generator); shares lib/deck/'s core with it and with skills/deck-builder/.",
+  "scripts": {
+    "build": "node build.js"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.2"
+  }
+}
