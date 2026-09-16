@@ -1,52 +1,77 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Training Deck Generator</title>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <style>
-  :root {
-    color-scheme: light dark;
-    --paper: #F3F5F9;
-    --surface: #FFFFFF;
-    --surface-2: #EAEEF5;
-    --ink: #12161F;
-    --ink-2: #4C5666;
-    --ink-3: #7A8494;
-    --line: #DCE1EA;
-    --line-strong: #BFC7D4;
-    --accent: #2E3D77;
-    --accent-ink: #FFFFFF;
-    --accent-soft: #E4E8F6;
-    --jade: #0B6B54;
-    --jade-soft: #E0F0EA;
-    --amber: #8C5E0C;
-    --amber-soft: #F7EBD5;
-    --clay: #A33D2E;
-    --clay-soft: #F7E4E0;
-    --shadow: 0 1px 2px rgba(18, 22, 31, .06), 0 8px 24px -16px rgba(18, 22, 31, .35);
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@500;600&display=swap');
 
-    --font-display: ui-serif, "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
-    --font-body: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+  :root {
+    --ink: #1c232e;
+    --ink-soft: #55606e;
+    --ink-faint: #8891a0;
+    --paper: #eef1f5;
+    --surface: #ffffff;
+    --surface-2: #f5f7fa;
+    --line: #d8dee6;
+    --line-strong: #c2cad4;
+    --accent: #9c6a1f;
+    --accent-strong: #7c5417;
+    --accent-soft: #f3e6cf;
+    --ok: #2f6b45;
+    --ok-soft: #e3f0e6;
+    --warn-bg: #fbf1de;
+    --warn-line: #e8cf9e;
+    --warn-ink: #6b4a12;
+    --err: #a33636;
+    --err-soft: #fbe7e7;
+    --shadow: 0 1px 2px rgba(28,35,46,.06), 0 8px 24px -12px rgba(28,35,46,.18);
   }
+
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --paper: #0E1117; --surface: #171B23; --surface-2: #1F242E;
-      --ink: #E8EBF2; --ink-2: #A5AEBD; --ink-3: #7B8494;
-      --line: #2A303B; --line-strong: #3B4351;
-      --accent: #97A5EA; --accent-ink: #10131B; --accent-soft: #1C2340;
-      --jade: #4FC7A0; --jade-soft: #12302A;
-      --amber: #D9A54E; --amber-soft: #2E2617;
-      --clay: #E38375; --clay-soft: #33201D;
-      --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+      --ink: #eceef2;
+      --ink-soft: #a7b0bd;
+      --ink-faint: #6d7684;
+      --paper: #12161d;
+      --surface: #1a2029;
+      --surface-2: #212832;
+      --line: #2c3543;
+      --line-strong: #3a4353;
+      --accent: #e0aa55;
+      --accent-strong: #f0c076;
+      --accent-soft: #3a2f18;
+      --ok: #7ec293;
+      --ok-soft: #1d2b21;
+      --warn-bg: #2c2413;
+      --warn-line: #4a3b1c;
+      --warn-ink: #e8c383;
+      --err: #e08080;
+      --err-soft: #2e1a1a;
+      --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
     }
   }
   :root[data-theme="dark"] {
-    --paper: #0E1117; --surface: #171B23; --surface-2: #1F242E;
-    --ink: #E8EBF2; --ink-2: #A5AEBD; --ink-3: #7B8494;
-    --line: #2A303B; --line-strong: #3B4351;
-    --accent: #97A5EA; --accent-ink: #10131B; --accent-soft: #1C2340;
-    --jade: #4FC7A0; --jade-soft: #12302A;
-    --amber: #D9A54E; --amber-soft: #2E2617;
-    --clay: #E38375; --clay-soft: #33201D;
-    --shadow: 0 1px 2px rgba(0, 0, 0, .5), 0 8px 24px -16px rgba(0, 0, 0, .8);
+    --ink: #eceef2;
+    --ink-soft: #a7b0bd;
+    --ink-faint: #6d7684;
+    --paper: #12161d;
+    --surface: #1a2029;
+    --surface-2: #212832;
+    --line: #2c3543;
+    --line-strong: #3a4353;
+    --accent: #e0aa55;
+    --accent-strong: #f0c076;
+    --accent-soft: #3a2f18;
+    --ok: #7ec293;
+    --ok-soft: #1d2b21;
+    --warn-bg: #2c2413;
+    --warn-line: #4a3b1c;
+    --warn-ink: #e8c383;
+    --err: #e08080;
+    --err-soft: #2e1a1a;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.5);
   }
 
   * { box-sizing: border-box; }
@@ -54,39 +79,38 @@
     margin: 0;
     background: var(--paper);
     color: var(--ink);
-    font-family: var(--font-body);
+    font-family: 'IBM Plex Sans', system-ui, -apple-system, sans-serif;
     font-size: 15px;
     line-height: 1.55;
     padding: 48px 20px 80px;
   }
-  .mono { font-family: var(--font-mono); }
-  .muted { color: var(--ink-2); }
+  .mono { font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+  .muted { color: var(--ink-soft); }
 
   .page { max-width: 840px; margin: 0 auto; }
 
-  /* ---- appbar / masthead ---- */
-  .appbar { margin-bottom: 28px; }
-  .appbar .row { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
+  /* ---- masthead ---- */
+  .masthead { margin-bottom: 28px; }
   .eyebrow {
-    font-family: var(--font-mono);
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 11px;
     font-weight: 600;
     letter-spacing: .09em;
     text-transform: uppercase;
-    color: var(--ink-3);
+    color: var(--ink-faint);
     margin: 0 0 8px;
   }
   h1 {
-    font-family: var(--font-display);
-    font-weight: 600;
-    font-size: 30px;
-    line-height: 1.18;
-    letter-spacing: -.005em;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 700;
+    font-size: 28px;
+    line-height: 1.15;
+    letter-spacing: -.01em;
     margin: 0 0 8px;
     text-wrap: balance;
   }
-  .appbar p.lede {
-    color: var(--ink-2);
+  .masthead p {
+    color: var(--ink-soft);
     font-size: 15px;
     margin: 0;
     max-width: 62ch;
@@ -101,12 +125,12 @@
     border-radius: 8px;
     padding: 12px 14px;
     font-size: 13px;
-    color: var(--ink-2);
+    color: var(--ink-soft);
   }
   .privacy-note svg { flex: none; margin-top: 1px; color: var(--accent); }
 
-  /* ---- panel / card shell ---- */
-  .card, .panel {
+  /* ---- panel shell ---- */
+  .panel {
     background: var(--surface);
     border: 1px solid var(--line);
     border-radius: 10px;
@@ -115,9 +139,8 @@
   }
   .panel + .panel { margin-top: 20px; }
   .panel h2 {
-    font-family: var(--font-display);
-    font-size: 19px;
-    font-weight: 600;
+    font-size: 18px;
+    font-weight: 700;
     margin: 0 0 6px;
   }
   .panel h3 {
@@ -125,26 +148,26 @@
     font-weight: 600;
     letter-spacing: .02em;
     text-transform: uppercase;
-    color: var(--ink-3);
+    color: var(--ink-faint);
     margin: 26px 0 12px;
   }
   .panel h3:first-of-type { margin-top: 22px; }
-  .panel__lede { color: var(--ink-2); font-size: 14px; margin: 0 0 20px; max-width: 62ch; }
+  .panel__lede { color: var(--ink-soft); font-size: 14px; margin: 0 0 20px; max-width: 62ch; }
   .panel__actions { margin-top: 24px; display: flex; gap: 10px; flex-wrap: wrap; }
   .panel--center { text-align: center; padding: 56px 28px; }
 
-  /* ---- buttons (.btn + .primary/.ghost/.small/.danger) ---- */
+  /* ---- buttons ---- */
   .btn {
     appearance: none;
     border: 1px solid var(--line-strong);
     cursor: pointer;
     background: var(--surface);
     color: var(--ink);
-    font-family: var(--font-body);
+    font-family: 'IBM Plex Sans', sans-serif;
     font-weight: 600;
     font-size: 14px;
     padding: 11px 20px;
-    border-radius: 6px;
+    border-radius: 8px;
     display: inline-flex;
     align-items: center;
     gap: 8px;
@@ -154,11 +177,8 @@
   .btn:active { transform: translateY(1px); }
   .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .btn:disabled { opacity: .5; cursor: default; }
-  .btn--primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-  .btn--primary:hover { filter: brightness(1.08); }
-  .btn.ghost { background: transparent; border-color: var(--line); font-weight: 500; }
-  .btn.ghost:hover { background: var(--surface-2); }
-  .btn.small { padding: 6px 12px; font-size: 12.5px; }
+  .btn--primary { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .btn--primary:hover { background: var(--accent-strong); border-color: var(--accent-strong); }
 
   /* ---- upload step ---- */
   .drop-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
@@ -175,9 +195,9 @@
   }
   .drop-zone:hover { border-color: var(--accent); background: var(--accent-soft); }
   .drop-zone__label { font-weight: 600; font-size: 14.5px; }
-  .drop-zone__hint { font-size: 12.5px; color: var(--ink-3); }
-  .drop-zone input[type="file"] { margin-top: 10px; font-size: 12.5px; color: var(--ink-2); max-width: 100%; }
-  .upload-status { margin-top: 16px; font-size: 13px; color: var(--ink-2); font-family: var(--font-mono); }
+  .drop-zone__hint { font-size: 12.5px; color: var(--ink-faint); }
+  .drop-zone input[type="file"] { margin-top: 10px; font-size: 12.5px; color: var(--ink-soft); max-width: 100%; }
+  .upload-status { margin-top: 16px; font-size: 13px; color: var(--ink-soft); font-family: 'IBM Plex Mono', monospace; }
 
   /* ---- spinner / stage list ---- */
   .spinner {
@@ -187,9 +207,8 @@
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
   }
-  @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2.4s; } }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .panel--center p { color: var(--ink-2); font-size: 14px; }
+  .panel--center p { color: var(--ink-soft); font-size: 14px; }
   .stage-list {
     list-style: none;
     padding: 0; margin: 18px 0;
@@ -198,7 +217,7 @@
   }
   .stage-list li {
     font-size: 13.5px;
-    color: var(--ink-3);
+    color: var(--ink-faint);
     display: flex; align-items: center; gap: 8px;
   }
   .stage-list li::before {
@@ -207,28 +226,28 @@
     background: var(--line-strong);
     flex: none;
   }
-  .stage-list li.done { color: var(--ink-2); }
-  .stage-list li.done::before { background: var(--jade); }
+  .stage-list li.done { color: var(--ink-soft); }
+  .stage-list li.done::before { background: var(--ok); }
   .stage-list li.active { color: var(--ink); font-weight: 600; }
   .stage-list li.active::before { background: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
 
   /* ---- stats ---- */
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin-bottom: 4px; }
   .stat { background: var(--surface); padding: 14px 16px; display: flex; flex-direction: column; gap: 2px; }
-  .stat b { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
-  .stat span { font-size: 12px; color: var(--ink-3); }
+  .stat b { font-size: 22px; font-weight: 700; }
+  .stat span { font-size: 12px; color: var(--ink-faint); }
 
   /* ---- tables ---- */
   .table-scroll { overflow-x: auto; }
   .table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
   .table th {
     text-align: left;
-    font-family: var(--font-mono);
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 10.5px;
     font-weight: 600;
     letter-spacing: .06em;
     text-transform: uppercase;
-    color: var(--ink-3);
+    color: var(--ink-faint);
     padding: 8px 10px;
     border-bottom: 1px solid var(--line-strong);
     white-space: nowrap;
@@ -240,15 +259,15 @@
     border-radius: 6px; border: 1px solid var(--line-strong);
     background: var(--surface); color: var(--ink); max-width: 100%;
   }
-  .warn-text { color: var(--amber); }
+  .warn-text { color: var(--warn-ink); }
 
   .pill {
     display: inline-block; font-size: 11px; font-weight: 600;
     padding: 2px 9px; border-radius: 999px;
-    background: var(--surface-2); color: var(--ink-2);
+    background: var(--surface-2); color: var(--ink-soft);
     border: 1px solid var(--line);
   }
-  .pill--procedure { background: var(--accent-soft); color: var(--accent); border-color: transparent; }
+  .pill--procedure { background: var(--accent-soft); color: var(--accent-strong); border-color: transparent; }
 
   /* ---- thumbnails ---- */
   .thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
@@ -257,23 +276,23 @@
     width: 100%; aspect-ratio: 4/3; object-fit: cover;
     border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2);
   }
-  .thumb figcaption { font-size: 11px; color: var(--ink-3); margin-top: 4px; line-height: 1.3;
+  .thumb figcaption { font-size: 11px; color: var(--ink-faint); margin-top: 4px; line-height: 1.3;
     overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 
-  /* ---- notices (semantic colour — never accent) ---- */
+  /* ---- notices ---- */
   .notice {
-    background: var(--amber-soft);
-    border: 1px solid var(--line);
+    background: var(--warn-bg);
+    border: 1px solid var(--warn-line);
     border-radius: 8px;
     padding: 14px 16px;
     margin: 16px 0;
     font-size: 13.5px;
-    color: var(--amber);
+    color: var(--warn-ink);
   }
   .notice__title { font-weight: 700; margin: 0 0 6px; }
   .notice ul { margin: 0; padding-left: 18px; }
   .notice li { margin: 4px 0; }
-  .notice--error { background: var(--clay-soft); border-color: transparent; color: var(--clay); }
+  .notice--error { background: var(--err-soft); border-color: color-mix(in srgb, var(--err) 40%, transparent); color: var(--err); }
 
   /* ---- delivery step ---- */
   .download-card {
@@ -288,31 +307,31 @@
   }
   .download-card__info { flex: 1; min-width: 200px; }
   .download-card__info h3 { margin: 0 0 4px; text-transform: none; letter-spacing: normal; font-size: 15px; color: var(--ink); }
-  .download-card__info p { margin: 0 0 8px; color: var(--ink-2); font-size: 13.5px; }
+  .download-card__info p { margin: 0 0 8px; color: var(--ink-soft); font-size: 13.5px; }
 
   .status-pill {
     display: inline-flex; align-items: center; gap: 6px;
-    font-family: var(--font-mono);
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 11px; font-weight: 600; letter-spacing: .04em;
     padding: 3px 10px 3px 8px; border-radius: 999px;
   }
   .status-pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; flex: none; }
-  .status-pill--ok { background: var(--jade-soft); color: var(--jade); }
-  .status-pill--ok::before { background: var(--jade); }
-  .status-pill--fail { background: var(--amber-soft); color: var(--amber); }
-  .status-pill--fail::before { background: var(--amber); }
+  .status-pill--ok { background: var(--ok-soft); color: var(--ok); }
+  .status-pill--ok::before { background: var(--ok); }
+  .status-pill--fail { background: var(--warn-bg); color: var(--warn-ink); }
+  .status-pill--fail::before { background: var(--warn-ink); }
 
-  .dl-status { font-size: 12.5px; margin: 10px 0 0; font-family: var(--font-mono); display: none; }
+  .dl-status { font-size: 12.5px; margin: 10px 0 0; font-family: 'IBM Plex Mono', monospace; display: none; }
   .dl-status.show { display: block; }
-  .dl-status.ok { color: var(--jade); }
-  .dl-status.err { color: var(--clay); }
+  .dl-status.ok { color: var(--ok); }
+  .dl-status.err { color: var(--err); }
 
   .qa-report {
     background: var(--surface-2);
     border: 1px solid var(--line);
     border-radius: 8px;
     padding: 16px 18px;
-    font-family: var(--font-mono);
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 12px;
     line-height: 1.6;
     white-space: pre-wrap;
@@ -323,23 +342,21 @@
 
   footer.foot {
     max-width: 840px; margin: 32px auto 0; text-align: center;
-    font-size: 12px; color: var(--ink-3);
+    font-size: 12px; color: var(--ink-faint);
   }
 </style>
+</head>
+<body>
 <div class="page">
-  <div class="appbar">
+  <div class="masthead">
     <p class="eyebrow">Training Material Generator</p>
     <h1>Build a training deck from your documents</h1>
-    <p class="lede">
+    <p>
       Upload your client's slide template and the source documents (an FSD or similar
       spec) — this page parses them, drafts a training deck against your template's own
       layouts, and hands you a first-draft <span class="mono">.pptx</span> with knowledge-check
-      questions and a QA report, ready for practitioner review. Shares its template-profiling,
-      layout-mapping, and pptx-assembly core with the <span class="mono">deck-builder</span> skill.
+      questions and a QA report, ready for practitioner review.
     </p>
-    <div class="row">
-      <button type="button" class="btn ghost small" id="theme-toggle" title="Toggle light/dark">Theme</button>
-    </div>
     <div class="privacy-note">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg>
       <span>
@@ -356,18 +373,6 @@
   <footer class="foot">First-draft training material for practitioner review — not finished content.</footer>
 </div>
 
-<script>
-  (function () {
-    var btn = document.getElementById("theme-toggle");
-    if (!btn) return;
-    btn.addEventListener("click", function () {
-      var docEl = document.documentElement;
-      var cur = docEl.getAttribute("data-theme");
-      var isDark = cur ? cur === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
-      docEl.setAttribute("data-theme", isDark ? "light" : "dark");
-    });
-  })();
-</script>
 <!-- CSP allows <script src> from cdnjs but blocks fetch/XHR to it: pdf.js's worker load
      would otherwise be blocked, so the worker script is loaded as a second <script src>
      to populate globalThis.pdfjsWorker, which src/env.js's getPdfJs() reads directly. -->
@@ -377,3 +382,5 @@
 <script>
 <!--INLINE:dist/bundle.js-->
 </script>
+</body>
+</html>
