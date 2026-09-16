@@ -290,16 +290,16 @@ python skills/cm-comms-generator/scripts/video_spec.py <plan> --brand <brand> \
 
 Writes the scene table, VO script with timing, on-screen text and a WebVTT caption file.
 
-Both lanes route to **ElevenLabs, for the narration track only** — never the picture. Neither is
-reachable today: ElevenLabs is installed but disabled in chat, and every tool the connector
-directory lists is voice-*agent* management rather than TTS, so enabling it is necessary but may
-not be sufficient. Re-check the tool surface once it is on.
+Both lanes route to **ElevenLabs, for the narration track only** — never the picture. The
+connector is live and callable (`creative_generate_speech`, plus video/image and flow tools),
+but that only covers narration. The real blocker is the picture: no avatar-video producer is
+installed. See `reference/video-producer-selection.md` for the vendor decision — Synthesia
+recommended, pending client PDPA/consent and data-residency sign-off before any named-individual
+avatar is built.
 
 `explainer_video` is only ever **partly** served this way: even with narration, scene assembly
-and any presenter avatar stay a human production step. No avatar-video connector exists in the
-directory — Synthesia has none, and the nearest neighbours (HyperFrames by HeyGen, Tella) are
-different vendors and not installed. The router reports each `blocked_by` verbatim, and the spec
-plus captions remain the deliverable.
+and any presenter avatar stay a human production step. The router reports each `blocked_by`
+verbatim, and the spec plus captions remain the deliverable.
 
 ## Stage 4 — QA
 

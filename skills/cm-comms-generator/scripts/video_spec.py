@@ -8,17 +8,18 @@ Writes the scene table, the voiceover script with per-scene timing, the on-scree
 a WebVTT caption file, and the direction a producer needs — aspect ratio, avatar, and
 whether each scene is talking head or screen capture.
 
-Both video lanes route to ElevenLabs for the NARRATION TRACK only, and neither is
-reachable in v0.2:
+Both video lanes route to ElevenLabs for the NARRATION TRACK only, never the picture.
+The connector is callable, but that only covers narration:
 
-  short_form_video  ElevenLabs — installed but disabled in chat, and every tool the
-                    connector directory lists is voice-agent management, not TTS
-  explainer_video   ElevenLabs for narration; the picture has no producer at all —
-                    no avatar-video connector exists in the directory
+  short_form_video  ElevenLabs (narration only) — the picture still has no producer
+  explainer_video   ElevenLabs (narration only) — same; scene assembly and any presenter
+                    avatar remain a human production step
 
-So this spec IS the deliverable today, and it is written to be handed to a person or an
-app without further translation. When either connector arrives, the same file is the
-adapter's input: scene text becomes the TTS payload, direction becomes scene setup.
+See reference/video-producer-selection.md for the avatar-vendor decision (Synthesia
+recommended, pending client PDPA/consent and data-residency sign-off). So this spec IS the
+deliverable today, and it is written to be handed to a person or an app without further
+translation. When a producer is wired, the same file is the adapter's input: scene text
+becomes the TTS/avatar payload, direction becomes scene setup.
 
 The runtime estimate is the check that earns its place. A script written to a 45-second
 slot that actually reads at 90 seconds is the single most common defect in a short-form
