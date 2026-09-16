@@ -76,10 +76,10 @@
                       "placeholder": { "type": "string", "description": "Placeholder name/idx from the template profile" },
                       "kind": {
                         "enum": ["text", "heading", "paragraph", "bullets", "table", "image", "diagram", "notes"],
-                        "description": "'image' content is {asset_id, caption, ack_low_res?}. 'diagram' content is a diagram_spec object — see reference/diagram-patterns.md."
+                        "description": "'image' content is {asset_id, caption, ack_low_res?, annotations?}. annotations[] is native-shape overlays (highlight/callout/arrow/redact/zoom) over the untouched picture — see reference/annotation-patterns.md. 'diagram' content is a diagram_spec object — see reference/diagram-patterns.md."
                       },
                       "content": {
-                        "description": "String for prose, array for bullets/table rows, object for image/diagram",
+                        "description": "String for prose, array for bullets/table rows, object for image/diagram. An 'image' content object's optional annotations[] items are {type: highlight|callout|arrow|redact|zoom, rect|point|from/to, step, sources?, label?, reason?, scale?, place?} in coordinates normalised 0-1 to the screenshot image (see reference/annotation-patterns.md). A callout's 'step' is a 1-based index into the sibling bullets block on the same slide — every image block with callouts must have its step numbers form exactly {1..N} against that block's bullet count, checked in qa_training.py. A 'redact' annotation's vector shape is cosmetic only — the block's asset_id MUST point at a png_ops.py-flattened variant (a new asset, never the original screenshot), or build_training_deck.py hard-fails the build.",
                         "type": ["string", "array", "object"]
                       },
                       "sources": {

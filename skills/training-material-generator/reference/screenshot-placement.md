@@ -33,9 +33,28 @@ and classified; this covers what to do with them once you have them.
 4. **Caption from the FSD, not invented.** Use `caption_candidate` if present (usually a
    "Figure N: ..." line the FSD itself wrote); otherwise write a short, literal caption
    describing what's on screen — never a caption that asserts something the screenshot
-   doesn't actually show. Callout numbering (circling field 3, say) goes in the caption
-   text ("① Amount field"), never burned into the image — this repo has no image-editing
-   step, and burning text into a raster image also breaks localization/updates later.
+   doesn't actually show. When the block carries `callout` annotations (see below), echo
+   their numbers in the caption ("① Amount field") so the caption and the circles agree —
+   `qa_training.py` reports it if they don't.
+
+4a. **Highlighting where to click is a native shape, never burned into the image.** A
+   highlight box, a numbered circle, a pointer arrow, or a zoom-inset frame is drawn by
+   `render_annotation.py` as a real DrawingML shape layered *over* an untouched picture —
+   see `reference/annotation-patterns.md` for the full vocabulary and when to use which.
+   This supersedes an earlier version of this rule that forbade annotation outright on the
+   grounds that "this repo has no image-editing step": the objection was to burning text
+   or shapes into the screenshot's pixels, and it still holds — nothing here paints on the
+   raster image itself, so localization and template updates are exactly as unaffected as
+   before. A numbered circle is a real, selectable, editable text run on top of the
+   picture, not a rasterized digit: a practitioner can move it, retype it, or delete it in
+   PowerPoint like any other shape, and it recolours automatically if the client's theme
+   changes. The one genuine exception is **redaction** — masking client data (a vendor
+   name, an org code, a dollar value) needs the underlying pixels actually destroyed, not
+   just covered, so that unzipping the .pptx doesn't recover them. That is a pixel
+   operation (`png_ops.py redact`), producing a *new* asset file; the original screenshot
+   is never edited in place, and a vector shape alone is never accepted as a substitute —
+   `build_training_deck.py` and `qa_training.py` both hard-fail a `redact` annotation whose
+   block still points at the un-flattened original.
 
 5. **`alt_text`, when the source document set it, is a bonus, not a substitute for a
    caption.** Use it to sanity-check the caption, not as the caption itself — `alt_text`
@@ -58,6 +77,11 @@ and classified; this covers what to do with them once you have them.
 - **`quality: ["tiny"]`** — almost never worth placing as a standalone content image;
   usually indicates the asset is actually an icon that `guess_role` mis-classified.
   Sanity-check the role before placing.
+- **An asset with no recorded `width_px`/`height_px`, or `format: emf`/`wmf`/`svg`** —
+  never gets annotations. `render_annotation.py` positions every shape against the
+  screenshot's aspect-fitted rect, computed from its pixel dimensions; without those,
+  every coordinate would be a guess against an undefined rectangle. Rebuild via
+  `render_diagram.py` instead, or place the image unannotated.
 
 ## Unplaced assets
 
