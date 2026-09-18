@@ -47,13 +47,21 @@ status `submitted`. **This session runs remotely and cannot hold a live watch on
 artifact**, and cannot register a wake subscription on it either — nothing wakes Claude
 automatically when someone submits, in either mode, purely from the artifact side.
 
-`reference/intake-worker.md` designs a fix — a claim/lease queue protocol and a 1-minute
-polling loop, backed by an hourly Routine as a durability floor — but **as of the last update
-to this file, that loop is not yet running.** Until it is, the manual trigger is still how
-batches get processed: tell Claude a batch has landed; it re-reads the artifact, processes
+**Form and Free text batches are scored and pushed in-page** (since 2026-09-18): when the
+contributor's view has the Airtable connector and Claude access (the `mcp` and `sample`
+capabilities), the page itself claims the batch, scores it against the skill's rubric with
+`sample`, allocates Impact IDs, upserts Draft rows into `Change Impacts`, and marks the batch
+`processed` — no chat trigger involved. It spends the contributor's own Claude usage and asks
+their consent on first use. Where either capability is missing (the link-shareable testing
+copy, a viewer without the connector, a declined prompt) the batch simply stays `submitted`
+and the card says so honestly, with a "Score & push to Airtable now" button for anyone who
+opens the page with access. `reference/intake-worker.md` has the state machine, the
+coexistence rules with Claude-in-chat, and what still needs a chat session.
+
+**Excel and mode-2 baseline batches still need the manual trigger** (Python for parsing and
+workbook generation): tell Claude a batch has landed; it re-reads the artifact, processes
 whatever's waiting, and republishes with the batch marked `processed` — the resulting Airtable
 rows listed inline for mode 1, or a rating-distribution summary and a CSV download for mode 2.
-Check `reference/intake-worker.md`'s Status section before assuming otherwise.
 
 ## Mode 2 — Generate a new baseline CIA
 

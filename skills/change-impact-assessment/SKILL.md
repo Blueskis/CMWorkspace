@@ -262,14 +262,19 @@ Some teams want the baseline as a workspace rather than a file. Read
 **If content is coming from someone other than the person in this chat**, point them at the
 published `Change Impact Intake` artifact instead of asking for a chat paste — mode 1 has Form,
 Free text and Excel tabs, all landing in the same place. Read `reference/intake-channels.md`.
-This session cannot hold a live watch on a remotely-published artifact, and cannot register a
-wake subscription on one either. `reference/intake-worker.md` designs the fix — a queue
-protocol and polling loop meant to fulfil batches with no manual trigger — but check its Status
-section before assuming it's live: until it is, the person who *is* in this chat needs to say
-so, at which point Claude re-reads the artifact, processes whatever batches are `submitted`
-(running each through Steps 3-5 exactly as it would a chat-pasted brief, or through
-`scripts/import_cia_excel.py` first for an Excel batch), pushes the results to Airtable, and
-republishes the page with each batch marked `processed` and its resulting rows listed inline.
+Form and Free text batches score and push themselves from the contributor's browser when that
+view has Airtable and Claude access (see `reference/intake-channels.md`); Excel and baseline
+batches, and any batch whose contributor lacked that access, wait for the person who *is* in
+this chat to say a batch has landed. Then Claude re-reads the artifact and processes whatever
+is waiting (Steps 3-5 exactly as for a chat-pasted brief, or `scripts/import_cia_excel.py`
+first for an Excel batch), pushes the results to Airtable, and republishes the page with each
+batch marked `processed` and its resulting rows listed inline. Because the page is now a
+worker too, follow the coexistence rules in `reference/intake-worker.md` ("Two workers, one
+document"): only touch `submitted` batches or `claimed` ones whose lease has expired; claim
+first, process, then re-read the artifact immediately before the final publish and patch only
+your own batch; take Impact IDs from the document's `nextImpactSeq` (repaired against the
+Airtable max), reuse `rows[].impactId` where a batch already carries them, and upsert on
+`Intake Key`; honour `worker.paused`.
 
 ### Mode 2: Generate a new baseline CIA (the same artifact, a different job)
 

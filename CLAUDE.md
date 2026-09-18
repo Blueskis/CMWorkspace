@@ -114,8 +114,8 @@ other way round.
 
 | Artifact | URL | Capabilities | Shareable by link? |
 |---|---|---|---|
-| Change Impact Intake (live) | `4f937bb9-ee6d-41bf-ab6e-dabeed14bd55` | `artifact`, `downloads`, `mcp` (Airtable) | No — declaring `mcp` makes an artifact organization-internal |
-| Change Impact Intake (testing) | `8dc74aff-d05c-47c7-a5f2-3a793dd55e26` | `artifact`, `downloads` | Yes — `mcp` deliberately dropped for this copy |
+| Change Impact Intake (live) | `4f937bb9-ee6d-41bf-ab6e-dabeed14bd55` | `artifact`, `downloads`, `sample`, `mcp` (Airtable: `list_records_for_table`, `update_records_for_table`) | No — declaring `mcp` makes an artifact organization-internal |
+| Change Impact Intake (testing) | `8dc74aff-d05c-47c7-a5f2-3a793dd55e26` | `artifact`, `downloads` | Yes — `mcp` and `sample` deliberately dropped for this copy; it runs the same code but the in-page pipeline stays dormant |
 
 **`db` carries the same sharing restriction as `mcp`** — a page declaring it also becomes
 organization-internal, not link-shareable. Don't add `db` to the testing copy for the same

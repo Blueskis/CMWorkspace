@@ -170,16 +170,49 @@ by syntax-checking the patched script (Node) before publish and by hand-tracing 
 - `artifacts/cia-intake.template.html` is kept in sync with the published script (state
   stripped) as of this publish.
 
-**Not yet built:** the `db`/`sample` capability additions, the in-page Airtable push via `mcp`
-(the connector call shape was observed once this session —
-`mcp__Airtable__list_tables_for_base` / `list_records_for_table` against
-`appFD6GsiE3Jh5rGQ` — but the page code that would call it live is not written), the
-queue-status UI (`claimed`/`failed` states, the worker banner), and the scheduled polling loop
-itself. Each of those is a larger, riskier change than the two bug fixes and deserves its own
-pass rather than being bundled in. Until they land, the workflow described in
-`intake-channels.md`'s "Tell Claude a batch has landed" paragraph is still accurate for new
-submissions — treat it as current, not superseded, until this note is removed.
+**Built 2026-09-18 — the page is now a worker for Form and Free text batches.** The live
+artifact declares `sample` and `mcp` (Airtable: `list_records_for_table`,
+`update_records_for_table`) and runs this pipeline in the contributor's own browser, one
+stage per page load because every `artifact.publish` reloads the view:
 
-To start the polling loop once that code exists: `ScheduleWakeup(delaySeconds: 60, prompt:
-"drain the Change Impact Intake queue per reference/intake-worker.md", reason: "1-minute CIA
-intake poll")`, called from a live session, repeated per the backoff schedule above.
+```
+submit ─#1 submitted─▶ resume ─#2 claimed (claimedBy: page token, leaseMs 600000)─▶
+  sample.json(RUBRIC_BLOCK + batch) → rows (validated: whitelisted keys, scores clamped 0-3,
+  selects coerced to the base's option names, ≤50 rows)
+  → nextImpactSeq = max(document seq, Airtable max + 1) ─#3 rows[] with impactId + intakeKey─▶
+  update_records_for_table, performUpsert on `Intake Key` (fld5EIUP37spRnGTv) ─#4 processed─▶
+```
+
+`sessionStorage["cia-intake-pipeline"]` (`{batchId, token, startedAt, rows?, pushed?}`, TTL 15
+min) carries stage outputs across those reloads and is written *before* each publish, so a
+`conflict` never re-spends `sample` usage or repeats the upsert. A missing grant
+(`use()` → `null`, `not_granted`, `server_not_connected`…) or a Stop click releases the batch
+to `submitted`; a real failure (`invalid_json`, `refused`, `tool_error`…) marks it `failed`
+with an actionable `failReason` and a Retry button. An expired lease renders as "Stalled" with
+Retry, which re-claims (`attempts + 1`) and reuses the rows and IDs already on the batch. The
+page honours `worker.paused`. Tests: `node artifacts/tests/cia-intake.test.js` (20 cases).
+`scripts/build_intake_prompt.py --js` regenerates the embedded `RUBRIC_BLOCK`; re-run it and
+paste whenever `extraction-guide.md`, `rating-methodology.md` or `response-playbook.md` change.
+
+**Two workers, one document.** Claude-in-chat and the page can both process the same queue, and
+the artifact document is the only compare-and-set primitive, so Claude follows the same
+protocol when it drains batches:
+
+- Only touch batches at `submitted`, or at `claimed` whose `now - claimedAt > leaseMs`.
+- Claim first (publish `claimed`, `claimedBy: <session id>`), do the work, then re-read the
+  artifact immediately before the final publish and patch **only your own batch by id**.
+- Impact IDs come from the document's top-level `nextImpactSeq` (repair it upward against the
+  Airtable max, never allocate from the max alone), advanced in the same publish that records
+  the rows. A batch that already carries `rows[].impactId` keeps them.
+- Upsert on `Intake Key` = `<batchId>:<rowIndex>`; write `Impact ID` as a plain field. This
+  makes a retry idempotent and means a mis-allocated ID can only ever produce a visible
+  duplicate ID in Airtable, never a silent overwrite of another batch's row.
+- Honour `worker.paused`.
+
+**Still needs a chat session:** Excel batches (`import_cia_excel.py`), mode-2 baselines
+(`generate_cia.py` + `SendUserFile`), any Form/Free text batch whose contributor's view lacked
+the connector or Claude access, and the scheduled polling loop / hourly Routine (unchanged
+design above; `ScheduleWakeup(delaySeconds: 60, prompt: "drain the Change Impact Intake queue
+per reference/intake-worker.md", reason: "1-minute CIA intake poll")` from a live session).
+The link-shareable testing copy runs the same code with `mcp`/`sample` undeclared, so its
+pipeline stays dormant by design.

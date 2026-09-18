@@ -130,6 +130,10 @@ IMPACT_FIELDS = [
          ("Validated", "greenLight2"), ("Baselined", "blueLight2")), "validation_status"),
     ("Source Ref", "singleLineText", None, "source_ref"),
     ("Notes / Open Questions", "multilineText", None, "notes"),
+    # Written only by the Change Impact Intake artifact (<batchId>:<rowIndex>), which upserts on
+    # it. This script keeps merging on Impact ID; the field is listed so --create/self-heal
+    # provisions it and a JSON row may carry it through unchanged.
+    ("Intake Key", "singleLineText", None, "intake_key"),
 ]
 
 COMPUTED = {"Overall Impact", "Rating"}
