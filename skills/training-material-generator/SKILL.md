@@ -379,12 +379,22 @@ the reminder that this is a draft for review.
   input to retrieved chunks and re-verify their output cites real sources.
 - Deadlines and go-live dates in FSDs are real. Surface them early if training needs to
   land before a cut-over.
-- **Annotation (`render_annotation.py`, `png_ops.py`) is Python-only for v0.3, by
-  decision, not oversight.** The `webapp/` browser port's `test/parity.mjs` only guards
-  `map_source.py`/`extract_assets.py` today, so this doesn't create a parity gap yet — but
-  if annotation is ever ported there, `png_ops.py`'s pixel work (the redaction guarantee
-  in particular) must never be reimplemented in a way that lets a plan with an
-  un-flattened `redact` render silently; refuse the plan rather than degrade it.
+- **Annotation is now ported to the `webapp/` browser artifact** (`src/render-annotation.js`,
+  `src/canvas-ops.js`, wired into `plan.js`'s opt-in "annotate" stage, `build-pptx.js`, and
+  `qa.js`). The redaction invariant carries over unchanged: `canvas-ops.js`'s `redactImage()`
+  produces a genuinely flattened asset via Canvas 2D (no PNG codec needed — the browser
+  already has one), and `build-pptx.js`/`qa.js` both refuse a `redact` annotation whose
+  block still points at the un-flattened original, exactly as `build_training_deck.py`/
+  `qa_training.py` do here. `test/parity.mjs` still only guards `map_source.py`/
+  `extract_assets.py`, and deliberately does not attempt byte-for-byte parity on pixel
+  ops — Canvas and this stdlib codec will never produce identical bytes, and shouldn't;
+  `webapp/test/annotation-render.mjs` and `canvas-ops.mjs` cover the browser side directly
+  instead. The one thing that must never diverge between the two implementations is the
+  refusal itself: an un-flattened redact ships on neither side, under any circumstance.
+  Where the two annotation authoring flows genuinely differ: the CLI skill's coordinates
+  come from Claude reading the screenshot in-session; the artifact's come from a
+  `sample.json` call with the screenshot attached, one call per screenshot, opt-in and
+  consent-gated — see `webapp/src/plan.js`'s `annotatePrompt()`/`annotateModules()`.
 
 ## Layout
 

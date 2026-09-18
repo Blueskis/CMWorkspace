@@ -24,6 +24,7 @@ import { getJSZip, parseXml } from "./env.js";
 import { targetPlaceholders } from "./map-layouts.js";
 import { emu, xmlEscape, findAll, attr, resolveTarget } from "./xml.js";
 import { renderDiagram } from "./render-diagram.js";
+import { renderAnnotation } from "./render-annotation.js";
 import { linesNeeded, fitFontSize } from "./text-fit.js";
 
 const P_NS = "http://schemas.openxmlformats.org/presentationml/2006/main";
@@ -676,6 +677,20 @@ export async function buildPptx({ templateBytes, profile, assignment, plan, asse
           warnings.push(`${slide.slide_id}: asset "${block.content?.asset_id}" not found — block dropped`);
           continue;
         }
+        const annotations = block.content?.annotations ?? [];
+        // A "redact" annotation's shape (below) is a COSMETIC overlay only — the pixels
+        // underneath survive in ppt/media unless the asset was actually flattened by
+        // canvas-ops.js's redactImage(). Refuse before the media part is even written,
+        // never after: an un-flattened redaction that ships is a data-disclosure defect,
+        // not a warning. Mirrors build_training_deck.py's identical hard refusal.
+        if (annotations.some((a) => a.type === "redact") && !asset.redacted_from) {
+          warnings.push(
+            `${slide.slide_id}: "redact" annotation but asset "${block.content?.asset_id}" has no ` +
+              `redacted_from — run canvas-ops.js redactImage() and point the block at the ` +
+              `flattened asset; a vector shape alone leaves the original pixels in the .pptx. Block dropped.`
+          );
+          continue;
+        }
         const ext = (asset.ext || "png").toLowerCase();
         const ct = CONTENT_TYPE_BY_EXT[ext];
         if (!ct) {
@@ -692,6 +707,19 @@ export async function buildPptx({ templateBytes, profile, assignment, plan, asse
         const fitted = fitExtent(geom, imagePixelSize(asset.bytes));
         shapes.push(picShapeXml(nextShapeId++, `Picture ${nextShapeId}`, picRid, fitted,
           block.content?.caption ?? asset.alt));
+        if (annotations.length) {
+          try {
+            const { ooxml } = renderAnnotation(annotations, fitted, { idStart: nextShapeId });
+            // renderAnnotation numbers from idStart; advance past everything it used —
+            // same defensive id-scan renderDiagram's own call site below uses.
+            const used = (ooxml.match(/<p:cNvPr id="(\d+)"/g) || [])
+              .map((s) => parseInt(s.match(/(\d+)/)[1], 10));
+            nextShapeId = Math.max(nextShapeId, ...used) + 1;
+            shapes.push(ooxml); // pushed AFTER picShapeXml — document order is z-order, callouts land on top
+          } catch (e) {
+            warnings.push(`${slide.slide_id}: annotation render failed (${e.message}) — screenshot placed without callouts`);
+          }
+        }
       } else if (block.kind === "diagram" && !isGap) {
         try {
           const { ooxml } = renderDiagram(block.content.diagram_type, block.content.spec, geom, {

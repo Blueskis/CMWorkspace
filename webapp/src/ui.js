@@ -42,7 +42,10 @@ const state = {
   errorStage: null,
   errorRetriable: false,
   errorReplyText: null, // the raw reply text from a failed sample.json() call, when any streamed
-  generationResume: null, // { brief?, moduleSkeletons?, modules?, questions? } from a failed run's e.progress
+  generationResume: null, // { brief?, moduleSkeletons?, modules?, questions?, derivedAssets?, annotatedSlideIds? } from a failed run's e.progress
+  annotate: false, // the opt-in toggle — off by default; each screenshot costs one extra viewer-paid Claude call
+  annotateImagesAvailable: null, // null = not checked yet; true/false once sample.limits() resolves
+  annotateProgress: null, // { done, total } while the "annotate" stage is running — for "screenshot N of M"
   objectUrls: [],
 };
 
@@ -170,6 +173,21 @@ async function runParse(root) {
     state.step = "error";
   }
   render(root);
+
+  // Cheap and local — no usage spent, no consent prompt (per sample.d.ts's own contract)
+  // — so it's safe to check right away rather than waiting for the viewer to touch the
+  // toggle. Runs after the review render above so the page never blocks its first paint
+  // on this; the checkbox just starts disabled and enables when the answer comes back.
+  if (state.step === "review") {
+    try {
+      const sample = await window.claude?.use?.("sample");
+      const limits = await sample?.limits?.();
+      state.annotateImagesAvailable = !!limits?.images;
+    } catch {
+      state.annotateImagesAvailable = false;
+    }
+    if (state.step === "review") render(root);
+  }
 }
 
 function renderParsing(root) {
@@ -237,6 +255,34 @@ function renderReview(root) {
       ])
     : null;
 
+  // Opt-in, off by default — each screenshot the vision call annotates is one extra
+  // viewer-paid, consent-gated Claude call (5-60s), so the cost is visible before it's
+  // spent rather than assumed. Disabled with an explanatory tooltip when this view can't
+  // send images to Claude at all (checked once, right after parsing — see runParse).
+  const annotateAvailable = state.annotateImagesAvailable === true;
+  const annotateChecking = state.annotateImagesAvailable === null;
+  const annotateToggle = screenshots.length
+    ? el("label", { class: "toggle-row", title: annotateChecking
+        ? "Checking whether this view can send images to Claude…"
+        : annotateAvailable ? "" : "This view can't send images to Claude — the toggle is unavailable here." }, [
+        el("input", {
+          type: "checkbox", disabled: !annotateAvailable ? "disabled" : null,
+          onchange: (e) => { state.annotate = e.target.checked; },
+        }),
+        el("span", {}, [
+          el("b", {}, "Annotate screenshots with callouts"),
+          el("br"),
+          el("span", { class: "muted" },
+            annotateChecking
+              ? "Checking availability…"
+              : annotateAvailable
+                ? `Highlights, numbered steps, and pointer arrows matched to each slide's instructions. ` +
+                  `Adds one Claude call per screenshot (~10-30s each, ${screenshots.length} screenshot(s) found).`
+                : "Unavailable in this view."),
+        ]),
+      ])
+    : null;
+
   root.replaceChildren(
     el("div", { class: "panel" }, [
       el("h2", {}, "2. Review"),
@@ -257,6 +303,7 @@ function renderReview(root) {
       ])),
       screenshots.length ? el("h3", {}, `Screenshots found (${screenshots.length})`) : null,
       screenshots.length ? el("div", { class: "thumb-grid" }, thumbs) : null,
+      annotateToggle,
       el("div", { class: "panel__actions" }, [
         el("button", { class: "btn", onclick: () => { state.step = "upload"; render(root); } }, "Back"),
         el("button", { class: "btn btn--primary", onclick: () => runGenerate(root) },
@@ -278,6 +325,7 @@ const STAGE_LABELS = {
   brief: "Writing the training brief",
   "module-plan": "Planning modules and slides",
   "slide-copy": "Writing slide content",
+  annotate: "Annotating screenshots",
   questions: "Writing knowledge-check questions",
   building: "Assembling the .pptx",
   done: "Done",
@@ -297,13 +345,23 @@ async function runGenerate(root) {
       );
     }
 
-    const { brief, plan, questions } = await generatePlan(state.corpus, {
+    const { brief, plan, questions, derivedAssets, warnings: annotateWarnings } = await generatePlan(state.corpus, {
       sampleJson: (prompt, opts) => sample.json(prompt, opts),
       questionCount: QUESTION_COUNT,
-      onStage: (s) => { state.stage = s; render(root); },
+      annotate: state.annotate,
+      onStage: (s) => { state.stage = s; state.annotateProgress = null; render(root); },
+      onAnnotateProgress: (p) => { state.annotateProgress = p; render(root); },
       resume: state.generationResume ?? {},
     });
     state.generationResume = null; // fully succeeded — nothing left to resume from
+
+    // Screenshots the annotate stage flattened (redact) or cropped (zoom) are brand-new
+    // assets that exist only in generatePlan's own return value — merge them into the
+    // corpus the rest of this run (and the QA audit below) reads from. corpus.assets
+    // itself is otherwise untouched by generation, so this is additive, never a rewrite.
+    if (derivedAssets?.length) {
+      state.corpus = { ...state.corpus, assets: [...state.corpus.assets, ...derivedAssets] };
+    }
 
     state.stage = "building";
     render(root);
@@ -315,7 +373,9 @@ async function runGenerate(root) {
     }
 
     const assetsByRole = new Map(
-      state.corpus.assets.map((a) => [a.asset_id, { bytes: a.bytes, ext: a.ext, alt: a.caption_candidate }])
+      state.corpus.assets.map((a) => [a.asset_id, {
+        bytes: a.bytes, ext: a.ext, alt: a.caption_candidate ?? a.alt_text, redacted_from: a.redacted_from ?? null,
+      }])
     );
 
     const built = await buildPptx({
@@ -325,6 +385,7 @@ async function runGenerate(root) {
       plan,
       assets: assetsByRole,
     });
+    if (annotateWarnings?.length) built.warnings = [...(built.warnings ?? []), ...annotateWarnings];
 
     const qaResult = audit(brief, plan, state.corpus, questions);
     const qaReport = renderReport(qaResult, plan.run_id);
@@ -343,7 +404,7 @@ async function runGenerate(root) {
     const RETRIABLE = new Set(["invalid_json", "upstream_error", "rate_limited", "refused", "empty_completion"]);
     state.error = e.message || String(e);
     state.errorCode = code;
-    state.errorStage = state.stage; // which of brief/module-plan/slide-copy/questions/building was in flight
+    state.errorStage = state.stage; // which of brief/module-plan/slide-copy/annotate/questions/building was in flight
     state.errorRetriable = RETRIABLE.has(code);
     state.errorReplyText = typeof e?.text === "string" ? e.text : null;
     // generatePlan() attaches whatever it had already completed to e.progress before
@@ -357,13 +418,17 @@ async function runGenerate(root) {
 }
 
 function renderGenerating(root) {
-  const order = ["brief", "module-plan", "slide-copy", "questions", "building"];
+  const order = ["brief", "module-plan", "slide-copy", ...(state.annotate ? ["annotate"] : []), "questions", "building"];
   const currentIdx = order.indexOf(state.stage);
+  const progress = state.stage === "annotate" && state.annotateProgress;
   root.replaceChildren(
     el("div", { class: "panel panel--center" }, [
       el("div", { class: "spinner" }),
       el("ol", { class: "stage-list" }, order.map((s, i) =>
-        el("li", { class: i < currentIdx ? "done" : i === currentIdx ? "active" : "" }, STAGE_LABELS[s])
+        el("li", { class: i < currentIdx ? "done" : i === currentIdx ? "active" : "" }, [
+          STAGE_LABELS[s],
+          s === "annotate" && progress ? el("span", { class: "muted" }, ` — screenshot ${progress.done + 1 <= progress.total ? progress.done + 1 : progress.total} of ${progress.total}`) : null,
+        ])
       )),
       el("p", { class: "muted" }, "The first step asks your permission to talk to Claude — accept it to continue."),
     ])
@@ -401,6 +466,26 @@ function renderDone(root) {
   const fail = hardFail(qaResult);
   const filename = `${(state.corpus.documents[0]?.document_id ?? "training").replace(/[^a-z0-9-]+/gi, "-")}-DRAFT.pptx`;
 
+  // Annotation summary — only worth a line when the toggle was actually on.
+  let annotatedCount = 0, screenshotBlockCount = 0;
+  if (state.annotate) {
+    for (const mod of plan.modules ?? []) {
+      for (const slide of mod.slides ?? []) {
+        for (const block of slide.blocks ?? []) {
+          if (block.kind !== "image" || block.gap) continue;
+          screenshotBlockCount++;
+          if (block.content?.annotations?.length) annotatedCount++;
+        }
+      }
+    }
+  }
+  const needsManual = qaResult.annotationSkipped?.length ?? 0;
+  const annotateSummary = state.annotate && screenshotBlockCount
+    ? el("p", { class: "muted" },
+        `${annotatedCount} of ${screenshotBlockCount} screenshot(s) annotated` +
+          (needsManual ? `, ${needsManual} need manual callouts (see QA report §8)` : "") + ".")
+    : null;
+
   root.replaceChildren(
     el("div", { class: "panel" }, [
       el("h2", {}, "3. Deliver"),
@@ -413,6 +498,7 @@ function renderDone(root) {
         ]),
         el("button", { id: "dl-btn", class: "btn btn--primary", onclick: () => handleDownload(filename) }, "Download deck (.pptx)"),
       ]),
+      annotateSummary,
       el("div", { id: "dl-status", class: "dl-status" }),
       built.warnings?.length
         ? el("div", { class: "notice" }, [
@@ -435,7 +521,7 @@ function startOver(root) {
     step: "upload", templateFile: null, sourceFiles: [], profile: null, assignment: null,
     overrides: {}, corpus: null, stage: null, result: null, error: null,
     errorCode: null, errorStage: null, errorRetriable: false, errorReplyText: null,
-    generationResume: null,
+    generationResume: null, annotate: false, annotateImagesAvailable: null, annotateProgress: null,
   });
   render(root);
 }

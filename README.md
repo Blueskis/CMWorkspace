@@ -367,6 +367,27 @@ pixel dimensions (EMF/WMF/SVG, interlaced or 16-bit PNG), and any cropping or up
 a screenshot outside an explicit `zoom` annotation. Output is always a **draft for
 practitioner review**.
 
+### Browser port — `webapp/`
+
+`webapp/` is a full JS port of this pipeline (`build.js` bundles it into a single
+`dist/index.html`, meant to be published as a claude.ai Artifact — not yet published; see
+its own `package.json`/`build.js`). It now carries the same screenshot annotation:
+`src/render-annotation.js` and `src/canvas-ops.js` are the browser twins of
+`render_annotation.py`/`png_ops.py`, wired into an opt-in **annotate** stage in
+`src/plan.js`, a build-time overlay in `src/build-pptx.js`, and check 8 in `src/qa.js`.
+The one real architectural difference: the Python skill's annotation coordinates come from
+Claude reading the screenshot inside a Claude Code session; the artifact instead calls the
+published-page `sample` capability once per screenshot, with the screenshot attached as an
+image, and the practitioner opts in explicitly (each call is real, consent-gated Claude
+usage on the viewer's own account). `webapp/test/annotation-render.mjs`,
+`canvas-ops.mjs`, `qa-annotation.mjs` and `plan-annotate.mjs` cover it in Node before it
+ever ships to a browser — the same discipline `webapp/test/parity.mjs` documents for the
+rest of the port. Redaction's guarantee — a `redact` annotation whose asset was never
+actually flattened is refused, never shipped as a cosmetic-only mask — holds identically
+on both sides, though the pixel work itself is Canvas 2D here, not a hand-rolled PNG codec
+like `png_ops.py`'s (the browser already has a PNG codec; re-implementing one would be
+pure risk for no benefit).
+
 ## Layout
 
 ```

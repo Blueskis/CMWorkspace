@@ -5,9 +5,26 @@
  * failures (objective coverage, source coverage, provenance) and soft ones reported but
  * not blocking (asset hygiene, question sanity) — see that script's own docstring for the
  * exact rules; this is a direct translation, not a redesign.
+ *
+ * Annotation integrity (below, report section 8 — this file's own section numbering
+ * already used 6 and 7 for the advisory checks that have no Python equivalent) is a
+ * direct port of qa_training.py's own check 6:
+ * callout binding (step numbers exactly {1..N} against the slide's one bullets block),
+ * geometry (every coordinate in [0,1]), and un-flattened redaction are hard failures;
+ * annotation density (>6 on one screenshot) is reported only. This artifact adds one
+ * thing the Python skill has no equivalent for — Claude's own declared skips, from the
+ * "annotate" stage's vision call giving up on a target rather than guessing — reported
+ * under the same non-blocking section, per this project's low-confidence-handling rule:
+ * a screenshot Claude couldn't confidently annotate ships unannotated, and is listed for
+ * a human to finish by hand, never silently dropped.
  */
 
-// Advisory-only visual-variety thresholds (see the "## 6" block below) — this repo's own
+import { validateAnnotations } from "./render-annotation.js";
+
+const ANNOTATION_DENSITY_MAX = 6;
+
+// Advisory-only visual-variety thresholds (see the "## 6. Visual variety" block below) —
+// this repo's own
 // judgment call, not a number qa_training.py or any spec dictates. Hoisted to module scope
 // so audit() and renderReport() share one definition rather than each hardcoding "3".
 const REPEAT_RUN_MIN = 3;
@@ -100,6 +117,52 @@ export function audit(brief, plan, corpus, questions) {
     }
   }
 
+  // annotation integrity — hard: binding, geometry, un-flattened redaction; report-only:
+  // density, and screenshots the "annotate" stage's own vision call declined to place.
+  const annotationBindingErrors = [];
+  const annotationGeometryErrors = [];
+  const annotationRedactUnflattened = [];
+  const annotationDensityReport = [];
+  const annotationSkipped = [];
+  for (const mod of plan.modules ?? []) {
+    for (const slide of mod.slides ?? []) {
+      const bulletsBlocks = (slide.blocks ?? []).filter((b) => b.kind === "bullets");
+      for (const block of slide.blocks ?? []) {
+        if (block.kind !== "image" || block.gap) continue;
+        const annotations = block.content?.annotations ?? [];
+        const skipped = block.content?.skipped ?? [];
+        const where = `${slide.slide_id} / ${block.content?.asset_id}`;
+
+        for (const s of skipped) {
+          annotationSkipped.push(`${where}: step ${s.step ?? "?"} — ${s.reason ?? "no reason given"}`);
+        }
+        if (!annotations.length) continue;
+
+        if (annotations.length > ANNOTATION_DENSITY_MAX) {
+          annotationDensityReport.push(`${where}: ${annotations.length} annotations`);
+        }
+        for (const ann of annotations) {
+          if (ann.type === "redact") {
+            const asset = assetsById[block.content?.asset_id];
+            if (!asset || !asset.redacted_from) {
+              annotationRedactUnflattened.push(
+                `${where}: redact annotation but asset has no redacted_from (reason: ${ann.reason ?? "not given"})`
+              );
+            }
+          }
+        }
+
+        const bulletCount = bulletsBlocks.length === 1 ? (bulletsBlocks[0].content ?? []).length : null;
+        const { errors } = validateAnnotations(annotations, bulletCount);
+        for (const e of errors) {
+          const msg = `${where}: ${e}`;
+          if (e.includes("step numbers") || e.includes("no single bullets block")) annotationBindingErrors.push(msg);
+          else annotationGeometryErrors.push(msg);
+        }
+      }
+    }
+  }
+
   // --- advisory: visual variety (not a hard failure — see hardFail() below, which does
   // not read either of these two fields, so adding them can't change any existing
   // pass/fail verdict). Two independent, cheap-to-compute signals a human reviewer
@@ -141,6 +204,8 @@ export function audit(brief, plan, corpus, questions) {
     missingProvenance, gapMissingNote, uncoveredProcedures, sections,
     unplacedScreenshots, unusedDeclared, lowResPlacedUnacked,
     noVisualSlides, repeatedLayoutRuns, placeholderSlides,
+    annotationBindingErrors, annotationGeometryErrors, annotationRedactUnflattened,
+    annotationDensityReport, annotationSkipped,
   };
 }
 
@@ -150,7 +215,10 @@ export function hardFail(result) {
     result.missingProvenance.length ||
     result.gapMissingNote.length ||
     result.uncoveredProcedures.length ||
-    (result.questionsChecked && result.loNoQuestion.length)
+    (result.questionsChecked && result.loNoQuestion.length) ||
+    result.annotationBindingErrors.length ||
+    result.annotationGeometryErrors.length ||
+    result.annotationRedactUnflattened.length
   );
 }
 
@@ -243,6 +311,37 @@ export function renderReport(result, planRunId) {
     result.placeholderSlides.forEach((id) => push(`- \`${id}\``));
   } else {
     push("Every planned slide has generated content.");
+  }
+
+  push("", "## 8. Annotation integrity", "");
+  if (result.annotationBindingErrors.length) {
+    push("### FAIL — callout step numbers don't match the slide's instructions 1:1", "");
+    result.annotationBindingErrors.forEach((e) => push(`- ${e}`));
+  }
+  if (result.annotationGeometryErrors.length) {
+    push("", "### FAIL — annotation coordinates out of bounds", "");
+    result.annotationGeometryErrors.forEach((e) => push(`- ${e}`));
+  }
+  if (result.annotationRedactUnflattened.length) {
+    push("", "### FAIL — redact annotation with no flattened asset behind it", "",
+      "The vector shape alone is cosmetic; the original pixels are still in the .pptx. " +
+      "Run canvas-ops.js's redactImage() on the source asset and point the block at the result:", "");
+    result.annotationRedactUnflattened.forEach((e) => push(`- ${e}`));
+  }
+  if (!result.annotationBindingErrors.length && !result.annotationGeometryErrors.length
+      && !result.annotationRedactUnflattened.length) {
+    push("Every annotated screenshot's callouts bind 1:1 to its instructions, every coordinate " +
+      "is in bounds, and every redaction is backed by a flattened asset.");
+  }
+  if (result.annotationDensityReport.length) {
+    push("", "### Dense annotation (report only)", "",
+      "Not a defect, but usually a sign the step should split across slides:", "");
+    result.annotationDensityReport.forEach((d) => push(`- ${d}`));
+  }
+  if (result.annotationSkipped.length) {
+    push("", "### Screenshots Claude could not confidently annotate", "",
+      "Add callouts manually in PowerPoint for these:", "");
+    result.annotationSkipped.forEach((s) => push(`- ${s}`));
   }
 
   push("", "## Handover", "");

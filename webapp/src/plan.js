@@ -1,21 +1,33 @@
 /**
- * Turn a parsed document corpus into a deck plan, via four staged calls to Claude.
+ * Turn a parsed document corpus into a deck plan, via four (five, with annotation
+ * opted in) staged calls to Claude.
  *
  * There is no Python equivalent to port: in a Claude Code session, planning and writing
  * IS the model working directly over the whole document in its own context. Here that
  * has to become explicit, bounded API calls, because `sample` caps input at 64 KiB per
  * call (see sample.d.ts) and the model has no memory between calls. So the FSD's own
- * stage boundaries (brief -> module plan -> slide content -> questions) become the
- * staging boundaries: each call gets only what it needs, never the whole document.
+ * stage boundaries (brief -> module plan -> slide content -> annotate -> questions)
+ * become the staging boundaries: each call gets only what it needs, never the whole
+ * document.
  *
- * Every prompt-building function here is pure and independently testable (test/plan.mjs
+ * Every PROMPT-building function here is pure and independently testable (test/plan.mjs
  * mocks the sampler and checks each prompt's byte budget and each response's shape). Only
  * `sample.json` itself cannot run outside a published artifact.
+ *
+ * The one exception to "every function here is pure": `annotateModules()`'s handling of
+ * a `redact`/`zoom` annotation calls into canvas-ops.js to actually produce a new,
+ * pixel-modified asset — real (Canvas) I/O, not string transformation. It is isolated to
+ * that one function so the rest of this file's purity claim still holds for everything
+ * else; test/canvas-ops.mjs covers that function's own logic separately from plan.mjs's
+ * pure-prompt tests.
  *
  * The provenance rule carries over unchanged: every prompt requires every content block
  * to cite real section_ids, and qa.js — not this file — is the enforcement, exactly as
  * qa_training.py enforces it downstream of the Python pipeline's own writing stage.
  */
+
+import { validateAnnotations } from "./render-annotation.js";
+import { redactImage, cropScale, mimeFor } from "./canvas-ops.js";
 
 const MAX_INPUT_BYTES = 60 * 1024; // sample's cap is 64 KiB; leave headroom for instructions
 const MODEL_TIER = "complex"; // this is drafting work, not a quick lookup
@@ -327,6 +339,90 @@ Rules:
   closes (array, spec, content) before "sources", which sits on the BLOCK, not inside
   "content". Finish one slide object completely, brace by brace, before starting the next
   one — a single missed "}" anywhere in this reply invalidates the entire batch.`;
+}
+
+// ---------------------------------------------------------------------------
+// Stage 3b — annotate (opt-in)
+// ---------------------------------------------------------------------------
+
+// Same coordinate/vocabulary rules as reference/annotation-patterns.md on the Python
+// side — kept in sync by hand since this prompt has no file to import from.
+const ANNOTATION_RULES = `Coordinates are fractions from 0 to 1 of the SCREENSHOT IMAGE
+itself, origin top-left (0,0) — NEVER pixel numbers, and never a fraction of anything else.
+If you give a value above 1, it will be rejected as a pixel-coordinate mistake.
+
+Five annotation types:
+- "highlight": {"type":"highlight","rect":[u,v,du,dv],"step":N,"label":"short literal name"}
+  — outline a field/button/panel that has real width and height.
+- "callout": {"type":"callout","point":[u,v],"step":N} — a numbered circle on an exact
+  point. "step" is the 1-based position of the instruction it corresponds to.
+- "arrow": {"type":"arrow","from":[u,v],"to":[u,v],"step":N} — point at something too
+  small or too close to another control for a highlight box; "to" is where the arrowhead
+  lands, on the target.
+- "redact": {"type":"redact","rect":[u,v,du,dv],"reason":"what this is"} — mark real
+  client data for masking: a person's name, a vendor/supplier name, an org unit code, an
+  account or ID number, a dollar amount, an email address. No "step" — this is not an
+  instruction. Flag EVERY instance you see, even if the instructions don't mention it.
+- "zoom": {"type":"zoom","rect":[u,v,du,dv],"scale":3,"place":"right","step":N} — the
+  source region for a magnified inset, when a target (a small icon, a toolbar button) is
+  too small to see clearly at the screenshot's placed size. "place" is "left"|"right"|"below".
+
+Rules:
+- One annotation per instruction step is normal; not every step needs one — only add an
+  annotation when you can see the exact target with confidence.
+- If you cannot confidently locate what an instruction refers to (ambiguous, cropped out
+  of frame, obscured), do NOT guess a location. Instead add it to "skipped":
+  {"step":N,"reason":"why you couldn't place it"}. A wrong callout misleads a learner far
+  more than a missing one — never place one you are not confident about.
+- "step" values across all step-bearing annotations on one image, taken together, must be
+  possible 1-based indices into the instruction list below — never invent a step number
+  higher than the number of instructions given, never repeat one.
+- redact annotations have no step and do not count against that rule — flag every
+  instance of real client data you see, independent of the instruction list.`;
+
+/**
+ * @param {object} imageBlock  the slide's one "image"-kind block
+ * @param {string[]} instructions  the slide's one bullets block's content, in order —
+ *   annotation "step" values are 1-based indices into this list
+ * @param {object[]} sourceSections  the section(s) this slide's blocks cite, full text
+ * @returns {string}
+ */
+export function annotatePrompt(imageBlock, instructions, sourceSections) {
+  const excerpt = sourceSections
+    .map((s) => `[${s.section_id}] ${s.section_path}\n${s.text}`)
+    .join("\n\n")
+    .slice(0, 4000); // this call carries an image too — keep the text budget small
+  return `Look at the attached screenshot and find where each numbered instruction below
+happens on screen, so a learner can see exactly where to look and what to click.
+
+Instructions for this step (1-based):
+${instructions.map((t, i) => `${i + 1}. ${t}`).join("\n")}
+
+Screenshot caption: ${imageBlock.content?.caption ?? "(none)"}
+
+Source text this step is drawn from, for field/button names and context:
+${excerpt}
+
+${ANNOTATION_RULES}
+
+Return ONLY a JSON object shaped exactly like this example — your entire reply must be the
+JSON value alone, no explanation before or after it.
+
+${EXAMPLE_START}
+{
+  "annotations": [
+    {"type": "highlight", "rect": [0.41, 0.22, 0.28, 0.06], "step": 1, "label": "Approve button"},
+    {"type": "callout", "point": [0.55, 0.25], "step": 1},
+    {"type": "redact", "rect": [0.05, 0.05, 0.22, 0.04], "reason": "supplier name"}
+  ],
+  "skipped": [
+    {"step": 2, "reason": "the confirmation dialog this refers to is not visible in this screenshot"}
+  ]
+}
+${EXAMPLE_END}
+
+If nothing can be confidently placed, return {"annotations": [], "skipped": [...]} — an
+empty annotations list is a correct, honest answer, never a failure to fix by guessing.`;
 }
 
 // ---------------------------------------------------------------------------
@@ -885,6 +981,8 @@ export async function generatePlan(corpus, {
   sampleJson,
   questionCount = 5,
   onStage = () => {},
+  onAnnotateProgress = () => {},
+  annotate = false,
   resume = {},
 } = {}) {
   if (!sampleJson) throw new Error("generatePlan requires a sampleJson function");
@@ -893,6 +991,9 @@ export async function generatePlan(corpus, {
   let moduleSkeletons = resume.moduleSkeletons ?? null;
   const modules = resume.modules ? [...resume.modules] : [];
   let questions = resume.questions ?? null;
+  const derivedAssets = resume.derivedAssets ? [...resume.derivedAssets] : [];
+  const annotatedSlideIds = new Set(resume.annotatedSlideIds ?? []);
+  const warnings = [];
 
   try {
     if (!brief) {
@@ -982,6 +1083,19 @@ export async function generatePlan(corpus, {
       }
     }
 
+    // Opt-in: each candidate screenshot is one extra viewer-paid, consent-gated Claude
+    // call — see ui.js's review-step toggle, which is expected to have already checked
+    // (await sample.limits()).images before ever setting annotate:true.
+    if (annotate) {
+      onStage("annotate");
+      const result = await annotateModules(sampleJson, modules, corpus, {
+        alreadyDone: annotatedSlideIds, onProgress: onAnnotateProgress,
+      });
+      derivedAssets.push(...result.derivedAssets);
+      for (const id of result.annotatedSlideIds) annotatedSlideIds.add(id);
+      warnings.push(...result.warnings);
+    }
+
     if (!questions) {
       onStage("questions");
       questions = await generateQuestions(sampleJson, brief, corpus, questionCount);
@@ -997,11 +1111,150 @@ export async function generatePlan(corpus, {
       },
       questions,
       sectionsById,
+      derivedAssets, // NEW assets (redacted/zoomed) the caller must merge into its own corpus.assets before building
+      warnings, // non-fatal annotate-stage notes ("images_unavailable", a validation failure) — fold into the QA report
     };
   } catch (e) {
-    if (e && typeof e === "object") e.progress = { brief, moduleSkeletons, modules, questions };
+    if (e && typeof e === "object") {
+      e.progress = { brief, moduleSkeletons, modules, questions, derivedAssets, annotatedSlideIds: [...annotatedSlideIds] };
+    }
     throw e;
   }
+}
+
+/**
+ * The opt-in "annotate" stage: for each slide with exactly one "image" block and exactly
+ * one "bullets" block, one `sample.json` call WITH the screenshot attached asks Claude to
+ * locate each instruction on screen. One call per screenshot, deliberately — `images`
+ * accepts an array, but multiplexing several screenshots into one reply risks
+ * cross-assigning an annotation to the wrong image, and each screenshot needs its own
+ * slide's bullets as context anyway; reliability beats a smaller call count here.
+ *
+ * Mutates `modules` in place (adding `content.annotations`/`content.skipped` to image
+ * blocks, and inserting a new sibling "image" block for a "zoom" annotation's magnified
+ * inset) and returns `{derivedAssets, annotatedSlideIds, warnings}`. `derivedAssets` are
+ * brand-new asset entries (a redacted flatten, a zoom crop) the caller must merge into
+ * its own corpus.assets before building — this function never mutates `corpus` itself.
+ *
+ * @param {Set<string>} alreadyDone  slide_ids annotated on a prior (failed) attempt —
+ *   resume support, same pattern generatePlan's slide-copy loop already uses.
+ */
+async function annotateModules(sampleJson, modules, corpus, { alreadyDone = new Set(), onProgress = () => {} } = {}) {
+  const sectionsById = Object.fromEntries(corpus.sections.map((s) => [s.section_id, s]));
+  const assetsById = Object.fromEntries(corpus.assets.map((a) => [a.asset_id, a]));
+  const derivedAssets = [];
+  const annotatedSlideIds = new Set(alreadyDone);
+  const warnings = [];
+
+  // Count candidate slides up front so onProgress can report "N of M", not just a tally.
+  const candidates = [];
+  for (const mod of modules) {
+    for (const slide of mod.slides ?? []) {
+      if (annotatedSlideIds.has(slide.slide_id)) continue;
+      const imageBlocks = (slide.blocks ?? []).filter((b) => b.kind === "image" && !b.gap);
+      const bulletsBlocks = (slide.blocks ?? []).filter((b) => b.kind === "bullets");
+      if (imageBlocks.length === 1 && bulletsBlocks.length === 1) {
+        candidates.push({ slide, imageBlock: imageBlocks[0], bulletsBlock: bulletsBlocks[0] });
+      }
+    }
+  }
+
+  let done = 0;
+  for (const { slide, imageBlock, bulletsBlock } of candidates) {
+    onProgress({ done, total: candidates.length });
+    const asset = assetsById[imageBlock.content.asset_id];
+    if (!asset || !asset.bytes) {
+      warnings.push(`${slide.slide_id}: asset "${imageBlock.content.asset_id}" not found — skipped annotation`);
+      annotatedSlideIds.add(slide.slide_id);
+      done++;
+      continue;
+    }
+
+    const instructions = bulletsBlock.content ?? [];
+    const sourceSectionIds = new Set([...(imageBlock.sources ?? []), ...(bulletsBlock.sources ?? [])]);
+    const sourceSections = [...sourceSectionIds].map((id) => sectionsById[id]).filter(Boolean);
+    const prompt = annotatePrompt(imageBlock, instructions, sourceSections);
+    const mime = mimeFor(asset.ext ?? asset.format);
+    const blob = new Blob([asset.bytes], { type: mime });
+
+    let reply;
+    try {
+      reply = await callSampleJson(sampleJson, prompt, { modelTier: "default", images: blob, cache: false });
+    } catch (e) {
+      // Consent declined, no images capability, rate limit, upstream failure — the
+      // screenshot ships unannotated rather than failing the whole run; every OTHER
+      // failure code the caller decides about (images_unavailable in particular should
+      // have been checked before offering the toggle at all — see ui.js).
+      warnings.push(`${slide.slide_id}: annotate call failed (${e.code ?? e.message}) — screenshot placed without callouts`);
+      annotatedSlideIds.add(slide.slide_id);
+      done++;
+      continue;
+    }
+
+    const annotations = Array.isArray(reply?.annotations) ? reply.annotations : [];
+    const skipped = Array.isArray(reply?.skipped) ? reply.skipped : [];
+    const { errors } = validateAnnotations(annotations, instructions.length);
+    if (errors.length) {
+      // The whole set is dropped, never partially trusted — same rule
+      // reference/annotation-patterns.md states for the Python pipeline.
+      warnings.push(`${slide.slide_id}: annotate reply failed validation (${errors.join("; ")}) — screenshot placed without callouts`);
+      annotatedSlideIds.add(slide.slide_id);
+      done++;
+      continue;
+    }
+
+    // Pixel work: a "redact" annotation's vector shape (render-annotation.js) is cosmetic
+    // only — flatten the asset for real before this block ships, or build-pptx.js/qa.js
+    // will refuse it. A "zoom" annotation gets its own cropped, upscaled sibling block.
+    // Wrapped as one unit: Canvas unavailability or a bad rect must drop this screenshot's
+    // annotations, never abort the whole run over one image.
+    try {
+      let pointsAtAssetId = imageBlock.content.asset_id;
+      let workingBytes = asset.bytes; // redacts compose onto THIS, not the original, every time
+      let redactCounter = 0, zoomCounter = 0;
+      for (const ann of annotations) {
+        if (ann.type === "redact") {
+          redactCounter++;
+          const newId = `${imageBlock.content.asset_id}-r${redactCounter}`;
+          workingBytes = await redactImage(workingBytes, mime, ann.rect);
+          derivedAssets.push({
+            asset_id: newId, bytes: workingBytes, ext: "png", format: "png", role: "screenshot",
+            section_id: asset.section_id, alt_text: asset.alt_text, redacted_from: pointsAtAssetId,
+          });
+          pointsAtAssetId = newId;
+        } else if (ann.type === "zoom") {
+          zoomCounter++;
+          // Zoom crops from the FLATTENED bytes so far, if any redaction preceded it in
+          // this same annotation list — an un-redacted crop of a region meant to be
+          // masked would defeat the whole point of the redaction.
+          const zoomId = `${imageBlock.content.asset_id}-zoom${zoomCounter}`;
+          const bytes = await cropScale(workingBytes, mime, ann.rect, ann.scale ?? 3);
+          derivedAssets.push({
+            asset_id: zoomId, bytes, ext: "png", format: "png", role: "screenshot",
+            section_id: asset.section_id, alt_text: `Zoomed detail — step ${ann.step}`,
+          });
+          const zoomBlock = {
+            slot: imageBlock.slot, kind: "image",
+            content: { asset_id: zoomId, caption: `Zoomed: step ${ann.step}` },
+            sources: imageBlock.sources ?? [],
+          };
+          const idx = slide.blocks.indexOf(imageBlock);
+          slide.blocks.splice(idx + 1, 0, zoomBlock);
+          if (!slide.media_position) slide.media_position = ann.place ?? "right";
+        }
+      }
+      if (redactCounter > 0) imageBlock.content.asset_id = pointsAtAssetId;
+      imageBlock.content.annotations = annotations;
+      if (skipped.length) imageBlock.content.skipped = skipped;
+    } catch (e) {
+      warnings.push(`${slide.slide_id}: pixel operation failed (${e.message}) — screenshot placed without callouts`);
+    }
+    annotatedSlideIds.add(slide.slide_id);
+    done++;
+  }
+  onProgress({ done, total: candidates.length });
+
+  return { derivedAssets, annotatedSlideIds, warnings };
 }
 
 /**
