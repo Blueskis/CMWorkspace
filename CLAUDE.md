@@ -116,7 +116,7 @@ other way round.
 |---|---|---|---|
 | Change Impact Intake (live) | `4f937bb9-ee6d-41bf-ab6e-dabeed14bd55` | `artifact`, `downloads`, `mcp` (Airtable) | No — declaring `mcp` makes an artifact organization-internal |
 | Change Impact Intake (testing) | `8dc74aff-d05c-47c7-a5f2-3a793dd55e26` | `artifact`, `downloads` | Yes — `mcp` deliberately dropped for this copy |
-| Stakeholder Map (3D viewer) | `PyjKwX4LC8o9sR4yGd58G9` | `sample`, `downloads` | Unverified: published private; check the Share menu, since `sample` may restrict link sharing the way `mcp` and `db` do |
+| Stakeholder Map (3D viewer) | `PyjKwX4LC8o9sR4yGd58G9` | `sample`, `downloads` | Yes — observed "anyone with the link" after publishing with `sample` and `downloads`, so unlike `mcp` and `db` these two do not restrict it. The page holds only fictional example data |
 
 **`db` carries the same sharing restriction as `mcp`** — a page declaring it also becomes
 organization-internal, not link-shareable. Don't add `db` to the testing copy for the same
