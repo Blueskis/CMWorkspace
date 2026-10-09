@@ -1,0 +1,1321 @@
+{
+  "meta": {
+    "schema_version": 1,
+    "client": "Crestline Bank",
+    "programme": "Loan origination platform replacement",
+    "as_of": "2026-10-05",
+    "org_context": {
+      "client": "Crestline Bank",
+      "programme": "Loan origination platform replacement",
+      "industry": "Financial services",
+      "business_model": "Retail and business banking through a branch network and digital channels",
+      "workforce": "Commission-influenced relationship managers, branch staff, loan operations officers, unionised branch staff",
+      "regulators": [
+        "MAS"
+      ],
+      "org_chart_units": [
+        "Executive Committee",
+        "Retail Banking",
+        "Business Banking",
+        "Branch Network",
+        "Digital Channels",
+        "Credit and Risk",
+        "Compliance and Legal",
+        "Internal Audit",
+        "Operations",
+        "Technology",
+        "HR",
+        "Finance",
+        "Programme Office"
+      ]
+    },
+    "sources": [
+      {
+        "id": "ORG-01",
+        "type": "org chart",
+        "title": "Org chart, 2026"
+      },
+      {
+        "id": "INT-01",
+        "type": "interview notes",
+        "title": "Head of Loan Operations"
+      },
+      {
+        "id": "INT-02",
+        "type": "interview notes",
+        "title": "Head of Compliance"
+      },
+      {
+        "id": "INT-03",
+        "type": "interview notes",
+        "title": "Senior relationship manager, business banking"
+      },
+      {
+        "id": "INT-04",
+        "type": "interview notes",
+        "title": "Programme Director"
+      },
+      {
+        "id": "INT-05",
+        "type": "interview notes",
+        "title": "Head of Technology Delivery"
+      }
+    ],
+    "pseudonymised": false,
+    "merged_individuals": [],
+    "conflicts": []
+  },
+  "groups": [
+    {
+      "id": "G-EXCO",
+      "name": "Executive Committee",
+      "business_unit": "Corporate",
+      "tier": 0,
+      "headcount": 9,
+      "sentiment": "Advocate",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Sponsors the programme. The CEO has asked three times for a go-live date.",
+      "evidence": [
+        "E1",
+        "E11"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 11,
+        "formal_degree": 11,
+        "informal_degree": 0,
+        "betweenness": 0.3526,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-RET",
+      "name": "Retail Banking",
+      "business_unit": "Business",
+      "tier": 1,
+      "headcount": 60,
+      "sentiment": "Neutral",
+      "influence": 4,
+      "interest": 4,
+      "summary": "Owns the branch network and retail lending targets.",
+      "evidence": [
+        "E1"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 0,
+        "betweenness": 0.0267,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-BUS",
+      "name": "Business Banking",
+      "business_unit": "Business",
+      "tier": 1,
+      "headcount": 45,
+      "sentiment": "Neutral",
+      "influence": 4,
+      "interest": 4,
+      "summary": "Owns business lending. Its head asks senior RMs what the team will tolerate.",
+      "evidence": [
+        "E1",
+        "E9"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 3,
+        "informal_degree": 1,
+        "betweenness": 0.04,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-RM",
+      "name": "Relationship Managers",
+      "business_unit": "Business",
+      "tier": 3,
+      "headcount": 280,
+      "sentiment": "Skeptic",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Front-office bankers who promise clients a decision in 48 hours.",
+      "evidence": [
+        "E7",
+        "E8"
+      ],
+      "confidence": "Low",
+      "open_questions": [
+        "Which large-case steps would the RMs refuse to add?"
+      ],
+      "metrics": {
+        "degree": 6,
+        "formal_degree": 3,
+        "informal_degree": 3,
+        "betweenness": 0.1187,
+        "informal_betweenness": 0.0431,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-BRANCH",
+      "name": "Branch Network",
+      "business_unit": "Business",
+      "tier": 3,
+      "headcount": 600,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Branch managers who capture applications.",
+      "evidence": [
+        "E1"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 0,
+        "betweenness": 0.0046,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-DIG",
+      "name": "Digital Channels",
+      "business_unit": "Business",
+      "tier": 2,
+      "headcount": 40,
+      "sentiment": "Advocate",
+      "influence": 3,
+      "interest": 4,
+      "summary": "Wants the customer-facing status screen first.",
+      "evidence": [
+        "E1",
+        "E16"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 1,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-CR",
+      "name": "Credit and Risk",
+      "business_unit": "Control",
+      "tier": 2,
+      "headcount": 70,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Sets credit policy. Credit approvers follow the Chief Risk Officer.",
+      "evidence": [
+        "E1",
+        "E4",
+        "E10"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 6,
+        "formal_degree": 4,
+        "informal_degree": 2,
+        "betweenness": 0.1504,
+        "informal_betweenness": 0.0031,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-CL",
+      "name": "Compliance and Legal",
+      "business_unit": "Control",
+      "tier": 2,
+      "headcount": 35,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Will not sign a platform that cannot show who approved what.",
+      "evidence": [
+        "E1",
+        "E5",
+        "E6"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 3,
+        "informal_degree": 1,
+        "betweenness": 0.0425,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-AUD",
+      "name": "Internal Audit",
+      "business_unit": "Control",
+      "tier": 2,
+      "headcount": 20,
+      "sentiment": "Unknown",
+      "influence": 4,
+      "interest": 3,
+      "summary": "Has asked to observe the design workshops.",
+      "evidence": [
+        "E14"
+      ],
+      "open_questions": [
+        "What does Internal Audit expect the audit trail to show?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 1,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-OPS",
+      "name": "Operations",
+      "business_unit": "Operations",
+      "tier": 2,
+      "headcount": 25,
+      "sentiment": "Advocate",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Loan operations management. Fixes urgent cases quietly outside any process.",
+      "evidence": [
+        "E1",
+        "E2",
+        "E3"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 2,
+        "informal_degree": 1,
+        "betweenness": 0.0138,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-LOPS",
+      "name": "Loan operations officers",
+      "business_unit": "Operations",
+      "tier": 4,
+      "headcount": 220,
+      "sentiment": "Advocate",
+      "influence": 2,
+      "interest": 5,
+      "summary": "Re-key every application three times.",
+      "evidence": [
+        "E2"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 3,
+        "informal_degree": 1,
+        "betweenness": 0.0477,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-TECH",
+      "name": "Technology",
+      "business_unit": "Technology",
+      "tier": 2,
+      "headcount": 160,
+      "sentiment": "Neutral",
+      "influence": 4,
+      "interest": 4,
+      "summary": "Owns the release calendar and the platform team.",
+      "evidence": [
+        "E1",
+        "E12",
+        "E15"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 1,
+        "informal_degree": 2,
+        "betweenness": 0.0173,
+        "informal_betweenness": 0.0185,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-HR",
+      "name": "HR",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 30,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 3,
+      "summary": "Considers consultation with the union unnecessary because no roles are going.",
+      "evidence": [
+        "E1",
+        "E13"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 0,
+        "betweenness": 0.0615,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-FIN",
+      "name": "Finance",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 40,
+      "sentiment": "Neutral",
+      "influence": 3,
+      "interest": 3,
+      "summary": "Releases the second tranche once Compliance signs the control design.",
+      "evidence": [
+        "E1",
+        "E17"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-PMO",
+      "name": "Programme Office",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 10,
+      "sentiment": "Advocate",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Runs the programme and the vendor.",
+      "evidence": [
+        "E1",
+        "E11",
+        "E12"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 6,
+        "formal_degree": 3,
+        "informal_degree": 3,
+        "betweenness": 0.0811,
+        "informal_betweenness": 0.0431,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-MAS",
+      "name": "MAS (regulator)",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 2,
+      "summary": "Must be notified of changes to customer due diligence capture.",
+      "evidence": [
+        "E5"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 2,
+        "informal_degree": 1,
+        "betweenness": 0.0615,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-VEND",
+      "name": "Platform vendor",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Advocate",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Delivers the platform. Its engineers speak to the platform team daily.",
+      "evidence": [
+        "E15"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 1,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-UNION",
+      "name": "Bank employees' union",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 3,
+      "summary": "Not yet briefed.",
+      "evidence": [
+        "E13"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 1,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-CLIENT",
+      "name": "Large corporate clients",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Unknown",
+      "influence": 4,
+      "interest": 2,
+      "summary": "Expect decisions in 48 hours.",
+      "evidence": [
+        "E8"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 1,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    }
+  ],
+  "individuals": [
+    {
+      "id": "P-COO",
+      "group": "G-EXCO",
+      "name": "Benedict Yeo",
+      "title": "Chief Operating Officer",
+      "sentiment": "Advocate",
+      "influence": 5,
+      "evidence": [
+        "E11"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-TOP",
+      "group": "G-RM",
+      "name": "Alvin Goh",
+      "title": "Senior relationship manager, business banking",
+      "sentiment": "Skeptic",
+      "influence": 4,
+      "evidence": [
+        "E8",
+        "E9"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 0,
+        "informal_degree": 2,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0185,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-CRO",
+      "group": "G-CR",
+      "name": "Dr Hui Min Chong",
+      "title": "Chief Risk Officer",
+      "sentiment": "Neutral",
+      "influence": 5,
+      "evidence": [
+        "E10"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-CCO",
+      "group": "G-CL",
+      "name": "Marcus Fernandes",
+      "title": "Head of Compliance",
+      "sentiment": "Neutral",
+      "influence": 4,
+      "evidence": [
+        "E4",
+        "E5",
+        "E6",
+        "E7"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-OPS",
+      "group": "G-OPS",
+      "name": "Teresa Lim",
+      "title": "Head of Loan Operations",
+      "sentiment": "Advocate",
+      "influence": 4,
+      "evidence": [
+        "E2",
+        "E3",
+        "E4"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 0,
+        "formal_degree": 0,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-CTO",
+      "group": "G-TECH",
+      "name": "Arjun Mehta",
+      "title": "Head of Technology Delivery",
+      "sentiment": "Neutral",
+      "influence": 4,
+      "evidence": [
+        "E12",
+        "E15",
+        "E16",
+        "E17"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 0,
+        "formal_degree": 0,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-PMO",
+      "group": "G-PMO",
+      "name": "Cheryl Sim",
+      "title": "Programme Director",
+      "sentiment": "Advocate",
+      "influence": 4,
+      "evidence": [
+        "E11",
+        "E12",
+        "E13",
+        "E14"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-AUD",
+      "group": "G-AUD",
+      "name": "Gabriel Yap",
+      "title": "Head of Internal Audit",
+      "sentiment": "Unknown",
+      "influence": 4,
+      "evidence": [
+        "E14"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 0,
+        "formal_degree": 0,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "F01",
+      "from": "G-RET",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F02",
+      "from": "G-BUS",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F03",
+      "from": "G-DIG",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F04",
+      "from": "G-CR",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F05",
+      "from": "G-CL",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F06",
+      "from": "G-AUD",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "escalates_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F07",
+      "from": "G-OPS",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F08",
+      "from": "G-TECH",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F09",
+      "from": "G-HR",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F10",
+      "from": "G-FIN",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F11",
+      "from": "G-PMO",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F12",
+      "from": "G-RM",
+      "to": "G-BUS",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F13",
+      "from": "G-BRANCH",
+      "to": "G-RET",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F14",
+      "from": "G-LOPS",
+      "to": "G-OPS",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F15",
+      "from": "G-BRANCH",
+      "to": "G-LOPS",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E2"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F16",
+      "from": "G-LOPS",
+      "to": "G-CR",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E2"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F17",
+      "from": "G-CR",
+      "to": "G-RM",
+      "kind": "formal",
+      "type": "approves",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E2"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F18",
+      "from": "G-CL",
+      "to": "G-BUS",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E5"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F19",
+      "from": "G-MAS",
+      "to": "G-CL",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E5"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F20",
+      "from": "G-MAS",
+      "to": "G-CR",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E5"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F21",
+      "from": "G-FIN",
+      "to": "G-PMO",
+      "kind": "formal",
+      "type": "approves",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E17"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F22",
+      "from": "G-PMO",
+      "to": "G-VEND",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E15"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F23",
+      "from": "G-UNION",
+      "to": "G-HR",
+      "kind": "formal",
+      "type": "escalates_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E13"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F24",
+      "from": "G-CLIENT",
+      "to": "G-RM",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E8"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I01",
+      "from": "G-RM",
+      "to": "G-LOPS",
+      "kind": "informal",
+      "type": "bypasses",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E3"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I02",
+      "from": "G-CR",
+      "to": "G-CL",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E4"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I03",
+      "from": "P-CCO",
+      "to": "G-MAS",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E5"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I04",
+      "from": "P-TOP",
+      "to": "G-BUS",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 2,
+      "confidence": "Low",
+      "evidence": [
+        "E9"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I05",
+      "from": "P-TOP",
+      "to": "G-RM",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 3,
+      "confidence": "Medium",
+      "evidence": [
+        "E9"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I06",
+      "from": "P-COO",
+      "to": "P-PMO",
+      "kind": "informal",
+      "type": "trusts",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E11"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I07",
+      "from": "G-TECH",
+      "to": "G-PMO",
+      "kind": "informal",
+      "type": "gatekeeps",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E12"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I08",
+      "from": "G-AUD",
+      "to": "G-PMO",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 1,
+      "confidence": "Low",
+      "evidence": [
+        "E14"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I09",
+      "from": "G-TECH",
+      "to": "G-VEND",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E15"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I10",
+      "from": "G-DIG",
+      "to": "G-OPS",
+      "kind": "informal",
+      "type": "conflicts_with",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E16"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I11",
+      "from": "P-CRO",
+      "to": "G-CR",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 3,
+      "confidence": "Low",
+      "evidence": [
+        "E10"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I12",
+      "from": "G-RM",
+      "to": "G-PMO",
+      "kind": "informal",
+      "type": "conflicts_with",
+      "strength": 2,
+      "confidence": "Low",
+      "evidence": [
+        "E7"
+      ],
+      "last_updated": "2026-10-05"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "source": "ORG-01",
+      "quote": "Org chart (2026): Retail Banking over the Branch Network; Business Banking over the relationship managers; Operations over loan operations. Digital Channels, Credit and Risk, Compliance and Legal, Technology, HR, Finance and the Programme Office report to the Executive Committee. Internal Audit reports to the Audit Committee.",
+      "speaker": "",
+      "attribution": "document"
+    },
+    {
+      "id": "E2",
+      "source": "INT-01",
+      "quote": "We re-key every application three times: once at the branch, once in credit, once in the core system. My team wants the new platform yesterday.",
+      "speaker": "Head of Loan Operations",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E3",
+      "source": "INT-01",
+      "quote": "The RMs email me the urgent cases and I fix them quietly so the customer is not told it is stuck. It works, but it is not in any process.",
+      "speaker": "Head of Loan Operations",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E4",
+      "source": "INT-01",
+      "quote": "Credit officers ring Marcus's compliance team informally before they decline anything sensitive.",
+      "speaker": "Head of Loan Operations",
+      "attribution": "claim"
+    },
+    {
+      "id": "E5",
+      "source": "INT-02",
+      "quote": "Any change to how we capture customer due diligence data has to be notified to MAS. I speak to our MAS supervisor before we file, always.",
+      "speaker": "Head of Compliance",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E6",
+      "source": "INT-02",
+      "quote": "I will not sign off a platform that cannot show an auditor who approved what, and when.",
+      "speaker": "Head of Compliance",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E7",
+      "source": "INT-02",
+      "quote": "I heard the top RMs have told Business Banking leadership they will not use the new platform for their large cases.",
+      "speaker": "Head of Compliance",
+      "attribution": "hearsay"
+    },
+    {
+      "id": "E8",
+      "source": "INT-03",
+      "quote": "My clients expect a decision in 48 hours. If the new platform adds a step, I will find another way to get the case through.",
+      "speaker": "Senior relationship manager",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E9",
+      "source": "INT-03",
+      "quote": "The junior RMs watch what I do. If I use it, they use it. If I work around it, so do they.",
+      "speaker": "Senior relationship manager",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E10",
+      "source": "INT-03",
+      "quote": "Credit approvers will not use any screen Dr Chong has not personally walked through.",
+      "speaker": "Senior relationship manager",
+      "attribution": "claim"
+    },
+    {
+      "id": "E11",
+      "source": "INT-04",
+      "quote": "Benedict sponsors it, and the CEO has asked him for a go-live date three times. He asks me the same question after each Exco.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E12",
+      "source": "INT-04",
+      "quote": "Technology owns the release calendar. We were given one window in the year, and nobody outside Arjun's team can move it.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E13",
+      "source": "INT-04",
+      "quote": "The union has not been briefed. HR says it is not needed because no roles are going. I am not sure the branches agree.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E14",
+      "source": "INT-04",
+      "quote": "Internal Audit have asked to attend the design workshops as observers. Gabriel sits in the corner and says nothing.",
+      "speaker": "Programme Director",
+      "attribution": "claim"
+    },
+    {
+      "id": "E15",
+      "source": "INT-05",
+      "quote": "The vendor's engineers and my platform team are on a call every morning. I find out about scope changes there before I see them in a change request.",
+      "speaker": "Head of Technology Delivery",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E16",
+      "source": "INT-05",
+      "quote": "Digital Channels wants the customer-facing status screen first. That is not what Operations needs first, and they have not agreed.",
+      "speaker": "Head of Technology Delivery",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E17",
+      "source": "INT-05",
+      "quote": "Finance will only release the second tranche once Compliance has signed the control design.",
+      "speaker": "Head of Technology Delivery",
+      "attribution": "claim"
+    }
+  ]
+}

@@ -28,7 +28,7 @@ It is also **sensitive data**. Read `reference/sensitivity.md` before the first 
 | `scripts/qa_map.py` | Audits a map: hard failures (exit 1) and warnings. |
 | `scripts/sync_viewer_core.py` | Embeds the tested viewer logic and the example map into the single-file viewer. |
 | `viewer/stakeholder-map.html` | The 3D viewer. Also `viewer/viewer-core.js`, its tested logic. |
-| `examples/aviation-mro/` | A complete worked example: fictional aircraft maintenance company, five interview sources, an org chart, the map they produce. |
+| `examples/` | Four fictional worked examples, each with sources, extraction, map and QA report: `airline`, `healthcare`, `financial-services` (the three the viewer ships with) and `aviation-mro` (the fullest: a Teams-style transcript and an org chart image). See `examples/README.md`. |
 
 Reused from the CIA skill, by path, not copied: `skills/change-impact-assessment/scripts/ingest_sources.py`, `transcribe_interview.py`, `reference/interview-evidence.md`, `reference/audio-workflow.md`.
 
@@ -84,7 +84,7 @@ python3 skills/stakeholder-mapping/scripts/build_map.py extraction.json context.
 python3 skills/stakeholder-mapping/scripts/qa_map.py stakeholder_map.shared.json --key pseudonym_key.json
 ```
 
-Open the viewer artifact and **Load map** with the file you intend to show. The viewer never uploads it.
+Open the viewer artifact and **Load map** with the file you intend to show. The viewer never uploads it. It opens on a fictional example; the picker in the toolbar switches between Airline, Healthcare and Financial services.
 
 ## The viewer
 

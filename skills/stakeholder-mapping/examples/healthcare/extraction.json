@@ -1,0 +1,964 @@
+{
+  "groups": [
+    {
+      "id": "G-EXEC",
+      "name": "Hospital Executive",
+      "business_unit": "Corporate",
+      "tier": 0,
+      "headcount": 9,
+      "sentiment": "Advocate",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Sponsors the programme and expects same-day warning if a department pushes back.",
+      "evidence": [
+        "E1",
+        "E11"
+      ]
+    },
+    {
+      "id": "G-CMB",
+      "name": "Chairman Medical Board",
+      "business_unit": "Clinical",
+      "tier": 1,
+      "headcount": 8,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Sets clinical standards. Consultants take complaints here.",
+      "evidence": [
+        "E1",
+        "E10"
+      ],
+      "open_questions": [
+        "What would the Medical Board need to see before endorsing the order sets?"
+      ]
+    },
+    {
+      "id": "G-MED",
+      "name": "Department of Medicine",
+      "business_unit": "Clinical",
+      "tier": 2,
+      "headcount": 60,
+      "sentiment": "Unknown",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Senior consultants and heads of department in internal medicine.",
+      "evidence": [
+        "E1",
+        "E4"
+      ]
+    },
+    {
+      "id": "G-SURG",
+      "name": "Department of Surgery",
+      "business_unit": "Clinical",
+      "tier": 2,
+      "headcount": 55,
+      "sentiment": "Skeptic",
+      "influence": 4,
+      "interest": 4,
+      "summary": "Surgeons. Rumoured to want paper drug charts in theatre.",
+      "evidence": [
+        "E2",
+        "E7"
+      ],
+      "confidence": "Low",
+      "open_questions": [
+        "What does Surgery actually need in theatre that the order sets do not give?"
+      ]
+    },
+    {
+      "id": "G-ED",
+      "name": "Emergency Department",
+      "business_unit": "Clinical",
+      "tier": 2,
+      "headcount": 70,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Fast turnover and heavy handovers.",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "G-RES",
+      "name": "Resident doctors and medical officers",
+      "business_unit": "Clinical",
+      "tier": 4,
+      "headcount": 320,
+      "sentiment": "Neutral",
+      "influence": 2,
+      "interest": 5,
+      "summary": "Rotate every few months. Adopt anything that saves night-time typing, if the consultants allow it.",
+      "evidence": [
+        "E4"
+      ]
+    },
+    {
+      "id": "G-NURD",
+      "name": "Nursing Directorate",
+      "business_unit": "Nursing",
+      "tier": 2,
+      "headcount": 20,
+      "sentiment": "Advocate",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Backs the programme if downtime procedures are written with the wards.",
+      "evidence": [
+        "E1",
+        "E6"
+      ]
+    },
+    {
+      "id": "G-WARD",
+      "name": "Ward nurse managers",
+      "business_unit": "Nursing",
+      "tier": 3,
+      "headcount": 70,
+      "sentiment": "Neutral",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Run the wards: roster, bed state and who gets the tablets.",
+      "evidence": [
+        "E5",
+        "E15"
+      ]
+    },
+    {
+      "id": "G-NURS",
+      "name": "Staff nurses",
+      "business_unit": "Nursing",
+      "tier": 4,
+      "headcount": 1100,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Ring their ward manager, not the IT helpdesk.",
+      "evidence": [
+        "E16"
+      ]
+    },
+    {
+      "id": "G-PHARM",
+      "name": "Pharmacy",
+      "business_unit": "Pharmacy",
+      "tier": 3,
+      "headcount": 90,
+      "sentiment": "Advocate",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Wants e-prescribing. Worries juniors will click through alerts.",
+      "evidence": [
+        "E1",
+        "E8"
+      ]
+    },
+    {
+      "id": "G-ALLIED",
+      "name": "Allied Health",
+      "business_unit": "Allied",
+      "tier": 3,
+      "headcount": 150,
+      "sentiment": "Unknown",
+      "influence": 2,
+      "interest": 4,
+      "summary": "Physiotherapy, dietetics and others.",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "G-PSQ",
+      "name": "Patient Safety and Quality",
+      "business_unit": "Quality",
+      "tier": 2,
+      "headcount": 22,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Signs off every order set. Its review queue is the slowest part of the build.",
+      "evidence": [
+        "E1",
+        "E14"
+      ]
+    },
+    {
+      "id": "G-CI",
+      "name": "Clinical Informatics",
+      "business_unit": "Technology",
+      "tier": 2,
+      "headcount": 30,
+      "sentiment": "Advocate",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Designs and configures the record, tests ideas with ward managers first.",
+      "evidence": [
+        "E1",
+        "E2",
+        "E3"
+      ]
+    },
+    {
+      "id": "G-PSF",
+      "name": "Patient Services and Finance",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 140,
+      "sentiment": "Neutral",
+      "influence": 3,
+      "interest": 4,
+      "summary": "Billing and patient registration.",
+      "evidence": [
+        "E1",
+        "E17"
+      ]
+    },
+    {
+      "id": "G-HR",
+      "name": "HR",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 40,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 3,
+      "summary": "Owns role changes and consultation with the nursing union.",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "G-PMO",
+      "name": "Programme Office",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 10,
+      "sentiment": "Advocate",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Runs the programme and reports monthly to cluster headquarters.",
+      "evidence": [
+        "E1",
+        "E11",
+        "E12",
+        "E13"
+      ]
+    },
+    {
+      "id": "G-MOH",
+      "name": "Ministry of Health (funder and regulator)",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 2,
+      "summary": "Reads the monthly programme report.",
+      "evidence": [
+        "E12"
+      ]
+    },
+    {
+      "id": "G-HQ",
+      "name": "Health cluster headquarters",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Neutral",
+      "influence": 4,
+      "interest": 3,
+      "summary": "Releases funding in tranches.",
+      "evidence": [
+        "E12"
+      ]
+    },
+    {
+      "id": "G-NU",
+      "name": "Nurses' union branch",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 4,
+      "summary": "Has asked to see the downtime plan.",
+      "evidence": [
+        "E13"
+      ]
+    },
+    {
+      "id": "G-VEND",
+      "name": "EMR vendor",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Advocate",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Delivers the record platform.",
+      "evidence": [
+        "E3"
+      ]
+    }
+  ],
+  "individuals": [
+    {
+      "id": "P-CEO",
+      "group": "G-EXEC",
+      "name": "Dr Amanda Lim",
+      "title": "Chief Executive",
+      "sentiment": "Advocate",
+      "influence": 5,
+      "evidence": [
+        "E11"
+      ]
+    },
+    {
+      "id": "P-CMB",
+      "group": "G-CMB",
+      "name": "Prof Edmund Chua",
+      "title": "Chairman, Medical Board",
+      "sentiment": "Neutral",
+      "influence": 5,
+      "evidence": [
+        "E10"
+      ]
+    },
+    {
+      "id": "P-SURG",
+      "group": "G-SURG",
+      "name": "Prof Kelvin Ho",
+      "title": "Head of Surgery",
+      "sentiment": "Skeptic",
+      "influence": 5,
+      "evidence": [
+        "E2",
+        "E7"
+      ],
+      "confidence": "Low"
+    },
+    {
+      "id": "P-DON",
+      "group": "G-NURD",
+      "name": "Doreen Wee",
+      "title": "Director of Nursing",
+      "sentiment": "Advocate",
+      "influence": 4,
+      "evidence": [
+        "E5",
+        "E6",
+        "E15"
+      ]
+    },
+    {
+      "id": "P-WARD",
+      "group": "G-WARD",
+      "name": "Siti Rahmah",
+      "title": "Senior ward manager, surgical wards",
+      "sentiment": "Neutral",
+      "influence": 4,
+      "evidence": [
+        "E15",
+        "E16",
+        "E17"
+      ]
+    },
+    {
+      "id": "P-PH",
+      "group": "G-PHARM",
+      "name": "Dr Joel Ng",
+      "title": "Chief Pharmacist",
+      "sentiment": "Advocate",
+      "influence": 3,
+      "evidence": [
+        "E8",
+        "E9",
+        "E10"
+      ]
+    },
+    {
+      "id": "P-CI",
+      "group": "G-CI",
+      "name": "Dr Aisha Karim",
+      "title": "Chief Clinical Informatics Officer",
+      "sentiment": "Advocate",
+      "influence": 4,
+      "evidence": [
+        "E2",
+        "E3",
+        "E4",
+        "E9"
+      ]
+    },
+    {
+      "id": "P-PMO",
+      "group": "G-PMO",
+      "name": "Rohan Pillai",
+      "title": "Programme Director",
+      "sentiment": "Advocate",
+      "influence": 4,
+      "evidence": [
+        "E11",
+        "E12",
+        "E13",
+        "E14"
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "F01",
+      "from": "G-CMB",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F02",
+      "from": "G-MED",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F03",
+      "from": "G-SURG",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F04",
+      "from": "G-ED",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F05",
+      "from": "G-NURD",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F06",
+      "from": "G-PHARM",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F07",
+      "from": "G-ALLIED",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F08",
+      "from": "G-PSQ",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F09",
+      "from": "G-CI",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F10",
+      "from": "G-PSF",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F11",
+      "from": "G-HR",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F12",
+      "from": "G-PMO",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "F13",
+      "from": "G-RES",
+      "to": "G-MED",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E4"
+      ]
+    },
+    {
+      "id": "F14",
+      "from": "G-WARD",
+      "to": "G-NURD",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E5"
+      ]
+    },
+    {
+      "id": "F15",
+      "from": "G-NURS",
+      "to": "G-WARD",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E5"
+      ]
+    },
+    {
+      "id": "F16",
+      "from": "G-CMB",
+      "to": "G-MED",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E10"
+      ]
+    },
+    {
+      "id": "F17",
+      "from": "G-CMB",
+      "to": "G-SURG",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E10"
+      ]
+    },
+    {
+      "id": "F18",
+      "from": "G-PSQ",
+      "to": "G-CI",
+      "kind": "formal",
+      "type": "approves",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E14"
+      ]
+    },
+    {
+      "id": "F19",
+      "from": "G-HQ",
+      "to": "G-PMO",
+      "kind": "formal",
+      "type": "approves",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E12"
+      ]
+    },
+    {
+      "id": "F20",
+      "from": "G-MOH",
+      "to": "G-EXEC",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E12"
+      ]
+    },
+    {
+      "id": "F21",
+      "from": "G-PMO",
+      "to": "G-VEND",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E3"
+      ]
+    },
+    {
+      "id": "F22",
+      "from": "G-NU",
+      "to": "G-HR",
+      "kind": "formal",
+      "type": "escalates_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E13"
+      ]
+    },
+    {
+      "id": "F23",
+      "from": "G-PHARM",
+      "to": "G-NURS",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E8"
+      ]
+    },
+    {
+      "id": "F24",
+      "from": "G-ED",
+      "to": "G-MED",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E1"
+      ]
+    },
+    {
+      "id": "I01",
+      "from": "P-SURG",
+      "to": "G-CI",
+      "kind": "informal",
+      "type": "gatekeeps",
+      "strength": 3,
+      "confidence": "Medium",
+      "evidence": [
+        "E2"
+      ]
+    },
+    {
+      "id": "I02",
+      "from": "G-CI",
+      "to": "G-WARD",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E3"
+      ]
+    },
+    {
+      "id": "I03",
+      "from": "G-MED",
+      "to": "G-RES",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 3,
+      "confidence": "Medium",
+      "evidence": [
+        "E4"
+      ]
+    },
+    {
+      "id": "I04",
+      "from": "G-WARD",
+      "to": "G-NURS",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E5"
+      ]
+    },
+    {
+      "id": "I05",
+      "from": "G-SURG",
+      "to": "G-PMO",
+      "kind": "informal",
+      "type": "conflicts_with",
+      "strength": 2,
+      "confidence": "Low",
+      "evidence": [
+        "E7"
+      ]
+    },
+    {
+      "id": "I06",
+      "from": "P-PH",
+      "to": "P-CI",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E9"
+      ]
+    },
+    {
+      "id": "I07",
+      "from": "P-CMB",
+      "to": "G-PMO",
+      "kind": "informal",
+      "type": "gatekeeps",
+      "strength": 2,
+      "confidence": "Low",
+      "evidence": [
+        "E10"
+      ]
+    },
+    {
+      "id": "I08",
+      "from": "P-CEO",
+      "to": "P-PMO",
+      "kind": "informal",
+      "type": "trusts",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E11"
+      ]
+    },
+    {
+      "id": "I09",
+      "from": "G-PSQ",
+      "to": "G-CI",
+      "kind": "informal",
+      "type": "gatekeeps",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E14"
+      ]
+    },
+    {
+      "id": "I10",
+      "from": "P-WARD",
+      "to": "P-DON",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E15"
+      ]
+    },
+    {
+      "id": "I11",
+      "from": "G-NURS",
+      "to": "G-CI",
+      "kind": "informal",
+      "type": "bypasses",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E16"
+      ]
+    },
+    {
+      "id": "I12",
+      "from": "P-DON",
+      "to": "G-NURS",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E6"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "source": "ORG-01",
+      "quote": "Org chart (2026): Hospital Executive over the Chairman Medical Board, the clinical departments, the Nursing Directorate, Pharmacy, Allied Health, Patient Safety and Quality, Clinical Informatics, Patient Services and Finance, HR and the Programme Office.",
+      "speaker": "",
+      "attribution": "document"
+    },
+    {
+      "id": "E2",
+      "source": "INT-01",
+      "quote": "Every department has an unofficial clinical lead for IT. Surgery's is Professor Ho himself, and nothing gets configured for surgery without his say-so.",
+      "speaker": "Chief Clinical Informatics Officer",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E3",
+      "source": "INT-01",
+      "quote": "I do my design workshops with consultants, but I test the idea with Doreen's ward managers first. If they groan, I go back.",
+      "speaker": "Chief Clinical Informatics Officer",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E4",
+      "source": "INT-01",
+      "quote": "The residents will use anything that saves them a night's typing. The consultants decide whether it is allowed.",
+      "speaker": "Chief Clinical Informatics Officer",
+      "attribution": "claim"
+    },
+    {
+      "id": "E5",
+      "source": "INT-02",
+      "quote": "My ward managers run the wards. The roster, the bed state, who gets the new tablets. If they say no, it is no.",
+      "speaker": "Director of Nursing",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E6",
+      "source": "INT-02",
+      "quote": "I will back this if the downtime procedures are written with the wards, not for them.",
+      "speaker": "Director of Nursing",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E7",
+      "source": "INT-02",
+      "quote": "I heard Surgery wants to keep paper drug charts for theatre.",
+      "speaker": "Director of Nursing",
+      "attribution": "hearsay"
+    },
+    {
+      "id": "E8",
+      "source": "INT-03",
+      "quote": "E-prescribing removes the illegible chart, and my pharmacists want it. The risk is that the juniors click through the alerts.",
+      "speaker": "Chief Pharmacist",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E9",
+      "source": "INT-03",
+      "quote": "I speak to Aisha every week outside the programme meetings. That is where the drug library really gets decided.",
+      "speaker": "Chief Pharmacist",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E10",
+      "source": "INT-03",
+      "quote": "Professor Chua can stop anything at the Medical Board if the consultants complain loudly enough.",
+      "speaker": "Chief Pharmacist",
+      "attribution": "claim"
+    },
+    {
+      "id": "E11",
+      "source": "INT-04",
+      "quote": "Amanda sponsors this and expects me to tell her within the day if Surgery pushes back.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E12",
+      "source": "INT-04",
+      "quote": "The funding comes in tranches from cluster headquarters and the Ministry reads our monthly report.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E13",
+      "source": "INT-04",
+      "quote": "The nurses' union branch asked to see the downtime plan. We have not yet sent it.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E14",
+      "source": "INT-04",
+      "quote": "Patient Safety must sign off every order set. Their review queue is the slowest part of the build.",
+      "speaker": "Programme Director",
+      "attribution": "claim"
+    },
+    {
+      "id": "E15",
+      "source": "INT-05",
+      "quote": "Before any change comes to my wards I ask Doreen. If Doreen has not seen it, my nurses will not either.",
+      "speaker": "Senior ward manager",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E16",
+      "source": "INT-05",
+      "quote": "Staff nurses ring me, not the IT helpdesk. I fix it or I find Dr Aisha's team.",
+      "speaker": "Senior ward manager",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E17",
+      "source": "INT-05",
+      "quote": "Finance only learns what a new order set costs when the pharmacy bill arrives.",
+      "speaker": "Senior ward manager",
+      "attribution": "claim"
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "client": "Crestline Bank",
+  "programme": "Loan origination platform replacement",
+  "industry": "Financial services",
+  "business_model": "Retail and business banking through a branch network and digital channels",
+  "workforce": "Commission-influenced relationship managers, branch staff, loan operations officers, unionised branch staff",
+  "regulators": [
+    "MAS"
+  ],
+  "org_chart_units": [
+    "Executive Committee",
+    "Retail Banking",
+    "Business Banking",
+    "Branch Network",
+    "Digital Channels",
+    "Credit and Risk",
+    "Compliance and Legal",
+    "Internal Audit",
+    "Operations",
+    "Technology",
+    "HR",
+    "Finance",
+    "Programme Office"
+  ]
+}

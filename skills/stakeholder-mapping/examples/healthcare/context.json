@@ -1,0 +1,25 @@
+{
+  "client": "Harbourview Hospital",
+  "programme": "Electronic medical record and e-prescribing rollout",
+  "industry": "Healthcare",
+  "business_model": "Acute hospital providing inpatient, emergency and specialist outpatient care within a regional health cluster",
+  "workforce": "Shift-based wards, rotating resident doctors, unionised nursing staff",
+  "regulators": [
+    "Ministry of Health"
+  ],
+  "org_chart_units": [
+    "Hospital Executive",
+    "Chairman Medical Board",
+    "Department of Medicine",
+    "Department of Surgery",
+    "Emergency Department",
+    "Nursing Directorate",
+    "Pharmacy",
+    "Allied Health",
+    "Patient Safety and Quality",
+    "Clinical Informatics",
+    "Patient Services and Finance",
+    "HR",
+    "Programme Office"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "client": "Meridian Air",
+  "programme": "Crew management and disruption recovery system replacement",
+  "industry": "Airline",
+  "business_model": "Full-service regional passenger airline flying scheduled routes from a single hub airport",
+  "workforce": "Shift-based operations, unionised pilots and cabin crew, licensed aircraft maintenance engineers",
+  "regulators": [
+    "CAAS"
+  ],
+  "org_chart_units": [
+    "Executive Committee",
+    "Airline Operations",
+    "Flight Operations",
+    "Cabin Services",
+    "Crew Planning and Control",
+    "Operations Control Centre",
+    "Engineering and Maintenance",
+    "Safety and Quality",
+    "Commercial",
+    "Airport Services",
+    "Finance",
+    "IT",
+    "HR",
+    "Programme Office"
+  ]
+}

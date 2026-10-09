@@ -1,0 +1,1453 @@
+{
+  "meta": {
+    "schema_version": 1,
+    "client": "Meridian Air",
+    "programme": "Crew management and disruption recovery system replacement",
+    "as_of": "2026-10-05",
+    "org_context": {
+      "client": "Meridian Air",
+      "programme": "Crew management and disruption recovery system replacement",
+      "industry": "Airline",
+      "business_model": "Full-service regional passenger airline flying scheduled routes from a single hub airport",
+      "workforce": "Shift-based operations, unionised pilots and cabin crew, licensed aircraft maintenance engineers",
+      "regulators": [
+        "CAAS"
+      ],
+      "org_chart_units": [
+        "Executive Committee",
+        "Airline Operations",
+        "Flight Operations",
+        "Cabin Services",
+        "Crew Planning and Control",
+        "Operations Control Centre",
+        "Engineering and Maintenance",
+        "Safety and Quality",
+        "Commercial",
+        "Airport Services",
+        "Finance",
+        "IT",
+        "HR",
+        "Programme Office"
+      ]
+    },
+    "sources": [
+      {
+        "id": "ORG-01",
+        "type": "org chart",
+        "title": "Org chart v2, March 2026"
+      },
+      {
+        "id": "INT-01",
+        "type": "interview notes",
+        "title": "Head of Crew Planning and Control"
+      },
+      {
+        "id": "INT-02",
+        "type": "interview notes",
+        "title": "Senior duty manager, Operations Control Centre"
+      },
+      {
+        "id": "INT-03",
+        "type": "interview notes",
+        "title": "Head of Safety and Quality"
+      },
+      {
+        "id": "INT-04",
+        "type": "interview notes",
+        "title": "Programme Director"
+      },
+      {
+        "id": "INT-05",
+        "type": "interview notes",
+        "title": "Chief Pilot"
+      }
+    ],
+    "pseudonymised": false,
+    "merged_individuals": [],
+    "conflicts": []
+  },
+  "groups": [
+    {
+      "id": "G-EXCO",
+      "name": "Executive Committee",
+      "business_unit": "Corporate",
+      "tier": 0,
+      "headcount": 8,
+      "sentiment": "Advocate",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Sponsors the programme through the COO and wants a go-live date before the summer schedule.",
+      "evidence": [
+        "E1",
+        "E11"
+      ],
+      "open_questions": [
+        "What would the Executive Committee trade away to protect the date?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 8,
+        "formal_degree": 8,
+        "informal_degree": 0,
+        "betweenness": 0.3319,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-OPSM",
+      "name": "Airline Operations",
+      "business_unit": "Operations",
+      "tier": 1,
+      "headcount": 14,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 5,
+      "summary": "COO-level management over flight, cabin, crew, control centre and airport operations.",
+      "evidence": [
+        "E1"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 6,
+        "formal_degree": 6,
+        "informal_degree": 0,
+        "betweenness": 0.2309,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-FLT",
+      "name": "Flight Operations",
+      "business_unit": "Operations",
+      "tier": 2,
+      "headcount": 30,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 4,
+      "summary": "The chief pilot's office and fleet captains. Sets how pilots' duty patterns may change.",
+      "evidence": [
+        "E1",
+        "E15"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 3,
+        "informal_degree": 0,
+        "betweenness": 0.1033,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-CAB",
+      "name": "Cabin Services",
+      "business_unit": "Operations",
+      "tier": 2,
+      "headcount": 40,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 4,
+      "summary": "Cabin crew management. Hears crew sentiment late.",
+      "evidence": [
+        "E1",
+        "E16"
+      ],
+      "open_questions": [
+        "How does Cabin Services read its crew's mood before the union does?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 2,
+        "informal_degree": 1,
+        "betweenness": 0.0794,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-CREW",
+      "name": "Crew Planning and Control",
+      "business_unit": "Operations",
+      "tier": 3,
+      "headcount": 45,
+      "sentiment": "Advocate",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Builds the crew roster on a 2009 engine and rebuilds it by hand after every disruption.",
+      "evidence": [
+        "E1",
+        "E2",
+        "E4"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 3,
+        "informal_degree": 2,
+        "betweenness": 0.0137,
+        "informal_betweenness": 0.0079,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-OCC",
+      "name": "Operations Control Centre",
+      "business_unit": "Operations",
+      "tier": 3,
+      "headcount": 60,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 5,
+      "summary": "Shift duty managers who re-plan the day when flights are disrupted. Will return to the whiteboard if the system is slow.",
+      "evidence": [
+        "E1",
+        "E5",
+        "E6"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 4,
+        "informal_degree": 2,
+        "betweenness": 0.0437,
+        "informal_betweenness": 0.0106,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-ENG",
+      "name": "Engineering and Maintenance",
+      "business_unit": "Technical",
+      "tier": 2,
+      "headcount": 25,
+      "sentiment": "Unknown",
+      "influence": 4,
+      "interest": 3,
+      "summary": "Engineering management. Owns aircraft availability commitments.",
+      "evidence": [
+        "E1"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 2,
+        "informal_degree": 1,
+        "betweenness": 0.1014,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-LAE",
+      "name": "Licensed engineers (B1/B2)",
+      "business_unit": "Technical",
+      "tier": 4,
+      "headcount": 180,
+      "sentiment": "Unknown",
+      "influence": 5,
+      "interest": 3,
+      "summary": "Certifying staff. Nothing returns to service without their release.",
+      "evidence": [
+        "E9",
+        "E17"
+      ],
+      "open_questions": [
+        "Which changes to crew recovery does Engineering need to see before they reach the OCC?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 3,
+        "informal_degree": 2,
+        "betweenness": 0.0983,
+        "informal_betweenness": 0.0079,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-SAF",
+      "name": "Safety and Quality",
+      "business_unit": "Operations",
+      "tier": 2,
+      "headcount": 18,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Owns the safety management system and every filing to the regulator.",
+      "evidence": [
+        "E1",
+        "E8"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 0,
+        "betweenness": 0.0397,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-COM",
+      "name": "Commercial",
+      "business_unit": "Commercial",
+      "tier": 2,
+      "headcount": 30,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 3,
+      "summary": "Changes the schedule at short notice.",
+      "evidence": [
+        "E1",
+        "E18"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 1,
+        "betweenness": 0.0121,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-APT",
+      "name": "Airport Services",
+      "business_unit": "Operations",
+      "tier": 3,
+      "headcount": 400,
+      "sentiment": "Unknown",
+      "influence": 2,
+      "interest": 3,
+      "summary": "Ground handling and check-in at the hub. Receives the recovery plan.",
+      "evidence": [
+        "E1"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-FIN",
+      "name": "Finance",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 25,
+      "sentiment": "Neutral",
+      "influence": 4,
+      "interest": 3,
+      "summary": "Releases vendor payments against milestones.",
+      "evidence": [
+        "E1",
+        "E12"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-IT",
+      "name": "IT",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 55,
+      "sentiment": "Advocate",
+      "influence": 3,
+      "interest": 4,
+      "summary": "Owns the technical relationship with the vendor.",
+      "evidence": [
+        "E1",
+        "E13"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 1,
+        "informal_degree": 1,
+        "betweenness": 0.0225,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-HR",
+      "name": "HR",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 20,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 3,
+      "summary": "Owns industrial relations and crew terms.",
+      "evidence": [
+        "E1"
+      ],
+      "open_questions": [
+        "Which roster rule changes does HR treat as a change to terms and conditions?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 3,
+        "informal_degree": 0,
+        "betweenness": 0.0623,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-PMO",
+      "name": "Programme Office",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 12,
+      "sentiment": "Advocate",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Runs the programme and the vendor contract.",
+      "evidence": [
+        "E1",
+        "E11",
+        "E12"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 3,
+        "informal_degree": 2,
+        "betweenness": 0.0659,
+        "informal_betweenness": 0.0079,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-PIL",
+      "name": "Line pilots",
+      "business_unit": "Operations",
+      "tier": 4,
+      "headcount": 900,
+      "sentiment": "Skeptic",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Roster predictability matters more to them than elegance.",
+      "evidence": [
+        "E7",
+        "E15"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 1,
+        "informal_degree": 2,
+        "betweenness": 0.0772,
+        "informal_betweenness": 0.0079,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-CCREW",
+      "name": "Cabin crew",
+      "business_unit": "Operations",
+      "tier": 4,
+      "headcount": 2500,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 5,
+      "summary": "The largest group affected by roster change.",
+      "evidence": [
+        "E16"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 1,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-CAAS",
+      "name": "CAAS (regulator)",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 2,
+      "summary": "Approves operational changes that touch flight time limitations.",
+      "evidence": [
+        "E8"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 3,
+        "informal_degree": 1,
+        "betweenness": 0.0983,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-ALPA",
+      "name": "Pilots' association (union)",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Skeptic",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Has asked for a seat on the design group and has not had one.",
+      "evidence": [
+        "E10",
+        "E14"
+      ],
+      "confidence": "Low",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 1,
+        "informal_degree": 2,
+        "betweenness": 0.0498,
+        "informal_betweenness": 0.0106,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-CCU",
+      "name": "Cabin crew union",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Unknown",
+      "influence": 4,
+      "interest": 4,
+      "summary": "Not yet consulted.",
+      "evidence": [
+        "E14",
+        "E16"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 1,
+        "informal_degree": 1,
+        "betweenness": 0.0106,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "G-VEND",
+      "name": "Crew system vendor",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Advocate",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Delivers the new platform.",
+      "evidence": [
+        "E13"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 1,
+        "informal_degree": 1,
+        "betweenness": 0.0035,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-10-05"
+    }
+  ],
+  "individuals": [
+    {
+      "id": "P-COO",
+      "group": "G-EXCO",
+      "name": "Vikram Nair",
+      "title": "Chief Operating Officer",
+      "sentiment": "Advocate",
+      "influence": 5,
+      "evidence": [
+        "E11"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-PMO",
+      "group": "G-PMO",
+      "name": "Janice Ong",
+      "title": "Programme Director",
+      "sentiment": "Advocate",
+      "influence": 4,
+      "evidence": [
+        "E11",
+        "E12",
+        "E13",
+        "E14"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-CP",
+      "group": "G-FLT",
+      "name": "Capt. Daniel Soh",
+      "title": "Chief Pilot",
+      "sentiment": "Neutral",
+      "influence": 5,
+      "evidence": [
+        "E15",
+        "E16",
+        "E7"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-CR",
+      "group": "G-CREW",
+      "name": "Farid Hamdan",
+      "title": "Head of Crew Planning and Control",
+      "sentiment": "Advocate",
+      "influence": 3,
+      "evidence": [
+        "E2",
+        "E3",
+        "E4",
+        "E18"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-OCC",
+      "group": "G-OCC",
+      "name": "Priya Menon",
+      "title": "Senior duty manager",
+      "sentiment": "Neutral",
+      "influence": 4,
+      "evidence": [
+        "E5",
+        "E6",
+        "E7",
+        "E17"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-SAF",
+      "group": "G-SAF",
+      "name": "Grace Koh",
+      "title": "Head of Safety and Quality",
+      "sentiment": "Neutral",
+      "influence": 4,
+      "evidence": [
+        "E8",
+        "E9",
+        "E10"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-LAE",
+      "group": "G-LAE",
+      "name": "Michael Tan",
+      "title": "Senior licensed engineer (B1)",
+      "sentiment": "Unknown",
+      "influence": 4,
+      "evidence": [
+        "E9"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "P-UN",
+      "group": "G-ALPA",
+      "name": "Raymond Lee",
+      "title": "Association chairman",
+      "sentiment": "Skeptic",
+      "influence": 4,
+      "evidence": [
+        "E4",
+        "E14"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-10-05"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "F01",
+      "from": "G-OPSM",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F02",
+      "from": "G-ENG",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F03",
+      "from": "G-SAF",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F04",
+      "from": "G-COM",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F05",
+      "from": "G-FIN",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F06",
+      "from": "G-IT",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F07",
+      "from": "G-HR",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F08",
+      "from": "G-PMO",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F09",
+      "from": "G-FLT",
+      "to": "G-OPSM",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F10",
+      "from": "G-CAB",
+      "to": "G-OPSM",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F11",
+      "from": "G-CREW",
+      "to": "G-OPSM",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F12",
+      "from": "G-OCC",
+      "to": "G-OPSM",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F13",
+      "from": "G-APT",
+      "to": "G-OPSM",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F14",
+      "from": "G-PIL",
+      "to": "G-FLT",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F15",
+      "from": "G-CCREW",
+      "to": "G-CAB",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F16",
+      "from": "G-LAE",
+      "to": "G-ENG",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F17",
+      "from": "G-CREW",
+      "to": "G-OCC",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E2"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F18",
+      "from": "G-LAE",
+      "to": "G-OCC",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E17"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F19",
+      "from": "G-OCC",
+      "to": "G-APT",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E5"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F20",
+      "from": "G-COM",
+      "to": "G-CREW",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E18"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F21",
+      "from": "G-FIN",
+      "to": "G-PMO",
+      "kind": "formal",
+      "type": "approves",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E12"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F22",
+      "from": "G-PMO",
+      "to": "G-VEND",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E13"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F23",
+      "from": "G-CAAS",
+      "to": "G-SAF",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E8"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F24",
+      "from": "G-CAAS",
+      "to": "G-LAE",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F25",
+      "from": "G-CAAS",
+      "to": "G-FLT",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E8"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F26",
+      "from": "G-ALPA",
+      "to": "G-HR",
+      "kind": "formal",
+      "type": "escalates_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E14"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "F27",
+      "from": "G-CCU",
+      "to": "G-HR",
+      "kind": "formal",
+      "type": "escalates_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E14"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I01",
+      "from": "G-OCC",
+      "to": "G-CREW",
+      "kind": "informal",
+      "type": "bypasses",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E3",
+        "E5"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I02",
+      "from": "P-CR",
+      "to": "P-UN",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E4"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I03",
+      "from": "P-OCC",
+      "to": "G-LAE",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E5"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I04",
+      "from": "P-CP",
+      "to": "G-PIL",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 3,
+      "confidence": "Medium",
+      "evidence": [
+        "E7"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I05",
+      "from": "P-SAF",
+      "to": "G-CAAS",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E8"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I06",
+      "from": "P-LAE",
+      "to": "G-ENG",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E9"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I07",
+      "from": "G-ALPA",
+      "to": "G-PIL",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 3,
+      "confidence": "Low",
+      "evidence": [
+        "E10",
+        "E14"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I08",
+      "from": "P-COO",
+      "to": "P-PMO",
+      "kind": "informal",
+      "type": "trusts",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E11"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I09",
+      "from": "G-FIN",
+      "to": "G-PMO",
+      "kind": "informal",
+      "type": "gatekeeps",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E12"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I10",
+      "from": "G-IT",
+      "to": "G-VEND",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "Medium",
+      "evidence": [
+        "E13"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I11",
+      "from": "G-LAE",
+      "to": "G-OCC",
+      "kind": "informal",
+      "type": "gatekeeps",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E17"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I12",
+      "from": "G-COM",
+      "to": "G-CREW",
+      "kind": "informal",
+      "type": "bypasses",
+      "strength": 2,
+      "confidence": "Low",
+      "evidence": [
+        "E18"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I13",
+      "from": "G-CCU",
+      "to": "G-CAB",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E16"
+      ],
+      "last_updated": "2026-10-05"
+    },
+    {
+      "id": "I14",
+      "from": "G-ALPA",
+      "to": "G-PMO",
+      "kind": "informal",
+      "type": "conflicts_with",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E14"
+      ],
+      "last_updated": "2026-10-05"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "source": "ORG-01",
+      "quote": "Org chart v2 (March 2026): Airline Operations sits over Flight Operations, Cabin Services, Crew Planning and Control, the Operations Control Centre and Airport Services. Engineering, Safety and Quality, Commercial, Finance, IT, HR and the Programme Office report to the Executive Committee.",
+      "speaker": "",
+      "attribution": "document"
+    },
+    {
+      "id": "E2",
+      "source": "INT-01",
+      "quote": "Our rostering system is a 2009 spreadsheet engine with a front end. Every disruption we rebuild by hand.",
+      "speaker": "Head of Crew Planning",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E3",
+      "source": "INT-01",
+      "quote": "On a bad night the OCC duty managers just call crew on their mobiles and re-assign them. We find out from the payroll exceptions a week later.",
+      "speaker": "Head of Crew Planning",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E4",
+      "source": "INT-01",
+      "quote": "Before a new rule goes into the roster I ring Captain Lee. If the pilots' association won't live with it, the roster won't hold.",
+      "speaker": "Head of Crew Planning",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E18",
+      "source": "INT-01",
+      "quote": "Commercial change the schedule with two weeks' notice and tell Crew Planning last.",
+      "speaker": "Head of Crew Planning",
+      "attribution": "claim"
+    },
+    {
+      "id": "E5",
+      "source": "INT-02",
+      "quote": "At 2am nobody reads a procedure. I phone the people I trust: the on-duty captain, the engineer on call, and Farid's night scheduler.",
+      "speaker": "Senior duty manager, OCC",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E6",
+      "source": "INT-02",
+      "quote": "The system has to tell me in seconds what a delay does to crew legality. If it takes a minute I will go back to the whiteboard.",
+      "speaker": "Senior duty manager, OCC",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E17",
+      "source": "INT-02",
+      "quote": "Engineering sign off the aircraft availability that we plan against. If the engineer on call says it's not ready, nothing I plan matters.",
+      "speaker": "Senior duty manager, OCC",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E7",
+      "source": "INT-02",
+      "quote": "The line pilots do what the Chief Pilot's office says about anything that changes their duty patterns.",
+      "speaker": "Senior duty manager, OCC",
+      "attribution": "claim"
+    },
+    {
+      "id": "E8",
+      "source": "INT-03",
+      "quote": "Any change to how we track flight time limits must go to CAAS with a safety case. I call our CAAS flight operations inspector before we file.",
+      "speaker": "Head of Safety and Quality",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E9",
+      "source": "INT-03",
+      "quote": "Engineers ask Michael, our senior B1, before they trust a new system. He has more say than Engineering management does.",
+      "speaker": "Head of Safety and Quality",
+      "attribution": "claim"
+    },
+    {
+      "id": "E10",
+      "source": "INT-03",
+      "quote": "I heard the pilots' association is going to ask for a ballot if the roster rules change.",
+      "speaker": "Head of Safety and Quality",
+      "attribution": "hearsay"
+    },
+    {
+      "id": "E11",
+      "source": "INT-04",
+      "quote": "Vikram sponsors this. He messages me directly before every Exco and I brief him in the corridor, not in the steering meeting.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E12",
+      "source": "INT-04",
+      "quote": "Finance releases the vendor payments against milestones. Nothing has slipped yet, but the finance controller reads every invoice twice.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E13",
+      "source": "INT-04",
+      "quote": "The vendor's solution architect talks to our IT architect every day and I hear the outcomes second hand.",
+      "speaker": "Programme Director",
+      "attribution": "claim"
+    },
+    {
+      "id": "E14",
+      "source": "INT-04",
+      "quote": "Neither union has been formally consulted. Raymond has asked twice for a seat on the design group.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E15",
+      "source": "INT-05",
+      "quote": "My pilots will accept a roster that is fair and predictable. They will not accept one that is clever but moves their days off.",
+      "speaker": "Chief Pilot",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E16",
+      "source": "INT-05",
+      "quote": "Cabin Services hear what their crew think from the cabin crew union before they hear it from the crew.",
+      "speaker": "Chief Pilot",
+      "attribution": "claim"
+    }
+  ]
+}

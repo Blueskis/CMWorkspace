@@ -286,7 +286,7 @@ python3 ../../scripts/build_map.py extraction.json context.json --sources source
 python3 ../../scripts/qa_map.py /tmp/map.json --sources sources.json
 ```
 
-The worked example is a fictional aircraft maintenance company: five interview sources (one a Teams-style transcript), an org chart image, 19 groups, 38 ties. See that folder's README for what to look for.
+The viewer opens on fictional examples for an airline, a hospital and a bank (picker in the toolbar). `examples/` holds all three with their source notes, plus a fourth, an aircraft maintenance company with a transcript and an org chart image. See `skills/stakeholder-mapping/examples/README.md` for what to look for in each.
 
 ### What v0.1 does not do
 
