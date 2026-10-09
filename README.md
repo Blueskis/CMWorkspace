@@ -10,6 +10,7 @@ Change-management working tools, packaged as a Claude Code plugin.
 | `cm-effort-estimator` | **v0.5** — scope drivers → a manday estimate, with an open-ended judgement layer for adjustments the drivers alone don't capture |
 | `change-impact-assessment` | **MVP** — a programme's own documents → a baseline change impact assessment in the client's CIA template |
 | `training-material-generator` | **v0.3 (MVP)** — an FSD (or similar spec doc) → a first-draft training deck, with placed and annotated screenshots (highlight/callout/arrow/redact/zoom), native diagrams, and knowledge-check questions |
+| `stakeholder-mapping` | **v0.1** — interview notes, transcripts, org charts and the organisation's industry and business model → a stakeholder map of formal and informal relationships, opened in an interactive 3D viewer artifact (select, highlight, double-click a group, ask open-ended questions answered from the evidence) |
 | `brand-template-creator` | A published claude.ai Artifact — capture a client's brand once (colours, fonts, style, logo, voice, messaging) and export a `.json` + `.md` brand guide to reuse across sessions |
 | `cm-proposal-reference-tool` | A published claude.ai Artifact (not a skill): drop in a tender, get the firm's most similar past proposals ranked, read live from Airtable. See `artifacts/cm-proposal-reference-tool/README.md` |
 | `prompt-engineer` | A single-file HTML Artifact (not a skill): describe what you want an AI to do, answer a few optional questions, get one ready-to-paste prompt back. Generic, for any AI user. See `prompt-engineer/README.md` |
@@ -257,6 +258,40 @@ Shared by both skills.
    refuse a profile with no named approver.
 4. **Always pass `--strict-section`** when retrieving. The bank is shared between both skills
    and the section is the only thing keeping a past staff email out of a live bid.
+## Stakeholder mapping (v0.1)
+
+Takes a programme's interview notes, meeting transcripts and recordings, org charts, and the organisation's industry and business model, and builds a map of **who the stakeholders are and how they actually work together**: the formal structure (reporting lines, approvals, hand-offs) and the informal one (who consults, trusts, influences, bypasses or gatekeeps whom).
+
+```
+sources + org context ─▶ ingest ─▶ extraction.json ─▶ stakeholder_map.json ─▶ qa_report.md ─▶ 3D viewer
+        INTAKE          INGEST       EXTRACT              BUILD                    QA            VIEW
+```
+
+Only EXTRACT is model judgement. Ingestion and transcription are reused from the change impact assessment skill; build and QA are deterministic scripts (standard library only).
+
+Three invariants the scripts enforce:
+
+- **No informal tie without evidence.** Every relationship that isn't on a document cites a quote, tagged testimony, claim, hearsay or document. A high-confidence tie resting on hearsay alone is flagged.
+- **No silent gaps.** Every org chart unit must have a group, and the industry lens (aviation, engineering, public sector, GLC utilities, financial services, healthcare) warns about groups an organisation of that kind usually has but nobody has mentioned. Warnings become the next interview agenda; nothing is invented.
+- **No real names on a shared screen.** `--pseudonymise` replaces every name, alias and name fragment, `qa_map.py --key` fails the run if any survives, and the viewer shows whether it holds names.
+
+**The viewer** (`skills/stakeholder-mapping/viewer/stakeholder-map.html`, published as an Artifact) lays groups out so depth means something: height is formal level, position round the circle is business unit, external parties sit on an outer ring. Click selects and lights a group's neighbours, shift-click adds, **double-click** opens its people, ties, evidence quotes and open questions, and an **Ask** panel answers open-ended questions using only the map's evidence, citing it. A flat plan view and a table are one click away. The page holds only a fictional example; a real map is loaded from a local file and is never uploaded.
+
+### Try it
+
+```bash
+python3 skills/stakeholder-mapping/tests/run_tests.py
+cd skills/stakeholder-mapping/examples/aviation-mro
+python3 ../../scripts/build_map.py extraction.json context.json --sources sources.json -o /tmp/map.json
+python3 ../../scripts/qa_map.py /tmp/map.json --sources sources.json
+```
+
+The worked example is a fictional aircraft maintenance company: five interview sources (one a Teams-style transcript), an org chart image, 19 groups, 38 ties. See that folder's README for what to look for.
+
+### What v0.1 does not do
+
+Infer ties from email, chat or calendar metadata, trace change over time beyond `last_updated`, or score engagement plans (the `network-position` skill does that from this map's people). Informal ties are what people said: evidence, not proof.
+
 ## Effort estimator (v0.5)
 
 Sizes a change management pursuit in mandays, bottom-up from ten scope drivers (impacted

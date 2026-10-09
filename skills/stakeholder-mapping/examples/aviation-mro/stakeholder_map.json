@@ -1,0 +1,1395 @@
+{
+  "meta": {
+    "schema_version": 1,
+    "client": "Northwind MRO",
+    "programme": "S/4HANA Plant Maintenance and Materials rollout",
+    "as_of": "2026-09-18",
+    "org_context": {
+      "client": "Northwind MRO",
+      "programme": "S/4HANA Plant Maintenance and Materials rollout",
+      "industry": "Aviation MRO",
+      "business_model": "Line and base maintenance for regional airline customers under a regulator-approved maintenance organisation",
+      "org_chart_units": [
+        "Executive Committee",
+        "Maintenance Operations",
+        "Planning & Production Control",
+        "Base Maintenance",
+        "Line Maintenance",
+        "Stores & Logistics",
+        "Quality & Safety",
+        "Technical Services",
+        "Finance & Procurement",
+        "IT",
+        "HR & Training",
+        "Customer Programmes",
+        "Programme Office"
+      ]
+    },
+    "sources": [
+      {
+        "id": "ORG-01",
+        "type": "org chart",
+        "title": "Org chart v3, January 2026"
+      },
+      {
+        "id": "INT-01",
+        "type": "interview notes",
+        "title": "Head of Planning and Production Control"
+      },
+      {
+        "id": "INT-02",
+        "type": "interview notes",
+        "title": "Quality Manager"
+      },
+      {
+        "id": "INT-03",
+        "type": "transcript",
+        "title": "Night shift supervisors (Teams .vtt)"
+      },
+      {
+        "id": "INT-04",
+        "type": "interview notes",
+        "title": "Finance Manager"
+      },
+      {
+        "id": "INT-05",
+        "type": "interview notes",
+        "title": "Programme Director"
+      }
+    ],
+    "pseudonymised": false,
+    "merged_individuals": [],
+    "conflicts": []
+  },
+  "groups": [
+    {
+      "id": "G-EXCO",
+      "name": "Executive Committee",
+      "business_unit": "Corporate",
+      "tier": 0,
+      "headcount": 7,
+      "sentiment": "Advocate",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Sponsors the programme through the COO and wants go-live by Q3.",
+      "evidence": [
+        "E1",
+        "E17"
+      ],
+      "open_questions": [
+        "What would the Executive Committee drop to protect the Q3 date?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 8,
+        "formal_degree": 8,
+        "informal_degree": 0,
+        "betweenness": 0.3171,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-OPS",
+      "name": "Maintenance Operations",
+      "business_unit": "Operations",
+      "tier": 1,
+      "headcount": 12,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 5,
+      "summary": "VP-level management over Planning, Base, Line and Stores.",
+      "evidence": [
+        "E1"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 5,
+        "formal_degree": 5,
+        "informal_degree": 0,
+        "betweenness": 0.1008,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-PMO",
+      "name": "Programme Office",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 14,
+      "sentiment": "Advocate",
+      "influence": 4,
+      "interest": 5,
+      "summary": "Runs the S/4HANA programme and the implementation partner.",
+      "evidence": [
+        "E1",
+        "E15",
+        "E17",
+        "E18"
+      ],
+      "open_questions": [
+        "Who owns formal consultation with the unions?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 3,
+        "informal_degree": 2,
+        "betweenness": 0.1328,
+        "informal_betweenness": 0.0215,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-FIN",
+      "name": "Finance & Procurement",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 22,
+      "sentiment": "Neutral",
+      "influence": 4,
+      "interest": 3,
+      "summary": "Releases budget in tranches against milestones and controls purchase orders.",
+      "evidence": [
+        "E1",
+        "E14",
+        "E15"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-IT",
+      "name": "IT",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 35,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 4,
+      "summary": "Owns the technical relationship with the implementation partner.",
+      "evidence": [
+        "E1",
+        "E16"
+      ],
+      "open_questions": [
+        "How does IT see the legacy MaintTrack retirement?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 1,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-HR",
+      "name": "HR & Training",
+      "business_unit": "Corporate",
+      "tier": 2,
+      "headcount": 18,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 3,
+      "summary": "Owns training delivery and any change to roles or shifts.",
+      "evidence": [
+        "E1"
+      ],
+      "open_questions": [
+        "Which role changes need union consultation first?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 0,
+        "betweenness": 0.0596,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-QS",
+      "name": "Quality & Safety",
+      "business_unit": "Operations",
+      "tier": 2,
+      "headcount": 16,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Protects the audit trail and talks to the regulator before any submission.",
+      "evidence": [
+        "E1",
+        "E6",
+        "E7",
+        "E8"
+      ],
+      "ona_role": "Broker",
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 3,
+        "informal_degree": 1,
+        "betweenness": 0.0964,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-TECH",
+      "name": "Technical Services",
+      "business_unit": "Technical",
+      "tier": 2,
+      "headcount": 40,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 3,
+      "summary": "Publishes engineering orders that planning turns into work.",
+      "evidence": [
+        "E1",
+        "E20"
+      ],
+      "open_questions": [
+        "Does Technical Services use the legacy tool for engineering order history?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 2,
+        "informal_degree": 1,
+        "betweenness": 0.0172,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-COMM",
+      "name": "Customer Programmes",
+      "business_unit": "Commercial",
+      "tier": 2,
+      "headcount": 15,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 2,
+      "summary": "Interface to airline customers on work scopes and turnaround.",
+      "evidence": [
+        "E1"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 3,
+        "informal_degree": 0,
+        "betweenness": 0.0711,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-PLAN",
+      "name": "Planning & Production Control",
+      "business_unit": "Operations",
+      "tier": 3,
+      "headcount": 45,
+      "sentiment": "Advocate",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Plans work packages; wants the system but fears a lost week at cutover.",
+      "evidence": [
+        "E1",
+        "E2",
+        "E5"
+      ],
+      "open_questions": [
+        "Who covers planning during cutover week?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 6,
+        "formal_degree": 4,
+        "informal_degree": 3,
+        "betweenness": 0.083,
+        "informal_betweenness": 0.04,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-STORES",
+      "name": "Stores & Logistics",
+      "business_unit": "Operations",
+      "tier": 3,
+      "headcount": 38,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 4,
+      "summary": "Holds parts; planners check with Stores before raising material requests.",
+      "evidence": [
+        "E1",
+        "E2"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 2,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-BASE",
+      "name": "Base Maintenance",
+      "business_unit": "Operations",
+      "tier": 3,
+      "headcount": 60,
+      "sentiment": "Unknown",
+      "influence": 3,
+      "interest": 4,
+      "summary": "Hangar supervisors for heavy checks.",
+      "evidence": [
+        "E1"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 4,
+        "informal_degree": 0,
+        "betweenness": 0.1137,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-LINE",
+      "name": "Line Maintenance",
+      "business_unit": "Operations",
+      "tier": 3,
+      "headcount": 50,
+      "sentiment": "Skeptic",
+      "influence": 3,
+      "interest": 4,
+      "summary": "Day and night shift supervisors. Night shift re-sequences work cards on its own.",
+      "evidence": [
+        "E1",
+        "E10",
+        "E11"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 2,
+        "informal_degree": 2,
+        "betweenness": 0.0414,
+        "informal_betweenness": 0.0462,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-ENG",
+      "name": "Licensed engineers (B1/B2)",
+      "business_unit": "Operations",
+      "tier": 4,
+      "headcount": 95,
+      "sentiment": "Unknown",
+      "influence": 5,
+      "interest": 4,
+      "summary": "Hold the certificate of release. Nothing returns to service without their sign-off.",
+      "evidence": [
+        "E3",
+        "E12",
+        "E19"
+      ],
+      "open_questions": [
+        "Will engineers accept electronic release sign-off?",
+        "Who besides Rajendran do engineers listen to?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 3,
+        "informal_degree": 1,
+        "betweenness": 0.0733,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-MECH",
+      "name": "Technicians and mechanics",
+      "business_unit": "Operations",
+      "tier": 4,
+      "headcount": 210,
+      "sentiment": "Neutral",
+      "influence": 2,
+      "interest": 5,
+      "summary": "Do the hands-on work; adopt tools the shift supervisor vouches for.",
+      "evidence": [
+        "E11"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 1,
+        "informal_degree": 2,
+        "betweenness": 0.0838,
+        "informal_betweenness": 0.0031,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-CAAS",
+      "name": "CAAS (regulator)",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Neutral",
+      "influence": 5,
+      "interest": 2,
+      "summary": "Approves maintenance organisation changes and licenses engineers.",
+      "evidence": [
+        "E1",
+        "E7"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 3,
+        "formal_degree": 2,
+        "informal_degree": 1,
+        "betweenness": 0.0646,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-CUST",
+      "name": "Customer airlines",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Unknown",
+      "influence": 4,
+      "interest": 2,
+      "summary": "Buy line and base maintenance; work scope drives the plan.",
+      "evidence": [
+        "E1"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 1,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-UNION",
+      "name": "Aircraft engineers' staff association (union)",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Unknown",
+      "influence": 4,
+      "interest": 3,
+      "summary": "Represents engineers and technicians. Not yet consulted formally.",
+      "evidence": [
+        "E13",
+        "E18"
+      ],
+      "open_questions": [
+        "What do the union reps expect to be consulted on?"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 1,
+        "informal_degree": 1,
+        "betweenness": 0.0266,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "G-SI",
+      "name": "Implementation partner",
+      "business_unit": "External",
+      "tier": 5,
+      "headcount": 0,
+      "sentiment": "Advocate",
+      "influence": 3,
+      "interest": 5,
+      "summary": "Delivers the S/4HANA build; its lead speaks to IT daily.",
+      "evidence": [
+        "E16"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 2,
+        "formal_degree": 1,
+        "informal_degree": 1,
+        "betweenness": 0.0646,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    }
+  ],
+  "individuals": [
+    {
+      "id": "P-DAV",
+      "group": "G-EXCO",
+      "name": "David Tay",
+      "title": "Chief Operating Officer",
+      "sentiment": "Advocate",
+      "influence": 5,
+      "evidence": [
+        "E17"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "P-CHEW",
+      "group": "G-PMO",
+      "name": "Chew Kah Meng",
+      "title": "Programme Director",
+      "sentiment": "Advocate",
+      "influence": 4,
+      "evidence": [
+        "E17",
+        "E16",
+        "E18",
+        "E19"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "P-LIM",
+      "group": "G-FIN",
+      "name": "Lim Mei Ling",
+      "title": "Finance Manager, programme controls",
+      "sentiment": "Neutral",
+      "influence": 3,
+      "evidence": [
+        "E14",
+        "E15"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 0,
+        "formal_degree": 0,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "P-OW",
+      "group": "G-IT",
+      "name": "Ow Pei San",
+      "title": "Head of IT Applications",
+      "sentiment": "Unknown",
+      "influence": 3,
+      "evidence": [
+        "E16"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "P-TEO",
+      "group": "G-QS",
+      "name": "Teo Siew Hwa",
+      "title": "Quality Manager",
+      "sentiment": "Neutral",
+      "influence": 4,
+      "evidence": [
+        "E6",
+        "E7",
+        "E8",
+        "E9"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "P-NG",
+      "group": "G-PLAN",
+      "name": "Ng Wei Lun",
+      "title": "Head of Planning and Production Control",
+      "sentiment": "Advocate",
+      "influence": 3,
+      "evidence": [
+        "E2",
+        "E3",
+        "E4",
+        "E5"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 0,
+        "formal_degree": 0,
+        "informal_degree": 0,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "P-HAS",
+      "group": "G-LINE",
+      "name": "Hassan bin Ali",
+      "title": "Night shift supervisor",
+      "sentiment": "Neutral",
+      "influence": 3,
+      "evidence": [
+        "E10",
+        "E11",
+        "E13"
+      ],
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 1,
+        "formal_degree": 0,
+        "informal_degree": 1,
+        "betweenness": 0.0,
+        "informal_betweenness": 0.0,
+        "suggested_ona_role": "Peripheral"
+      },
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "P-RAJ",
+      "group": "G-ENG",
+      "name": "Rajendran S.",
+      "title": "Senior licensed engineer (B1)",
+      "sentiment": "Unknown",
+      "influence": 5,
+      "evidence": [
+        "E3",
+        "E6",
+        "E12",
+        "E19",
+        "E20"
+      ],
+      "ona_role": "Central Connector",
+      "confidence": "Medium",
+      "metrics": {
+        "degree": 4,
+        "formal_degree": 0,
+        "informal_degree": 4,
+        "betweenness": 0.0602,
+        "informal_betweenness": 0.0646,
+        "suggested_ona_role": null
+      },
+      "last_updated": "2026-09-18"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "F01",
+      "from": "G-OPS",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F02",
+      "from": "G-PMO",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F03",
+      "from": "G-FIN",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F04",
+      "from": "G-IT",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F05",
+      "from": "G-HR",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F06",
+      "from": "G-QS",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F07",
+      "from": "G-TECH",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F08",
+      "from": "G-COMM",
+      "to": "G-EXCO",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F09",
+      "from": "G-PLAN",
+      "to": "G-OPS",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F10",
+      "from": "G-BASE",
+      "to": "G-OPS",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F11",
+      "from": "G-LINE",
+      "to": "G-OPS",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F12",
+      "from": "G-STORES",
+      "to": "G-OPS",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F13",
+      "from": "G-ENG",
+      "to": "G-BASE",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F14",
+      "from": "G-MECH",
+      "to": "G-BASE",
+      "kind": "formal",
+      "type": "reports_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F15",
+      "from": "G-LINE",
+      "to": "G-BASE",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E10"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F16",
+      "from": "G-FIN",
+      "to": "G-PMO",
+      "kind": "formal",
+      "type": "approves",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E15"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F17",
+      "from": "G-PMO",
+      "to": "G-SI",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E16"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F18",
+      "from": "G-TECH",
+      "to": "G-PLAN",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E20"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F19",
+      "from": "G-COMM",
+      "to": "G-PLAN",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F20",
+      "from": "G-CUST",
+      "to": "G-COMM",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F21",
+      "from": "G-QS",
+      "to": "G-ENG",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E8"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F22",
+      "from": "G-CAAS",
+      "to": "G-QS",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E7"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F23",
+      "from": "G-CAAS",
+      "to": "G-ENG",
+      "kind": "formal",
+      "type": "governs",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E1"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F24",
+      "from": "G-UNION",
+      "to": "G-HR",
+      "kind": "formal",
+      "type": "escalates_to",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E18"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "F25",
+      "from": "G-PLAN",
+      "to": "G-STORES",
+      "kind": "formal",
+      "type": "hands_off_to",
+      "strength": 2,
+      "confidence": "High",
+      "evidence": [
+        "E2"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I01",
+      "from": "G-PLAN",
+      "to": "G-STORES",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E2"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I02",
+      "from": "P-RAJ",
+      "to": "G-QS",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E6"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I03",
+      "from": "G-LINE",
+      "to": "G-PLAN",
+      "kind": "informal",
+      "type": "bypasses",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E4",
+        "E10"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I04",
+      "from": "G-ENG",
+      "to": "G-PLAN",
+      "kind": "informal",
+      "type": "conflicts_with",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E3"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I05",
+      "from": "P-OW",
+      "to": "G-SI",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "Medium",
+      "evidence": [
+        "E16"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I06",
+      "from": "G-FIN",
+      "to": "G-PMO",
+      "kind": "informal",
+      "type": "gatekeeps",
+      "strength": 2,
+      "confidence": "Low",
+      "evidence": [
+        "E9",
+        "E14"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I07",
+      "from": "P-HAS",
+      "to": "G-MECH",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E11"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I08",
+      "from": "G-TECH",
+      "to": "P-RAJ",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E20"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I09",
+      "from": "P-DAV",
+      "to": "P-CHEW",
+      "kind": "informal",
+      "type": "trusts",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E17"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I10",
+      "from": "P-TEO",
+      "to": "G-CAAS",
+      "kind": "informal",
+      "type": "consults",
+      "strength": 3,
+      "confidence": "High",
+      "evidence": [
+        "E7"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I11",
+      "from": "G-UNION",
+      "to": "G-MECH",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 2,
+      "confidence": "Low",
+      "evidence": [
+        "E13"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I12",
+      "from": "P-RAJ",
+      "to": "G-LINE",
+      "kind": "informal",
+      "type": "influences",
+      "strength": 2,
+      "confidence": "Medium",
+      "evidence": [
+        "E12"
+      ],
+      "last_updated": "2026-09-18"
+    },
+    {
+      "id": "I13",
+      "from": "P-RAJ",
+      "to": "G-PMO",
+      "kind": "informal",
+      "type": "gatekeeps",
+      "strength": 2,
+      "confidence": "Low",
+      "evidence": [
+        "E19"
+      ],
+      "last_updated": "2026-09-18"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "E1",
+      "source": "ORG-01",
+      "quote": "Org chart v3 (January 2026): Maintenance Operations sits over Planning, Base, Line and Stores. Quality and Safety, Technical Services, Finance, IT, HR, Customer Programmes and the Programme Office report to the Executive Committee.",
+      "speaker": "",
+      "attribution": "document"
+    },
+    {
+      "id": "E2",
+      "source": "INT-01",
+      "quote": "My planners ring Stores before they raise anything. If Stores say it's not on the shelf we plan around it.",
+      "speaker": "Head of Planning",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E3",
+      "source": "INT-01",
+      "quote": "Engineers sign off at the end and they hold the release. When Raj says the card's not ready, the hangar waits, no matter what my schedule says.",
+      "speaker": "Head of Planning",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E4",
+      "source": "INT-01",
+      "quote": "Night shift re-sequences the cards themselves. By the time the plan reaches them it's already wrong. I find out in the morning.",
+      "speaker": "Head of Planning",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E5",
+      "source": "INT-01",
+      "quote": "I want the system. I don't want to be the team that loses a week of planning to it during cutover.",
+      "speaker": "Head of Planning",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E6",
+      "source": "INT-02",
+      "quote": "Before any procedure change goes to CAAS I talk to Raj. If Raj says the engineers won't accept it, I don't send it.",
+      "speaker": "Quality Manager",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E7",
+      "source": "INT-02",
+      "quote": "I speak to our CAAS inspector informally before a submission. It saves three rounds.",
+      "speaker": "Quality Manager",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E8",
+      "source": "INT-02",
+      "quote": "Any new maintenance record system has to keep the audit trail. If it doesn't, I will not sign.",
+      "speaker": "Quality Manager",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E9",
+      "source": "INT-02",
+      "quote": "I heard Finance is sitting on the purchase orders for the cutover contractors.",
+      "speaker": "Quality Manager",
+      "attribution": "hearsay"
+    },
+    {
+      "id": "E10",
+      "source": "INT-03",
+      "quote": "The plan comes at six and by midnight it is wrong. We re-sequence the cards ourselves and tell Planning in the morning.",
+      "speaker": "Night shift supervisor",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E11",
+      "source": "INT-03",
+      "quote": "The technicians do what I tell them. If I say the new tablet is fine, they use it. If I say it's rubbish, it's in a drawer by Friday.",
+      "speaker": "Night shift supervisor",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E12",
+      "source": "INT-03",
+      "quote": "Everybody asks Raj. He signs the release, so what he thinks is what happens.",
+      "speaker": "Night shift supervisor",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E13",
+      "source": "INT-03",
+      "quote": "The union rep sits in the canteen at shift change. Whatever is said there is the shift's view by morning. That is what I have seen, I could not tell you how he gets it.",
+      "speaker": "Night shift supervisor",
+      "attribution": "claim"
+    },
+    {
+      "id": "E14",
+      "source": "INT-04",
+      "quote": "A purchase order for contractors goes through me and two others. That is four weeks, and I would not call it holding things up.",
+      "speaker": "Finance Manager",
+      "attribution": "claim"
+    },
+    {
+      "id": "E15",
+      "source": "INT-04",
+      "quote": "We release the programme budget in tranches, and nothing moves until the Programme Office shows the milestone.",
+      "speaker": "Finance Manager",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E16",
+      "source": "INT-05",
+      "quote": "Ow in IT and the partner's lead speak daily. I hear about technical decisions from Ow after the fact.",
+      "speaker": "Programme Director",
+      "attribution": "claim"
+    },
+    {
+      "id": "E17",
+      "source": "INT-05",
+      "quote": "David sponsors this and asks me directly, not through the steering committee.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E18",
+      "source": "INT-05",
+      "quote": "The unions have not been consulted formally yet. Nobody has said who should do it.",
+      "speaker": "Programme Director",
+      "attribution": "testimony"
+    },
+    {
+      "id": "E19",
+      "source": "INT-05",
+      "quote": "Everyone tells me nothing goes live without Raj nodding.",
+      "speaker": "Programme Director",
+      "attribution": "claim"
+    },
+    {
+      "id": "E20",
+      "source": "INT-02",
+      "quote": "Technical Services send their drafts to Raj before they publish an engineering order.",
+      "speaker": "Quality Manager",
+      "attribution": "claim"
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "Person-01": {
+    "id": "P-CHEW",
+    "name": "Chew Kah Meng",
+    "aliases": []
+  },
+  "Person-02": {
+    "id": "P-DAV",
+    "name": "David Tay",
+    "aliases": []
+  },
+  "Person-03": {
+    "id": "P-HAS",
+    "name": "Hassan bin Ali",
+    "aliases": []
+  },
+  "Person-04": {
+    "id": "P-LIM",
+    "name": "Lim Mei Ling",
+    "aliases": []
+  },
+  "Person-05": {
+    "id": "P-NG",
+    "name": "Ng Wei Lun",
+    "aliases": []
+  },
+  "Person-06": {
+    "id": "P-OW",
+    "name": "Ow Pei San",
+    "aliases": []
+  },
+  "Person-07": {
+    "id": "P-RAJ",
+    "name": "Rajendran S.",
+    "aliases": []
+  },
+  "Person-08": {
+    "id": "P-TEO",
+    "name": "Teo Siew Hwa",
+    "aliases": []
+  }
+}

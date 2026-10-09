@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Stakeholder extraction (Stage 2 output, Stage 3 input)",
+  "description": "What the model writes after reading the sources. build_map.py enforces the cross-reference rules JSON Schema cannot express: every id exists, informal ties cite evidence, ties and types agree.",
+  "type": "object",
+  "required": ["groups", "individuals", "relationships", "evidence"],
+  "properties": {
+    "groups": {"type": "array", "minItems": 1, "items": {
+      "type": "object", "required": ["id", "name", "tier"],
+      "properties": {
+        "id": {"type": "string"}, "name": {"type": "string"}, "business_unit": {"type": "string"},
+        "org_units": {"type": "array", "items": {"type": "string"}, "description": "Org chart units this group covers, when its name differs"},
+        "tier": {"type": "integer", "minimum": 0, "maximum": 5, "description": "0 executive, 1 senior management, 2 middle management, 3 specialist/team lead, 4 frontline, 5 external"},
+        "headcount": {"type": "integer", "minimum": 0},
+        "sentiment": {"enum": ["Advocate", "Neutral", "Skeptic", "Unknown"]},
+        "influence": {"type": "integer", "minimum": 1, "maximum": 5},
+        "interest": {"type": "integer", "minimum": 1, "maximum": 5},
+        "ona_role": {"enum": ["Central Connector", "Broker", "Peripheral", "Energiser", "De-energiser"]},
+        "confidence": {"enum": ["High", "Medium", "Low"]},
+        "summary": {"type": "string"},
+        "evidence": {"type": "array", "items": {"type": "string"}},
+        "open_questions": {"type": "array", "items": {"type": "string"}}
+      }}},
+    "individuals": {"type": "array", "items": {
+      "type": "object", "required": ["id", "group", "name"],
+      "properties": {
+        "id": {"type": "string"}, "group": {"type": "string"}, "name": {"type": "string"}, "title": {"type": "string"},
+        "sentiment": {"enum": ["Advocate", "Neutral", "Skeptic", "Unknown"]},
+        "influence": {"type": "integer", "minimum": 1, "maximum": 5},
+        "ona_role": {"enum": ["Central Connector", "Broker", "Peripheral", "Energiser", "De-energiser"]},
+        "evidence": {"type": "array", "items": {"type": "string"}}
+      }}},
+    "relationships": {"type": "array", "items": {
+      "type": "object", "required": ["id", "from", "to", "kind", "type"],
+      "properties": {
+        "id": {"type": "string"}, "from": {"type": "string"}, "to": {"type": "string"},
+        "kind": {"enum": ["formal", "informal"]},
+        "type": {"enum": ["reports_to", "approves", "hands_off_to", "escalates_to", "governs", "consults", "trusts", "influences", "bypasses", "conflicts_with", "gatekeeps"]},
+        "strength": {"enum": [1, 2, 3]}, "confidence": {"enum": ["High", "Medium", "Low"]},
+        "evidence": {"type": "array", "items": {"type": "string"}, "description": "Required (non-empty) when kind is informal"}
+      }}},
+    "evidence": {"type": "array", "items": {
+      "type": "object", "required": ["id", "source", "quote", "attribution"],
+      "properties": {
+        "id": {"type": "string"}, "source": {"type": "string", "description": "A source id from sources.json"},
+        "quote": {"type": "string"}, "speaker": {"type": "string", "description": "A role, not a name, unless names are needed"},
+        "attribution": {"enum": ["testimony", "claim", "hearsay", "document"]}
+      }}}
+  }
+}

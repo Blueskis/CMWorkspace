@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Organisation context (Stage 1 output)",
+  "type": "object",
+  "required": ["client", "industry", "business_model"],
+  "properties": {
+    "client": {"type": "string"},
+    "programme": {"type": "string"},
+    "industry": {"type": "string", "description": "Matched against reference/industry_lenses.json, e.g. 'Aviation MRO', 'Public sector agency'"},
+    "business_model": {"type": "string", "description": "How the organisation makes money or discharges its mandate"},
+    "org_chart_units": {"type": "array", "items": {"type": "string"}, "description": "Every unit on the org chart. QA fails if one has no group."},
+    "workforce": {"type": "string", "description": "Shift-based, unionised, licensed or certified staff, contractors"},
+    "regulators": {"type": "array", "items": {"type": "string"}}
+  }
+}

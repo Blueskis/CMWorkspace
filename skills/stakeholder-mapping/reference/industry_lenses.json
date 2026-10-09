@@ -1,0 +1,131 @@
+{
+  "_about": "Used by qa_map.py ONLY to flag stakeholder groups that this kind of organisation usually has but the evidence has not surfaced. It never adds a group. A warning means 'ask about this in the next interview', not 'it exists'. Keywords are matched (case-insensitive) against group name, business unit, org units and summary.",
+  "lenses": {
+    "aviation": {
+      "match": ["aviation", "airline", "airport", "mro", "aerospace", "aircraft"],
+      "expected_groups": [
+        {"label": "Regulator (e.g. CAAS)", "keywords": ["regulator", "caas", "civil aviation", "authority"],
+         "why": "Approves maintenance organisation changes; can gate go-live of any system that holds airworthiness records.",
+         "probe": "Which regulator approvals does this change touch, and who talks to them informally?"},
+        {"label": "Licensed engineers / certifying staff", "keywords": ["licensed", "certifying", "b1", "b2", "engineer"],
+         "why": "Personal legal sign-off gives them veto power that does not show on the org chart.",
+         "probe": "Who do the certifying staff actually take advice from before they trust a new record system?"},
+        {"label": "Quality and safety", "keywords": ["quality", "safety", "compliance"],
+         "why": "Owns audit trail and procedure change control.",
+         "probe": "Who can stop a process change on safety grounds, and how often do they?"},
+        {"label": "Shift supervisors / line leads", "keywords": ["shift", "supervisor", "line lead", "foreman"],
+         "why": "Handover networks carry the real work; they are the channel for frontline sentiment.",
+         "probe": "How does information move between shifts, and who is trusted to relay it?"},
+        {"label": "Union or staff association", "keywords": ["union", "association", "labour", "labor"],
+         "why": "Formal consultation duties on role or shift changes.",
+         "probe": "Which changes trigger consultation, and who engages the union informally?"}
+      ],
+      "informal_channels": ["shift handover chains", "technical authority that outranks line management", "regulator relationships held by one or two individuals"]
+    },
+    "engineering": {
+      "match": ["engineering", "construction", "infrastructure", "manufactur", "epc"],
+      "expected_groups": [
+        {"label": "Project / programme management", "keywords": ["project", "programme", "pmo"],
+         "why": "Controls schedule and resourcing that every other group competes for.",
+         "probe": "Who decides when a workstream is allowed to pause for training?"},
+        {"label": "Technical authority / design engineers", "keywords": ["design", "technical authority", "engineer"],
+         "why": "Informal authority over how work is done.",
+         "probe": "Whose judgement is final when the process and the engineering view disagree?"},
+        {"label": "Safety, health and environment", "keywords": ["safety", "hse", "she", "environment"],
+         "why": "Stop-work authority.",
+         "probe": "Where has safety shaped how systems or procedures were introduced before?"},
+        {"label": "Site / field operations", "keywords": ["site", "field", "operations", "plant"],
+         "why": "Where adoption actually happens, often on poor connectivity and in shifts.",
+         "probe": "Who on site do others copy when a new tool arrives?"},
+        {"label": "Subcontractors / suppliers", "keywords": ["subcontract", "supplier", "vendor", "contractor"],
+         "why": "Outside the reporting line but inside the process.",
+         "probe": "Which subcontractors must change how they transact, and who manages them day to day?"}
+      ],
+      "informal_channels": ["site foremen networks", "long-tenured engineers consulted before decisions", "relationships between project and site that bypass the PMO"]
+    },
+    "public_sector": {
+      "match": ["government", "public sector", "statutory", "ministry", "agency", "authority"],
+      "expected_groups": [
+        {"label": "Political / ministerial oversight", "keywords": ["ministry", "minister", "parent", "oversight", "board"],
+         "why": "Sets mandate and tolerates or rejects visible risk.",
+         "probe": "What does the parent ministry need to see, and who carries that message?"},
+        {"label": "Finance and procurement", "keywords": ["finance", "procurement", "budget"],
+         "why": "Gates spend and vendor engagement under public rules.",
+         "probe": "Which approvals have historically slowed change, and who clears them informally?"},
+        {"label": "HR / organisation development", "keywords": ["hr", "human resource", "people", "organisation development"],
+         "why": "Owns role, grade and scheme changes.",
+         "probe": "Which role changes need HR or union alignment before they can be announced?"},
+        {"label": "Middle management / division heads", "keywords": ["division", "director", "head of", "department"],
+         "why": "Translate mandate into local priority; frequent point of quiet resistance.",
+         "probe": "Which division heads are most likely to delay quietly?"},
+        {"label": "Frontline officers", "keywords": ["officer", "frontline", "front line", "operations"],
+         "why": "Absorb the change and inform citizen-facing quality.",
+         "probe": "How do frontline officers hear about change today, and whom do they trust?"}
+      ],
+      "informal_channels": ["alumni networks across agencies", "long-serving officers acting as unofficial helpdesks", "cross-agency working groups that decide before committees do"]
+    },
+    "glc_utilities": {
+      "match": ["utilities", "utility", "energy", "power", "water", "grid", "glc", "transport", "rail"],
+      "expected_groups": [
+        {"label": "Regulator", "keywords": ["regulator", "ema", "pub", "lta", "authority"],
+         "why": "Licence conditions constrain operations and data.",
+         "probe": "Which licence obligations does the system change touch?"},
+        {"label": "Control room / operations", "keywords": ["control", "operations", "network", "dispatch"],
+         "why": "Cannot tolerate disruption; its sign-off is practical veto.",
+         "probe": "What cutover windows does operations accept, and who negotiates them?"},
+        {"label": "Asset management / maintenance", "keywords": ["asset", "maintenance", "engineering"],
+         "why": "Primary users of plant maintenance and asset data.",
+         "probe": "Who owns the asset master data and is anyone resisting cleansing it?"},
+        {"label": "Shared services / finance", "keywords": ["shared services", "finance", "procurement"],
+         "why": "Process owners for finance and supply chain transactions.",
+         "probe": "Which shared-service teams carry the most manual workarounds?"},
+        {"label": "Shareholder / parent entity", "keywords": ["shareholder", "temasek", "parent", "board"],
+         "why": "Mandate and reporting expectations.",
+         "probe": "Which board members follow this programme closely?"}
+      ],
+      "informal_channels": ["engineers who rotated between divisions", "union and management relationships dating back decades", "control-room veterans consulted on operational risk"]
+    },
+    "financial_services": {
+      "match": ["bank", "insurance", "financial", "asset management", "fintech"],
+      "expected_groups": [
+        {"label": "Risk and compliance", "keywords": ["risk", "compliance", "legal"],
+         "why": "Can block change on control grounds.",
+         "probe": "Which controls does this change alter, and who signs off?"},
+        {"label": "Technology / operations", "keywords": ["technology", "it", "operations"],
+         "why": "Delivery capacity and change freeze calendars.",
+         "probe": "Who owns the release calendar and its exceptions?"},
+        {"label": "Front office / relationship managers", "keywords": ["front office", "relationship", "sales", "advisor", "adviser"],
+         "why": "Revenue owners with strong informal power.",
+         "probe": "Whose workload objections get escalated successfully?"},
+        {"label": "Regulator", "keywords": ["regulator", "mas", "authority"],
+         "why": "Notification and outsourcing rules.",
+         "probe": "Which notifications does the change need?"},
+        {"label": "Internal audit", "keywords": ["audit"],
+         "why": "Independent challenge on controls.",
+         "probe": "Has internal audit already commented on this programme?"}
+      ],
+      "informal_channels": ["senior bankers with direct line to the CEO", "operations managers who unofficially fix front-office issues", "compliance officers consulted informally before formal submissions"]
+    },
+    "healthcare": {
+      "match": ["hospital", "healthcare", "health care", "clinic", "medical"],
+      "expected_groups": [
+        {"label": "Clinicians (doctors)", "keywords": ["clinician", "doctor", "physician", "consultant", "medical"],
+         "why": "High autonomy; adoption depends on peer opinion more than mandate.",
+         "probe": "Which clinical leaders do others follow on new systems?"},
+        {"label": "Nursing", "keywords": ["nurse", "nursing"],
+         "why": "Largest user group, with their own leadership line.",
+         "probe": "Who among nurse managers shapes how a change lands on the ward?"},
+        {"label": "Allied health and pharmacy", "keywords": ["allied", "pharmacy", "pharmacist", "therapist"],
+         "why": "Process hand-offs that rarely appear in the sponsor's view.",
+         "probe": "What workarounds exist between pharmacy, wards and billing?"},
+        {"label": "Patient safety and quality", "keywords": ["safety", "quality", "clinical governance"],
+         "why": "Stop-the-line authority.",
+         "probe": "How does patient safety review system changes?"},
+        {"label": "Administration and finance", "keywords": ["administration", "finance", "billing", "admin"],
+         "why": "Owns the transactional process the system changes.",
+         "probe": "Where does administration depend on clinicians' goodwill?"}
+      ],
+      "informal_channels": ["department heads who set peer norms", "senior nurses as unofficial schedulers", "clinician champions who bypass the IT queue"]
+    }
+  }
+}

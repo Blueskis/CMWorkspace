@@ -1,0 +1,21 @@
+{
+  "client": "Northwind MRO",
+  "programme": "S/4HANA Plant Maintenance and Materials rollout",
+  "industry": "Aviation MRO",
+  "business_model": "Line and base maintenance for regional airline customers under a regulator-approved maintenance organisation",
+  "org_chart_units": [
+    "Executive Committee",
+    "Maintenance Operations",
+    "Planning & Production Control",
+    "Base Maintenance",
+    "Line Maintenance",
+    "Stores & Logistics",
+    "Quality & Safety",
+    "Technical Services",
+    "Finance & Procurement",
+    "IT",
+    "HR & Training",
+    "Customer Programmes",
+    "Programme Office"
+  ]
+}
