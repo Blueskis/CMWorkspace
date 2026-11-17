@@ -1,0 +1,24 @@
+lever,op,target,allowed_values,default,meaning
+Impacted people,set_driver,headcount,number >= 0,500,Scope driver
+Business units / functions,set_driver,units,number >= 0,3,Scope driver
+Countries / sites,set_driver,geos,number >= 0,1,Scope driver
+Languages,set_driver,languages,number >= 0,1,Scope driver
+Deployment waves,set_driver,waves,number >= 0,1,Scope driver
+Programme duration (months),set_driver,months,number >= 0,9,Scope driver
+Training modules,set_driver,modules,number >= 0,6,Scope driver
+Trainees per session,set_driver,sessionSize,number >= 0,20,Scope driver
+Hypercare (months),set_driver,hypercareMonths,number >= 0,2,Scope driver
+Complexity,set_driver,complexity,1 | 2 | 3 | 4 | 5,3,Scope driver
+Client CM maturity,set_driver,maturity,low | medium | high,medium,Scope driver
+"Our share of the global build, %",set_global,involvement.global,0 to 100,,Global setting
+"Our share of the local build, %",set_global,involvement.local,0 to 100,,Global setting
+Rounds of client review plus our QA,set_global,reviewCycles,1 to 3,,Global setting
+"Effort to adapt a global deliverable per market, % of build",set_global,localisationFactor,1 to 200,,Global setting
+"Delivery buffer, % of effort",set_global,contingency,0 to 50,,Global setting
+Line complexity,set_line_level,<line id>,Simple | Standard | Complex,,
+Line mode of conduct,set_line_mode,<line id>,virtual | blended | physical,,Sessions and workshops only
+Line quantity,set_line_qty,<line id>,number >= 0,,
+Line in scope,set_line_include,<line id>,true | false,,
+Line priced as option,set_line_optional,<line id>,true | false,,
+New deliverable,add_line,global | local,"{name, qty, level, archetype}",,
+Assumption only,note,,,,Moves no number

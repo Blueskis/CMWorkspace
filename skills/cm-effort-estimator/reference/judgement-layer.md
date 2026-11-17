@@ -106,6 +106,17 @@ The pre-judgement baseline plus the sum of every currently accepted entry's logg
 always equals the current total exactly — that reconciliation is what a test in
 `tests/judgement.test.js` checks directly, not asserted from the UI.
 
+## Hand edits made after judgement
+
+Replaying from a baseline is only exact if the baseline is current. A person who accepts an
+adjustment, then changes the delivery buffer by hand, then accepts another adjustment, must
+not have the buffer quietly snap back to its old value on the next replay. Before every
+accept, revert, rebuild or preview, `rebaseJudgement()` compares each lever on screen with
+what replaying the log would produce. Any difference is a hand edit, and it is folded into the
+baseline. If the person typed over a lever that an accepted adjustment had set, that
+adjustment is marked **superseded** ("manual edit"). The person overrode it, the log says
+so, and it can no longer be reverted, because there is nothing of it left to undo.
+
 ## The warning band
 
 Accepted judgement is compared against the pre-judgement baseline on every render. Past

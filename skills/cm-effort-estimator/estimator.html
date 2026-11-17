@@ -2174,8 +2174,21 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
 
 
   function analyse() {
+    if (!(state.rfpText || "").trim()) { toast("Add some scope text first"); return; }
+    analyseScope();
+    renderAll();
+    const n = Object.keys(state.signals).length;
+    const dn = Object.keys(state.detected).length;
+    $("analyse-status").textContent = `${n} deliverable${n === 1 ? "" : "s"} signalled · ${dn} scope driver${dn === 1 ? "" : "s"} read from the document`;
+    toast("Scope analysed — manday estimate rebuilt");
+    save();
+  }
+
+  // The DOM-free half of analyse(): reads state.rfpText into drivers, signals,
+  // client terms and option flags, then rebuilds the lines. Kept separate so
+  // the Copilot skill script reads an RFP exactly the way this page does.
+  function analyseScope() {
     const raw = state.rfpText || "";
-    if (!raw.trim()) { toast("Add some scope text first"); return; }
     const text = raw.replace(/\s+/g, " ").trim();
     const ci = compactIndex(text);
 
@@ -2261,12 +2274,6 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     });
 
     buildLines(true);
-    renderAll();
-    const n = Object.keys(state.signals).length;
-    const dn = Object.keys(state.detected).length;
-    $("analyse-status").textContent = `${n} deliverable${n === 1 ? "" : "s"} signalled · ${dn} scope driver${dn === 1 ? "" : "s"} read from the document`;
-    toast("Scope analysed — manday estimate rebuilt");
-    save();
   }
 
   // The exact words the RFP used, taken back out of the document with its own
@@ -2333,6 +2340,15 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     return { value: 5, basis: "default", level };
   }
 
+  // Rounds the way a spreadsheet does: to 15 significant digits first, then
+  // half away from zero. Plain Math.round(x * 10) / 10 sends 3 x 0.35 (stored
+  // as 1.0499999999999998) to 1.0, where Excel and every reader expect 1.1,
+  // and the Copilot workbook must agree with this page to the decimal.
+  function roundHalfUp(x, dp) {
+    const f = Math.pow(10, dp);
+    return Math.round(Number((x * f).toPrecision(15))) / f;
+  }
+
   /* ---------------------------- estimate build ---------------------------- */
 
   function multipliers(entry, skipGeo) {
@@ -2392,13 +2408,13 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         // coordination multiplier would double-count there.
         const { m, parts } = multipliers(entry, local);
         const rule = QTY_RULES[entry.qty] || QTY_RULES.one;
-        let autoQty = Math.max(0, Math.round(rule(drv, capacityF)));
+        let autoQty = Math.max(0, roundHalfUp(rule(drv, capacityF), 0));
         // Localisation happens once per market — except where the quantity
         // rule already counts markets.
         if (local && entry.qty !== "geos") autoQty = autoQty * markets;
 
         const perUnit = dpu.value * (local ? locF : 1);
-        const autoDays = Math.round(perUnit * m * effortF * 10) / 10;
+        const autoDays = roundHalfUp(perUnit * m * effortF, 1);
 
         const signal = (state.catSignals || {})[entry.id] || state.signals[entry.rateKey];
         const included = analysed ? (!!signal || !!entry.core) : !!entry.core;
@@ -2478,7 +2494,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     if (sum > 0) RANKS.forEach((r) => { byRank[r.id] = hours * ((+mix[r.id] || 0) / sum); });
     return { ...l,
       stream: l.stream || "global",
-      dpu: Math.round((hours / hpd) * m * effortF * (local ? localisationFactor() : 1) * 10) / 10,
+      dpu: roundHalfUp((hours / hpd) * m * effortF * (local ? localisationFactor() : 1), 1),
       baseDpu: Math.round((hours / hpd) * 10) / 10,
       libHours: hours, customTasks: tasks, customPerTask: perTask,
       effortF, daysBasis: "custom",
@@ -2658,6 +2674,11 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
         if (adj.op === "set_line_mode" && !MODES.some((m) => m.id === adj.value)) {
           return { ok: false, reason: "out of range: mode must be virtual, blended or physical" };
         }
+        // Documents and assets have no mode of conduct; accepting one would log
+        // a change that moves nothing.
+        if (adj.op === "set_line_mode" && !line.custom && !MODE_APPLIES.has(line.catId)) {
+          return { ok: false, reason: `not applicable: "${line.name}" is a document or asset, so mode of conduct doesn't apply` };
+        }
         if (adj.op === "set_line_qty") {
           const n = Number(adj.value);
           if (!isFinite(n) || n < 0) return { ok: false, reason: "out of range: quantity must be zero or positive" };
@@ -2697,7 +2718,25 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   // can touch. Deliberately excludes taskHours, taskOff, archetypes, rankMix,
   // modeFactors, vocab and quotes: admin configuration the assistant never
   // sees or writes.
+  // A catalogue line's quantity, inclusion and option flag only need storing
+  // where someone set them by hand; everything else rebuilds from the drivers.
+  // A custom line has no drivers to rebuild from, so all of it is stored.
+  function lineOverrideOf(l) {
+    if (l.custom) return { qty: l.qty, include: l.include, optional: l.optional, level: l.level, mode: l.mode };
+    const ov = {};
+    if (l.editedQty) { ov.qty = l.qty; ov.editedQty = true; }
+    if (l.editedInclude) { ov.include = l.include; ov.editedInclude = true; }
+    if (l.editedOptional) { ov.optional = l.optional; ov.editedOptional = true; }
+    return Object.keys(ov).length ? ov : null;
+  }
+
   function snapshotJudgementState() {
+    const lineOverrides = {};
+    (state.lines || []).forEach((l) => {
+      if (l.judgementAdded) return;
+      const ov = lineOverrideOf(l);
+      if (ov) lineOverrides[l.id] = ov;
+    });
     return {
       drivers: deepClone(state.drivers),
       lineComplexity: deepClone(state.lineComplexity),
@@ -2706,9 +2745,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       reviewCycles: state.reviewCycles,
       localisationFactor: state.localisationFactor,
       contingency: state.settings.contingency,
-      lineOverrides: Object.fromEntries((state.lines || []).filter((l) => !l.custom).map((l) =>
-        [l.id, { qty: l.qty, include: l.include, optional: l.optional,
-          editedQty: l.editedQty, editedInclude: l.editedInclude, editedOptional: l.editedOptional }]))
+      lineOverrides
     };
   }
 
@@ -2723,10 +2760,93 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     // Lines the judgement layer added itself are re-created deterministically
     // during replay (see applyOpToState/"add_line") rather than snapshotted.
     state.lines = (state.lines || []).filter((l) => !(l.custom && l.judgementAdded));
+    // Clear every hand-set flag first: buildLines(false) carries edited values
+    // forward, so a quantity a judgement adjustment set would otherwise
+    // survive its own revert.
+    state.lines.forEach((l) => {
+      if (l.custom) {
+        const ov = snap.lineOverrides[l.id];
+        if (ov) Object.assign(l, ov);
+        return;
+      }
+      l.editedQty = false; l.editedInclude = false; l.editedOptional = false;
+    });
     buildLines(false);
     state.lines.forEach((l) => {
       const ov = snap.lineOverrides[l.id];
-      if (ov) Object.assign(l, ov);
+      if (ov && !l.custom) Object.assign(l, ov);
+    });
+  }
+
+  // Every lever a judgement adjustment can write, flattened to one key each,
+  // so the state on screen can be compared field by field with what replaying
+  // the log would produce.
+  function judgementFields() {
+    const f = {};
+    Object.keys(state.drivers || {}).forEach((k) => { f["set_driver::" + k] = state.drivers[k]; });
+    Object.keys(JUDGEMENT_GLOBAL_RANGES).forEach((t) => { f["set_global::" + t] = readGlobal(t); });
+    (state.lines || []).forEach((l) => {
+      if (l.judgementAdded) return;
+      f["set_line_level::" + l.id] = l.custom ? l.level : state.lineComplexity[l.id];
+      f["set_line_mode::" + l.id] = l.custom ? l.mode : state.lineMode[l.id];
+      f["set_line_qty::" + l.id] = l.custom || l.editedQty ? l.qty : undefined;
+      f["set_line_include::" + l.id] = l.custom || l.editedInclude ? l.include : undefined;
+      f["set_line_optional::" + l.id] = l.custom || l.editedOptional ? l.optional : undefined;
+    });
+    return f;
+  }
+
+  function readGlobal(t) {
+    if (t === "involvement.global") return state.involvement.global;
+    if (t === "involvement.local") return state.involvement.local;
+    if (t === "reviewCycles") return state.reviewCycles;
+    if (t === "localisationFactor") return state.localisationFactor;
+    if (t === "contingency") return state.settings.contingency;
+    return undefined;
+  }
+
+  function writeBaselineField(snap, key, value) {
+    const [op, target] = key.split("::");
+    if (op === "set_driver") { snap.drivers[target] = value; return; }
+    if (op === "set_global") {
+      if (target === "involvement.global") snap.involvement.global = value;
+      else if (target === "involvement.local") snap.involvement.local = value;
+      else if (target === "reviewCycles") snap.reviewCycles = value;
+      else if (target === "localisationFactor") snap.localisationFactor = value;
+      else if (target === "contingency") snap.contingency = value;
+      return;
+    }
+    const line = (state.lines || []).find((l) => l.id === target);
+    if (!line) return;
+    if (!line.custom && (op === "set_line_level" || op === "set_line_mode")) {
+      const dict = op === "set_line_level" ? snap.lineComplexity : snap.lineMode;
+      if (value === undefined) delete dict[target]; else dict[target] = value;
+      return;
+    }
+    const ov = snap.lineOverrides[target] || (snap.lineOverrides[target] = {});
+    const field = { set_line_level: "level", set_line_mode: "mode", set_line_qty: "qty",
+      set_line_include: "include", set_line_optional: "optional" }[op];
+    const flag = { qty: "editedQty", include: "editedInclude", optional: "editedOptional" }[field];
+    if (value === undefined) { delete ov[field]; if (flag) delete ov[flag]; }
+    else { ov[field] = value; if (flag && !line.custom) ov[flag] = true; }
+  }
+
+  // Someone may have changed a lever by hand since the last replay. Replaying
+  // from the old baseline would silently undo that edit, so first fold every
+  // hand edit into the baseline, and mark any accepted adjustment on the same
+  // lever superseded: the person overrode it, and the log should say so.
+  function rebaseJudgement() {
+    if (!state.judgementBaseline) return;
+    const current = judgementFields();
+    const replayed = withTempState(deepClone(state), () => { replayJudgement(state); return judgementFields(); });
+    const changed = Object.keys(Object.assign({}, current, replayed))
+      .filter((k) => JSON.stringify(current[k]) !== JSON.stringify(replayed[k]));
+    if (!changed.length) return;
+    changed.forEach((key) => {
+      writeBaselineField(state.judgementBaseline, key, current[key]);
+      (state.adjustments || []).forEach((a) => {
+        if (a.status === "accepted" && a.op + "::" + a.target === key) { a.status = "superseded"; a.supersededBy = "manual edit"; }
+      });
     });
   }
 
@@ -2824,19 +2944,53 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   // accepted — computed on a full clone, so proposing never touches the real
   // state and the number shown before acceptance is the number that actually
   // lands after it.
+  // Models hand back "5" as readily as 5, and "true" as readily as true. Coerce
+  // to the type each lever stores, after validation has accepted the value, so
+  // a string never lands in a field the engine does arithmetic on.
+  function normaliseAdjustment(adj) {
+    const out = { ...adj };
+    if (out.op === "set_driver") {
+      const d = DRIVERS.find((x) => x.key === out.target);
+      if (d && d.type === "number") out.value = Number(out.value);
+      else if (d && d.key === "complexity") out.value = parseInt(out.value, 10);
+    } else if (out.op === "set_global" || out.op === "set_line_qty") {
+      out.value = Number(out.value);
+    } else if ((out.op === "set_line_include" || out.op === "set_line_optional") && typeof out.value === "string") {
+      out.value = out.value.trim().toLowerCase() === "true";
+    }
+    return out;
+  }
+
   function previewAdjustmentDelta(adjDraft) {
-    const v = validateAdjustment(adjDraft, state);
-    if (!v.ok) return null;
+    return previewAdjustmentsDelta([adjDraft]);
+  }
+
+  // The combined delta of accepting a whole batch on top of what is already
+  // accepted. Invalid drafts are skipped, exactly as accept would skip them.
+  function previewAdjustmentsDelta(drafts) {
     const clone = deepClone(state);
     return withTempState(clone, () => {
+      rebaseJudgement();
       buildLines(false);
       const before = totals().effortWithBuffer;
+      const valid = drafts.map((d) => coerceForValidation(d)).filter((d) => validateAdjustment(d, state).ok).map(normaliseAdjustment);
+      if (!valid.length) return drafts.length === 1 ? null : 0;
       if (!state.judgementBaseline) state.judgementBaseline = snapshotJudgementState();
-      state.adjustments = (state.adjustments || []).concat([{ ...adjDraft, id: "preview", status: "accepted", ts: Date.now() }]);
+      state.adjustments = (state.adjustments || []).concat(valid.map((d, i) => ({ ...d, id: "preview" + i, status: "accepted", ts: Date.now() })));
       replayJudgement(state);
       const after = totals().effortWithBuffer;
       return Math.round((after - before) * 10) / 10;
     });
+  }
+
+  // Booleans may arrive as the strings "true"/"false"; validation should
+  // judge the value the person meant, not its JSON spelling.
+  function coerceForValidation(adj) {
+    if (adj && (adj.op === "set_line_include" || adj.op === "set_line_optional") && typeof adj.value === "string") {
+      const s = adj.value.trim().toLowerCase();
+      if (s === "true" || s === "false") return { ...adj, value: s === "true" };
+    }
+    return adj;
   }
 
   let judgementIdCounter = 0;
@@ -2846,12 +3000,15 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   // there is nothing to undo and state is byte-identical to before it was
   // proposed. Only accept() writes anything down.
   function acceptAdjustment(adjDraft) {
-    const v = validateAdjustment(adjDraft, state);
+    const draft = coerceForValidation(adjDraft);
+    const v = validateAdjustment(draft, state);
     if (!v.ok) return v;
+    const clean = normaliseAdjustment(draft);
+    rebaseJudgement();
     if (!state.judgementBaseline) state.judgementBaseline = snapshotJudgementState();
     const entry = {
-      id: nextJudgementId(), op: adjDraft.op, target: adjDraft.target, value: adjDraft.value,
-      rationale: adjDraft.rationale || "", confidence: adjDraft.confidence || "medium",
+      id: nextJudgementId(), op: clean.op, target: clean.target, value: clean.value,
+      rationale: clean.rationale || "", confidence: clean.confidence || "medium",
       status: "accepted", deltaMandays: 0, ts: Date.now()
     };
     state.adjustments = (state.adjustments || []).concat([entry]);
@@ -2863,6 +3020,8 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   function revertAdjustment(id) {
     const entry = (state.adjustments || []).find((a) => a.id === id);
     if (!entry || entry.status !== "accepted") return { ok: false, reason: "no such accepted adjustment" };
+    rebaseJudgement();
+    if (entry.status !== "accepted") return { ok: false, reason: "that adjustment was overridden by a manual edit, so there is nothing left to revert" };
     entry.status = "reverted";
     replayJudgement(state);
     save();
@@ -2876,11 +3035,20 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
   // than silently dropped, staying visible in the log with their history
   // intact. Driver and global adjustments are untouched and still apply.
   function rebuildFromScopeWithJudgement() {
+    rebaseJudgement();
     const PER_LINE_OPS = new Set(["set_line_level", "set_line_mode", "set_line_qty", "set_line_include", "set_line_optional", "add_line"]);
     (state.adjustments || []).forEach((adj) => {
       if (adj.status === "accepted" && PER_LINE_OPS.has(adj.op)) adj.status = "superseded";
     });
-    if (state.judgementBaseline) state.judgementBaseline.lineOverrides = {};
+    // Hand-set catalogue overrides go with the rebuild; custom lines survive it,
+    // so their stored values stay.
+    if (state.judgementBaseline) {
+      const kept = {};
+      (state.lines || []).forEach((l) => {
+        if (l.custom && !l.judgementAdded && state.judgementBaseline.lineOverrides[l.id]) kept[l.id] = state.judgementBaseline.lineOverrides[l.id];
+      });
+      state.judgementBaseline.lineOverrides = kept;
+    }
     state.lines = (state.lines || []).filter((l) => l.custom && !l.judgementAdded);
     buildLines(true);
     replayJudgement(state);
@@ -2891,6 +3059,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     if (!state.judgementBaseline) return totals().effortWithBuffer;
     const clone = deepClone(state);
     return withTempState(clone, () => {
+      rebaseJudgement();
       restoreJudgementSnapshotInPlace(state.judgementBaseline);
       buildLines(false);
       return totals().effortWithBuffer;
@@ -2919,6 +3088,41 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       return { ok: false, reason: "The assistant's reply was not in the expected shape." };
     }
     return { ok: true, adjustments: parsed.adjustments, note: typeof parsed.note === "string" ? parsed.note : "" };
+  }
+
+  // The assumptions register, as text. Shared by the page and the Copilot
+  // skill so both hand over the same words with the same numbers in them.
+  function assumptionItems() {
+    const t = totals();
+    const d = effDrivers();
+    const cycles = reviewCycles();
+    const markets = Math.max(1, driverValue("geos"));
+    const modeCounts = {};
+    t.inc.forEach((l) => { if (l.mode) modeCounts[l.mode] = (modeCounts[l.mode] || 0) + 1; });
+    const modeSummary = Object.entries(modeCounts).map(([m, n]) => `${n} ${m}`).join(", ");
+    const scopeWord = state.scopeType === "both" ? "globalisation and localisation"
+      : state.scopeType === "local" ? "localisation only" : "globalisation only";
+
+    return [
+      `Scope covers ${scopeWord}. Our effort totals ${days(t.effortWithBuffer)} mandays, at an average of ${t.fte.toFixed(1)} FTE over ${d.months} months.`,
+      ...t.streams.map((ts) => {
+        const st = STREAMS.find((x) => x.id === ts.streamId);
+        return `${st.verb}: ${days(ts.build)} mandays of build, of which we carry ${Math.round(ts.share * 100)}% (${days(ts.ourBuild)} mandays) and the client ${100 - Math.round(ts.share * 100)}% (${days(ts.clientBuild)} mandays), plus ${days(ts.ourReview)} mandays of our review.`;
+      }),
+      state.scopeType !== "global"
+        ? `Localised deliverables are adapted for ${markets} market${markets === 1 ? "" : "s"} at ${Math.round(localisationFactor() * 100)}% of the effort it takes to build the global master.`
+        : null,
+      `${cycles} review cycle${cycles === 1 ? "" : "s"} ${cycles === 1 ? "is" : "are"} assumed, each one round of client review at ${Math.round(reviewPct("client") * 1000) / 10}% of build effort and one round of our own quality assurance at ${Math.round(reviewPct("ours") * 100)}%. Review covers the whole deliverable set regardless of who drafted it.`,
+      `Effort is built bottom-up from the itemised task library at ${state.settings.hoursPerDay || 8} hours per day. Each deliverable is graded Simple, Standard or Complex, and every task in it is costed at that grade through the effort archetype matrix.`,
+      modeSummary ? `Sessions and workshops are assumed to run as ${modeSummary}. Physical delivery carries more effort per session and seats fewer people, so it also requires more sessions.` : null,
+      `Scope covers ${(+d.headcount || 0).toLocaleString()} impacted people across ${d.units} business unit${d.units === 1 ? "" : "s"} and ${markets} location${markets === 1 ? "" : "s"}, in ${d.languages} language${d.languages === 1 ? "" : "s"}, with ${d.waves} deployment wave${d.waves === 1 ? "" : "s"}.`,
+      `Complexity rated ${d.complexity}/5 and client change maturity ${d.maturity} — effort multipliers are applied on this basis and should be revisited after scoping calls.`,
+      `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately quoted.`,
+      state.settings.contingency > 0 ? `A ${state.settings.contingency}% delivery buffer — ${days(t.bufferDays)} mandays — is held against scope volatility.` : null,
+      t.opt.length ? `${t.opt.length} line${t.opt.length === 1 ? " is" : "s are"} quoted as option${t.opt.length === 1 ? "" : "s"} totalling ${days(t.optEffort)} mandays, excluded from the headline effort.` : null,
+      `This is effort only, in mandays. Any commercial number — price, rate, discount, tax — is produced separately.`,
+      ...acceptedAdjustments().map((a) => `Judgement — ${a.rationale}${a.deltaMandays ? ` (${a.deltaMandays > 0 ? "+" : ""}${days(a.deltaMandays)} mandays)` : ""}`)
+    ].filter(Boolean);
   }
 
   // ---- judgement end ----
@@ -3317,35 +3521,7 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
       $("assumptions").innerHTML = `<li>Assumptions appear here once the estimate is built.</li>`;
       return;
     }
-    const d = effDrivers();
-    const cycles = reviewCycles();
-    const markets = Math.max(1, driverValue("geos"));
-    const modeCounts = {};
-    t.inc.forEach((l) => { if (l.mode) modeCounts[l.mode] = (modeCounts[l.mode] || 0) + 1; });
-    const modeSummary = Object.entries(modeCounts).map(([m, n]) => `${n} ${m}`).join(", ");
-    const scopeWord = state.scopeType === "both" ? "globalisation and localisation"
-      : state.scopeType === "local" ? "localisation only" : "globalisation only";
-
-    const items = [
-      `Scope covers ${scopeWord}. Our effort totals ${days(t.effortWithBuffer)} mandays, at an average of ${t.fte.toFixed(1)} FTE over ${d.months} months.`,
-      ...t.streams.map((ts) => {
-        const st = STREAMS.find((x) => x.id === ts.streamId);
-        return `${st.verb}: ${days(ts.build)} mandays of build, of which we carry ${Math.round(ts.share * 100)}% (${days(ts.ourBuild)} mandays) and the client ${100 - Math.round(ts.share * 100)}% (${days(ts.clientBuild)} mandays), plus ${days(ts.ourReview)} mandays of our review.`;
-      }),
-      state.scopeType !== "global"
-        ? `Localised deliverables are adapted for ${markets} market${markets === 1 ? "" : "s"} at ${Math.round(localisationFactor() * 100)}% of the effort it takes to build the global master.`
-        : null,
-      `${cycles} review cycle${cycles === 1 ? "" : "s"} ${cycles === 1 ? "is" : "are"} assumed, each one round of client review at ${Math.round(reviewPct("client") * 1000) / 10}% of build effort and one round of our own quality assurance at ${Math.round(reviewPct("ours") * 100)}%. Review covers the whole deliverable set regardless of who drafted it.`,
-      `Effort is built bottom-up from the itemised task library at ${state.settings.hoursPerDay || 8} hours per day. Each deliverable is graded Simple, Standard or Complex, and every task in it is costed at that grade through the effort archetype matrix.`,
-      modeSummary ? `Sessions and workshops are assumed to run as ${modeSummary}. Physical delivery carries more effort per session and seats fewer people, so it also requires more sessions.` : null,
-      `Scope covers ${(+d.headcount || 0).toLocaleString()} impacted people across ${d.units} business unit${d.units === 1 ? "" : "s"} and ${markets} location${markets === 1 ? "" : "s"}, in ${d.languages} language${d.languages === 1 ? "" : "s"}, with ${d.waves} deployment wave${d.waves === 1 ? "" : "s"}.`,
-      `Complexity rated ${d.complexity}/5 and client change maturity ${d.maturity} — effort multipliers are applied on this basis and should be revisited after scoping calls.`,
-      `Client provides subject matter experts, training venues and system access; translation and printing are excluded unless separately quoted.`,
-      state.settings.contingency > 0 ? `A ${state.settings.contingency}% delivery buffer — ${days(t.bufferDays)} mandays — is held against scope volatility.` : null,
-      t.opt.length ? `${t.opt.length} line${t.opt.length === 1 ? " is" : "s are"} quoted as option${t.opt.length === 1 ? "" : "s"} totalling ${days(t.optEffort)} mandays, excluded from the headline effort.` : null,
-      `This is effort only, in mandays. Any commercial number — price, rate, discount, tax — is produced separately.`,
-      ...acceptedAdjustments().map((a) => `Judgement — ${a.rationale}${a.deltaMandays ? ` (${a.deltaMandays > 0 ? "+" : ""}${days(a.deltaMandays)} mandays)` : ""}`)
-    ].filter(Boolean);
+    const items = assumptionItems();
     $("assumptions").innerHTML = items.map((i) => `<li>${esc(i)}</li>`).join("");
   }
 
@@ -3391,6 +3567,9 @@ Integrated Depot and Rolling Stock Maintenance System (IDRMS)
     $("judgement-gate").hidden = hasLines;
     $("judgement-input-card").hidden = !hasLines;
     if (!hasLines) { $("judgement-proposals-card").hidden = true; $("judgement-log-card").hidden = true; return; }
+    // A hand edit elsewhere on the page may have overridden an accepted
+    // adjustment; fold it in now so the log never shows a stale "accepted".
+    rebaseJudgement();
 
     $("judgement-proposals-card").hidden = judgementProposals.length === 0;
     $("judgement-proposals-meta").textContent = judgementProposals.length

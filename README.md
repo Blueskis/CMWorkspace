@@ -297,6 +297,23 @@ benchmarks — the same posture this repo already takes with the proposal genera
 `-EXAMPLE.md` knowledge-bank entries and its generic HTML template. Say so on handover
 until the admin tab's past-project effort table has enough logged engagements to
 recalibrate against.
+
+### Microsoft 365 Copilot version
+
+`skills/cm-effort-estimator/copilot/` rebuilds the estimator as an Agent Builder agent for
+teams that can't use Claude. The agent reads RFPs and turns judgement into proposals; a
+Copilot **skill** runs `engine.js`, the estimator's own engine and judgement code sliced out of
+`estimator.html`, so every number matches the web version. An Excel workbook
+(`CM-Effort-Estimator.xlsx`) mirrors the same rules in formulas: it keeps the saved estimate
+and the adjustment audit trail, and works on its own if the skill is unavailable. Parity tests
+fill the workbook from the engine's own output, recalculate it in LibreOffice and check the
+two agree to 0.1 manday across both streams, custom lines and a full judgement log.
+Click-by-click setup and an acceptance script are in `copilot/SETUP.md`.
+
+```bash
+python3 skills/cm-effort-estimator/copilot/build_copilot_pack.py      # regenerate from estimator.html
+python3 -m unittest discover -s skills/cm-effort-estimator/copilot/tests
+```
 ## Change impact assessment (MVP)
 
 Reads a system implementation's own source material — interview and workshop notes, meeting
@@ -494,8 +511,16 @@ skills/cm-effort-estimator/
 ├── SKILL.md              # what it does, what it doesn't, the placeholder-norms caveat
 ├── estimator.html         # the whole tool — data, engine, judgement layer, UI
 ├── tests/                # node:test, sliced straight out of estimator.html
-└── reference/
-    └── judgement-layer.md  # the adjustment schema, validation, the admin-config boundary
+├── reference/
+│   └── judgement-layer.md  # the adjustment schema, validation, the admin-config boundary
+└── copilot/              # Microsoft 365 Copilot agent, generated from estimator.html
+    ├── SETUP.md          # click-by-click Agent Builder setup + acceptance script
+    ├── agent/            # instructions (paste) and conversation starters
+    ├── src/              # SKILL.md and the CLI wrapper around the engine
+    ├── build_copilot_pack.py, workbook.py   # generate engine.js, CSVs, workbook
+    ├── skill/            # the unzipped skill, for review
+    ├── dist/             # upload these: skill zip, knowledge CSVs, workbook, samples
+    └── tests/            # engine-vs-workbook parity, recalculated in LibreOffice
 skills/change-impact-assessment/
 ├── SKILL.md              # the assessment process
 ├── templates/            # the client CIA template the generator populates
