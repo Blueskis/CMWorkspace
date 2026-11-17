@@ -1,0 +1,33 @@
+SECTION 4 — SCOPE OF SERVICES
+CHANGE MANAGEMENT AND WORKFORCE TRANSITION
+Integrated Depot and Rolling Stock Maintenance System (IDRMS)
+
+4.1 Background
+4.1.1 The Operator runs a network of 6 depots and 3 permanent way sites across the country and will replace its legacy maintenance management application with the IDRMS platform. The programme will run over a period of 14 months from contract award, delivered in 3 waves aligned to depot readiness.
+4.1.2 The transition affects approximately 2,400 employees, comprising maintenance technicians, depot supervisors, rolling stock engineers, materials controllers, permanent way crews and the central maintenance planning office. Frontline staff work a rotating shift roster and have limited access to desktop computers during the working day.
+
+4.2 Change Management Requirements
+4.2.1 The Contractor shall develop a Change Management Strategy and an integrated change management plan covering the full programme lifecycle, including the change governance approach and the change management team structure to be deployed.
+4.2.2 The Contractor shall conduct a change impact assessment covering each affected depot and the central planning office. The Operator anticipates the assessment will address 7 business units. The impact register shall record process, role, system and industrial-relations impacts, and shall be validated with the relevant union representatives.
+4.2.3 The Contractor shall carry out stakeholder analysis and produce a stakeholder engagement plan, giving specific attention to union stakeholders, depot leadership and the shift-based frontline population.
+4.2.4 The Contractor shall establish and activate a change agent network drawing nominated change champions from every depot, and shall provide the network with an activation session, a toolkit and ongoing coaching support.
+4.2.5 The Contractor shall conduct change readiness assessments before each of the deployment waves, and shall report results with recommended mitigations to the Programme Steering Committee.
+4.2.6 The Contractor shall develop a communications plan and produce the associated communications collaterals. Given the shift-based workforce, collaterals shall include depot noticeboard posters, shift briefing packs, toolbox talk cards and short video messages from the Chief Operating Officer suitable for viewing on personal mobile devices.
+4.2.7 The Contractor shall provide CM status reporting to the Programme Management Office on a weekly basis, maintain the change RAID log, and support the monthly Programme Steering Committee.
+
+4.3 Training Requirements
+4.3.1 The Contractor shall develop a training plan and shall design and deliver role-based training for all affected employees. The Operator has identified 9 training modules spanning work order management, asset registry, materials requisition, planned maintenance scheduling, defect reporting, safety certification, mobile inspection, reporting and system administration.
+4.3.2 Training shall be delivered through instructor-led sessions at each depot. Classes shall be capped at not more than 15 participants per session to accommodate hands-on practice at the terminals.
+4.3.3 The Contractor shall deliver train-the-trainer sessions to build a sustainable internal training capability, and shall produce user guides, quick reference guides and micro-learning assets suitable for mobile viewing.
+4.3.4 All training materials shall be produced in 2 languages.
+4.3.5 The Contractor shall provide UAT support training ahead of each wave.
+
+4.4 Deployment and Post Go-Live
+4.4.1 The Contractor shall provide hypercare support for 3 months following each wave go-live, including on-site floorwalking at depots during the first two weeks of each wave.
+4.4.2 The Contractor shall run user adoption clinics at each depot during hypercare and shall establish expert user groups to sustain capability after the Contractor demobilises.
+4.4.3 The Contractor shall produce a post-implementation review report for each wave and shall define the adoption measurement approach, including the success measures and the reporting cadence.
+4.4.4 The Contractor shall produce a handover plan and a change sustenance plan transferring ongoing change and training responsibilities to the Operator's Learning and Development function.
+
+4.5 Optional Scope
+4.5.1 Tenderers shall price the following as an option: an orientation programme for the Operator's incoming digital maintenance team, covering agile ways of working and the target operating model.
+4.5.2 Tenderers shall price as an option the development of system demo videos covering each of the training modules.

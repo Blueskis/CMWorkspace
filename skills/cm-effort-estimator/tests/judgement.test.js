@@ -54,6 +54,12 @@ function loadEngine() {
       rebuildFromScopeWithJudgement: rebuildFromScopeWithJudgement,
       judgementBaselineTotal: judgementBaselineTotal,
       acceptedAdjustments: acceptedAdjustments,
+      previewAdjustmentsDelta: previewAdjustmentsDelta,
+      rebaseJudgement: rebaseJudgement,
+      analyseScope: analyseScope,
+      SAMPLE_RFP: SAMPLE_RFP,
+      rebuildCustom: rebuildCustom,
+      roundHalfUp: roundHalfUp,
       judgementWarningActive: judgementWarningActive,
       parseAssistantResponse: parseAssistantResponse
     };
@@ -306,6 +312,94 @@ test("18: rebuild from scope with judgement applied keeps driver/global adjustme
   assert.equal(driverEntry.status, "accepted", "driver adjustments survive a rebuild");
   assert.equal(lineEntry.status, "superseded", "per-line adjustments are marked superseded, not dropped");
   assert.equal(e.getState().drivers.waves, 5, "the surviving driver adjustment should still be in effect");
+});
+
+// ---------------------------------------------------------------------------
+// Regressions found while porting to Copilot (R1-R6)
+// ---------------------------------------------------------------------------
+
+test("R1: a manual edit made after an accept survives the next accept", () => {
+  const e = primed();
+  e.acceptAdjustment({ op: "set_driver", target: "waves", value: 5, rationale: "Five waves." });
+  e.getState().settings.contingency = 12;   // a hand edit on the buffer card
+  e.acceptAdjustment({ op: "set_driver", target: "units", value: 6, rationale: "Six business units." });
+  assert.equal(e.getState().settings.contingency, 12);
+  assert.equal(e.getState().drivers.waves, 5);
+});
+
+test("R2: a manual edit to a lever an adjustment set supersedes that adjustment", () => {
+  const e = primed();
+  const a = e.acceptAdjustment({ op: "set_driver", target: "waves", value: 5, rationale: "Five waves." });
+  e.getState().drivers.waves = 3;           // the person types over it by hand
+  e.acceptAdjustment({ op: "set_global", target: "contingency", value: 10, rationale: "Volatile scope." });
+  assert.equal(e.getState().drivers.waves, 3);
+  assert.equal(e.getState().adjustments.find((x) => x.id === a.id).status, "superseded");
+  const rev = e.revertAdjustment(a.id);
+  assert.equal(rev.ok, false, "a superseded adjustment has nothing left to revert");
+});
+
+test("R3: reverting a lone set_line_qty restores the derived quantity exactly", () => {
+  const e = primed();
+  const s = e.getState();
+  const line = s.lines.find((l) => l.catId === "readiness_assess");
+  line.editedQty = false; e.buildLines(false);
+  const before = e.totals().effortWithBuffer;
+  const qtyBefore = s.lines.find((l) => l.id === line.id).qty;
+  const a = e.acceptAdjustment({ op: "set_line_qty", target: line.id, value: qtyBefore + 4, rationale: "Four more cycles." });
+  e.revertAdjustment(a.id);
+  assert.equal(e.getState().lines.find((l) => l.id === line.id).qty, qtyBefore);
+  assert.equal(e.totals().effortWithBuffer, before);
+});
+
+test("R4: reverting set_line_qty on a hand-added custom line restores its quantity", () => {
+  const e = primed();
+  const s = e.getState();
+  s.lines.push(e.rebuildCustom({ id: "custom_1", catId: "", stream: "global", name: "Union briefing pack", clientTerm: "",
+    desc: "", unit: "item", cat: "Added for this pursuit", rateKey: "", archetype: "Decks & Visual Assets", level: "Standard",
+    mode: null, include: true, optional: false, qty: 2, editedQty: true, editedInclude: true, editedOptional: true, detected: false, custom: true }));
+  const before = e.totals().effortWithBuffer;
+  const a = e.acceptAdjustment({ op: "set_line_qty", target: "custom_1", value: 7, rationale: "Seven unions, one pack each." });
+  assert.equal(e.getState().lines.find((l) => l.id === "custom_1").qty, 7);
+  e.revertAdjustment(a.id);
+  assert.equal(e.getState().lines.find((l) => l.id === "custom_1").qty, 2);
+  assert.equal(e.totals().effortWithBuffer, before);
+});
+
+test("R5: string values from a model are coerced, not stored as strings", () => {
+  const e = primed();
+  const line = firstIncludedLine(e);
+  e.acceptAdjustment({ op: "set_driver", target: "waves", value: "5", rationale: "Five waves." });
+  e.acceptAdjustment({ op: "set_line_include", target: line.id, value: "false", rationale: "Client delivers this themselves." });
+  assert.strictEqual(e.getState().drivers.waves, 5);
+  assert.strictEqual(e.getState().lines.find((l) => l.id === line.id).include, false);
+});
+
+test("R6: mode of conduct on a document line is refused as not applicable", () => {
+  const e = primed();
+  const doc = e.getState().lines.find((l) => l.catId === "cm_plan");
+  const r = e.validateAdjustment({ op: "set_line_mode", target: doc.id, value: "physical", rationale: "x" }, e.getState());
+  assert.equal(r.ok, false);
+  assert.match(r.reason, /not applicable/);
+});
+
+test("R7: a batch preview equals the movement once the whole batch is accepted", () => {
+  const e = primed();
+  const batch = [
+    { op: "set_driver", target: "waves", value: 5, rationale: "Five waves." },
+    { op: "set_driver", target: "maturity", value: "low", rationale: "No change function." },
+    { op: "set_global", target: "involvement.global", value: 140, rationale: "invalid, must be skipped" }
+  ];
+  const before = e.totals().effortWithBuffer;
+  const predicted = e.previewAdjustmentsDelta(batch);
+  batch.forEach((b) => e.acceptAdjustment(b));
+  assert.equal(Math.round((e.totals().effortWithBuffer - before) * 10) / 10, predicted);
+});
+
+test("R8: rounding matches a spreadsheet on half-way values (3 x 0.35 = 1.05 rounds to 1.1)", () => {
+  const e = loadEngine();
+  assert.equal(e.roundHalfUp(3 * 0.35, 1), 1.1);
+  assert.equal(e.roundHalfUp(2.5, 0), 3);
+  assert.equal(e.roundHalfUp(0.875, 1), 0.9);
 });
 
 test("smoke: buildLines/totals produce finite, non-negative numbers on a minimal driver set", () => {

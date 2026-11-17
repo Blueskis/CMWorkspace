@@ -1,0 +1,105 @@
+REQUIREMENT SPECIFICATIONS — CHANGE MANAGEMENT AND TRAINING
+
+Anonymised extract of a public-sector requirement specification, used as the sample scope for the estimator. All identifying references have been removed: the buying organisation is "the Client", the bidding party is "the provider", and the entities onboarded in phases are "participating organisations".
+
+1. INTRODUCTION
+
+1.1.1 The provider shall lead and execute change management activities to ensure stakeholder readiness prior to each phase of participating organisation onboarding. The provider shall adapt change management approaches as needed throughout the phased implementation up till the end of the solution warranty period for the last participating organisation onboarded.
+
+1.1.2 The stakeholders include but are not limited to the following: (a) senior stakeholder groups including executive project sponsors, leadership, board members, service professionals, administrators and staff; (b) policy divisions, operational teams, and owners of existing systems affected by or replaced by the new solution; (c) client users, nominated personnel and nominated technical personnel; (d) functional business units such as Finance and Procurement with processes and systems directly impacted by the solution; (e) technical and project delivery teams, including ICT representatives, data owners, system integration leads, cybersecurity and infrastructure personnel; (f) end users of the solution across all organisational levels, including identified superusers and change champions who will support training and adoption activities; (g) external partners and third-party providers involved in service delivery, solution integration or ongoing system support after each participating organisation has onboarded.
+
+1.1.3 The provider shall develop a stakeholder engagement strategy and change management plan to address the varying levels of concerns across different stakeholder groups.
+
+1.1.4 The provider shall ensure that stakeholders understand the need for change and the impact of new working procedures to promote positive reactions and enthusiasm for adopting the solution.
+
+2. CHANGE MANAGEMENT TEAM
+
+2.1.1 The provider shall propose a change management team led by a change manager. The change management team shall possess appropriate expertise and experience to support and partner with the Client in delivering effective change management throughout the project lifecycle.
+
+2.1.2 The provider shall clearly define the reporting hierarchy and organisational structure of the change management team, including reporting relationships with the Client's project team and other delivery teams.
+
+2.3.1 The change manager shall collaborate with the development and design team to ensure change management considerations are integrated throughout the development process.
+
+2.3.3 The change management team shall review and ensure consistency and coherence in all messaging and communications materials (including emails, presentations, training materials and announcements) prior to seeking Client approval and releasing to stakeholders.
+
+3. CHANGE MANAGEMENT SCOPE
+
+3.1.1 The provider shall propose a change management plan that covers the entire project lifecycle, including: (a) implementation stage; (b) post go-live BAU operations stage, including the performance guarantee period and the solution warranty period; and (c) maintenance services stage, encompassing new releases and patches that affect stakeholders.
+
+3.1.2 The provider shall provide a comprehensive change management proposal, including the following:
+
+(a) Change management strategy and approach, including but not limited to: i) Planning — design, scheduling and timeline for intended outcomes, changes and announcements, organised into phased stages, including a capability building plan to equip key stakeholders and the change management team with the requisite mindset and skills, including just-in-time coaching and mentoring; ii) Evaluation — assessment of risks and benefits at each stage, with recommended implementation approaches for each phase, including change impact analysis across the Client and participating organisations; iii) Communication strategy — development of a compelling change narrative that establishes context, initiates calls to action and explains the transformation journey towards the desired vision; iv) Implementation schedule — detailed timeline for executing the change management plan according to project milestones; v) Post-implementation review — monitoring and evaluation of change implementation effectiveness, including pulse check surveys to track project success measures and change progress, conducted every six months or aligned with project milestones; vi) Change agent identification and training — identification of suitable change agents within the organisation and development of a comprehensive training plan for the identified change agents.
+
+(b) Change management team structure, including the roles and responsibilities of the provider team, subcontractors, the Client and participating organisations;
+
+(c) Detailed stakeholder engagement plan, including methods of engagement (dialogue sessions, seminars) and training approaches to ease the onboarding process;
+
+(d) Comprehensive communications plan, detailing communication channels, materials development, coordination mechanisms and approval processes. The provider shall quote for communication materials development as optional items;
+
+(e) Transition management plan;
+
+(f) Change readiness assessment;
+
+(g) Change impact assessment;
+
+(h) Change intervention plan;
+
+(i) Change risk management plan;
+
+(j) Change management activities and schedule;
+
+(k) User training plan and materials;
+
+(l) Success measurement framework, including indicators to measure change success during and beyond solution implementation, clearly specifying measurement objectives, timelines, measurement indices and appropriate follow-up actions;
+
+(m) Handover plan to enable the Client team to sustain and institutionalise the change within three (3) months before the end of the solution warranty period for the last participating organisation onboarded.
+
+3.1.3 The provider shall provide a cost breakdown for all change management activities.
+
+3.3.1 The provider shall work with the Client to leverage policy makers, stakeholders and change networks to develop and customise communications and materials.
+
+3.3.2 The provider may use communication channels such as newsletters, videos and road shows. The change management team shall track and coordinate all communications from all channels and sources.
+
+3.3.3 The provider shall prepare all engagement and communication materials (including EDMs, posters, briefing slides) and obtain Client approval at least five (5) working days before engagement commencement.
+
+3.3.5 During change management programme implementation, the provider shall analyse issues related to system usage or adoption and propose additional change management measures to address these issues.
+
+3.3.6 The provider shall provide timely reviews tracking key performance indicators to validate change management success, and provide a post-implementation report one (1) month after each participating organisation is onboarded, including key successes, challenges and measures of success; a summary of findings from reviews and retrospective meetings; and recommendations for sustaining and reinforcing business change efforts.
+
+4. CHANGE SUSTENANCE AFTER THE WARRANTY PERIOD
+
+4.1.1 The provider shall propose, as an option for the Client to exercise, a detailed change sustenance plan to sustain adoption of the solution after the solution warranty period of the last participating organisation onboarded.
+
+4.1.2 The plan shall minimally include: (a) stakeholder management plan; (b) strategy and approach to sustain adoption; (c) engagement and communications plan, including engagements during solution enhancements; (d) governance and team structure; (e) support framework to sustain any proposed interventions to shape desired behaviour; (f) capability building; (g) tools and resources; (h) success measurement indicators for change interventions beyond solution implementation; and (i) handover plan to enable the Client team to sustain and institutionalise the change within three (3) months after completing the change sustenance plan.
+
+4.2.3 The provider shall itemise the cost for this scope of work as an option for the Client to exercise.
+
+5. TRAINING
+
+5.1.1 The provider shall provide training to meet the following objectives: (a) to enable all client users and nominated personnel to manage, operate, configure and use the solution effectively and proficiently; (b) to enable all nominated technical personnel to manage, operate, configure and maintain the solution; (c) to enable all nominated technical personnel to have an overview of the system architecture and to diagnose and resolve problems in using the solution; (d) to enable a smooth transfer of knowledge from the provider to the nominated technical personnel.
+
+5.1.2 The provider shall provide at least the following types of training: (a) product overview and business process training; (b) configuration for system modules training; (c) business rule training; (d) application security administration overview training; (e) system maintenance overview training; (f) interface and integration training; (g) reports and dashboards overview training; (h) senior management pre go-live briefings; (i) technical training; (j) training on software and tools.
+
+5.1.9 The provider shall ensure that all training instructors are suitably qualified and competent and are well-versed in the system.
+
+5.1.12 The provider shall include the type of training, target audience, duration of each session, proposed number of sessions, number of trainees per session, schedule of the sessions, and training charges and rates. The exact number of participants will be determined by the Client during the contract period.
+
+5.1.13 The provider shall ensure the maximum number of participants per training session should not be more than thirty (30) to ensure training is delivered effectively.
+
+5.1.14 The provider shall provide all necessary equipment, training materials and logistics coordination (including informing users of the training schedule, registration of participants, maintaining records of attendance and collating training feedback forms) for all training sessions.
+
+5.2.1 The provider shall provide all the training materials, inclusive of instructor's guide, slides and trainee's booklet, in soft copy and obtain Client approval at least five (5) working days before the commencement of the training.
+
+5.2.4 The provider shall update the training materials when the need arises, including to account for any new changes made to the solution such as newly implemented modules and new releases or patches.
+
+5.3.1 The provider shall collect feedback from all participants of each training session by distributing evaluation forms, collate the results and submit the completed evaluation forms to the Client within seven (7) days after the end of each training session.
+
+5.4.1 The provider shall provide training on the application for various roles such as users, administrators and operators.
+
+6. ORIENTATION PROGRAMME
+
+6.1.1 Prior to the commencement of application software development activities, the provider shall deliver an orientation programme for the project team, in order to familiarise and prepare these personnel on project and product management activities.
+
+6.1.2 The provider shall provide the necessary manpower and logistics to support the end-to-end delivery of the proposed orientation programme, which may include the venue where the orientation programme would be conducted, printing of presentation and reference materials, and coaches to facilitate group discussion activities and gamification.
+
+6.1.5 The orientation programme shall build capabilities for effective and efficient involvement in the development phase of the project, including aligning the project, product management, Agile methodology and event milestones; sharing roles and responsibilities of key roles in the project; defining sprint duration, definition of done and the calendar of ceremonies; and sharing examples of user stories with clear acceptance criteria.

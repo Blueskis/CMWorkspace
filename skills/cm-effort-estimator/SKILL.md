@@ -74,10 +74,17 @@ skills/cm-effort-estimator/
 ├── estimator.html               # the whole tool — data, engine, judgement layer, UI
 ├── tests/judgement.test.js      # node:test, slices the engine + judgement blocks out
 │                                #   of estimator.html and runs them standalone
-└── reference/
-    └── judgement-layer.md       # the adjustment schema, validation rules, and the
-                                 #   admin-configuration boundary
+├── reference/
+│   └── judgement-layer.md       # the adjustment schema, validation rules, and the
+│                                #   admin-configuration boundary
+└── copilot/                     # the Microsoft 365 Copilot version, generated from
+                                 #   estimator.html: see copilot/SETUP.md
 ```
+
+**Edit the engine here, never in `copilot/`.** The Copilot skill's `engine.js`, its knowledge
+files and its Excel workbook are generated from `estimator.html` by
+`copilot/build_copilot_pack.py`. Rebuild and re-upload after any change to the data or the
+engine, or the web version and the Copilot agent will give different numbers.
 
 `estimator.html` is stdlib-browser-only — no build step, no dependencies, no network calls
 except the artifact platform's own `sample` capability for the judgement assistant, which
@@ -87,4 +94,6 @@ degrades gracefully to "every lever is still yours to set by hand" when unavaila
 
 ```bash
 node --test skills/cm-effort-estimator/tests/judgement.test.js
+python3 skills/cm-effort-estimator/copilot/build_copilot_pack.py
+python3 -m unittest discover -s skills/cm-effort-estimator/copilot/tests
 ```
